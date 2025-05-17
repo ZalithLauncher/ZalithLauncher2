@@ -50,6 +50,9 @@ Zalith Launcher 2 currently supports the following two languages:
 
 * **English** (default)
 * **Simplified Chinese**
+* **Turkish**
+
+Added Turkish language support by Star1xr.
 
 These two languages are the ones that the project officially **maintains and guarantees completeness**. We welcome community contributions for translations in other languages, but please note the following:
 

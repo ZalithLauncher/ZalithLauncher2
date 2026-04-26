@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.base
 
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.CallSuper
 import androidx.appcompat.app.AppCompatActivity
 import com.movtery.zalithlauncher.context.GlobalContext
@@ -27,6 +28,7 @@ abstract class AbstractAppCompatActivity : AppCompatActivity() {
     @CallSuper
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         GlobalContext = this
     }
 }

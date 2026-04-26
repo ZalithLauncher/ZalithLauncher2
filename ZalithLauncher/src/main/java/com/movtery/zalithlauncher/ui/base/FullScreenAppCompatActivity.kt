@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.ui.base
 
 import android.os.Build
 import android.os.Bundle
-import android.view.View
 import android.view.WindowManager
 import androidx.annotation.CallSuper
 import androidx.compose.foundation.layout.WindowInsets
@@ -31,6 +30,9 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
     @CallSuper
@@ -39,35 +41,35 @@ abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
         applyFullImmersive()
     }
 
-    @Suppress("DEPRECATION")
-    private val systemUIVisibility = (
-            View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN
-                    or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-            )
-
-    @Suppress("DEPRECATION")
     private fun applyFullImmersive() {
-        window?.decorView?.systemUiVisibility = systemUIVisibility
-        if (Build.VERSION.SDK_INT >= 28) {
-            val attributes: WindowManager.LayoutParams = window.attributes
+        // 让应用内容延伸到系统栏（状态栏、导航栏）下方
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        // 使用 WindowInsetsControllerCompat 控制系统栏的显示与隐藏
+        val insetsController = WindowCompat.getInsetsController(window, window.decorView)
+        insetsController.apply {
+            // 隐藏状态栏和导航栏
+            hide(WindowInsetsCompat.Type.systemBars())
+            // 对应原有的 SYSTEM_UI_FLAG_IMMERSIVE_STICKY，滑动边缘可短暂显示系统栏
+            systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+        }
+
+        // 处理刘海屏/挖孔屏区域的延伸 (API 28+)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val attributes = window.attributes
             attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            window.setAttributes(attributes)
+            window.attributes = attributes
         }
     }
 }
 
 @Composable
-fun Modifier.applyFullscreen(value: Boolean): Modifier {
-    val modifier = Modifier.fillMaxSize()
-    return then(
-        modifier.windowInsetsPadding(
-            WindowInsets.captionBar.run {
-                if (value) this else union(WindowInsets.displayCutout)
-            }
-        )
+fun Modifier.applyFullscreen(value: Boolean): Modifier = this
+    .fillMaxSize()
+    .windowInsetsPadding(
+        if (value) {
+            WindowInsets.captionBar
+        } else {
+            WindowInsets.captionBar.union(WindowInsets.displayCutout)
+        }
     )
-}

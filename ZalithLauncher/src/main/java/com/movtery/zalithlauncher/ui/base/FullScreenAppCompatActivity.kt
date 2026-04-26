@@ -23,10 +23,8 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.annotation.CallSuper
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.captionBar
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -41,35 +39,36 @@ abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
         applyFullImmersive()
     }
 
-    private fun applyFullImmersive() {
-        // 让应用内容延伸到系统栏（状态栏、导航栏）下方
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            applyFullImmersive()
+        }
+    }
 
-        // 使用 WindowInsetsControllerCompat 控制系统栏的显示与隐藏
+    private fun applyFullImmersive() {
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
         insetsController.apply {
-            // 隐藏状态栏和导航栏
             hide(WindowInsetsCompat.Type.systemBars())
-            // 对应原有的 SYSTEM_UI_FLAG_IMMERSIVE_STICKY，滑动边缘可短暂显示系统栏
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
 
-        // 处理刘海屏/挖孔屏区域的延伸 (API 28+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             val attributes = window.attributes
-            attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-            window.attributes = attributes
+            val newParams = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            if (attributes.layoutInDisplayCutoutMode != newParams) {
+                attributes.layoutInDisplayCutoutMode = newParams
+                window.attributes = attributes
+            }
         }
     }
 }
 
 @Composable
-fun Modifier.applyFullscreen(value: Boolean): Modifier = this
-    .fillMaxSize()
-    .windowInsetsPadding(
-        if (value) {
-            WindowInsets.captionBar
-        } else {
-            WindowInsets.captionBar.union(WindowInsets.displayCutout)
-        }
+fun Modifier.applyFullscreen(value: Boolean): Modifier {
+    val modifier = Modifier.fillMaxSize()
+    return then(
+        if (value) modifier
+        else modifier.windowInsetsPadding(WindowInsets.displayCutout)
     )
+}

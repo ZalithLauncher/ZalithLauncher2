@@ -795,7 +795,7 @@
     <string name="versions_manage_category_modloader">Modlanabilir</string>
     <string name="versions_manage_pin">Pin</string>
     <string name="versions_manage_delete_version_tip_invalid">Mevcut sürümde JSON dosyası eksik veya geçerli bir biçimde değil, bu nedenle geçersiz olarak işaretlendi. Bu nedenle bu sürümü seçemezsiniz. Bu hatalı sürümü silmek için Tamam\'ı tıklayın.</string>
-    <string name="versions_manage_cleanup">Oyun dosyalarını temizle</string>
+    <string name="versions_manage_cleanup">Oyun Dosyalarını Temizle</string>
     <string name="versions_manage_cleanup_tip">Başlatıcı, yüklü oyun dosyalarını kontrol edecek, bunları mevcut sürümlerin gerektirdiği oyun dosyalarıyla karşılaştıracak ve ardından kullanılmayan oyun dosyalarını silecektir. Bu, cihazınızda önemli ölçüde yer tasarrufu sağlayabilir.</string>
     <string name="versions_manage_cleanup_warning">Not: Başlatıcı, mevcut oyun dizininde yalnızca aşağıdaki klasörleri tarayacaktır:</string>
     <string name="versions_manage_cleanup_collect_files">Yerel olarak yüklenmiş dosyaları toplayın</string>
@@ -1184,4 +1184,5 @@
     <string name="screenshots_manage_export_failed">Dışarıya aktarma başarısız</string>
     <string name="screenshots_manage_export_all_message">Tüm ekran görüntülerini sistem galerisine aktarmak istiyormusunuz?</string>
     <string name="screenshots_manage_export_selected_message">Seçilen %1$d ekran görüntülerinü sistem galerisine dışarıya aktar?</string>
+    <string name="unpack_screen_jna">Minecraft\'ın düşük seviyeli işletim sistemi fonksiyonlarını doğrudan çağırmasına olanak tanır.</string>
 </resources>

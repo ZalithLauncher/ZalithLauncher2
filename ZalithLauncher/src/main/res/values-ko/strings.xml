@@ -101,7 +101,7 @@
     <string name="crash_share_logs">로그 공유</string>
     <string name="crash_restart">재시작</string>
     <string name="crash_exit">종료</string>
-    <string name="crash_link_share_button">공유 링크</string>
+    <string name="crash_link_share_button">링크 공유</string>
     <string name="crash_link_share_tip">런처가 게임 로그를 공개 플랫폼에 업로드합니다. 이후 진단을 위해 다른 사람과 편리하게 공유할 수 있는 링크를 받게 됩니다.</string>
     <string name="crash_link_share_uploading">%s에 로그 업로드 중</string>
     <string name="crash_link_share_failed">업로드 실패</string>
@@ -715,8 +715,8 @@
     <string name="mods_update_success_text">선택한 모든 모드가 최신 버전으로 업데이트되었습니다!</string>
     <string name="mods_update_failed">모드 업데이트 실패</string>
     <string name="mods_update_failed_text">모드를 업데이트하는 중 오류가 발생했습니다:</string>
-    <string name="saves_manage">저장</string>
-    <string name="saves_manage_info">정보 저장</string>
+    <string name="saves_manage">월드</string>
+    <string name="saves_manage_info">월드 정보</string>
     <string name="saves_manage_invalid">손상된 세이브 파일입니다</string>
     <string name="saves_manage_last_played">최근 플레이: %s</string>
     <string name="saves_manage_gamemode">게임 모드: %s</string>
@@ -730,4 +730,10 @@
     <string name="saves_manage_difficulty_easy">쉬움</string>
     <string name="saves_manage_difficulty_normal">보통</string>
     <string name="saves_manage_difficulty_hard">어려움</string>
+    <string name="saves_manage_difficulty_locked">난이도 잠금</string>
+    <string name="saves_manage_allow_commands">명령어 허용</string>
+    <string name="saves_manage_world_seed">월드 시드: %s</string>
+    <string name="saves_manage_exists">동일한 이름의 세이브가 존재합니다</string>
+    <string name="saves_manage_save_name">이름 저장</string>
+    <string name="saves_manage_backup">세이브 백업</string>
 </resources>

@@ -48,9 +48,8 @@ fun nextPage(
     onSearch: (index: Int) -> Unit = {}
 ) {
     if (!isLastPage) {
-        val nextIndex = pageNumber
         //判断是否已缓存下一页
-        val nextPage = pages.getOrNull(nextIndex)
+        val nextPage = pages.getOrNull(pageNumber)
         if (nextPage != null) {
             onSuccess(nextPage)
         } else {

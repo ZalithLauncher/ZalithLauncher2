@@ -101,7 +101,7 @@ object ForgeNewModMetadataReader : ModMetadataReader {
 
             val mod = metadata.mods[0]
             val jarVersion = readVersion(zip, modFile)
-            val resolvedVersion = mod.version.replace("\${file.jarVersion}", jarVersion ?: "")
+            val resolvedVersion = mod.version.replace($$"${file.jarVersion}", jarVersion ?: "")
             val loaderType = analyzeLoader(toml, mod.modId, loaderACC, defaultLoader)
             val icon = zip.tryGetIcon(metadata.logoFile)
 
@@ -187,7 +187,7 @@ object ForgeNewModMetadataReader : ModMetadataReader {
 
             val mod = metadata.mods[0]
             val jarVersion = readVersionApache(zip, modFile)
-            val resolvedVersion = mod.version.replace("\${file.jarVersion}", jarVersion ?: "")
+            val resolvedVersion = mod.version.replace($$"${file.jarVersion}", jarVersion ?: "")
             val loaderType = analyzeLoader(toml, mod.modId, loaderACC, defaultLoader)
             val icon = zip.tryGetIcon(metadata.logoFile)
 
@@ -227,8 +227,7 @@ object ForgeNewModMetadataReader : ModMetadataReader {
     private fun fixAuthorsField(map: MutableMap<String, Any?>) {
         val mods = map["mods"] as? List<MutableMap<String, Any?>> ?: return
         for (mod in mods) {
-            val authors = mod["authors"]
-            when (authors) {
+            when (val authors = mod["authors"]) {
                 is String -> mod["authors"] = parseAuthors(authors)
                 is List<*> -> {}
                 else -> mod["authors"] = emptyList<String>()

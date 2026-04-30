@@ -182,6 +182,7 @@ fun GamepadSettingsScreen(
                     val scope = rememberCoroutineScope()
                     val context = LocalContext.current
 
+                    val resetFinishedText = stringResource(R.string.settings_gamepad_remapping_reset_finished)
                     SettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
@@ -194,7 +195,7 @@ fun GamepadSettingsScreen(
                                 withContext(Dispatchers.Main) {
                                     Toast.makeText(
                                         context,
-                                        context.getString(R.string.settings_gamepad_remapping_reset_finished),
+                                        resetFinishedText,
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }

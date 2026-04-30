@@ -141,7 +141,7 @@ private fun insertSafety(
         runCatching {
             val fieldA = from.javaClass.getDeclaredField(key).apply { isAccessible = true }
             value = fieldA.get(from)
-            if (((value is String) && (value as String).isNotEmpty()) || value != null) {
+            if (((value is String) && value.isNotEmpty()) || value != null) {
                 val fieldB = target.javaClass.getDeclaredField(key).apply { isAccessible = true }
                 fieldB.set(target, value)
             }

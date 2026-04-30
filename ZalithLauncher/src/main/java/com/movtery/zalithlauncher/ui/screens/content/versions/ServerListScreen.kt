@@ -1018,11 +1018,10 @@ fun ServerSignalIcon(
     Canvas(modifier = modifier.padding(contentPadding)) {
         val barCount = 5
         val barWidth = size.width / (barCount * 2 - 1)
-        val spacing = barWidth
 
         for (i in 0 until barCount) {
             val barHeight = size.height * (i + 1) / barCount
-            val xOffset = i * (barWidth + spacing)
+            val xOffset = i * (barWidth + barWidth)
             val yOffset = size.height - barHeight
 
             drawRect(

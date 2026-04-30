@@ -663,6 +663,7 @@ private fun MousePointerCard(
         }
     )
 
+    val imageImportErrorTitle = stringResource(R.string.error_import_image)
     val filePicker = rememberLauncherForActivityResult(
         contract = MediaPickerContract(
             allowImages = true,
@@ -684,7 +685,7 @@ private fun MousePointerCard(
                         FileUtils.deleteQuietly(mousePointerFile)
                         submitError(
                             ErrorViewModel.ThrowableMessage(
-                                title = context.getString(R.string.error_import_image),
+                                title = imageImportErrorTitle,
                                 message = th.getMessageOrToString()
                             )
                         )

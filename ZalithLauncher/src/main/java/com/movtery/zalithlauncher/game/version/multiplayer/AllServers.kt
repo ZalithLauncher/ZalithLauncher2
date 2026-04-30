@@ -61,7 +61,7 @@ class AllServers {
 
                 servers.forEach { tag ->
                     val serverTag = tag as? CompoundTag ?: return@forEach
-                    val data = serverTag.parseServerData() ?: return@forEach
+                    val data = serverTag.parseServerData()
                     val isHidden = serverTag.asBooleanNotNull("hidden", false)
                     if (!isHidden) {
                         _serverList.add(data)
@@ -150,7 +150,7 @@ class AllServers {
     /**
      * [参考 WIKI](https://zh.minecraft.wiki/w/%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%88%97%E8%A1%A8%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F#%E5%AD%98%E5%82%A8%E6%A0%BC%E5%BC%8F)
      */
-    private fun CompoundTag.parseServerData(): ServerData? {
+    private fun CompoundTag.parseServerData(): ServerData {
         val name = asStringNotNull("name", "")
         val origin = asStringNotNull("ip", "")
 

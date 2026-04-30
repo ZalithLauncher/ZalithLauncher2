@@ -211,14 +211,14 @@ object RuntimesManager {
 
     fun loadInternalRuntimeVersion(name: String): String? {
         val versionFile = RUNTIME_FOLDER.child(name, "version")
-        try {
-            return if (versionFile.exists()) {
+        return try {
+            if (versionFile.exists()) {
                 versionFile.readText()
             } else {
                 null
             }
         } catch (_: IOException) {
-            return null
+            null
         }
     }
 

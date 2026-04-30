@@ -1198,7 +1198,7 @@ private fun ModItemLayout(
                                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     val remoteLoaders = mod.remoteFile?.loaders
-                                    if (remoteLoaders != null && remoteLoaders.isNotEmpty()) {
+                                    if (!remoteLoaders.isNullOrEmpty()) {
                                         remoteLoaders.forEach { loader ->
                                             LittleTextLabel(
                                                 text = loader.getDisplayName(),

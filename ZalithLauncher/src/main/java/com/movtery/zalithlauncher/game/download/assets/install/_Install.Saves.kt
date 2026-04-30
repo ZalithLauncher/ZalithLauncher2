@@ -24,6 +24,8 @@ import com.movtery.zalithlauncher.utils.file.UnpackZipException
 import com.movtery.zalithlauncher.utils.file.ZipEntryBase
 import com.movtery.zalithlauncher.utils.file.extractFromZip
 import com.movtery.zalithlauncher.utils.logging.Logger.lInfo
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.apache.commons.compress.archivers.zip.ZipFile
 import org.apache.commons.io.FileUtils
 import java.io.File
@@ -38,9 +40,11 @@ suspend fun unpackSaveZip(zipFile: File, targetPath: File) {
     lInfo("Found the level of the level.data file: $path")
     val target = File(targetPath, zipFile.nameWithoutExtension)
     try {
-        JDKZipFile(zipFile).use { zip ->
-            zip.extractFromZip(path, target)
-            lInfo("Decompression is complete")
+        withContext(Dispatchers.IO) {
+            JDKZipFile(zipFile).use { zip ->
+                zip.extractFromZip(path, target)
+                lInfo("Decompression is complete")
+            }
         }
     } catch (e: Exception) {
         if (e !is UnpackZipException) {

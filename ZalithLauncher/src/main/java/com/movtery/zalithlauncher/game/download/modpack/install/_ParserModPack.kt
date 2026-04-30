@@ -99,7 +99,9 @@ suspend fun <T> withZipFile(
     loaderApache: suspend (ApacheZipFile) -> T
 ): T {
     return try {
-        JdkZipFile(file).use { loaderJdk(it) }
+        withContext(Dispatchers.IO) {
+            JdkZipFile(file).use { loaderJdk(it) }
+        }
     } catch (e: Exception) {
         lWarning("JDK ZipFile failed to parse ${file.name}, fallback to Apache ZipFile.", e)
         ApacheZipFile.builder().setFile(file).get().use { loaderApache(it) }

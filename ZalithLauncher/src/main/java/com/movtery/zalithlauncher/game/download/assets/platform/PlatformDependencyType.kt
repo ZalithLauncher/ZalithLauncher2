@@ -55,8 +55,7 @@ enum class PlatformDependencyType(val curseforgeCode: Int) {
         override fun deserialize(decoder: Decoder): PlatformDependencyType {
             return when (val input = runCatching { decoder.decodeInt() }.getOrNull()) {
                 null -> {
-                    val name = decoder.decodeString().lowercase()
-                    when (name) {
+                    when (val name = decoder.decodeString().lowercase()) {
                         "required" -> REQUIRED
                         "optional" -> OPTIONAL
                         "incompatible" -> INCOMPATIBLE

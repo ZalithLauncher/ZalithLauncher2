@@ -22,6 +22,7 @@ import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -250,7 +251,12 @@ class SplashActivity : BaseAppCompatActivity(refreshData = false) {
         val uri: Uri? = when (source.action) {
             Intent.ACTION_SEND -> {
                 source.clipData?.getItemAt(0)?.uri
-                    ?: source.getParcelableExtra(Intent.EXTRA_STREAM)
+                    ?: if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        source.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        source.getParcelableExtra(Intent.EXTRA_STREAM)
+                    }
             }
             Intent.ACTION_VIEW -> source.data
             else -> null

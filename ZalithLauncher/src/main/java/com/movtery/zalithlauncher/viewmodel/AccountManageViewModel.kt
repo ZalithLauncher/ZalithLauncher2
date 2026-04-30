@@ -78,6 +78,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -93,7 +94,6 @@ import java.nio.channels.UnresolvedAddressException
 import java.util.UUID
 import javax.inject.Inject
 import io.ktor.client.plugins.ResponseException as KtorResponseException
-import kotlinx.coroutines.flow.combine as kotlinxCombine
 
 /**
  * 账号管理界面用户意图 (MVI Intent)
@@ -221,7 +221,7 @@ class AccountManageViewModel @Inject constructor(
     /**
      * 登录相关操作状态流统一管理
      */
-    val loginUiState: StateFlow<LoginUiState> = kotlinxCombine(
+    val loginUiState: StateFlow<LoginUiState> = combine(
         _loginMenuOp,
         _microsoftLoginOp,
         _localLoginOp,
@@ -249,7 +249,7 @@ class AccountManageViewModel @Inject constructor(
     /**
      * 账号数据状态流统一管理
      */
-    val profileUiState: StateFlow<ProfileUiState> = kotlinxCombine(
+    val profileUiState: StateFlow<ProfileUiState> = combine(
         AccountsManager.accountsFlow,
         AccountsManager.currentAccountFlow,
         AccountsManager.authServersFlow,
@@ -292,7 +292,7 @@ class AccountManageViewModel @Inject constructor(
     /**
      * 数据相关操作状态流统一管理
      */
-    val operationUiState: StateFlow<OperationUiState> = kotlinxCombine(
+    val operationUiState: StateFlow<OperationUiState> = combine(
         _serverOp,
         _accountOp,
         _accountSkinOp,

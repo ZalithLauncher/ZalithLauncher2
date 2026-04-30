@@ -520,7 +520,7 @@ private fun ProjectInfo(
         modifier = modifier,
         shape = MaterialTheme.shapes.extraLarge
     ) {
-        when (val result = projectResult) {
+        when (projectResult) {
             is DownloadAssetsState.Getting -> {
                 LazyColumn(
                     contentPadding = PaddingValues(all = 12.dp),
@@ -564,7 +564,7 @@ private fun ProjectInfo(
                 }
             }
             is DownloadAssetsState.Success -> {
-                val (project, mod, mcmod) = result.result
+                val (project, mod, mcmod) = projectResult.result
                 //项目基本信息
                 val platform = remember { project.platform() }
                 val iconUrl = remember { project.platformIconUrl() }
@@ -690,10 +690,10 @@ private fun ProjectInfo(
                 Box(Modifier
                     .fillMaxSize()
                     .padding(all = 12.dp)) {
-                    val message = if (result.args != null) {
-                        stringResource(result.message, *result.args)
+                    val message = if (projectResult.args != null) {
+                        stringResource(projectResult.message, *projectResult.args)
                     } else {
-                        stringResource(result.message)
+                        stringResource(projectResult.message)
                     }
 
                     ScalingLabel(

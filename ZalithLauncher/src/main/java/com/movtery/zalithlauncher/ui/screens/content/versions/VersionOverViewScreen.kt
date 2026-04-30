@@ -161,6 +161,8 @@ fun VersionOverViewScreen(
             }
 
             AnimatedItem(scope) { yOffset ->
+                val errorTitle = stringResource(R.string.generic_error)
+                val errorMessage = stringResource(R.string.versions_overview_cant_share_folder_message)
                 VersionQuickActions(
                     modifier = Modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
                     accessFolder = { path ->
@@ -183,8 +185,8 @@ fun VersionOverViewScreen(
                         shareFile(context, folder) {
                             submitError(
                                 ErrorViewModel.ThrowableMessage(
-                                    title = context.getString(R.string.generic_error),
-                                    message = context.getString(R.string.versions_overview_cant_share_folder_message)
+                                    title = errorTitle,
+                                    message = errorMessage
                                 )
                             )
                         }
@@ -227,6 +229,7 @@ private fun VersionInfoLayout(
                 refreshKey = refreshKey
             )
             Row {
+                val imageImportErrorTitle = stringResource(R.string.error_import_image)
                 ImportFileButton(
                     contract = MediaPickerContract(
                         allowImages = true,
@@ -250,7 +253,7 @@ private fun VersionInfoLayout(
                                         FileUtils.deleteQuietly(iconFile)
                                         submitError(
                                             ErrorViewModel.ThrowableMessage(
-                                                title = context.getString(R.string.error_import_image),
+                                                title = imageImportErrorTitle,
                                                 message = e.getMessageOrToString()
                                             )
                                         )

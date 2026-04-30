@@ -151,7 +151,7 @@ suspend fun List<PlatformVersion>.initAll(
     currentProjectId: String,
     also: suspend (PlatformVersion) -> Unit = {}
 ): List<PlatformVersion> {
-    return initAllGeneric<PlatformVersion>(currentProjectId, also)
+    return initAllGeneric(currentProjectId, also)
 }
 
 fun List<PlatformVersion>.mapWithVersions(classes: PlatformClasses): List<VersionInfoMap> {

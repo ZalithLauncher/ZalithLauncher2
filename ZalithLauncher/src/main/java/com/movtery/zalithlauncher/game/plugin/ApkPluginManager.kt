@@ -33,7 +33,7 @@ abstract class ApkPluginManager {
     protected fun Bundle.getVersionString(key: String): String? {
         return if (containsKey(key)) {
             runCatching {
-                when (val o = get(key)) {
+                when (@Suppress("DEPRECATION") val o = get(key)) {
                     is String -> o
                     is Number -> o.toString()
                     else -> null

@@ -110,7 +110,7 @@ fun String.toSingleLine(replace: String = " "): String = this.replace("\n", repl
 fun insertJSONValueList(args: Array<String>, keyValueMap: Map<String, String>) =
     args.map {
         keyValueMap.entries.fold(it) { acc, (k, v) ->
-            acc.replace("\${$k}", v)
+            acc.replace($$"${$$k}", v)
         }
     }.toTypedArray()
 
@@ -120,12 +120,12 @@ fun String.splitPreservingQuotes(delimiter: Char = ' '): List<String> {
     var inQuotes = false
 
     for ((index, c) in withIndex()) {
-        when {
-            c == '"' && (index == 0 || this[index - 1] != '\\') -> {
+        when (c) {
+            '"' if (index == 0 || this[index - 1] != '\\') -> {
                 // 切换引号状态（忽略转义引号）
                 inQuotes = !inQuotes
             }
-            c == delimiter && !inQuotes -> {
+            delimiter if !inQuotes -> {
                 // 如果不在引号内且遇到空格，则结束当前部分并添加到结果中
                 if (currentPart.isNotEmpty()) {
                     result.add(currentPart.toString())
@@ -180,7 +180,7 @@ fun String.isNotEmptyOrBlank(): Boolean = !this.isEmptyOrBlank()
  * @return 是否带有中文
  */
 fun String?.containsChinese(): Boolean {
-    if (this == null || this.isEmpty()) {
+    if (this.isNullOrEmpty()) {
         return false
     }
 

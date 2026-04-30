@@ -222,7 +222,7 @@ class ModrinthSearchResult(
 
         override fun platformDownloadCount(): Long = downloads
 
-        override fun platformFollows(): Long? = follows
+        override fun platformFollows(): Long = follows
 
         override fun platformModLoaders(): List<PlatformDisplayLabel>? {
             val modloaders = displayCategories

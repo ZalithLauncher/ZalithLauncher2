@@ -677,8 +677,6 @@ fun VersionItemLayout(
     onDeleteClick: () -> Unit = {},
     onPinned: () -> Unit = {}
 ) {
-    val context = LocalContext.current
-
     val scale = remember { Animatable(initialValue = 0.95f) }
     LaunchedEffect(Unit) {
         scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
@@ -712,6 +710,7 @@ fun VersionItemLayout(
                 version = version
             )
 
+            val saveErrorMessage = stringResource(R.string.versions_config_failed_to_save)
             IconButton(
                 onClick = {
                     val currentValue = version.pinnedState
@@ -721,7 +720,7 @@ fun VersionItemLayout(
                         lError("Failed to save version config!", e)
                         submitError(
                             ErrorViewModel.ThrowableMessage(
-                                title = context.getString(R.string.versions_config_failed_to_save),
+                                title = saveErrorMessage,
                                 message = e.getMessageOrToString()
                             )
                         )

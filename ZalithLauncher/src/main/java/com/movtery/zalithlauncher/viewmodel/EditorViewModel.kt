@@ -54,7 +54,7 @@ import java.io.File
 /**
  * 控制布局编辑器
  */
-class EditorViewModel() : ViewModel() {
+class EditorViewModel : ViewModel() {
     lateinit var observableLayout: ObservableControlLayout
         private set
 

@@ -246,6 +246,7 @@ private fun GameActionContent(
 
         //开启菜单悬浮窗
         item {
+            val menuHiddenText = stringResource(R.string.game_menu_option_show_menu_hided)
             MenuSwitchButton(
                 modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.game_menu_option_show_menu),
@@ -255,7 +256,7 @@ private fun GameActionContent(
                     if (!value) {
                         Toast.makeText(
                             context,
-                            context.getString(R.string.game_menu_option_show_menu_hided),
+                            menuHiddenText,
                             Toast.LENGTH_LONG
                         ).show()
                     }

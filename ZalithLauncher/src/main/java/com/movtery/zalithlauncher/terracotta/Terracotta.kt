@@ -153,6 +153,7 @@ object Terracotta {
         }
     }
 
+    @Suppress("DEPRECATION")
     @Deprecated("This API is exposed for debug purpose.")
     fun testNativePanic() {
         if (!initialized) return

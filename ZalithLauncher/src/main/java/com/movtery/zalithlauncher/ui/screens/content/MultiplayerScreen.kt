@@ -99,6 +99,7 @@ fun MultiplayerScreen(
             }
 
             AnimatedItem(scope) { xOffset ->
+                val logMissingText = stringResource(R.string.terracotta_export_log_share_null)
                 MainMenu(
                     modifier = Modifier
                         .weight(0.5f)
@@ -110,7 +111,7 @@ fun MultiplayerScreen(
                         if (logFile.exists()) {
                             shareFile(context, logFile)
                         } else {
-                            Toast.makeText(context, context.getString(R.string.terracotta_export_log_share_null), Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, logMissingText, Toast.LENGTH_SHORT).show()
                         }
                     }
                 )

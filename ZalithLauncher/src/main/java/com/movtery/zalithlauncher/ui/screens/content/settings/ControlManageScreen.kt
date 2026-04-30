@@ -222,6 +222,7 @@ fun ControlManageScreen(
     val configuration = LocalConfiguration.current
     val locale = configuration.locales[0]
 
+    val controlSaveFailedTitle = stringResource(R.string.control_manage_failed_to_save)
     ControlOperation(
         operation = viewModel.operation,
         changeOperation = { viewModel.operation = it },
@@ -236,7 +237,7 @@ fun ControlManageScreen(
             viewModel.createNew(layout) { e ->
                 submitError(
                     ErrorViewModel.ThrowableMessage(
-                        title = context.getString(R.string.control_manage_failed_to_save),
+                        title = controlSaveFailedTitle,
                         message = e.getMessageOrToString()
                     )
                 )
@@ -248,7 +249,7 @@ fun ControlManageScreen(
         onSave = { data ->
             ControlManager.saveControl(data) { e ->
                 ErrorViewModel.ThrowableMessage(
-                    title = context.getString(R.string.control_manage_failed_to_save),
+                    title = controlSaveFailedTitle,
                     message = e.getMessageOrToString()
                 )
             }
@@ -286,7 +287,7 @@ fun ControlManageScreen(
                         viewModel.copyNew(data.controlLayout) { e ->
                             submitError(
                                 ErrorViewModel.ThrowableMessage(
-                                    title = context.getString(R.string.control_manage_failed_to_save),
+                                    title = controlSaveFailedTitle,
                                     message = e.getMessageOrToString()
                                 )
                             )

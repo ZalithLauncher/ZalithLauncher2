@@ -414,7 +414,7 @@ private suspend fun progressIgnoreList(
 
     //追加 ${primary_jar_name}
     val originalArg = jvmArgs[ignoreListIndex].asString
-    jvmArgs[ignoreListIndex] = GSON.toJsonTree("$originalArg,\${primary_jar_name}")
+    jvmArgs[ignoreListIndex] = GSON.toJsonTree($$"$$originalArg,${primary_jar_name}")
 
     tempVersionJson.writeText(
         GSON.toJson(jsonObject)

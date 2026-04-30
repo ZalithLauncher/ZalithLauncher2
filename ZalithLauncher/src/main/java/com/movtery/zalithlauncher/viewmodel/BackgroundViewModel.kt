@@ -40,7 +40,7 @@ import java.io.File
 /**
  * 启动器背景管理
  */
-class BackgroundViewModel(): ViewModel() {
+class BackgroundViewModel : ViewModel() {
     val backgroundFile: File = PathManager.FILE_LAUNCHER_BACKGROUND
 
     /**

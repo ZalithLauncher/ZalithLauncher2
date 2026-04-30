@@ -43,9 +43,9 @@ class CurseForgeProject(
 
     override fun platformTitle(): String = data.name
 
-    override fun platformSummary(): String? = data.summary
+    override fun platformSummary(): String = data.summary
 
-    override fun platformAuthor(): String? = data.authors[0].name
+    override fun platformAuthor(): String = data.authors[0].name
 
     override fun platformDownloadCount(): Long = data.downloadCount
 

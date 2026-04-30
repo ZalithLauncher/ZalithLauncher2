@@ -30,8 +30,7 @@ fun Context.activeMaskView(
 ) {
     val windows=(this as Activity).window
     val rootView = windows.decorView.rootView as ViewGroup
-    captureView(rootView,windows) {
-        val bitmap = it
+    captureView(rootView,windows) { bitmap ->
         val maskView = MaskView(this, bitmap)
         rootView.addView(maskView)
         maskComplete()

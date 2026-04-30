@@ -47,7 +47,7 @@ object ZLNativeInvoker {
                     val newLink = formatFilePath(link)
                     lInfo("open link: $newLink")
 
-                    val file = File(newLink)
+                    val file = File(newLink ?: return@runOnUiThread)
                     if (link.endsWith('/')) {
                         //可能是一个目录，创建并发起浏览目录请求
                         file.mkdirs()

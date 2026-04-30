@@ -23,7 +23,7 @@ import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.addIfEmpty
 
-class SplashBackStackViewModel(): ViewModel() {
+class SplashBackStackViewModel : ViewModel() {
     /** 启动屏幕 */
     val splashScreen = NestedNavKey.Splash()
 

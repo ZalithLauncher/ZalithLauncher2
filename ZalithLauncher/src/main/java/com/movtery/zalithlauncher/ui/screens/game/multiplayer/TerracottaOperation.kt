@@ -98,6 +98,7 @@ fun TerracottaOperation(
 
             val context = LocalContext.current
 
+            val invalidGuestText = stringResource(R.string.terracotta_status_waiting_guest_prompt_invalid)
             MultiplayerDialog(
                 onClose = { viewModel.operation = TerracottaOperation.None },
                 dialogState = viewModel.dialogState,
@@ -146,7 +147,7 @@ fun TerracottaOperation(
                             val success = Terracotta.setGuesting(roomCode, userName, nodeList)
                             viewModel.isWaitingInteractive = false
                             if (!success) {
-                                Toast.makeText(context, context.getString(R.string.terracotta_status_waiting_guest_prompt_invalid), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, invalidGuestText, Toast.LENGTH_SHORT).show()
                             }
                         }.onFailure { e ->
                             lWarning("Error occurred at \"Terracotta.setGuesting(roomCode, userName)\", message = ${e.message}")

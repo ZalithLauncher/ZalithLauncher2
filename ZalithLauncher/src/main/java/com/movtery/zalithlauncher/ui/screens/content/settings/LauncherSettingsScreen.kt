@@ -431,6 +431,7 @@ private fun CustomBackground(
         backgroundViewModel = backgroundViewModel
     )
 
+    val imageImportErrorTitle = stringResource(R.string.error_import_image)
     val filePicker = rememberLauncherForActivityResult(
         contract = MediaPickerContract(
             allowImages = true,
@@ -450,7 +451,7 @@ private fun CustomBackground(
                         backgroundViewModel.delete()
                         submitError(
                             ErrorViewModel.ThrowableMessage(
-                                title = context.getString(R.string.error_import_image),
+                                title = imageImportErrorTitle,
                                 message = th.getMessageOrToString()
                             )
                         )

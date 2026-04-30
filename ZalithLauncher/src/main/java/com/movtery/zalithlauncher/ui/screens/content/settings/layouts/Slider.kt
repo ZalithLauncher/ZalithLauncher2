@@ -123,11 +123,11 @@ fun IntSliderSettingsCard(
 
 @Composable
 fun IntSliderSettingsCard(
+    modifier: Modifier = Modifier,
     unit: IntSettingUnit,
     onValueChange: (Int) -> Unit = {},
     title: String,
     position: CardPosition,
-    modifier: Modifier = Modifier,
     outerShape: Dp = 28.dp,
     innerShape: Dp = 4.dp,
     summary: String? = null,
@@ -170,11 +170,11 @@ fun IntSliderSettingsCard(
 
 @Composable
 fun IntSliderSettingsCard(
+    modifier: Modifier = Modifier,
     unit: NullableIntSettingUnit,
     onValueChange: (Int) -> Unit = {},
     title: String,
     position: CardPosition,
-    modifier: Modifier = Modifier,
     outerShape: Dp = 28.dp,
     innerShape: Dp = 4.dp,
     summary: String? = null,

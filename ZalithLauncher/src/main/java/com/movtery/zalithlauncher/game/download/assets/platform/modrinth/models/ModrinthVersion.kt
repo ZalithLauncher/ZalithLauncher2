@@ -168,7 +168,7 @@ class ModrinthVersion(
 
     override fun platformDatePublished(): Instant = parseInstant(datePublished)
 
-    override fun platformSha1(): String? = thisPrimaryFile.hashes.sha1
+    override fun platformSha1(): String = thisPrimaryFile.hashes.sha1
 
     override fun platformFileSize(): Long = thisPrimaryFile.size
 

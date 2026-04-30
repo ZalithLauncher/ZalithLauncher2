@@ -30,7 +30,7 @@ fun parseLiteral(
     baseDir: File,
     literal: String,
     vars: Map<String, String> = emptyMap(),
-    plainConverter: (String) -> String = { it -> it }
+    plainConverter: (String) -> String = { it }
 ): String? {
     if (literal.isSurrounded("{", "}")) {
         return vars[literal.removeSurrounding("{", "}")]

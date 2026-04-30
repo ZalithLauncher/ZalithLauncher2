@@ -52,8 +52,7 @@ enum class PlatformReleaseType(val curseforgeCode: Int, val textRes: Int, val co
         override fun deserialize(decoder: Decoder): PlatformReleaseType {
             return when (val input = runCatching { decoder.decodeInt() }.getOrNull()) {
                 null -> {
-                    val name = decoder.decodeString().lowercase()
-                    when (name) {
+                    when (val name = decoder.decodeString().lowercase()) {
                         "release" -> RELEASE
                         "beta" -> BETA
                         "alpha" -> ALPHA

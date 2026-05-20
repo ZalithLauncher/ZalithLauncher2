@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.movtery.layer_controller.data.POSITION_RANGE
 import com.movtery.layer_controller.utils.snap.SnapMode
+import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.info.InfoDistributor
@@ -588,4 +589,29 @@ object AllSettings : SettingsRegistry() {
      * 是否在打开启动器时，根据特定的运行游戏次数，显示赞助支持弹窗
      */
     val showSponsorship = boolSetting("showSponsorship", true)
+
+    /**
+     * 搜索模组的初始搜索平台
+     */
+    val searchModPlatform = enumSetting("searchModPlatform", Platform.MODRINTH)
+
+    /**
+     * 搜索整合包的初始搜索平台
+     */
+    val searchModpackPlatform = enumSetting("searchModpackPlatform", Platform.MODRINTH)
+
+    /**
+     * 搜索资源包的初始搜索平台
+     */
+    val searchResourcePackPlatform = enumSetting("searchResourcePackPlatform", Platform.MODRINTH)
+
+    /**
+     * 搜索光影的初始搜索平台
+     */
+    val searchShadersPlatform = enumSetting("searchShadersPlatform", Platform.MODRINTH)
+
+    /**
+     * 启动 MC26.2+ 时，自动检查 Vulkan
+     */
+    val autoVulkanChecker = boolSetting("autoVulkanChecker", true)
 }

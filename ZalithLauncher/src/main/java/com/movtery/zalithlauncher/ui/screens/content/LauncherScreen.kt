@@ -19,7 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +36,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
@@ -44,14 +47,23 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -70,6 +82,7 @@ import com.movtery.zalithlauncher.ui.components.defaultRichTextStyle
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.AccountAvatar
+import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.main.custom_home.MarkdownBlock
 import com.movtery.zalithlauncher.ui.screens.main.custom_home.customHomePage
@@ -82,7 +95,7 @@ import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 fun LauncherScreen(
     backStackViewModel: ScreenBackStackViewModel,
     navigateToVersions: (Version) -> Unit,
-    onLaunchGame: () -> Unit,
+    onLaunchGame: (Version?) -> Unit,
     onOpenLink: (String) -> Unit,
     onHomePageEvent: (MarkdownBlock.Button.Event) -> Unit,
 ) {
@@ -225,10 +238,11 @@ private fun ContentMenu(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RightMenuContent(
     modifier: Modifier = Modifier,
-    onLaunchGame: () -> Unit,
+    onLaunchGame: (Version?) -> Unit,
     toAccountManageScreen: () -> Unit,
     toVersionManageScreen: () -> Unit,
     toVersionSettingsScreen: () -> Unit,
@@ -259,30 +273,93 @@ private fun RightMenuContent(
             onClick = toAccountManageScreen
         )
 
-        Row(
+        var showList by remember { mutableStateOf(false) }
+        var versionManagerRow by remember { mutableStateOf<LayoutCoordinates?>(null) }
+        Box(
             modifier = Modifier.constrainAs(versionManagerLayout) {
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
                 bottom.linkTo(launchButton.top)
             },
-            verticalAlignment = Alignment.CenterVertically
         ) {
-            VersionManagerLayout(
-                isRefreshing = isRefreshing,
-                version = version,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(8.dp),
-                swapToVersionManage = toVersionManageScreen
-            )
-            version?.takeIf { !isRefreshing && it.isValid() }?.let {
-                IconButton(
-                    modifier = Modifier.padding(end = 8.dp),
-                    onClick = toVersionSettingsScreen
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .onGloballyPositioned { coordinates ->
+                            versionManagerRow = coordinates
+                        }
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_settings_filled),
-                        contentDescription = stringResource(R.string.versions_manage_settings)
+                    VersionManagerLayout(
+                        isRefreshing = isRefreshing,
+                        version = version,
+                        modifier = Modifier.padding(8.dp),
+                        swapToVersionManage = toVersionManageScreen,
+                        openListMenu = { showList = true },
+                    )
+                }
+                version?.takeIf { !isRefreshing && it.isValid() }?.let {
+                    IconButton(
+                        modifier = Modifier.padding(end = 8.dp),
+                        onClick = toVersionSettingsScreen
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_settings_filled),
+                            contentDescription = stringResource(R.string.versions_manage_settings)
+                        )
+                    }
+                }
+            }
+
+            val menuAnchor = versionManagerRow
+            val menuAnchorBounds = menuAnchor?.boundsInParent()
+            val menuAnchorX = menuAnchorBounds?.left ?: 0f
+            val menuAnchorHeight = menuAnchorBounds?.height ?: 0f
+
+            DropdownMenu(
+                expanded = showList && menuAnchor != null,
+                onDismissRequest = { showList = false },
+                modifier = Modifier.width(260.dp),
+                offset = DpOffset(
+                    x = with(LocalDensity.current) { menuAnchorX.toDp() },
+                    y = with(LocalDensity.current) { (-menuAnchorHeight).toDp() } - 8.dp
+                ),
+                shape = MaterialTheme.shapes.extraLarge
+            ) {
+                VersionsManager.versions.forEach { version0 ->
+                    DropdownMenuItem(
+                        text = {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                CommonVersionInfoLayout(
+                                    modifier = Modifier.weight(1f),
+                                    version = version0,
+                                    iconSize = 28.dp
+                                )
+                                IconButton(
+                                    onClick = {
+                                        onLaunchGame(version0)
+                                        showList = false
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_play_arrow_filled),
+                                        contentDescription = stringResource(R.string.main_launch_game),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            }
+                        },
+                        onClick = {
+                            if (version == version0) return@DropdownMenuItem
+                            VersionsManager.saveVersion(version0)
+                            showList = false
+                        }
                     )
                 }
             }
@@ -296,7 +373,7 @@ private fun RightMenuContent(
                 }
                 .padding(PaddingValues(horizontal = 12.dp)),
             {
-                onLaunchGame()
+                onLaunchGame(null)
             },
             {
                 MarqueeText(text = stringResource(R.string.main_launch_game))
@@ -308,7 +385,7 @@ private fun RightMenuContent(
 @Composable
 private fun RightMenu(
     isVisible: Boolean,
-    onLaunchGame: () -> Unit,
+    onLaunchGame: (Version?) -> Unit,
     modifier: Modifier = Modifier,
     toAccountManageScreen: () -> Unit = {},
     toVersionManageScreen: () -> Unit = {},
@@ -345,13 +422,18 @@ private fun RightMenu(
 private fun VersionManagerLayout(
     isRefreshing: Boolean,
     version: Version?,
+    swapToVersionManage: () -> Unit,
+    openListMenu: () -> Unit,
     modifier: Modifier = Modifier,
-    swapToVersionManage: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
             .clip(shape = MaterialTheme.shapes.large)
-            .clickable(onClick = swapToVersionManage)
+            .combinedClickable(
+                role = Role.Button,
+                onClick = swapToVersionManage,
+                onLongClick = openListMenu
+            )
             .padding(PaddingValues(all = 8.dp))
     ) {
         if (isRefreshing) {

@@ -162,7 +162,8 @@ class JvmService : Service() {
         val jvmLaunchInfo = JvmLaunchInfo(
             jvmArgs = jvmArgs,
             jreName = jreName,
-            userHome = userHome
+            userHome = userHome,
+            useUserJvm = false,
         )
 
         val launcher = JvmLauncher(

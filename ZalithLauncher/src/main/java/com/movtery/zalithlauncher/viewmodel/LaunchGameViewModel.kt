@@ -38,10 +38,13 @@ class LaunchGameViewModel : ViewModel() {
     /**
      * 尝试启动游戏
      */
-    fun tryLaunch() {
-        val version = VersionsManager.currentVersion.value
+    fun tryLaunch(
+        version: Version? = null
+    ) {
         if (launchGameOperation == LaunchGameOperation.None) {
-            launchGameOperation = LaunchGameOperation.TryLaunch(version)
+            launchGameOperation = LaunchGameOperation.TryLaunch(
+                version ?: VersionsManager.currentVersion.value
+            )
         }
     }
 
@@ -59,6 +62,15 @@ class LaunchGameViewModel : ViewModel() {
                 quickPlay = QuickPlay.Save(saveName),
             )
         }
+    }
+
+    /**
+     * 尝试启动游戏快速游玩服务器
+     * @param address 服务器地址
+     */
+    fun tryPlayServer(address: String) {
+        val version = VersionsManager.currentVersion.value ?: return
+        quickPlayServer(version, address)
     }
 
     /**

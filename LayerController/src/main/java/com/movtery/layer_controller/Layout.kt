@@ -170,6 +170,15 @@ private fun BoxWithConstraintsScope.BaseControlBoxLayout(
                             val pointerId = change.id
                             val isPressed = change.pressed
 
+                            //抬起时，总是尝试释放该指针下活跃的按钮
+                            //避免子级占用了指针后，导致按钮状态无法被释放
+                            if (!isPressed) {
+                                allActiveWidgets.remove(pointerId)?.forEach { widget ->
+                                    widget.onReleaseEvent(eventHandler, reversedLayers)
+                                }
+                                return@forEach
+                            }
+
                             if (
                                 change.isConsumed ||
                                 //不处理被子级占用的指针
@@ -227,67 +236,68 @@ private fun BoxWithConstraintsScope.BaseControlBoxLayout(
                                     }
                                 }
 
-                            val activeWidgets = allActiveWidgets[pointerId] ?: emptyList()
+                            var activeWidgets = allActiveWidgets[pointerId] ?: emptyList()
 
-                            if (isPressed) {
-                                //检查是否移出边界
-                                if (activeWidgets.isNotEmpty()) {
-                                    val backInBounds = mutableListOf<ObservableWidget>()
-                                    for (widget in activeWidgets) {
-                                        //检查组件是否可以响应移除边界即松开
-                                        if (!widget.isReleaseOnOutOfBounds()) continue
+                            //检查是否移出边界
+                            if (activeWidgets.isNotEmpty()) {
+                                val backInBounds = mutableListOf<ObservableWidget>()
+                                val releasedWidgets = mutableListOf<ObservableWidget>()
+                                for (widget in activeWidgets) {
+                                    //检查组件是否可以响应移除边界即松开
+                                    if (!widget.isReleaseOnOutOfBounds()) continue
 
-                                        val size = widget.internalRenderSize
-                                        val offset = getWidgetPosition(widget, size, screenSize)
-                                        val isOutOfBounds = position.x !in offset.x..(offset.x + size.width) ||
-                                                position.y !in offset.y..(offset.y + size.height)
+                                    val size = widget.internalRenderSize
+                                    val offset = getWidgetPosition(widget, size, screenSize)
+                                    val isOutOfBounds = position.x !in offset.x..(offset.x + size.width) ||
+                                            position.y !in offset.y..(offset.y + size.height)
 
-                                        if (isOutOfBounds) {
-                                            widget.onReleaseEvent(eventHandler, reversedLayers)
-                                        } else {
-                                            backInBounds.add(widget)
-                                        }
-                                    }
-                                    //fix: 应该在抬起事件全部处理完成后再处理 #941
-                                    if (backInBounds.isNotEmpty()) {
-                                        for (widget in backInBounds) {
-                                            widget.onPointerBackInBounds(eventHandler, reversedLayers)
-                                        }
+                                    if (isOutOfBounds) {
+                                        widget.onReleaseEvent(eventHandler, reversedLayers)
+                                        releasedWidgets.add(widget)
+                                    } else {
+                                        backInBounds.add(widget)
                                     }
                                 }
+                                //fix: 移出边界时应移出组，否则滑动回已释放的按钮无法再次触发
+                                if (releasedWidgets.isNotEmpty()) {
+                                    activeWidgets = activeWidgets - releasedWidgets
+                                    allActiveWidgets[pointerId] = activeWidgets
+                                }
+                                //fix: 应该在抬起事件全部处理完成后再处理 #941
+                                if (backInBounds.isNotEmpty()) {
+                                    for (widget in backInBounds) {
+                                        widget.onPointerBackInBounds(eventHandler, reversedLayers)
+                                    }
+                                }
+                            }
 
-                                when {
-                                    targetWidgets.isEmpty() -> {}
-                                    else -> {
-                                        for (targetWidget in targetWidgets) {
-                                            if (targetWidget.canProcess()) {
-                                                return@forEach //拒绝处理该事件
-                                            }
+                            when {
+                                targetWidgets.isEmpty() -> {}
+                                else -> {
+                                    for (targetWidget in targetWidgets) {
+                                        if (targetWidget.canProcess()) {
+                                            return@forEach //拒绝处理该事件
+                                        }
 
-                                            targetWidget.onTouchEvent(
-                                                eventHandler = eventHandler,
-                                                allLayers = reversedLayers,
-                                                change = change,
-                                                activeWidgets = activeWidgets,
-                                                addThis = {
-                                                    allActiveWidgets[pointerId] = activeWidgets + listOf(targetWidget)
-                                                },
-                                                consumeEvent = { value ->
-                                                    if (value) {
-                                                        change.consume()
-                                                    } else {
-                                                        //将指针标记为仅接受滑动处理
-                                                        //期望子级不对点击事件等进行处理
-                                                        markPointerAsMoveOnly(pointerId)
-                                                    }
+                                        targetWidget.onTouchEvent(
+                                            eventHandler = eventHandler,
+                                            allLayers = reversedLayers,
+                                            change = change,
+                                            activeWidgets = activeWidgets,
+                                            addThis = {
+                                                allActiveWidgets[pointerId] = activeWidgets + listOf(targetWidget)
+                                            },
+                                            consumeEvent = { value ->
+                                                if (value) {
+                                                    change.consume()
+                                                } else {
+                                                    //将指针标记为仅接受滑动处理
+                                                    //期望子级不对点击事件等进行处理
+                                                    markPointerAsMoveOnly(pointerId)
                                                 }
-                                            )
-                                        }
+                                            }
+                                        )
                                     }
-                                }
-                            } else {
-                                allActiveWidgets.remove(pointerId)?.forEach { widget ->
-                                    widget.onReleaseEvent(eventHandler, reversedLayers)
                                 }
                             }
                         }

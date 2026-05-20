@@ -62,7 +62,7 @@ class MinecraftDownloader(
     private val verifyIntegrity: Boolean,
     private val downloader: BaseMinecraftDownloader = BaseMinecraftDownloader(verifyIntegrity = verifyIntegrity),
     private val mode: DownloadMode = DownloadMode.DOWNLOAD,
-    private val onCompletion: suspend () -> Unit = {},
+    private val onCompletion: suspend (Task) -> Unit = {},
     private val onError: (message: String) -> Unit = {},
     private val onThrowable: ((throwable: Throwable) -> Unit)? = null,
     private val maxDownloadThreads: Int = 64
@@ -118,7 +118,7 @@ class MinecraftDownloader(
                 //清除任务信息
                 task.updateProgress(1f, null)
 
-                onCompletion()
+                onCompletion(task)
             },
             onError = { e ->
                 lError("Failed to download Minecraft!", e)

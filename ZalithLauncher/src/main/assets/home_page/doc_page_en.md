@@ -15,6 +15,27 @@ In addition to standard Markdown, you can also use the following extension compo
 
 ---
 
+### Random Text Block
+Place multiple text segments within a block. When the homepage loads, one of the segments will be randomly displayed.
+
+**Syntax**  
+...random-start
+This is a piece of text, weight defaults to 1.0
+weight(2.0): This is the second piece of text, weight is set to 2.0
+This is the third piece of text
+...random-end
+
+**Parameter description:**
+- Unlike other components, this component uses inline parameters, embedded directly at the beginning of the actual value line.
+- `weight`:
+    - Specifies the weight value for this piece of text. Supports integers and decimals. Optional.
+    - The homepage will randomly select a piece of text according to the weights.
+
+> This component is only supported within standard Markdown.
+> This component will NOT take effect inside standard Markdown containers or other extension components.
+
+---
+
 ### Card Component
 Used to wrap content inside a container with a background and rounded corners.
 
@@ -86,9 +107,11 @@ Creates a clickable button.
 - `event`: The event to trigger, optional. The value must be wrapped in double quotes, and event data is wrapped in curly braces.
     - `url{...}`: Opens a link in the browser.
     - `check_update`: Triggers the launcher to check for updates.
-    - `launch_game`: Launches the currently selected version.
+    - `launch_game{server=...}`: Launches the currently selected version.
+      - Parameter `server`: Specifies the server to quick-join after launch, optional.
     - `copy{...}`: Copies the specified content.
-    - For more events, please refer to the launcher's actual supported list.
+    - `refresh_page`: Refreshes the current homepage.
+    - `share_game_log`: Shares the log of the current game version.
 - `width`: The width of the button, optional.
     - You can use a percentage width, calculated based on the actual width of the homepage and the containing layout component: `50%` (only integer percentages supported).
     - You can use DP units to set a more specific width: `200dp` (supports integers and decimals).

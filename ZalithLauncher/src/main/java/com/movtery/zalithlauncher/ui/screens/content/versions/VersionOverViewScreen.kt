@@ -31,15 +31,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -52,12 +48,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
 import com.movtery.zalithlauncher.context.copyLocalFile
 import com.movtery.zalithlauncher.contract.MediaPickerContract
 import com.movtery.zalithlauncher.coroutine.Task
@@ -79,74 +70,16 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.ImportFileButton
 import com.movtery.zalithlauncher.ui.screens.content.elements.RenameVersionDialog
 import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.VersionChunkBackground
 import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.VersionOverviewItem
-import com.movtery.zalithlauncher.ui.screens.main.crashlogs.ShareLinkOperation
-import com.movtery.zalithlauncher.ui.theme.cardColor
-import com.movtery.zalithlauncher.ui.theme.onCardColor
-import com.movtery.zalithlauncher.utils.copyText
 import com.movtery.zalithlauncher.utils.file.ensureDirectory
 import com.movtery.zalithlauncher.utils.file.shareFile
 import com.movtery.zalithlauncher.utils.image.isImageFile
 import com.movtery.zalithlauncher.utils.logging.Logger.lError
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
-import com.movtery.zalithlauncher.viewmodel.CrashLogsUploadViewModel
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
+import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 import org.apache.commons.io.FileUtils
 import java.io.File
-
-private sealed interface LogOperation {
-    data object None : LogOperation
-    /** 打开日志操作菜单 */
-    data object ShowMenu : LogOperation
-}
-
-private class LogHandleViewModel(
-    val logFile: File
-) : ViewModel() {
-    private val _exists = MutableStateFlow(false)
-    /** 日志文件是否存在 */
-    val exists = _exists.asStateFlow()
-
-    private val _operation = MutableStateFlow<LogOperation>(LogOperation.None)
-    /** 日志菜单状态 */
-    val operation = _operation.asStateFlow()
-
-    fun changeOperation(
-        operation: LogOperation
-    ) {
-        _operation.update { operation }
-    }
-
-    init {
-        _exists.update { logFile.exists() }
-    }
-}
-
-@Composable
-private fun rememberLogHandleViewModel(
-    key: String,
-    logFile: File,
-): LogHandleViewModel {
-    return viewModel(
-        key = key
-    ) {
-        LogHandleViewModel(logFile)
-    }
-}
-
-@Composable
-private fun rememberLogUploadViewModel(
-    key: String,
-): CrashLogsUploadViewModel {
-    return viewModel(
-        key = key
-    ) {
-        CrashLogsUploadViewModel()
-    }
-}
 
 @Composable
 fun VersionOverViewScreen(
@@ -154,8 +87,7 @@ fun VersionOverViewScreen(
     versionsScreenKey: TitledNavKey?,
     backToMainScreen: () -> Unit,
     onExport: () -> Unit,
-    onViewLog: (File) -> Unit,
-    onLink: (String) -> Unit,
+    eventViewModel: EventViewModel,
     version: Version,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
@@ -224,8 +156,11 @@ fun VersionOverViewScreen(
                 VersionManagementLayout(
                     modifier = Modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
                     version = version,
-                    onViewLog = onViewLog,
-                    onLink = onLink,
+                    onShareLog = { logFile ->
+                        eventViewModel.sendEvent(
+                            EventViewModel.Event.LogShare.ShareGameLog(logFile)
+                        )
+                    },
                     onEditSummary = { versionsOperation = VersionsOperation.EditSummary(version) },
                     onRename = { versionsOperation = VersionsOperation.Rename(version) },
                     onExport = onExport,
@@ -359,57 +294,18 @@ private fun VersionInfoLayout(
 private fun VersionManagementLayout(
     modifier: Modifier = Modifier,
     version: Version,
-    onViewLog: (File) -> Unit,
-    onLink: (String) -> Unit,
+    onShareLog: (File) -> Unit,
     onEditSummary: () -> Unit,
     onRename: () -> Unit,
     onExport: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    val context = LocalContext.current
-    val logFile = remember {
+    val logFile = remember(version) {
         VersionsManager.getLatestLog(version)
     }
-
-    val handleViewModel = rememberLogHandleViewModel(
-        key = version.toString() + "_" + "log_handle",
-        logFile = logFile
-    )
-    val uploadViewModel = rememberLogUploadViewModel(
-        key = version.toString() + "_" + "log_upload"
-    )
-
-    LaunchedEffect(Unit) {
-        uploadViewModel.check(logFile)
+    val logExists = remember(logFile) {
+        logFile.exists()
     }
-
-    val logOperation by handleViewModel.operation.collectAsStateWithLifecycle()
-    LogOperation(
-        operation = logOperation,
-        onChange = { handleViewModel.changeOperation(it) },
-        onView = {
-            onViewLog(logFile)
-        },
-        onShare = {
-            shareFile(context, logFile)
-        },
-        canUpload = uploadViewModel.canUpload,
-        onUpload = {
-            uploadViewModel.operation = ShareLinkOperation.Tip
-        }
-    )
-
-    ShareLinkOperation(
-        operation = uploadViewModel.operation,
-        onChange = { uploadViewModel.operation = it },
-        onUploadChancel = { uploadViewModel.cancel() },
-        onUpload = {
-            uploadViewModel.upload(logFile) { link ->
-                onLink(link)
-                copyText(COPY_LABEL_LINK, link, context)
-            }
-        }
-    )
 
     VersionChunkBackground(
         modifier = modifier,
@@ -453,12 +349,11 @@ private fun VersionManagementLayout(
                         text = stringResource(R.string.versions_export)
                     )
                 }
-                val exists by handleViewModel.exists.collectAsStateWithLifecycle()
                 OutlinedButton(
                     modifier = Modifier.padding(end = 12.dp),
-                    enabled = exists,
+                    enabled = logExists,
                     onClick = {
-                        handleViewModel.changeOperation(LogOperation.ShowMenu)
+                        onShareLog(logFile)
                     }
                 ) {
                     Text(
@@ -678,101 +573,3 @@ private fun VersionsOperation(
     }
 }
 
-@Composable
-private fun LogOperation(
-    operation: LogOperation,
-    onChange: (LogOperation) -> Unit,
-    onView: () -> Unit,
-    onShare: () -> Unit,
-    canUpload: Boolean,
-    onUpload: () -> Unit
-) {
-    when (operation) {
-        is LogOperation.None -> {}
-        is LogOperation.ShowMenu -> {
-            Dialog(
-                onDismissRequest = {
-                    onChange(LogOperation.None)
-                }
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(all = 6.dp),
-                    color = cardColor(false),
-                    contentColor = onCardColor(),
-                    shape = MaterialTheme.shapes.extraLarge,
-                    shadowElevation = 6.dp
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(all = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        //查看日志
-                        Button(
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = {
-                                onView()
-                                onChange(LogOperation.None)
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_assignment_filled),
-                                contentDescription = null
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(text = stringResource(R.string.generic_view))
-                        }
-                        //分享日志
-                        Button(
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = {
-                                onShare()
-                                onChange(LogOperation.None)
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_share_filled),
-                                contentDescription = null
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(text = stringResource(R.string.crash_share_logs))
-                        }
-                        //分享链接
-                        Button(
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = canUpload,
-                            onClick = {
-                                onUpload()
-                                onChange(LogOperation.None)
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_link),
-                                contentDescription = null
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(text = stringResource(R.string.crash_link_share_button))
-                        }
-                        //关闭
-                        Button(
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = {
-                                onChange(LogOperation.None)
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_close),
-                                contentDescription = null
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(text = stringResource(R.string.generic_close))
-                        }
-                    }
-                }
-            }
-        }
-    }
-}

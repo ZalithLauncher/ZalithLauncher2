@@ -116,7 +116,7 @@ object VersionsManager {
                     }
                 }
 
-                versions = newVersions.toList()
+                versions = newVersions.sortedWith(VersionComparator)
 
                 gameInfo = refreshCurrentInfo()
                 lDebug("Version list refreshed, refreshing the current version now.")
@@ -254,6 +254,16 @@ object VersionsManager {
      * @return 通过名称获取版本的文件夹路径
      */
     fun getVersionPath(name: String) = File(getVersionsHome(), name)
+
+    /**
+     * 保存当前选择的版本
+     * @return 是否执行保存
+     */
+    fun saveVersion(version: Version, refresh: Boolean = true): Boolean {
+        if (!version.isValid()) return false
+        saveCurrentVersion(version.getVersionName(), refresh)
+        return true
+    }
 
     /**
      * 保存当前选择的版本

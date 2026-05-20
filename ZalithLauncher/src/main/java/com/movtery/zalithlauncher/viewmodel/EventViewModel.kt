@@ -28,6 +28,7 @@ import com.movtery.zalithlauncher.ui.screens.main.custom_home.MarkdownBlock
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import java.io.File
 
 class EventViewModel : ViewModel() {
     private val _events = MutableSharedFlow<Event>(extraBufferCapacity = 1)
@@ -74,7 +75,7 @@ class EventViewModel : ViewModel() {
         /** 启动游戏相关的事件 */
         sealed interface Launch : Event {
             /** 主菜单的启动游戏 */
-            data object Main : Launch
+            data class Game(val version: Version?) : Launch
             /** 快速启动游戏并进入服务器 */
             data class PlayServer(val version: Version, val address: String): Launch
             /** 快速启动游戏并进入存档 */
@@ -104,6 +105,10 @@ class EventViewModel : ViewModel() {
                 val link: String
             )
         }
+        /** 分享游戏日志 */
+        sealed interface LogShare : Event {
+            data class ShareGameLog(val logFile: File) : LogShare
+        }
         /** 启动器主页相关 */
         sealed interface HomePage: Event {
             /** 重载启动器主页 */
@@ -113,6 +118,8 @@ class EventViewModel : ViewModel() {
             /** 主页触发的事件 */
             data class Event(val event: MarkdownBlock.Button.Event): HomePage
         }
+        /** 设备 Vulkan 检查 */
+        data object VulkanCheck: Event
     }
 }
 

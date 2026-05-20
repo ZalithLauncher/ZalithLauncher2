@@ -16,20 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.txt>.
  */
 
-package com.movtery.zalithlauncher.game.plugin.driver
+package com.movtery.zalithlauncher.ui.vulkan_checker
 
-import com.movtery.zalithlauncher.game.plugin.ApkPlugin
+import com.movtery.zalithlauncher.utils.device.VulkanCapabilities
 
-class Driver(
-    val id: String,
-    appName: String,
-    appVersion: String,
-    val name: String,
-    val summary: String? = null,
-    val path: String,
-    val isLauncher: Boolean,
-): ApkPlugin(
-    packageName = id,
-    appName = appName,
-    appVersion = appVersion
-)
+/**
+ * Vulkan 检查器 UI 操作状态
+ */
+sealed interface VCOperation {
+    data object None: VCOperation
+
+    /**
+     * Vulkan 检查提示对话框
+     */
+    data object Tip: VCOperation
+
+    /**
+     * @param data 检查结果
+     * @param useTurnip 是否使用了 Turnip
+     */
+    data class Result(
+        val data: VulkanCapabilities?,
+        val useTurnip: Boolean = false
+    ): VCOperation
+}

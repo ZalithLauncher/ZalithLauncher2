@@ -58,7 +58,8 @@ object DriverPluginManager: ApkPluginManager() {
                 appName = "",
                 appVersion = "",
                 name = "Turnip",
-                path = applicationInfo.nativeLibraryDir
+                path = applicationInfo.nativeLibraryDir,
+                isLauncher = true
             )
         )
         setDriverById(AllSettings.vulkanDriver.getValue())
@@ -89,7 +90,8 @@ object DriverPluginManager: ApkPluginManager() {
                     appVersion = appVersion,
                     name = driver,
                     summary = context.getString(R.string.settings_renderer_from_plugins, appName),
-                    path = nativeLibraryDir
+                    path = nativeLibraryDir,
+                    isLauncher = false
                 )
 
                 driverList.add(plugin)

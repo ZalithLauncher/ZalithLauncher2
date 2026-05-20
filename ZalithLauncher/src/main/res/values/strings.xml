@@ -421,6 +421,17 @@
     <string name="game_styles_joystick_hide_when_gamepad">Hide When Using Gamepad</string>
     <string name="game_styles_save_failed">Failed to Save Style</string>
     <string name="game_saponsorship_finished_game">The launcher has successfully run the game %s times! If you find it useful, please consider supporting the developer! :)</string>
+
+    <string name="game_vulkan_check_title">Vulkan Check</string>
+    <string name="game_vulkan_check_text">Check whether your device supports running Minecraft 26.2+ with Vulkan. Results are for reference only.</string>
+    <string name="game_vulkan_check_version">Vulkan version: %s</string>
+    <string name="game_vulkan_check_turnip">Using Turnip: %s</string>
+    <string name="game_vulkan_check_extensions">Required extensions:</string>
+    <string name="game_vulkan_check_missing_extensions">Missing extensions:</string>
+    <string name="game_vulkan_check_features">Required features:</string>
+    <string name="game_vulkan_check_missing_features">Missing features:</string>
+    <string name="game_vulkan_check_unsupp">Your device does not support running Minecraft 26.2+ with Vulkan</string>
+    <string name="game_vulkan_check_supp">Your device supports running Minecraft 26.2+ with Vulkan</string>
     <!-- Renderers -->
     <string name="renderer_version_support">MC Version Support:</string>
     <string name="renderer_version_unsupported_warning">The current renderer %s does not support this game version. Continuing to use it may cause rendering errors or crashes! Are you sure you want to proceed?</string>

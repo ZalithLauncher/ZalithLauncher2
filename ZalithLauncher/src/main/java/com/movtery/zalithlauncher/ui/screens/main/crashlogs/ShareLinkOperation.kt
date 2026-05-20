@@ -18,7 +18,15 @@
 
 package com.movtery.zalithlauncher.ui.screens.main.crashlogs
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.LinearWavyProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.crashlogs.LinkNotFoundException
@@ -62,12 +70,31 @@ fun ShareLinkOperation(
             )
         }
         is ShareLinkOperation.Uploading -> {
-            SimpleAlertDialog(
-                title = stringResource(R.string.crash_link_share_button),
-                text = stringResource(R.string.crash_link_share_uploading, operation.apiRoot),
-                dismissByDialog = false,
-                confirmText = stringResource(R.string.generic_cancel),
-                onDismiss = onUploadChancel
+            AlertDialog(
+                onDismissRequest = {},
+                title = {
+                    Text(
+                        text = stringResource(R.string.crash_link_share_button),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                },
+                text = {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            text = stringResource(R.string.crash_link_share_uploading, operation.apiRoot)
+                        )
+                        LinearWavyProgressIndicator(
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                },
+                confirmButton = {
+                    FilledTonalButton(
+                        onClick = onUploadChancel
+                    ) {
+                        Text(text = stringResource(R.string.generic_cancel))
+                    }
+                }
             )
         }
         is ShareLinkOperation.Error -> {

@@ -86,7 +86,7 @@
     <string name="splash_screen_agree">Pasang</string>
     <string name="notification_title">Cek Izin Pemberitahuan</string>
     <string name="notification_request">Minta Perizinan</string>
-    <string name="notification_data_jvm_service_message">Agar instalasi berjalan lancar, peluncur perlu menjalankan penginstal di latar depan. Kami akan mencoba memulai layanan latar depan untuk memastikan stabilitas, tetapi ini memerlukan izin notifikasi. Bersediakah Anda mengaktifkan izin notifikasi untuk kami? Ini akan mencegah gangguan instalasi!</string>
+    <string name="notification_data_jvm_service_message">Agar instalasi berjalan lancar, launcher perlu menjalankan penginstal di latar depan. Kami akan mencoba memulai layanan latar depan untuk menjaga stabilitas, tetapi hal ini memerlukan izin notifikasi. Bisa bantu mengaktifkan izin notifikasi? Ini akan membantu mencegah gangguan saat instalasi!</string>
     <string name="notification_data_jvm_service_name">Layanan Instalasi Latar Depan</string>
     <string name="notification_data_jvm_service_running">Menginstal game melalui layanan Latar Depan</string>
     <string name="unpack_screen_jre8">Lingkungan Java 8 (diperlukan untuk Minecraft 1.16 ke bawah)</string>
@@ -95,7 +95,7 @@
     <string name="unpack_screen_authlib_injector">Modifikasi authlib untuk login eksternal</string>
     <string name="unpack_screen_cacio">Portable GUI backend untuk OpenJDK</string>
     <string name="unpack_screen_lwjgl">Lightweight Java Game Library (diperlukan oleh Minecraft)</string>
-    <string name="unpack_screen_launcher">Komponen peluncur esensial</string>
+    <string name="unpack_screen_launcher">Komponen penting launcher</string>
     <string name="main_launch_game">Luncurkan</string>
     <string name="main_task_menu">Menu Tugas</string>
     <string name="download_category_game">Game</string>
@@ -184,7 +184,7 @@
     <string name="download_assets_install_progress_downloading">Mengunduh dan menginstal aset\n%1$s\n(%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">Menginstal aset\n%s</string>
     <string name="download_assets_install_failed">Gagal menginstal aset!</string>
-    <string name="download_modpack_warning1">Sebelum instalasi, Anda harus menyadari bahwa sebagian besar modpack dibuat untuk PC, dan saat Anda mencoba meluncurkannya, kemungkinan akan crash atau mengalami masalah lain yang biasanya tidak dapat diperbaiki peluncur.</string>
+    <string name="download_modpack_warning1">Sebelum instalasi, perlu dipahami bahwa sebagian besar modpack dibuat untuk PC, dan saat dijalankan ada kemungkinan crash atau masalah lain yang biasanya tidak bisa diperbaiki oleh launcher.</string>
     <string name="download_modpack_warning2">Anda harus mempelajari ilmu yang relevan untuk mencoba memecahkan masalah sendiri, atau meminta bantuan dari orang lain.</string>
     <string name="download_modpack_warning3">CATATAN: Developer dari launcher biasanya tidak akan mengatasi masalah apa pun yang disebabkan oleh modpack.</string>
     <string name="download_modpack_install_title">Menginstal modpack</string>
@@ -297,8 +297,8 @@
     <string name="game_menu_option_switch_fps">Tampilan FPS</string>
     <string name="renderer_version_support">Versi MC yang didukung:</string>
     <string name="renderer_version_unsupported_warning">Perender saat ini %s tidak didukung untuk versi game ini. Terus menggunakannya dapat menyebabkan kesalahan rendering atau game crash! Apakah Anda yakin ingin mengabaikan risiko ini dan melanjutkan?</string>
-    <string name="renderer_version_storage_permissions">Perender saat ini %s dapat dimodifikasi melalui file konfigurasi. Harap aktifkan izin penyimpanan eksternal untuk peluncur terlebih dahulu. Jika tidak, peluncur tidak akan dapat membaca dan memuat konfigurasi perender!</string>
-    <string name="renderer_version_storage_permissions_sdk30">Perender %s saat ini dapat dikonfigurasi melalui berkas konfigurasi. Harap aktifkan izin Kelola Semua Berkas untuk peluncur terlebih dahulu, jika tidak, peluncur tidak akan dapat membaca dan memuat konfigurasi perender!</string>
+    <string name="renderer_version_storage_permissions">Renderer yang dipakai saat ini %s bisa diatur lewat file konfigurasi. Izinkan akses penyimpanan eksternal dulu, kalau tidak, launcher gak bakal bisa baca atau muat konfigurasi renderer-nya!</string>
+    <string name="renderer_version_storage_permissions_sdk30">Renderer yang dipakai saat ini %s bisa diatur lewat file konfigurasi. Izinkan akses Kelola Semua File untuk launcher dulu, kalau tidak, launcher gak bakal bisa baca atau muat konfigurasi renderer-nya!</string>
     <string name="account_no_account">Tidak ada akun</string>
     <string name="account_login">Masuk</string>
     <string name="account_logging_in">Masuk sebagai %s</string>
@@ -344,7 +344,7 @@
     <string name="account_supporting_microsoft_tip_link_purchase">Beli Minecraft</string>
     <string name="account_supporting_microsoft_tip_link_make_gameid">Buat Profil / Edit Nama Profil</string>
     <string name="account_supporting_microsoft_tip_hint_t1">Untuk menambahkan akun, ikuti langkah-langkah berikut:</string>
-    <string name="account_supporting_microsoft_tip_hint_t2">1. Klik tombol Masuk — peluncur akan mencoba mengambil kode verifikasi;\n</string>
+    <string name="account_supporting_microsoft_tip_hint_t2">1. Klik tombol Masuk — launcher akan mencoba mengambil kode verifikasi;\n</string>
     <string name="account_supporting_microsoft_tip_hint_t3">2. Masukkan kode yang diberikan oleh %s pada halaman web dan klik Izinkan akses;\n</string>
     <string name="account_supporting_microsoft_tip_hint_t4">3. Ikuti petunjuk di halaman web untuk menyelesaikan proses masuk;\n</string>
     <string name="account_supporting_microsoft_tip_hint_t5">4. Saat ditanya Biarkan aplikasi ini mengakses info Anda?, klik Terima;\n</string>
@@ -352,10 +352,10 @@
     <string name="account_supporting_microsoft_tip_hint_t7">Jika halaman web menampilkan Kesalahan atau akun gagal ditambahkan, coba lagi langkah-langkah di atas.\n</string>
     <string name="account_supporting_microsoft_tip_hint_t8">Tips: Jika koneksi jaringanmu buruk, halaman web mungkin lambat dimuat atau tidak dapat dibuka. Coba gunakan VPN dan coba lagi.</string>
     <string name="account_delete_title">Hapus Akun</string>
-    <string name="account_delete_message">Apakah Anda yakin ingin menghapus akun %s dari peluncur?</string>
+    <string name="account_delete_message">Apakah Anda yakin ingin menghapus akun %s dari launcher?</string>
     <string name="account_microsoft_fetch_device_code">Dapatkan kode perangkat</string>
     <string name="account_microsoft_coped_device_code">Kode perangkat disalin: %s. Selesaikan verifikasi di halaman web Anda.</string>
-    <string name="versions_manage_game_path_storage_permissions">Ingin menginstal game di penyimpanan eksternal? Harap aktifkan izin penyimpanan eksternal untuk peluncur terlebih dahulu. Jika tidak, peluncur tidak akan dapat menginstal game di direktori eksternal!</string>
+    <string name="versions_manage_game_path_storage_permissions">Mau instal game ke penyimpanan eksternal? Izinkan akses penyimpanan eksternal untuk launcher dulu. Kalau tidak, launcher gak bakal bisa menginstal game ke direktori eksternal!</string>
     <string name="versions_manage_game_path_storage_permissions_sdk30">Ingin menginstal game di penyimpanan eksternal? Harap aktifkan izin \"Kelola semua berkas perangkat\" untuk peluncur terlebih dahulu. Jika tidak, peluncur tidak akan dapat menginstal game di direktori eksternal!</string>
     <string name="account_microsoft_get_token">Polling sedang berlangsung, mencoba mendapatkan token; kode perangkat: %s</string>
     <string name="account_microsoft_getting_access_token">Meminta token akses</string>
@@ -400,7 +400,7 @@
     <string name="versions_manage_game_path_add_new">Tambahkan Folder</string>
     <string name="versions_manage_game_path_edit_title">Namai folder ini</string>
     <string name="versions_manage_game_path_delete_title">Hapus Folder Game</string>
-    <string name="versions_manage_game_path_delete_message">Hapus folder ini? File akan tetap ada, tetapi peluncur akan memutuskan tautannya.</string>
+    <string name="versions_manage_game_path_delete_message">Hapus folder ini? File tetap aman, tapi launcher tidak akan terhubung ke folder ini lagi.</string>
     <string name="versions_manage_game_path_exists_title">Konflik folder</string>
     <string name="versions_manage_game_path_exists_message">Folder ini sudah dikelola. Tidak dapat ditambahkan lagi.</string>
     <string name="versions_manage_game_path_error_title">Menemukan masalah saat mengakses direktori game</string>
@@ -953,7 +953,7 @@
     <string name="control_editor_edit_event_launcher_send_text_hint">Biarkan kosong jika tidak ada aksi</string>
     <string name="generic_tip">Kiat</string>
     <string name="import_modpack">Impor Modpack</string>
-    <string name="import_modpack_tip">kami dapat mengimpor berkas modpack lokal. Peluncur saat ini mendukung format berikut:</string>
+    <string name="import_modpack_tip">Kamu bisa mengimpor file modpack lokal. Launcher saat ini mendukung format berikut:</string>
     <string name="import_modpack_task_unpack">Impor dan buka paket file</string>
     <string name="import_modpack_task_parse">Memproses modpack</string>
     <string name="import_modpack_task_extract_files">Ekstrak file modpack</string>
@@ -1201,4 +1201,14 @@
     <string name="settings_launcher_home_page_type_warning">Beranda kustom adalah konten pihak ketiga. Launcher tidak memberikan jaminan atas kontennya. Harap berhati-hati saat menggunakan beranda yang tidak dikenal!</string>
     <string name="settings_launcher_home_page_url">URL beranda:</string>
     <string name="settings_launcher_home_page_loading">Memuat beranda</string>
+    <string name="game_vulkan_check_title">Cek Vulkan</string>
+    <string name="game_vulkan_check_text">Periksa apakah perangkat kamu bisa menjalankan Minecraft 26.2+ dengan Vulkan. Hasil ini hanya untuk referensi saja.</string>
+    <string name="game_vulkan_check_version">Versi Vulkan: %s</string>
+    <string name="game_vulkan_check_turnip">Menggunakan Turnip: %s</string>
+    <string name="game_vulkan_check_extensions">Ekstensi yang diperlukan:</string>
+    <string name="game_vulkan_check_missing_extensions">Ekstensi yang tidak tersedia:</string>
+    <string name="game_vulkan_check_features">Fitur yang diperlukan:</string>
+    <string name="game_vulkan_check_missing_features">Fitur yang tidak tersedia:</string>
+    <string name="game_vulkan_check_unsupp">Perangkat kamu tidak bisa menjalankan Minecraft 26.2+ dengan vulkan</string>
+    <string name="game_vulkan_check_supp">Perangkat kamu bisa menjalankan Minecraft 26.2+ dengan Vulkan</string>
 </resources>

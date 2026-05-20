@@ -44,6 +44,18 @@ include $(BUILD_SHARED_LIBRARY)
 
 
 include $(CLEAR_VARS)
+LOCAL_LDLIBS := -ldl -llog
+LOCAL_MODULE := vulkan_check
+LOCAL_SHARED_LIBRARIES := driver_helper
+LOCAL_SRC_FILES := vulkan_checker.c
+include $(BUILD_SHARED_LIBRARY)
+
+ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
+LOCAL_CFLAGS += -DADRENO_POSSIBLE
+endif
+
+
+include $(CLEAR_VARS)
 LOCAL_MODULE := exithook
 LOCAL_LDLIBS := -ldl -llog
 LOCAL_SHARED_LIBRARIES := bytehook pojavexec

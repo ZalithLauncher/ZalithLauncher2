@@ -515,4 +515,12 @@
     <string name="multirt_runtime_delete_failed">فشل حذف بيئة تشغيل Java</string>
     <string name="multirt_runtime_import_failed">فشل استيراد بيئة تشغيل Java</string>
     <string name="multirt_runtime_import_failed_file_name">اسم ملف غير صالح</string>
+    <string name="generic_edit">تعديل</string>
+    <string name="generic_view">عرض</string>
+    <string name="page_title_version_list">قائمة الإصدارات</string>
+    <string name="page_title_version_manage">إدارة الإصدارات</string>
+    <string name="page_title_account_list">قائمة الحسابات</string>
+    <string name="page_title_select_files">اختر المسار</string>
+    <string name="unpack_screen_jre25">بيئة Java 25 (مطلوبة لـ Minecraft 26.1+)</string>
+    <string name="unpack_screen_jna">يسمح لماينكرافت الوصول المباشر لوظائف نظام التشغيل منخفضة المستوى</string>
 </resources>

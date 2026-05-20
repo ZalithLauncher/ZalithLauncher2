@@ -500,9 +500,9 @@ private fun NavigationUI(
                     LauncherScreen(
                         backStackViewModel = screenBackStackModel,
                         navigateToVersions = navigateToVersions,
-                        onLaunchGame = {
+                        onLaunchGame = { version ->
                             eventViewModel.sendEvent(
-                                EventViewModel.Event.Launch.Main
+                                EventViewModel.Event.Launch.Game(version)
                             )
                         },
                         onOpenLink = {

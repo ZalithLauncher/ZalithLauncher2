@@ -243,6 +243,7 @@ private fun rememberSearchAssetsViewModel(
  * @param currentKey 当前的Key
  * @param platformClasses 搜索资源的分类
  * @param initialPlatform 初始搜索平台
+ * @param onPlatformChange 搜索平台变更
  * @param enablePlatform 是否允许更改平台
  * @param getCategories 根据平台获取可用的资源类别过滤器
  * @param enableModLoader 是否允许更改模组加载器
@@ -260,6 +261,7 @@ fun SearchAssetsScreen(
     currentKey: TitledNavKey?,
     platformClasses: PlatformClasses,
     initialPlatform: Platform,
+    onPlatformChange: (Platform) -> Unit = {},
     enablePlatform: Boolean = true,
     getCategories: (Platform) -> List<PlatformFilterCode>,
     enableModLoader: Boolean = false,
@@ -369,6 +371,7 @@ fun SearchAssetsScreen(
                     viewModel.researchWithFilter(
                         viewModel.searchFilter.copy(categories = emptyList(), modloader = null)
                     )
+                    onPlatformChange(it)
                 },
                 searchName = viewModel.searchFilter.searchName,
                 onSearchNameChange = {

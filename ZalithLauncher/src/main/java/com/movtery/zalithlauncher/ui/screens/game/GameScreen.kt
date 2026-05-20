@@ -696,6 +696,9 @@ fun GameScreen(
 
         LogBox(
             enableLog = !viewModel.isEditingLayout && logState.value,
+            onClose = {
+                onLogStateChange(LogState.CLOSE)
+            },
             modifier = Modifier.fillMaxSize()
         )
 

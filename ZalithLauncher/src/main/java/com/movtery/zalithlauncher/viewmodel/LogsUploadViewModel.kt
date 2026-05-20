@@ -39,14 +39,14 @@ import java.io.File
 import java.io.IOException
 
 /**
- * 游戏崩溃日志上传逻辑 ViewModel
+ * 游戏日志上传逻辑 ViewModel
  */
-class CrashLogsUploadViewModel: ViewModel() {
+class LogsUploadViewModel: ViewModel() {
     private var uploadJob: Job? = null
     private var checkJob: Job? = null
 
     /**
-     * 崩溃日志上传操作流程
+     * 日志上传操作流程
      */
     var operation by mutableStateOf<ShareLinkOperation>(ShareLinkOperation.None)
 

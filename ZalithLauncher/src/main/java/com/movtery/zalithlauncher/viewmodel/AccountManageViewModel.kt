@@ -427,7 +427,7 @@ class AccountManageViewModel @Inject constructor(
 
     /** 内部方法：发送错误通知 */
     private fun emitError(title: String, message: String) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
             _effect.send(AccountManageEffect.ShowError(title, message))
         }
     }
@@ -438,7 +438,7 @@ class AccountManageViewModel @Inject constructor(
         vararg args: Any,
         duration: Int = Toast.LENGTH_SHORT
     ) {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.Main) {
             _effect.send(AccountManageEffect.ShowToast(messageRes, args.toList(), duration))
         }
     }

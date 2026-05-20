@@ -45,7 +45,7 @@ import com.movtery.zalithlauncher.utils.getParcelableSafely
 import com.movtery.zalithlauncher.utils.getSerializableSafely
 import com.movtery.zalithlauncher.utils.network.openLink
 import com.movtery.zalithlauncher.utils.string.throwableToString
-import com.movtery.zalithlauncher.viewmodel.CrashLogsUploadViewModel
+import com.movtery.zalithlauncher.viewmodel.LogsUploadViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.parcelize.Parcelize
 import java.io.File
@@ -85,7 +85,7 @@ class ErrorActivity : BaseAppCompatActivity(refreshData = false) {
     /**
      * 游戏崩溃日志上传逻辑管理 ViewModel
      */
-    private val viewModel: CrashLogsUploadViewModel by viewModels()
+    private val viewModel: LogsUploadViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

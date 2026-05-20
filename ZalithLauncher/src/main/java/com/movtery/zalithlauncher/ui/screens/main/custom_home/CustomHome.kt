@@ -40,6 +40,7 @@ import com.halilibo.richtext.ui.RichTextStyle
 import com.movtery.zalithlauncher.ui.components.MarkdownView
 import com.movtery.zalithlauncher.ui.components.defaultRichTextStyle
 import com.movtery.zalithlauncher.ui.theme.itemColor
+import kotlin.random.Random
 
 fun LazyListScope.customHomePage(
     blocks: List<MarkdownBlock>,
@@ -399,8 +400,9 @@ private fun parseMarkdownBlocksInternal(
         if (match == null) {
             //没有更多匹配，添加剩余内容
             val remaining = cleared.substring(lastIndex).trim('\n')
-            if (remaining.isNotEmpty()) {
-                blocks.add(MarkdownBlock.Normal(astNode = parseMarkdown(remaining)))
+            val processedRemaining = processRandomBlocksInText(remaining)
+            if (processedRemaining.isNotEmpty()) {
+                blocks.add(MarkdownBlock.Normal(astNode = parseMarkdown(processedRemaining)))
             }
             break
         }
@@ -408,8 +410,9 @@ private fun parseMarkdownBlocksInternal(
         //处理匹配项之前的普通文本
         if (match.range.first > lastIndex) {
             val text = cleared.substring(lastIndex, match.range.first).trim('\n')
-            if (text.isNotEmpty()) {
-                blocks.add(MarkdownBlock.Normal(astNode = parseMarkdown(text)))
+            val processedText = processRandomBlocksInText(text)
+            if (processedText.isNotEmpty()) {
+                blocks.add(MarkdownBlock.Normal(astNode = parseMarkdown(processedText)))
             }
         }
 
@@ -793,4 +796,101 @@ private fun parseWeight(params: String): Pair<Float, Boolean>? {
     val weight = match.groupValues[1].toFloatOrNull() ?: return null
     val fill = match.groupValues[2] != "noFill"
     return Pair(weight, fill)
+}
+
+private const val randomStartTag = "...random-start"
+private const val randomEndTag = "...random-end"
+private val randomOptionRegex = Regex("""^weight\((\d+(?:\.\d+)?)\)\s*:\s*(.*)$""")
+
+private data class RandomOption(
+    val text: String,
+    val weight: Double
+)
+
+/**
+ * 处理文本中的随机文本块，自动将其替换为随机选中的文本
+ * 语法：
+ * ```
+ * ...random-start
+ * weight(N): 文本内容
+ * 默认权重的文本内容
+ * ...random-end
+ * ```
+ * - 以 `weight(N): ` 开头可指定权重，否则权重默认为 1
+ * - 随机抽取后的结果中不包含换行符
+ */
+private fun processRandomBlocksInText(text: String): String {
+    if (!text.contains(randomStartTag)) return text
+
+    val lines = text.lines()
+    val result = mutableListOf<String>()
+    var inRandomBlock = false
+    var randomStartLine: String? = null
+    val randomLines = mutableListOf<String>()
+
+    for (line in lines) {
+        val trimmed = line.trimStart()
+
+        if (inRandomBlock) {
+            if (trimmed.startsWith(randomEndTag)) {
+                val selected = pickRandomText(randomLines)
+                result.add(selected)
+                randomLines.clear()
+                inRandomBlock = false
+                randomStartLine = null
+            } else {
+                randomLines.add(line)
+            }
+        } else {
+            if (trimmed.startsWith(randomStartTag)) {
+                inRandomBlock = true
+                randomStartLine = line
+            } else {
+                result.add(line)
+            }
+        }
+    }
+
+    //如果文本结束但随机块未闭合，则忽略此随机文本块
+    if (inRandomBlock) {
+        randomStartLine?.let { result.add(it) }
+        result.addAll(randomLines)
+    }
+
+    return result.joinToString("\n")
+}
+
+/**
+ * 从随机文本候选项中根据权重抽取一个文本
+ */
+private fun pickRandomText(lines: List<String>): String {
+    val options = lines.mapNotNull { line ->
+        val trimmed = line.trim()
+        if (trimmed.isEmpty()) return@mapNotNull null
+
+        //读取权重值
+        val match = randomOptionRegex.find(trimmed)
+        if (match != null) {
+            val weight = match.groupValues[1].toDoubleOrNull() ?: 1.0
+            val text = match.groupValues[2]
+            RandomOption(text, weight)
+        } else {
+            //未配置权重时，默认为 1
+            RandomOption(trimmed, 1.0)
+        }
+    }
+
+    if (options.isEmpty()) return ""
+
+    val totalWeight = options.sumOf { it.weight }
+    var randomValue = Random.nextDouble() * totalWeight
+
+    for (option in options) {
+        randomValue -= option.weight
+        if (randomValue <= 0) {
+            return option.text
+        }
+    }
+
+    return options.last().text
 }

@@ -86,6 +86,7 @@ fun VersionConfigScreen(
     versionsScreenKey: TitledNavKey?,
     version: Version,
     backToMainScreen: () -> Unit,
+    onCheckVulkan: () -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
     if (!version.isValid()) {
@@ -134,6 +135,7 @@ fun VersionConfigScreen(
                         .fillMaxWidth()
                         .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
                     config = config,
+                    onCheckVulkan = onCheckVulkan,
                     submitError = submitError
                 )
             }
@@ -422,6 +424,7 @@ private fun GameConfigs(
 @Composable
 private fun SupportConfigs(
     config: VersionConfig,
+    onCheckVulkan: () -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -505,6 +508,14 @@ private fun SupportConfigs(
                 fineTuningControl = true
             )
         }
+
+        SettingsCard(
+            modifier = Modifier.fillMaxWidth(),
+            position = CardPosition.Middle,
+            title = stringResource(R.string.game_vulkan_check_title),
+            summary = stringResource(R.string.game_vulkan_check_text),
+            onClick = onCheckVulkan
+        )
 
         //检查麦克风
         var microphoneState by remember { mutableStateOf<MicrophoneCheckState>(MicrophoneCheckState.None) }

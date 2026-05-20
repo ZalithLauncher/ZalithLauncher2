@@ -89,6 +89,9 @@ fun JVMScreen(
 
         LogBox(
             enableLog = logState.value,
+            onClose = {
+                onLogStateChange(LogState.CLOSE)
+            },
             modifier = Modifier.fillMaxSize()
         )
 

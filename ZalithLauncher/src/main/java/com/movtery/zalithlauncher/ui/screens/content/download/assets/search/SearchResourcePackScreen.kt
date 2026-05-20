@@ -19,11 +19,13 @@
 package com.movtery.zalithlauncher.ui.screens.content.download.assets.search
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.CurseForgeResourcePackCategory
 import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthFeatures
 import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthResourcePackCategory
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 
@@ -35,6 +37,9 @@ fun SearchResourcePackScreen(
     downloadResourcePackScreenCurrentKey: TitledNavKey?,
     swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
 ) {
+    val initialPlatform = remember {
+        AllSettings.searchResourcePackPlatform.getValue()
+    }
     SearchAssetsScreen(
         mainScreenKey = mainScreenKey,
         parentScreenKey = downloadResourcePackScreenKey,
@@ -42,7 +47,10 @@ fun SearchResourcePackScreen(
         screenKey = NormalNavKey.SearchResourcePack,
         currentKey = downloadResourcePackScreenCurrentKey,
         platformClasses = PlatformClasses.RESOURCE_PACK,
-        initialPlatform = Platform.MODRINTH,
+        initialPlatform = initialPlatform,
+        onPlatformChange = {
+            AllSettings.searchResourcePackPlatform.save(it)
+        },
         getCategories = { platform ->
             when (platform) {
                 Platform.CURSEFORGE -> CurseForgeResourcePackCategory.entries

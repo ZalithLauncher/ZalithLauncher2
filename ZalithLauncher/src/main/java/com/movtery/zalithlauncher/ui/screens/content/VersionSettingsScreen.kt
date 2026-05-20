@@ -396,17 +396,8 @@ private fun NavigationUI(
                         versionsScreenKey = versionsScreenKey,
                         backToMainScreen = backToMainScreen,
                         onExport = onExport,
-                        onViewLog = { logFile ->
-                            backScreenViewModel.mainScreen.backStack.navigateToLogView(
-                                logPath = logFile.absolutePath
-                            )
-                        },
-                        onLink = { link ->
-                            eventViewModel.sendEvent(
-                                EventViewModel.Event.OpenLink(link)
-                            )
-                        },
                         version = version,
+                        eventViewModel = eventViewModel,
                         submitError = submitError
                     )
                 }
@@ -416,6 +407,11 @@ private fun NavigationUI(
                         versionsScreenKey = versionsScreenKey,
                         version = version,
                         backToMainScreen = backToMainScreen,
+                        onCheckVulkan = {
+                            eventViewModel.sendEvent(
+                                EventViewModel.Event.VulkanCheck
+                            )
+                        },
                         submitError = submitError
                     )
                 }

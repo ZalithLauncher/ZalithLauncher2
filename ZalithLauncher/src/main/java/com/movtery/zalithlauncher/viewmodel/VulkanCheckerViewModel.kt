@@ -1,0 +1,56 @@
+/*
+ * Zalith Launcher 2
+ * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.txt>.
+ */
+
+package com.movtery.zalithlauncher.viewmodel
+
+import androidx.lifecycle.ViewModel
+import com.movtery.zalithlauncher.ui.vulkan_checker.VCOperation
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+
+class VulkanCheckerViewModel: ViewModel() {
+    private val _vcOperation = MutableStateFlow<VCOperation>(VCOperation.None)
+    val vcOperation = _vcOperation.asStateFlow()
+
+    var vulkanCheckerCont: (Continuation<Unit>)? = null
+        private set
+
+    fun changeOperation(operation: VCOperation) {
+        _vcOperation.update { operation }
+    }
+
+    suspend fun waitForVulkanChecker() {
+        suspendCancellableCoroutine { cont ->
+            vulkanCheckerCont = cont
+            changeOperation(VCOperation.Tip)
+
+            cont.invokeOnCancellation {
+                vulkanCheckerCont = null
+            }
+        }
+    }
+
+    fun resumeCont() {
+        vulkanCheckerCont?.resume(Unit)
+        vulkanCheckerCont = null
+    }
+}

@@ -421,7 +421,7 @@
     <string name="account_logging_blocked_ip">O endereço IP atual foi bloqueado para login.</string>
     <string name="account_logging_profile_not_exists">Crie um perfil de jogador do Minecraft primeiro e tente fazer login novamente!</string>
     <string name="account_logging_not_purchased_minecraft">Propriedade do Minecraft não verificada. Compre no site oficial da Mojang.</string>
-    <string name="account_type_microsoft">Conta Microsoft (Requer Minecraft Java Original)</string>
+    <string name="account_type_microsoft">Conta Microsoft (Adquira o Minecraft original)</string>
     <string name="account_type_local">Conta offline</string>
     <string name="account_add_new_server">Adicionar servidor de autenticação</string>
     <string name="account_add_new_server_button">Adicionar Autenticação</string>
@@ -759,7 +759,7 @@
     <string name="settings_renderer_zink_driver_adreno">O launcher detectou que seu dispositivo possui uma GPU Adreno. Habilitar esta opção pode causar mau funcionamento do renderizador Zink. Tem certeza de que deseja habilitá-la?</string>
     <string name="settings_renderer_vsync_in_zink_title">Sincronização vertical do Zink</string>
     <string name="settings_renderer_vsync_in_zink_summary">Ative a sincronização vertical para o Renderizador Zink através da interface do sistema</string>
-    <string name="settings_renderer_force_big_core_title">Forças núcleos de alto desempenho</string>
+    <string name="settings_renderer_force_big_core_title">Forçar os núcleos de alto desempenho</string>
     <string name="settings_renderer_force_big_core_summary">Vincule o thread de renderização do Minecraft aos núcleos de alto desempenho da sua CPU (núcleos grandes). Habilitar isso pode aumentar o consumo de energia e o calor geral do seu dispositivo. (Não recomendado para CPUs com núcleos de menos de 3GHz)</string>
     <string name="settings_game_version_isolation_title">Isolamento da versão global</string>
     <string name="settings_game_version_isolation_summary">Isola todas as versões para que seus dados não interfiram umas com as outras</string>
@@ -818,7 +818,7 @@
     <string name="settings_control_mouse_pointer_not_allowed_title">Setinha do Mouse Virtual (Sem Permissão)</string>
     <string name="settings_control_mouse_pointer_not_allowed_summary">Apenas MC 1.21.9+ suporta a troca da Setinha do mouse para opções nas quais estão bloqueadas ou sem suporte a interações</string>
     <string name="settings_control_mouse_pointer_common_summary">Apenas MC 1.21.9+ suporta este tipo de setinha</string>
-    <string name="settings_control_mouse_pointer_reset_message">Redefinir a Setinha do Mouse para a padrão? :(..</string>
+    <string name="settings_control_mouse_pointer_reset_message">Você quer mesmo redefinir a setinha do mouse para a padrão? 🥹</string>
     <string name="settings_control_mouse_pointer_hotspot">Definir Hotspot</string>
     <string name="settings_control_mouse_pointer_hotspot_x_percent">Coordenada X</string>
     <string name="settings_control_mouse_pointer_hotspot_y_percent">Coordenada Y</string>
@@ -1201,4 +1201,14 @@
     <string name="settings_launcher_home_page_type_warning">Páginas iniciais personalizadas são conteúdo de terceiros. O iniciador não oferece nenhuma garantia quanto ao conteúdo delas. Tenha cuidado ao aceitar páginas iniciais desconhecidas!</string>
     <string name="settings_launcher_home_page_url">URL de download da página inicial:</string>
     <string name="settings_launcher_home_page_loading">Carregando a página inicial</string>
+    <string name="game_vulkan_check_title">Verificar Vulkan</string>
+    <string name="game_vulkan_check_text">Verifique se seu dispositivo é compatível com a execução do Minecraft 26.2 ou superior com Vulkan. Os resultados são apenas para referência.</string>
+    <string name="game_vulkan_check_version">Versão do Vulkan: %s</string>
+    <string name="game_vulkan_check_turnip">Usando Turnip: %s</string>
+    <string name="game_vulkan_check_extensions">Extensões necessárias:</string>
+    <string name="game_vulkan_check_missing_extensions">Extensões ausentes:</string>
+    <string name="game_vulkan_check_features">Recursos necessários:</string>
+    <string name="game_vulkan_check_missing_features">Recursos ausentes:</string>
+    <string name="game_vulkan_check_unsupp">Seu dispositivo não suporta a execução do minecraft 26.2+ com Vulkan</string>
+    <string name="game_vulkan_check_supp">Seu dispositivo é compatível com a execução do minecraft 26.2+ com Vulkan</string>
 </resources>

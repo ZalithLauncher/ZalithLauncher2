@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.game.launch
 
 import android.content.Context
+import com.google.gson.JsonObject
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
@@ -32,18 +33,26 @@ import com.movtery.zalithlauncher.game.account.microsoft.XboxLoginException
 import com.movtery.zalithlauncher.game.account.microsoft.toLocal
 import com.movtery.zalithlauncher.game.version.download.DownloadMode
 import com.movtery.zalithlauncher.game.version.download.MinecraftDownloader
+import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
 import com.movtery.zalithlauncher.game.version.mod.AllModReader
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.activities.runGame
+import com.movtery.zalithlauncher.utils.GSON
+import com.movtery.zalithlauncher.utils.file.readText
 import com.movtery.zalithlauncher.utils.logging.Logger.lError
+import com.movtery.zalithlauncher.utils.logging.Logger.lWarning
 import com.movtery.zalithlauncher.utils.network.isNetworkAvailable
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.net.ConnectException
 import java.net.UnknownHostException
 import java.nio.channels.UnresolvedAddressException
+import java.util.zip.ZipFile
 
 object LaunchGame {
     var isLaunching: Boolean = false
@@ -53,6 +62,7 @@ object LaunchGame {
         context: Context,
         version: Version,
         exitActivity: () -> Unit,
+        waitForVulkanChecker: suspend () -> Unit,
         submitError: (ErrorViewModel.ThrowableMessage) -> Unit
     ) {
         if (isLaunching) return
@@ -67,6 +77,7 @@ object LaunchGame {
             context = context,
             version = version,
             exitActivity = exitActivity,
+            waitForVulkanChecker = waitForVulkanChecker,
             submitError = submitError
         )
         fun startDownloadTask() {
@@ -97,6 +108,7 @@ object LaunchGame {
         context: Context,
         version: Version,
         exitActivity: () -> Unit,
+        waitForVulkanChecker: suspend () -> Unit,
         submitError: (ErrorViewModel.ThrowableMessage) -> Unit
     ): Task {
         return MinecraftDownloader(
@@ -105,8 +117,12 @@ object LaunchGame {
             customName = version.getVersionName(),
             verifyIntegrity = !version.skipGameIntegrityCheck(),
             mode = DownloadMode.VERIFY_AND_REPAIR,
-            onCompletion = {
+            onCompletion = { task ->
+                task.updateProgress(-1f, null)
                 checkEnableTouchProxy(version)
+                task.updateMessage(R.string.game_vulkan_check_title)
+                checkVulkanCapabilities(version, waitForVulkanChecker)
+
                 runGame(context, version)
                 exitActivity()
             },
@@ -131,6 +147,45 @@ object LaunchGame {
             if (mod.id == "touchcontroller") {
                 version.enableTouchProxy = true
                 break
+            }
+        }
+    }
+
+    private suspend fun checkVulkanCapabilities(
+        version: Version,
+        waitForVulkanChecker: suspend () -> Unit
+    ) {
+        if (!AllSettings.autoVulkanChecker.getValue()) return
+
+        val api = version.getGraphicsApi()
+        if (api == GraphicsApi.OPENGL) return
+
+        //游戏可能使用Vulkan，检查版本是否为 26.2+
+        val clientJar = version.getClientJar()
+        if (clientJar.exists()) {
+            val hasVulkan = runCatching {
+                withContext(Dispatchers.IO) {
+                    //在客户端中读取数据版本
+                    ZipFile(clientJar).use { zip ->
+                        zip.getEntry("version.json")
+                            ?.readText(zip)
+                            ?.let { GSON.fromJson(it, JsonObject::class.java) }
+                            ?.let { json ->
+                                //https://zh.minecraft.wiki/w/%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F
+                                json.get("world_version")?.asInt
+                            }
+                    }?.let { worldVersion ->
+                        //26.2-snapshot-1
+                        worldVersion >= 4883
+                    }
+                } ?: false
+            }.onFailure { e ->
+                lWarning("Unable to determine the data version of this client Jar, possibly due to an outdated version.", e)
+            }.getOrDefault(false)
+
+            if (hasVulkan) {
+                //等待Vulkan检查完成
+                waitForVulkanChecker()
             }
         }
     }

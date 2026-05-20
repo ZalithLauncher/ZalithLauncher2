@@ -58,24 +58,18 @@ bool checkAdrenoGraphics() {
     return is_adreno;
 }
 
-void* loadTurnipVulkan() {
+void* loadTurnipVulkan(const char* driver_path, const char* native_dir, const char* cache_dir) {
     if (!checkAdrenoGraphics())
         return NULL;
 
-    const char* native_dir = getenv("DRIVER_PATH");
-    const char* cache_dir = getenv("TMPDIR");
-
-    if (!native_dir) 
-        return NULL;
-
-    if (!linker_ns_load(native_dir))
-        return NULL;
+    if (!native_dir || !linker_ns_load(native_dir)) return NULL;
 
     void* linkerhook = linker_ns_dlopen("liblinkerhook.so", RTLD_LOCAL | RTLD_NOW);
-    if (!linkerhook)
-        return NULL;
+    if (!linkerhook) return NULL;
 
-    void* turnip_driver_handle = linker_ns_dlopen("libvulkan_freedreno.so", RTLD_LOCAL | RTLD_NOW);
+    const char* target_driver = (driver_path && strlen(driver_path) > 0) ? driver_path : "libvulkan_freedreno.so";
+    void* turnip_driver_handle = linker_ns_dlopen(target_driver, RTLD_LOCAL | RTLD_NOW);
+
     if (!turnip_driver_handle) {
         dlclose(linkerhook);
         return NULL;

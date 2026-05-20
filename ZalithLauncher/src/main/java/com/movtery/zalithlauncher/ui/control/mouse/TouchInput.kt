@@ -138,6 +138,9 @@ fun TouchpadLayout(
                     /** 每个指针的拖动状态 */
                     val dragStates = mutableMapOf<PointerId, DragState>()
 
+                    /** moveOnly 指针集合，用于处理滑动事件 */
+                    val moveOnlyPointers = mutableSetOf<PointerId>()
+
                     /** 清除鼠标触摸层的状态 */
                     fun resetTouchState() {
                         activePointer = null
@@ -146,6 +149,7 @@ fun TouchpadLayout(
                         longPressJobs.clear()
                         occupiedPointers.forEach { onReleasePointer(it) }
                         occupiedPointers.clear()
+                        moveOnlyPointers.clear()
                     }
 
                     awaitPointerEventScope {
@@ -163,20 +167,31 @@ fun TouchpadLayout(
                                     //是否被父级标记为仅处理滑动
                                     val isMoveOnly = isMoveOnlyPointer(pointerId)
 
-                                    //仅在未被父级消费且未被占用的情况下，尝试占用指针
-                                    if (!isMoveOnly && !change.isConsumed && pointerId !in occupiedPointers) {
-                                        onOccupiedPointer(pointerId)
-                                        occupiedPointers.add(pointerId)
-                                    }
+                                    //如果是 moveOnly 指针
+                                    if (isMoveOnly) {
+                                        //如果当前没有活跃指针，则成为活跃指针
+                                        //这样当第一根手指被标记为 moveOnly 后，第二根手指可以接管
+                                        if (activePointer == null) {
+                                            activePointer = pointerId
+                                            dragStates[pointerId] = DragState(startPosition = change.position)
+                                        } else {
+                                            //如果已有活跃指针，仅处理滑动
+                                            moveOnlyPointers.add(pointerId)
+                                        }
+                                    } else if (activePointer == null && !change.isConsumed) {
+                                        //如果没有活跃指针，且当前指针未被消费，则开始处理这个指针
+                                        //fix: 只有真正成为 activePointer 的指针，才标记为已占用
+                                        if (pointerId !in occupiedPointers) {
+                                            onOccupiedPointer(pointerId)
+                                            occupiedPointers.add(pointerId)
+                                        }
 
-                                    //如果没有活跃指针，且当前指针未被消费，则开始处理这个指针
-                                    if (activePointer == null && (!change.isConsumed || isMoveOnly)) {
                                         activePointer = pointerId
 
                                         dragStates[pointerId] =
                                             DragState(startPosition = change.position)
 
-                                        if (!isMoveOnly && currentControlMode == MouseControlMode.SLIDE && currentEnableMouseClick) {
+                                        if (currentControlMode == MouseControlMode.SLIDE && currentEnableMouseClick) {
                                             longPressJobs[pointerId] = launch {
                                                 //只在滑动点击模式下进行长按计时
                                                 val timeout =
@@ -195,14 +210,14 @@ fun TouchpadLayout(
                                             }
                                         }
 
-                                        if (!isMoveOnly && currentControlMode == MouseControlMode.CLICK) {
+                                        if (currentControlMode == MouseControlMode.CLICK) {
                                             //点击模式下，如果触摸，无论如何都应该更新指针位置
                                             currentOnPointerMove(change.position, false)
                                         }
                                     }
                                 }
 
-                            //处理移动事件（仅处理活跃指针）
+                            //处理移动事件，处理活跃指针的移动
                             activePointer?.let { pointerId ->
                                 event.changes
                                     .firstOrNull { it.id == pointerId && it.positionChanged() && !it.isConsumed }
@@ -255,6 +270,20 @@ fun TouchpadLayout(
                                     }
                             }
 
+                            //处理 moveOnly 指针的移动
+                            event.changes
+                                .filter { moveOnlyPointers.contains(it.id) && it.positionChanged() && !it.isConsumed }
+                                .forEach { moveChange ->
+                                    val pointerId = moveChange.id
+                                    val dragState = dragStates[pointerId]
+                                    if (dragState != null) {
+                                        dragState.isDragging = true
+                                        val delta = moveChange.positionChange()
+                                        currentOnPointerMove(delta, true)
+                                        moveChange.consume()
+                                    }
+                                }
+
                             //释放
                             event.changes
                                 .filter { it.changedToUpIgnoreConsumed() }
@@ -289,6 +318,9 @@ fun TouchpadLayout(
 
                                         activePointer = null
                                     }
+
+                                    //从 moveOnly 指针集合中移除
+                                    moveOnlyPointers.remove(pointerId)
 
                                     if (!isMoveOnly && pointerId in occupiedPointers) {
                                         occupiedPointers.remove(pointerId)

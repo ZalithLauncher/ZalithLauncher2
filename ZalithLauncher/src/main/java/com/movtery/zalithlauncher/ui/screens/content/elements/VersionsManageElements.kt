@@ -69,6 +69,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.ImageLoader
@@ -840,22 +841,24 @@ fun VersionItemLayout(
 
 @Composable
 fun CommonVersionInfoLayout(
+    version: Version,
     modifier: Modifier = Modifier,
-    version: Version
+    iconSize: Dp = 34.dp,
 ) {
     val isValid = remember(version) { version.isValid() }
     val versionName = remember(version) { version.getVersionName() }
     val isSummaryValid = remember(version) { version.isSummaryValid() }
     val versionInfo = remember(version) { version.getVersionInfo() }
 
-    Row(modifier = modifier) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
         VersionIconImage(
-            modifier = Modifier
-                .size(34.dp)
-                .align(Alignment.CenterVertically),
+            modifier = Modifier.size(iconSize),
             version = version
         )
-        Spacer(modifier = Modifier.width(16.dp))
         Column(
             modifier = Modifier.weight(1f)
         ) {

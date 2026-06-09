@@ -159,9 +159,6 @@ import kotlin.math.roundToInt
 
 private const val TAG = "AccountElements"
 
-/** Reusable Paint for skin/cape avatar rendering with nearest-neighbor filtering. */
-private val avatarPaint = Paint().apply { isFilterBitmap = false }
-
 /** 账号登录菜单操作状态 */
 sealed interface LoginMenuOperation {
     data object None : LoginMenuOperation
@@ -1626,6 +1623,8 @@ fun CapeListItem(
         }
     }
 }
+
+private val avatarPaint = Paint().apply { isFilterBitmap = false }
 
 private fun getCapeAvatar(
     cape: PlayerProfile.Cape,

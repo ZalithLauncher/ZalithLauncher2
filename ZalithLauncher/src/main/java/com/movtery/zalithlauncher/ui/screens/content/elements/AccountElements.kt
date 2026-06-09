@@ -22,8 +22,10 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
+import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.RectF
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -156,6 +158,9 @@ import java.util.regex.Pattern
 import kotlin.math.roundToInt
 
 private const val TAG = "AccountElements"
+
+/** Reusable Paint for skin/cape avatar rendering with nearest-neighbor filtering. */
+private val avatarPaint = Paint().apply { isFilterBitmap = false }
 
 /** 账号登录菜单操作状态 */
 sealed interface LoginMenuOperation {
@@ -1652,11 +1657,17 @@ private fun getCapeAvatar(
     val start = scaleFactor.roundToInt()
     val capeWidth = (10 * scaleFactor).roundToInt()
     val capeHeight = (16 * scaleFactor).roundToInt()
-    val capeBitmap = Bitmap.createBitmap(cape, start, start, capeWidth, capeHeight, null, false)
-    val scale = pixelSize.toFloat() / capeHeight
-    val matrix = Matrix()
-    matrix.postScale(scale, scale)
-    return Bitmap.createBitmap(capeBitmap, 0, 0, capeBitmap.width, capeBitmap.height, matrix, false)
+    val targetWidth = (pixelSize.toFloat() * capeWidth / capeHeight).roundToInt()
+    val avatar = createBitmap(targetWidth, pixelSize)
+    val canvas = Canvas(avatar)
+
+    canvas.drawBitmap(
+        cape,
+        Rect(start, start, start + capeWidth, start + capeHeight),
+        RectF(0f, 0f, targetWidth.toFloat(), pixelSize.toFloat()),
+        avatarPaint
+    )
+    return avatar
 }
 
 private fun getSkinAvatarFromAccount(
@@ -1704,28 +1715,24 @@ private fun getSkinAvatar(
     val faceOffset = (pixelSize / 18.0).roundToInt().toFloat()
     val scaleFactor = skin.width / 64.0f
     val faceSize = (8 * scaleFactor).roundToInt()
-    val faceBitmap = Bitmap.createBitmap(skin, faceSize, faceSize, faceSize, faceSize, null, false)
-    val hatBitmap = Bitmap.createBitmap(
-        skin,
-        (40 * scaleFactor).roundToInt(),
-        faceSize,
-        faceSize,
-        faceSize,
-        null,
-        false
-    )
+    val faceEndY = faceSize * 2
+    val hatSrcX = (40 * scaleFactor).roundToInt()
     val avatar = createBitmap(pixelSize, pixelSize)
-    val canvas = android.graphics.Canvas(avatar)
-    val faceScale = ((pixelSize - 2 * faceOffset) / faceSize)
-    val hatScale = (pixelSize.toFloat() / faceSize)
-    val paint = Paint().apply { isFilterBitmap = false }
-    var matrix = Matrix()
-    matrix.postScale(faceScale, faceScale)
-    val newFaceBitmap = Bitmap.createBitmap(faceBitmap, 0, 0, faceSize, faceSize, matrix, false)
-    matrix = Matrix()
-    matrix.postScale(hatScale, hatScale)
-    val newHatBitmap = Bitmap.createBitmap(hatBitmap, 0, 0, faceSize, faceSize, matrix, false)
-    canvas.drawBitmap(newFaceBitmap, faceOffset, faceOffset, paint)
-    canvas.drawBitmap(newHatBitmap, 0f, 0f, paint)
+    val canvas = Canvas(avatar)
+
+    val innerEnd = pixelSize - faceOffset
+    canvas.drawBitmap(
+        skin,
+        Rect(faceSize, faceSize, faceEndY, faceEndY),
+        RectF(faceOffset, faceOffset, innerEnd, innerEnd),
+        avatarPaint
+    )
+
+    canvas.drawBitmap(
+        skin,
+        Rect(hatSrcX, faceSize, hatSrcX + faceSize, faceEndY),
+        RectF(0f, 0f, pixelSize.toFloat(), pixelSize.toFloat()),
+        avatarPaint
+    )
     return avatar
 }

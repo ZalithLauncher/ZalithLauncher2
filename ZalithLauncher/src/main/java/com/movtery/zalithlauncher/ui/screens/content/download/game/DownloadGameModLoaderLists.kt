@@ -304,7 +304,7 @@ suspend fun <T> ViewModel.runWithState(
             else -> {
                 Logger.error(TAG, "An unknown exception was caught!", e)
                 val errorMessage = e.localizedMessage ?: e.message ?: e::class.qualifiedName ?: "Unknown error"
-                AddonState.Error(R.string.error_unknown, arrayOf(errorMessage))
+                AddonState.Error(R.string.empty_holder, arrayOf(errorMessage))
             }
         }
         updateState(state)

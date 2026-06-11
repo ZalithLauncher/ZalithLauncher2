@@ -42,6 +42,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
 import java.io.IOException
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "NetWorks"
 
@@ -127,7 +128,7 @@ suspend fun <T> withRetry(
             Logger.debug(TAG, "$logTag: Attempt ${retryCount + 1} failed: ${e.message}")
             lastError = e
             if (canRetry(e)) {
-                delay(currentDelay)
+                delay(currentDelay.milliseconds)
                 currentDelay = (currentDelay * 2).coerceAtMost(maxDelay)
                 retryCount++
             } else {

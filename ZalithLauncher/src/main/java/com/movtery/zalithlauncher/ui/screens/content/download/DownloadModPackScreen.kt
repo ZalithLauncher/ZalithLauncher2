@@ -88,6 +88,7 @@ import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.nio.channels.UnresolvedAddressException
+import java.util.concurrent.TimeoutException
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 
@@ -411,7 +412,7 @@ private fun ModPackInstallOperation(
             val th = operation.th
             Logger.error("InstallModpack", "Failed to download the game!", th)
             val message = when (th) {
-                is HttpRequestTimeoutException, is SocketTimeoutException -> stringResource(R.string.error_timeout)
+                is HttpRequestTimeoutException, is SocketTimeoutException, is TimeoutException -> stringResource(R.string.error_timeout)
                 is UnknownHostException, is UnresolvedAddressException -> stringResource(R.string.error_network_unreachable)
                 is ConnectException -> stringResource(R.string.error_connection_failed)
                 is SerializationException, is JsonSyntaxException -> stringResource(R.string.error_parse_failed)
@@ -419,7 +420,7 @@ private fun ModPackInstallOperation(
                 is DownloadFailedException -> stringResource(R.string.download_install_error_download_failed)
                 else -> {
                     val errorMessage = th.localizedMessage ?: th.message ?: th::class.qualifiedName ?: "Unknown error"
-                    stringResource(R.string.error_unknown, errorMessage)
+                    stringResource(R.string.empty_holder, errorMessage)
                 }
             }
             val dismiss = {

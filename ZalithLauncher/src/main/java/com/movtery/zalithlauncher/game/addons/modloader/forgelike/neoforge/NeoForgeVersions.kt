@@ -90,7 +90,7 @@ object NeoForgeVersions {
     }
 
     private suspend fun fetchListWithOfficial() = withContext(Dispatchers.IO) {
-        processVersionList {
+        processVersionList(SourceType.OFFICIAL) {
             val neoforge = withRetry(TAG, maxRetries = 2) {
                 httpGetJson<NeoForgedMaven>(url = "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge")
             }
@@ -109,7 +109,7 @@ object NeoForgeVersions {
         delayMillis = delayMillis,
         type = SourceType.BMCLAPI
     ) {
-        processVersionList {
+        processVersionList(SourceType.BMCLAPI) {
             val neoforge = withRetry(TAG, maxRetries = 2) {
                 httpGetJson<BMCLAPIMaven>(url = "https://bmclapi2.bangbang93.com/neoforge/meta/api/maven/details/releases/net/neoforged/neoforge")
             }
@@ -125,6 +125,7 @@ object NeoForgeVersions {
      * 统一处理任务，处理异常、排序
      */
     private suspend fun processVersionList(
+        sourceType: SourceType,
         block: suspend () -> List<NeoForgeVersion>
     ): List<NeoForgeVersion>? = withContext(Dispatchers.IO) {
         try {
@@ -135,8 +136,7 @@ object NeoForgeVersions {
             Logger.debug(TAG, "Client cancelled.")
             null
         } catch (e: Exception) {
-            Logger.warning(TAG, "Failed to fetch neoforge list!", e)
-            throw e
+            throw RuntimeException("Failed to fetch neoforge list! source: ${sourceType.displayName}", e)
         }
     }
 

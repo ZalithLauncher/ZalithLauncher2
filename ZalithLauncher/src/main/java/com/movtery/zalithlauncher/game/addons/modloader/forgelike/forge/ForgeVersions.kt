@@ -118,8 +118,7 @@ object ForgeVersions {
             Logger.debug(TAG, "Client cancelled.")
             null
         } catch (e: Exception) {
-            Logger.warning(TAG, "Failed to fetch forge list!", e)
-            throw e
+            throw RuntimeException("Failed to fetch forge list! url: $url", e)
         }
     }
 
@@ -169,8 +168,7 @@ object ForgeVersions {
             Logger.debug(TAG, "Client cancelled.")
             null
         } catch (e: Exception) {
-            Logger.warning(TAG, "Failed to fetch forge list!", e)
-            throw e
+            throw RuntimeException("Failed to fetch forge list! url: $url", e)
         }
     }
 

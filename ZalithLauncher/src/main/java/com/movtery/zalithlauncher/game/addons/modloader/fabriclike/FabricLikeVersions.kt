@@ -110,11 +110,12 @@ abstract class FabricLikeVersions(
         mcVersion: String,
         sourceUrl: String
     ): List<FabricLikeLoader>? = withContext(Dispatchers.IO) {
+        val url = "$sourceUrl/versions"
         try {
             val versions: FabricLikeVersionsJson = run {
                 if (!force && cacheVersions != null) return@run cacheVersions!!
                 withContext(Dispatchers.IO) {
-                    withRetry(tag, maxRetries = 2) { GLOBAL_CLIENT.get("$sourceUrl/versions").safeBodyAsJson() }
+                    withRetry(tag, maxRetries = 2) { GLOBAL_CLIENT.get(url).safeBodyAsJson() }
                 }
             }.also {
                 cacheVersions = it
@@ -130,8 +131,7 @@ abstract class FabricLikeVersions(
             Logger.debug(TAG, "Client cancelled.")
             null
         } catch (e: Exception) {
-            Logger.debug(TAG, "Failed to fetch loader list!", e)
-            throw e
+            throw RuntimeException("Failed to fetch fabriclike loader list! url: $url", e)
         }
     }
 }

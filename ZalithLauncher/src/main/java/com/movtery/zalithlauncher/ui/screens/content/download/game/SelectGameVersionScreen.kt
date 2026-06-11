@@ -185,7 +185,7 @@ private class VersionsViewModel: ViewModel() {
                     else -> {
                         Logger.error(TAG, "An unknown exception was caught!", e)
                         val errorMessage = e.localizedMessage ?: e.message ?: e::class.qualifiedName ?: "Unknown error"
-                        R.string.error_unknown to arrayOf(errorMessage)
+                        R.string.empty_holder to arrayOf(errorMessage)
                     }
                 }
                 VersionState.Failure(message.first, message.second)

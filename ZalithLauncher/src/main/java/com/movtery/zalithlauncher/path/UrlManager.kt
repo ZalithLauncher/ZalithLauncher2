@@ -96,3 +96,23 @@ fun createOkHttpClientBuilder(action: (OkHttpClient.Builder) -> Unit = { }): OkH
         .callTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
         .apply(action)
 }
+
+/**
+ * 创建用于文件下载的 OkHttpClient。
+ * 与普通 API 调用不同，文件下载需要更长的超时配置，且不设 callTimeout
+ * （因为文件大小差异很大，不能用一个固定值限制整体下载时间）。
+ *
+ * 使用 OkHttp 替代 HttpURLConnection 的主要原因是：
+ * OkHttp 使用自实现的 AsyncTimeout 机制，比依赖操作系统 socket 超时的
+ * HttpURLConnection 在 Android 上更加可靠，能有效避免"卡 0b/s"问题。
+ */
+val DOWNLOAD_OKHTTP_CLIENT: OkHttpClient by lazy {
+    OkHttpClient.Builder()
+        .connectTimeout(15, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
+        .retryOnConnectionFailure(true)
+        .build()
+        // 注意：不设置 callTimeout，因为文件大小差异极大
+        // 协程层的 withTimeout 提供整体兜底保护
+}

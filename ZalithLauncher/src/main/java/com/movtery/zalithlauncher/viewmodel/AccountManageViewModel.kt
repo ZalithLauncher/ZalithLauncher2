@@ -775,7 +775,7 @@ class AccountManageViewModel @Inject constructor(
             Logger.error(TAG, "An unknown exception was caught!", th)
             val errorMessage =
                 th.localizedMessage ?: th.message ?: th::class.qualifiedName ?: "Unknown error"
-            context.getString(R.string.error_unknown, errorMessage)
+            context.getString(R.string.empty_holder, errorMessage)
         }
     }
 }

@@ -158,7 +158,7 @@ fun microsoftLogin(
                 is CancellationException -> { null }
                 else -> {
                     val errorMessage = th.localizedMessage ?: th.message ?: th::class.qualifiedName ?: "Unknown error"
-                    context.getString(R.string.error_unknown, errorMessage)
+                    context.getString(R.string.empty_holder, errorMessage)
                 }
             }?.let { message ->
                 submitError(

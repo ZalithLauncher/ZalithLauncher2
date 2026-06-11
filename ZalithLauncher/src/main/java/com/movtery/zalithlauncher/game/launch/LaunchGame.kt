@@ -222,7 +222,7 @@ object LaunchGame {
                         else -> {
                             Logger.error(TAG, "An unknown exception was caught!", error)
                             val errorMessage = error.localizedMessage ?: error.message ?: error::class.qualifiedName ?: "Unknown error"
-                            context.getString(R.string.error_unknown, errorMessage)
+                            context.getString(R.string.empty_holder, errorMessage)
                         }
                     }
 

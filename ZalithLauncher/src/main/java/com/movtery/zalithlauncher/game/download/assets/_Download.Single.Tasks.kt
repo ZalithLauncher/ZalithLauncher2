@@ -175,7 +175,7 @@ fun mapExceptionToMessage(e: Throwable): Pair<Int, Array<Any>?> {
         is ResponseException -> e.toLocal()
         else -> {
             val errorMessage = e.localizedMessage ?: e::class.simpleName ?: "Unknown error"
-            Pair(R.string.error_unknown, arrayOf(errorMessage))
+            Pair(R.string.empty_holder, arrayOf(errorMessage))
         }
     }
 }

@@ -27,7 +27,7 @@ import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
-import com.movtery.zalithlauncher.path.TIME_OUT
+import com.movtery.zalithlauncher.path.DOWNLOAD_OKHTTP_CLIENT
 import com.movtery.zalithlauncher.path.URL_USER_AGENT
 import com.movtery.zalithlauncher.path.createOkHttpClient
 import com.movtery.zalithlauncher.path.createRequestBuilder
@@ -40,6 +40,7 @@ import com.movtery.zalithlauncher.utils.string.isEmptyOrBlank
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -47,7 +48,9 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import okhttp3.Call
+import okhttp3.Request
 import org.apache.commons.io.FileUtils
 import java.io.BufferedOutputStream
 import java.io.File
@@ -55,12 +58,18 @@ import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InterruptedIOException
-import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
-import java.net.URL
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicLong
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "NetWorkUtils"
+
+/** 单个文件下载的最大允许时间*/
+private const val DOWNLOAD_PER_FILE_TIMEOUT = 3 * 60 * 1000L
+
+/** 镜像列表下载的最大允许时间 */
+private const val DOWNLOAD_MIRROR_LIST_TIMEOUT = 5 * 60 * 1000L
 
 /**
  * @return 当前网络是否可用
@@ -111,43 +120,44 @@ fun downloadFileWithHttp(
         try {
             outputFile.ensureParentDirectory()
 
-            val conn = URL(url).openConnection() as HttpURLConnection
+            val request = Request.Builder()
+                .url(url)
+                .header("User-Agent", "Mozilla/5.0/$URL_USER_AGENT")
+                .build()
 
-            conn.apply {
-                readTimeout = TIME_OUT.toInt()
-                connectTimeout = TIME_OUT.toInt()
-                useCaches = true
-                setRequestProperty("User-Agent", "Mozilla/5.0/$URL_USER_AGENT")
-            }
-
-            conn.connect()
-            if (conn.responseCode !in 200..299) {
-                if (conn.responseCode == 404) throw FileNotFoundException("HTTP ${conn.responseCode} - ${conn.responseMessage}")
-                throw IOException("HTTP ${conn.responseCode} - ${conn.responseMessage}")
-            }
-
-            val contentLength = conn.contentLengthLong
-            val buffer = ByteArray(bufferSize)
-
-            conn.inputStream.use { inputStream ->
-                BufferedOutputStream(FileOutputStream(outputFile)).use { fos ->
-                    var totalBytesRead = 0L
-                    var bytesRead: Int
-
-                    while (inputStream.read(buffer).also { bytesRead = it } != -1) {
-                        fos.write(buffer, 0, bytesRead)
-                        totalBytesRead += bytesRead
-
-                        sizeCallback(bytesRead.toLong())
-                        attemptReportedBytes += bytesRead
-                        totalReportedBytes += bytesRead
+            DOWNLOAD_OKHTTP_CLIENT
+                .newCall(request)
+                .execute()
+                .use { response ->
+                    if (!response.isSuccessful) {
+                        if (response.code == 404) throw FileNotFoundException("HTTP ${response.code} - ${response.message}")
+                        throw IOException("HTTP ${response.code} - ${response.message}")
                     }
 
-                    if (contentLength != -1L && totalBytesRead != contentLength) {
-                        throw IOException("Download incomplete. Expected $contentLength bytes, received $totalBytesRead bytes.")
+                    val body = response.body
+                    val contentLength = body.contentLength()
+
+                    body.byteStream().use { inputStream ->
+                        BufferedOutputStream(FileOutputStream(outputFile)).use { fos ->
+                            val buffer = ByteArray(bufferSize)
+                            var totalBytesRead = 0L
+                            var bytesRead: Int
+
+                            while (inputStream.read(buffer).also { bytesRead = it } != -1) {
+                                fos.write(buffer, 0, bytesRead)
+                                totalBytesRead += bytesRead
+
+                                sizeCallback(bytesRead.toLong())
+                                attemptReportedBytes += bytesRead
+                                totalReportedBytes += bytesRead
+                            }
+
+                            if (contentLength != -1L && totalBytesRead != contentLength) {
+                                throw IOException("Download incomplete. Expected $contentLength bytes, received $totalBytesRead bytes.")
+                            }
+                        }
                     }
                 }
-            }
 
             sha1?.let {
                 if (!compareSHA1(outputFile, it)) {
@@ -194,14 +204,20 @@ suspend fun downloadFileSuspend(
     sha1: String? = null,
     sizeCallback: (Long) -> Unit = {}
 ) = withContext(Dispatchers.IO) {
-    runInterruptible {
-        downloadFileWithHttp(
-            url = url,
-            outputFile = outputFile,
-            bufferSize = bufferSize,
-            sha1 = sha1,
-            sizeCallback = sizeCallback
-        )
+    try {
+        withTimeout(DOWNLOAD_PER_FILE_TIMEOUT.milliseconds) { //整体超时保护
+            runInterruptible {
+                downloadFileWithHttp(
+                    url = url,
+                    outputFile = outputFile,
+                    bufferSize = bufferSize,
+                    sha1 = sha1,
+                    sizeCallback = sizeCallback
+                )
+            }
+        }
+    } catch (_: TimeoutCancellationException) {
+        throw TimeoutException("Download timed out after ${DOWNLOAD_PER_FILE_TIMEOUT}ms: $url")
     }
 }
 
@@ -274,7 +290,8 @@ fun downloadFromMirrorList(
         }
     }
 
-    throw IOException("Failed to download file from all mirrors (${errors.size} errors)", lastException).apply {
+    val errorMessage = errors.mapNotNull { it.message }.joinToString("\n")
+    throw IOException("Failed to download file from all mirrors (${errors.size} errors)\n$errorMessage", lastException).apply {
         errors.forEachIndexed { i, e ->
             addSuppressed(Exception("Mirror error #${i + 1}: ${e.message}"))
         }
@@ -296,14 +313,20 @@ suspend fun downloadFromMirrorListSuspend(
     sha1: String? = null,
     sizeCallback: (Long) -> Unit = {}
 ) = withContext(Dispatchers.IO) {
-    runInterruptible {
-        downloadFromMirrorList(
-            urls = urls,
-            outputFile = outputFile,
-            bufferSize = bufferSize,
-            sha1 = sha1,
-            sizeCallback = sizeCallback
-        )
+    try {
+        withTimeout(DOWNLOAD_MIRROR_LIST_TIMEOUT.milliseconds) { //整体超时保护
+            runInterruptible {
+                downloadFromMirrorList(
+                    urls = urls,
+                    outputFile = outputFile,
+                    bufferSize = bufferSize,
+                    sha1 = sha1,
+                    sizeCallback = sizeCallback
+                )
+            }
+        }
+    } catch (_: TimeoutCancellationException) {
+        throw TimeoutException("Mirror list download timed out after ${DOWNLOAD_MIRROR_LIST_TIMEOUT}ms: ${urls.firstOrNull()}")
     }
 }
 
@@ -350,7 +373,7 @@ suspend fun <T> withSpeedReport(
         onClear()
         reportJob = launch(Dispatchers.Default) {
             while (isActive) {
-                delay(1000L)
+                delay(1000L.milliseconds)
                 onTimeReport()
             }
         }

@@ -66,4 +66,14 @@ data class LoadedSkin(
         result = 31 * result + model.hashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "LoadedSkin(" +
+                "skinHash=$skinHash, " +
+                "skinBytes=${skinBytes?.size ?: 0} bytes, " +
+                "capeHash=$capeHash, " +
+                "capeBytes=${capeBytes?.size ?: 0} bytes, " +
+                "model=$model" +
+                ")"
+    }
 }

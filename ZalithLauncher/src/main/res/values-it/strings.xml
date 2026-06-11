@@ -97,8 +97,6 @@
     <string name="error_parse_failed">Impossibile analizzare i dati</string>
     <string name="error_unauthorized">(%s) Non autorizzato</string>
     <string name="error_notfound">(%s) Risorsa non trovata</string>
-    <string name="error_client_error">(%s) Errore del client</string>
-    <string name="error_unknown">Errore sconosciuto: %s</string>
     <string name="splash_screen_unpack_desc">Il launcher deve installare questi file per garantire il corretto funzionamento di Minecraft. Sono inclusi nell\'app e devono essere estratti prima. Clicca sul pulsante qui sotto per avviare l\'estrazione e l\'aggiornamento.</string>
     <string name="splash_screen_installing">Il launcher sta estraendo questi file. Quando finito, si avvierà automaticamente la schermata principale. Si prega di attendere pazientemente.</string>
     <string name="splash_screen_agree">Installa</string>

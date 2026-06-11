@@ -91,8 +91,6 @@
     <string name="error_parse_failed">Error al procesar los datos</string>
     <string name="error_unauthorized">(%s) No autorizado</string>
     <string name="error_notfound">(%s) Recurso no encontrado</string>
-    <string name="error_client_error">(%s) Error del cliente</string>
-    <string name="error_unknown">Error desconocido: %s</string>
     <string name="splash_screen_unpack_desc">El launcher necesita instalar algunos archivos para que Minecraft funcione correctamente. Están incluidos en la aplicación y deben ser extraídos. Pulse el botón de abajo para comenzar la extracción y actualización.</string>
     <string name="splash_screen_installing">El launcher está extrayendo los archivos. Cuando termine te llevará a la pantalla principal. Por favor, espera pacientemente.</string>
     <string name="generic_got_it">Entendido</string>

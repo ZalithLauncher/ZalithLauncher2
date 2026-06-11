@@ -79,8 +79,6 @@
     <string name="error_parse_failed">Gagal mengurai data</string>
     <string name="error_unauthorized">(%s) Silakan periksa kredensial Anda dan coba lagi</string>
     <string name="error_notfound">(%s) Sumber daya yang diminta tidak ditemukan</string>
-    <string name="error_client_error">(%s) Kesalahan klien</string>
-    <string name="error_unknown">Kesalahan tidak diketahui: %s</string>
     <string name="splash_screen_unpack_desc">Launcher perlu menginstal file ini untuk memastikan Minecraft berjalan dengan benar. Mereka termasuk dalam aplikasi dan harus diekstrak terlebih dahulu. Klik tombol di bawah ini untuk memulai ekstraksi dan pembaruan.</string>
     <string name="splash_screen_installing">Launcher sedang mengekstrak file ini. Setelah selesai, Anda akan secara otomatis memasuki layar utama. Silahkan tunggu dengan sabar.</string>
     <string name="splash_screen_agree">Pasang</string>

@@ -112,8 +112,6 @@
     <string name="error_network_unreachable">網路無法使用</string>
     <string name="error_connection_failed">無法連線到伺服器</string>
     <string name="error_parse_failed">資料解析失敗</string>
-    <string name="error_client_error">（%s）客戶端錯誤</string>
-    <string name="error_unknown">未知錯誤：%s</string>
 
     <string name="error_bad_request">(%s) 伺服器無法處理該請求</string>
     <string name="error_unauthorized">(%s) 請檢查登入憑證並重試</string>

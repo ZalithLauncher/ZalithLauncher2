@@ -93,8 +93,6 @@
     <string name="error_parse_failed">Veri işlenemedi</string>
     <string name="error_unauthorized">(%s) Lütfen kimlik bilgilerinizi kontrol edin ve tekrar deneyin.</string>
     <string name="error_notfound">(%s) İstenilen kaynak bulunamadı</string>
-    <string name="error_client_error">(%s) İstemci hatası</string>
-    <string name="error_unknown">Bilinmeyen hata: %s</string>
     <string name="splash_screen_unpack_desc">Başlatıcı, Minecraft\'ın düzgün çalışmasını sağlamak için bu dosyaları yüklemelidir. Dosyalar uygulamaya dahil edilmiştir ve önce çıkarılmaları gerekir. Çıkarmayı ve güncellemeyi başlatmak için aşağıdaki düğmeye tıklayın.</string>
     <string name="splash_screen_installing">Başlatıcı bu içerikleri çıkarıyor; çıkarma tamamlandıktan sonra otomatik olarak ana ekrana geçilecektir. Lütfen sabırlı olun.</string>
     <string name="splash_screen_agree">Kur</string>

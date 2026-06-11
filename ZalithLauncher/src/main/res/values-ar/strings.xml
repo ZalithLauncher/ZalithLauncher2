@@ -87,8 +87,6 @@
     <string name="error_connection_failed">فشل في الاتصال بالخادم</string>
     <string name="error_parse_failed">فشل في تحليل البيانات</string>
     <string name="error_notfound">(%s) لم يتم العثور على الموارد</string>
-    <string name="error_client_error">(%s) خطأ العميل</string>
-    <string name="error_unknown">خطأ غير معروف: %s</string>
     <string name="splash_screen_unpack_desc">يحتاج مُشغِّل اللعبة إلى تثبيت هذه الملفات لضمان عمل ماين كرافت بشكل صحيح. هذه الملفات مُضمنة في التطبيق، ويجب استخراجها أولًا. انقر على الزر أدناه لبدء الاستخراج والتحديث.</string>
     <string name="splash_screen_installing">يقوم المُشغِّل باستخراج هذه الملفات. بعد الانتهاء، سيظهر تلقائيًا على الشاشة الرئيسية. يُرجى الانتظار بصبر.</string>
     <string name="splash_screen_agree">تثبيت</string>

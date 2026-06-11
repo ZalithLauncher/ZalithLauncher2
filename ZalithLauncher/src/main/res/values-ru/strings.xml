@@ -74,8 +74,6 @@
     <string name="error_parse_failed">Не удалось обработать данные</string>
     <string name="error_unauthorized">(%s) Неавторизован</string>
     <string name="error_notfound">(%s) Ресурс не найден</string>
-    <string name="error_client_error">(%s) Ошибка клиента</string>
-    <string name="error_unknown">Неизвестная ошибка: %s</string>
     <!-- Splash Screen -->
     <string name="splash_screen_unpack_desc">Лаунчеру необходимо установить эти файлы для корректной работы Minecraft. Они включены в приложение и должны быть распакованы перед использованием. Нажмите кнопку ниже, чтобы начать распаковку и обновление.</string>
     <string name="splash_screen_installing">Лаунчер распаковывает файлы. После завершения вы автоматически перейдёте на главный экран. Пожалуйста, подождите.</string>

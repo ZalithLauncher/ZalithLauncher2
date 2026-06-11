@@ -127,8 +127,6 @@
     <string name="error_network_unreachable">网络不可用</string>
     <string name="error_connection_failed">无法连接到服务器</string>
     <string name="error_parse_failed">数据解析失败</string>
-    <string name="error_client_error">（%s）客户端错误</string>
-    <string name="error_unknown">未知错误：%s</string>
 
     <string name="error_bad_request">(%s) 服务器无法处理该请求</string>
     <string name="error_unauthorized">(%s) 请检查登录凭证并重试</string>

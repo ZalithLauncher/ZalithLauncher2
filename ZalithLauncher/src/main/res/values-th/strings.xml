@@ -214,8 +214,6 @@
     <string name="error_parse_failed">การวิเคราะห์ข้อมูลล้มเหลว</string>
     <string name="error_unauthorized">(%s) ไม่ได้รับอนุญาต</string>
     <string name="error_notfound">(%s) ไม่พบทรัพยากร</string>
-    <string name="error_client_error">(%s) ข้อผิดพลาดจากฝั่งไคลเอนต์</string>
-    <string name="error_unknown">ข้อผิดพลาดที่ไม่รู้จัก: %s</string>
     <string name="splash_screen_unpack_desc">รันเชอร์ต้องการติดตั้งไฟล์เหล่านีัเพื่อให้มันใจว่าminecraftทำงานได้ปกติ. ไฟล์เหล่านั้น</string>
     <string name="splash_screen_installing">ตัวรันเซอร์จำเป็นต้องติดตั้งไฟล์เหล่านี้เพื่อให้แน่ใจว่า Minecraft จะทำงานได้อย่างถูกต้อง ไฟล์เหล่านี้ถูกรวมอยู่ในแอปแล้วและต้องทำการแตกไฟล์ก่อน คลิกที่ปุ่มด้านล่างเพื่อเริ่มการแตกไฟล์และอัปเดต</string>
     <string name="splash_screen_agree">ติดตั้ง</string>

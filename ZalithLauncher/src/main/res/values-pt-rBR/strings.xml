@@ -69,8 +69,6 @@
     <string name="animate_type_bounce">Quicar</string>
     <string name="crash_exit">­Saída</string>
     <string name="crash_link_share_button">Compartilhar Link</string>
-    <string name="error_client_error">(%s) Erro no cliente</string>
-    <string name="error_unknown">Erro desconhecido: %s</string>
     <string name="url_wiki_minecraft_game_snapshot">https://minecraft.wiki/w/Java_Edition_%s</string>
     <string name="date_format">MMM d, yyyy, h:mm:ss aa</string>
     <string name="just_now">agora mesmo</string>

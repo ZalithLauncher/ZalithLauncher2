@@ -128,8 +128,6 @@
     <string name="error_network_unreachable">Network unavailable</string>
     <string name="error_connection_failed">Failed to connect to server</string>
     <string name="error_parse_failed">Failed to parse data</string>
-    <string name="error_client_error">(%s) Client error</string>
-    <string name="error_unknown">Unknown error: %s</string>
 
     <string name="error_bad_request">(%s) The server could not understand the request</string>
     <string name="error_unauthorized">(%s) Please check your credentials and try again</string>

@@ -107,8 +107,6 @@
     <string name="error_parse_failed">Nabigong masuri ang data</string>
     <string name="error_unauthorized">(%s) Hindi Awtorisado</string>
     <string name="error_notfound">(%s) Hindi nahanap ang mapagkukunan</string>
-    <string name="error_client_error">(%s) Pagkakamali sa Kliyente</string>
-    <string name="error_unknown">Hindi kilalang pagkakamali: %s</string>
     <string name="splash_screen_unpack_desc">Kailangang i-install ng launcher ang mga file na ito para matiyak na gumagana nang maayos ang Minecraft. Kasama ang mga ito sa app at dapat na i-extract muna. Pindutin ang pindutan sa ibaba upang simulan ang pag-extract at pag-update.</string>
     <string name="splash_screen_installing">Ini-extract ng launcher ang mga file na ito. Kapag tapos na, awtomatiko itong papasok sa pangunahing screen. Mangyaring maghintay.</string>
     <string name="splash_screen_agree">I-install</string>

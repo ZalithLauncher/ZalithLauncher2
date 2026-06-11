@@ -80,8 +80,6 @@
     <string name="error_parse_failed">Không thể xử lý dữ liệu</string>
     <string name="error_unauthorized">(%s) Không được cho phép</string>
     <string name="error_notfound">(%s) Không tìm thấy tài nguyên</string>
-    <string name="error_client_error">(%s) Lỗi từ thiết bị của bạn</string>
-    <string name="error_unknown">Lỗi bí ẩn: %s</string>
     <string name="splash_screen_unpack_desc">Trình khởi động sẽ phải tải những tệp sau để Minecraft có thể chạy. Nó đã có sẵn trong ứng dụng và phải cần được giải nén trước tiên. Bấm vào nút dưới để bắt đầu giải nén và cập nhật.</string>
     <string name="splash_screen_installing">Trình khởi chạy đang cập nhật những tệp sau. Sau khi hoàn thành, nó sẽ tự động được thêm vào màn hình chính. Xin hãy đợi.</string>
     <string name="splash_screen_agree">Cài đặt</string>

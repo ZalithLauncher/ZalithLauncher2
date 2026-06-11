@@ -416,8 +416,6 @@
     <string name="minecraft_download_failed_retried">これ以前にランチャーは一度再試行を行いましたが、いくつかのタスクのダウンロードは依然として失敗しました</string>
     <string name="error_unauthorized">(%s) 権限がありません</string>
     <string name="error_notfound">(%s) リソースが見つかりません</string>
-    <string name="error_client_error">(%s) クライアントエラー</string>
-    <string name="error_unknown">不明なエラー: %s</string>
     <string name="splash_screen_installing">ランチャーがこれらのファイルを解凍しています、解凍が完了すると自動的にメイン画面になります。しばらくお待ち下さい。</string>
     <string name="notification_title">通知の権限を確認</string>
     <string name="notification_request">権限を要求</string>

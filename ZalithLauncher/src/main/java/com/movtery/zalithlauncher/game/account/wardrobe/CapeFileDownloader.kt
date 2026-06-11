@@ -30,10 +30,44 @@ class CapeFileDownloader: WardrobeDownloader() {
         capeFile: File,
         uuid: String,
     ) {
-        val valueObject = yggdrasil(url, uuid)
-        val capeObject = valueObject.get("textures").asJsonObject.get("CAPE").asJsonObject
-        val skinUrl = capeObject.get("url").asString
-
-        download(skinUrl, capeFile)
+        try {
+            val valueObject = yggdrasil(url, uuid)
+            
+            // Null check cho textures và cape object
+            val textures = valueObject.get("textures")?.asJsonObject
+            if (textures == null) {
+                // Không có textures, xóa file cũ nếu tồn tại
+                if (capeFile.exists()) {
+                    capeFile.delete()
+                }
+                return
+            }
+            
+            val capeObject = textures.get("CAPE")?.asJsonObject
+            if (capeObject == null) {
+                // Không có cape, xóa file cũ nếu tồn tại
+                if (capeFile.exists()) {
+                    capeFile.delete()
+                }
+                return
+            }
+            
+            val capeUrl = capeObject.get("url")?.asString
+            if (capeUrl.isNullOrEmpty()) {
+                // URL cape trống hoặc null, xóa file cũ
+                if (capeFile.exists()) {
+                    capeFile.delete()
+                }
+                return
+            }
+            
+            // Tải cape xuống
+            download(capeUrl, capeFile)
+            
+        } catch (e: Exception) {
+            // Log lỗi và throw ra ngoài để caller xử lý
+            android.util.Log.e("CapeFileDownloader", "Failed to download cape for uuid: $uuid", e)
+            throw e
+        }
     }
 }

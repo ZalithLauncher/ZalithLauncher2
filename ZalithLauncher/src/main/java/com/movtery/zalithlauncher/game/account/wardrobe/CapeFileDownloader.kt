@@ -33,10 +33,10 @@ class CapeFileDownloader: WardrobeDownloader() {
         try {
             val valueObject = yggdrasil(url, uuid)
             
-            // Null check cho textures và cape object
+            // Null check for textures and cape object
             val textures = valueObject.get("textures")?.asJsonObject
             if (textures == null) {
-                // Không có textures, xóa file cũ nếu tồn tại
+                // if textures doesn't exist, delete existed old file
                 if (capeFile.exists()) {
                     capeFile.delete()
                 }
@@ -45,7 +45,6 @@ class CapeFileDownloader: WardrobeDownloader() {
             
             val capeObject = textures.get("CAPE")?.asJsonObject
             if (capeObject == null) {
-                // Không có cape, xóa file cũ nếu tồn tại
                 if (capeFile.exists()) {
                     capeFile.delete()
                 }
@@ -54,18 +53,15 @@ class CapeFileDownloader: WardrobeDownloader() {
             
             val capeUrl = capeObject.get("url")?.asString
             if (capeUrl.isNullOrEmpty()) {
-                // URL cape trống hoặc null, xóa file cũ
                 if (capeFile.exists()) {
                     capeFile.delete()
                 }
                 return
             }
             
-            // Tải cape xuống
             download(capeUrl, capeFile)
             
         } catch (e: Exception) {
-            // Log lỗi và throw ra ngoài để caller xử lý
             android.util.Log.e("CapeFileDownloader", "Failed to download cape for uuid: $uuid", e)
             throw e
         }

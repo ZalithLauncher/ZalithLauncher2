@@ -63,7 +63,12 @@ class LocalMod(
     /**
      * 标记是否为非模组
      */
-    val notMod: Boolean = false
+    val notMod: Boolean = false,
+
+    /**
+     * 是否从远端获取模组信息
+     */
+    val checkRemote: Boolean = true,
 ) {
     var file by mutableStateOf(modFile)
         private set

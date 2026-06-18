@@ -407,7 +407,7 @@
     <string name="account_logging_blocked_ip">O endereço IP atual foi bloqueado para login.</string>
     <string name="account_logging_profile_not_exists">Crie um perfil de jogador do Minecraft primeiro e tente fazer login novamente!</string>
     <string name="account_logging_not_purchased_minecraft">Propriedade do Minecraft não verificada. Compre no site oficial do Minecraft.</string>
-    <string name="account_type_microsoft">Conta Microsoft (Adquira o Minecraft original)</string>
+    <string name="account_type_microsoft">Conta Microsoft (Compre o Minecraft Java)</string>
     <string name="account_type_local">Conta offline</string>
     <string name="account_add_new_server">Adicionar servidor de autenticação</string>
     <string name="account_add_new_server_button">Adicionar Autenticação</string>

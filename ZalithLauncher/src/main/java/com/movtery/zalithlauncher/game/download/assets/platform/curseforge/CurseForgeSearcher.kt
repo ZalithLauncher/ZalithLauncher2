@@ -28,10 +28,12 @@ import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.model
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.CurseForgeProject
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.CurseForgeVersion
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.CurseForgeVersions
+import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.isApproved
 import com.movtery.zalithlauncher.utils.file.MurmurHash2Incremental
 import com.movtery.zalithlauncher.utils.network.httpGetJson
 import com.movtery.zalithlauncher.utils.network.httpPostJson
 import io.ktor.http.Parameters
+import io.ktor.server.plugins.NotFoundException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
@@ -62,10 +64,12 @@ class CurseForgeSearcher(
     }
 
     override suspend fun getProject(projectID: String): CurseForgeProject {
-        return httpGetJson(
+        val project = httpGetJson<CurseForgeProject>(
             url = "$api/mods/$projectID",
             headers = listOf("x-api-key" to apiKey)
         )
+        if (!project.isApproved()) throw NotFoundException("The project {$projectID} is not in a publicly available state.")
+        return project
     }
 
     /**

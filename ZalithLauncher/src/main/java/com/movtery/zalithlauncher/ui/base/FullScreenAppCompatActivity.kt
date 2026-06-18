@@ -18,22 +18,33 @@
 
 package com.movtery.zalithlauncher.ui.base
 
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.view.WindowManager
+import androidx.activity.compose.LocalActivity
 import androidx.annotation.CallSuper
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.captionBarPadding
 import androidx.compose.foundation.layout.displayCutout
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
+    private val _isMultiWindowMode = MutableStateFlow(false)
+    val isMultiWindowMode = _isMultiWindowMode.asStateFlow()
+
     @CallSuper
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -52,6 +63,11 @@ abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
         if (hasFocus) {
             applyFullImmersive()
         }
+    }
+
+    override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration) {
+        super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
+        _isMultiWindowMode.value = isInMultiWindowMode
     }
 
     @Suppress("DEPRECATION")
@@ -83,9 +99,19 @@ abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
 
 @Composable
 fun Modifier.applyFullscreen(value: Boolean): Modifier {
-    val modifier = Modifier.fillMaxSize()
+    val isInMultiWindowMode by isInMultiWindowMode()
+
+    val modifier = Modifier
+        .fillMaxSize()
+        .captionBarPadding()
     return then(
-        if (value) modifier
+        if (value || isInMultiWindowMode) modifier
         else modifier.windowInsetsPadding(WindowInsets.displayCutout)
     )
+}
+
+@Composable
+private fun isInMultiWindowMode(): State<Boolean> {
+    val activity = LocalActivity.current as FullScreenAppCompatActivity
+    return activity.isMultiWindowMode.collectAsStateWithLifecycle()
 }

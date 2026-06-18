@@ -121,6 +121,18 @@ gl_render_window_t* gl_init_context(gl_render_window_t *share) {
 }
 
 void gl_swap_surface(gl_render_window_t* bundle) {
+    // 有新 Surface 待切换，这里直接切换
+    if (bundle->newNativeSurface != NULL)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "Switching to new native surface");
+        bundle->nativeSurface = bundle->newNativeSurface;
+        bundle->newNativeSurface = NULL;
+        ANativeWindow_acquire(bundle->nativeSurface);
+        ANativeWindow_setBuffersGeometry(bundle->nativeSurface, 0, 0, bundle->format);
+        bundle->surface = eglCreateWindowSurface_p(g_EglDisplay, bundle->config, bundle->nativeSurface, NULL);
+        return;
+    }
+
     /*
      * In some cases (see MinecraftGLSurface.start(), android kills the surface automatically for
      * us, if we try to release/destroy it, we SIGSEGV. Check if we are -19x-19 or some other
@@ -150,20 +162,11 @@ void gl_swap_surface(gl_render_window_t* bundle) {
                             nativeWindowWidth, nativeWindowHeight);
     }
 
-    if (bundle->newNativeSurface != NULL)
-    {
-        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "Switching to new native surface");
-        bundle->nativeSurface = bundle->newNativeSurface;
-        bundle->newNativeSurface = NULL;
-        ANativeWindow_acquire(bundle->nativeSurface);
-        ANativeWindow_setBuffersGeometry(bundle->nativeSurface, 0, 0, bundle->format);
-        bundle->surface = eglCreateWindowSurface_p(g_EglDisplay, bundle->config, bundle->nativeSurface, NULL);
-    } else {
-        __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "No new native surface, switching to 1x1 pbuffer");
-        bundle->nativeSurface = NULL;
-        const EGLint pbuffer_attrs[] = {EGL_WIDTH, 1 , EGL_HEIGHT, 1, EGL_NONE};
-        bundle->surface = eglCreatePbufferSurface_p(g_EglDisplay, bundle->config, pbuffer_attrs);
-    }
+    // 无新窗口可用，回退到 1x1 pbuffer 避免渲染彻底中断
+    __android_log_print(ANDROID_LOG_ERROR, g_LogTag, "No new native surface, switching to 1x1 pbuffer");
+    bundle->nativeSurface = NULL;
+    const EGLint pbuffer_attrs[] = {EGL_WIDTH, 1 , EGL_HEIGHT, 1, EGL_NONE};
+    bundle->surface = eglCreatePbufferSurface_p(g_EglDisplay, bundle->config, pbuffer_attrs);
 }
 
 void gl_make_current(gl_render_window_t* bundle) {
@@ -220,6 +223,10 @@ void gl_swap_buffers() {
             currentBundle->newNativeSurface = NULL;
             gl_swap_surface(currentBundle);
             eglMakeCurrent_p(g_EglDisplay, currentBundle->surface, currentBundle->surface, currentBundle->context);
+            // 清理过期状态，避免下一帧重复进入 gl_swap_surface 导致回退到 1×1 pbuffer
+            if (currentBundle->nativeSurface != NULL && currentBundle->state == STATE_RENDERER_NEW_WINDOW) {
+                currentBundle->state = STATE_RENDERER_ALIVE;
+            }
             __android_log_print(ANDROID_LOG_INFO, g_LogTag, "The window has died, awaiting window change");
         }
 

@@ -82,6 +82,11 @@ class RemoteMod(
     suspend fun load(loadFromCache: Boolean) {
         if (loadFromCache && isLoaded) return
 
+        if (!localMod.checkRemote) {
+            isLoaded = true
+            return
+        }
+
         if (!loadFromCache) {
             remoteFile = null
             projectInfo = null

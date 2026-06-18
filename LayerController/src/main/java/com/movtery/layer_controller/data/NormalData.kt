@@ -91,12 +91,19 @@ data class NormalData(
  * 过滤出有效的点击事件
  */
 internal fun List<ClickEvent>.filterValidEvent(): List<ClickEvent> {
-    val (sendTextEvents, otherEvents) = partition { event ->
-        event.type == ClickEvent.Type.SendText
+    var foundValidSendText = false
+    return filter { event ->
+        if (event.type == ClickEvent.Type.SendText) {
+            if (!foundValidSendText && event.key.isNotEmpty()) {
+                foundValidSendText = true
+                true
+            } else {
+                false
+            }
+        } else {
+            true
+        }
     }
-    //                  仅保留一个有效的发送文本的事件
-    val validSendText = sendTextEvents.firstOrNull { it.key.isNotEmpty() }
-    return otherEvents + listOfNotNull(validSendText)
 }
 
 /**

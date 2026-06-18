@@ -305,3 +305,13 @@ class ModrinthSingleProject(
         }
     }
 }
+
+/**
+ * @return 该项目是否公开可见
+ */
+fun ModrinthSingleProject.isPublic(): Boolean {
+    return when (this.status) {
+        "approved", "archived" -> true
+        else -> false
+    }
+}

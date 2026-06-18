@@ -22,6 +22,7 @@ import com.movtery.zalithlauncher.game.version.mod.reader.FabricModMetadataReade
 import com.movtery.zalithlauncher.game.version.mod.reader.ForgeNewModMetadataReader
 import com.movtery.zalithlauncher.game.version.mod.reader.ForgeOldModMetadataReader
 import com.movtery.zalithlauncher.game.version.mod.reader.LiteModMetadataReader
+import com.movtery.zalithlauncher.game.version.mod.reader.OptiFineModReader
 import com.movtery.zalithlauncher.game.version.mod.reader.PackMcMetadataReader
 import com.movtery.zalithlauncher.game.version.mod.reader.QuiltModMetadataReader
 import java.io.File
@@ -31,6 +32,7 @@ interface ModMetadataReader {
 }
 
 private val NORMAL_READERS = arrayOf(
+    OptiFineModReader,
     ForgeOldModMetadataReader,
     ForgeNewModMetadataReader,
     FabricModMetadataReader,

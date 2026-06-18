@@ -130,6 +130,7 @@ import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.AssetsIcon
 import com.movtery.zalithlauncher.ui.screens.content.elements.ImportMultipleFileButton
+import com.movtery.zalithlauncher.ui.screens.content.elements.ModLoaderIcon
 import com.movtery.zalithlauncher.ui.screens.content.elements.SortByDropdownMenu
 import com.movtery.zalithlauncher.ui.screens.content.elements.SortByEnum
 import com.movtery.zalithlauncher.ui.screens.content.elements.rememberMultipleUriImportTaskBuilder
@@ -203,6 +204,12 @@ private class ModsManageViewModel(
     val selectedMods = mutableStateListOf<RemoteMod>()
 
     /**
+     * 是否可以更新选中的模组
+     */
+    var canUpdate by mutableStateOf(false)
+        private set
+
+    /**
      * 删除所有已选择模组的操作流程
      */
     var deleteAllOperation by mutableStateOf<DeleteAllOperation>(DeleteAllOperation.None)
@@ -236,6 +243,8 @@ private class ModsManageViewModel(
             }
             modsState = LoadingState.Loading
             selectedMods.clear() //清空所有已选择的模组
+            canUpdate = false
+
             if (checkCount) modsCount.checkDir()
             try {
                 allMods = modReader.readAllForRemote()
@@ -330,12 +339,19 @@ private class ModsManageViewModel(
                 selectedMods.add(mod)
             }
         }
+        checkCanUpdate()
     }
 
     fun clearSelected() {
         filteredMods?.let {
             selectedMods.removeAll(it)
         }
+        checkCanUpdate()
+    }
+
+    fun checkCanUpdate() {
+        // 寻找列表中是否存在能够检查远端的模组
+        canUpdate = selectedMods.any { it.localMod.checkRemote }
     }
 
     /** 在ViewModel的生命周期协程内调用 */
@@ -695,6 +711,7 @@ fun ModsManagerScreen(
                                 }
                             },
                             isModsSelected = viewModel.selectedMods.isNotEmpty(),
+                            canUpdate = viewModel.canUpdate,
                             onSelectAll = {
                                 viewModel.selectAllMods()
                             },
@@ -715,9 +732,11 @@ fun ModsManagerScreen(
                             selectedMods = viewModel.selectedMods,
                             removeFromSelected = { mod ->
                                 viewModel.selectedMods.remove(mod)
+                                viewModel.checkCanUpdate()
                             },
                             addToSelected = { mod ->
                                 viewModel.selectedMods.add(mod)
+                                viewModel.checkCanUpdate()
                             },
                             onLoad = { mod ->
                                 viewModel.loadMod(mod)
@@ -786,6 +805,7 @@ private fun ModsActionsHeader(
     modsDir: File,
     onDeleteAll: () -> Unit,
     isModsSelected: Boolean,
+    canUpdate: Boolean,
     onSelectAll: () -> Unit,
     onClearModsSelected: () -> Unit,
     swapToDownload: () -> Unit,
@@ -897,7 +917,7 @@ private fun ModsActionsHeader(
                     visible = isModsSelected
                 ) {
                     Row {
-                        if (hasModLoader) {
+                        if (hasModLoader && canUpdate) {
                             IconButton(
                                 onClick = onUpdateMods
                             ) {
@@ -1323,12 +1343,22 @@ private fun ModIcon(
 
         val projectInfo = mod.projectInfo
         if (projectInfo == null) {
-            ByteArrayIcon(
-                modifier = Modifier.size(iconSize),
-                triggerRefresh = mod,
-                icon = mod.localMod.icon,
-                colorFilter = ColorFilter.colorMatrix(colorMatrix)
-            )
+            if (mod.localMod.icon == null) {
+                ModLoaderIcon(
+                    modifier = Modifier.size(iconSize),
+                    modloader = mod.localMod.loader,
+                    defaultIcon = R.drawable.ic_unknown_pack,
+                    colorFilter = ColorFilter.colorMatrix(colorMatrix),
+
+                )
+            } else {
+                ByteArrayIcon(
+                    modifier = Modifier.size(iconSize),
+                    triggerRefresh = mod,
+                    icon = mod.localMod.icon,
+                    colorFilter = ColorFilter.colorMatrix(colorMatrix),
+                )
+            }
         } else {
             AssetsIcon(
                 iconUrl = projectInfo.iconUrl,
@@ -1434,9 +1464,7 @@ private fun LocalModInfoTooltip(
                         Text(text = stringResource(R.string.mods_manage_version, version))
                     }
                     //作者
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
+                    Row {
                         Text(text = stringResource(R.string.mods_manage_authors))
                         FlowRow(
                             modifier = Modifier.weight(1f, fill = false),
@@ -1449,9 +1477,7 @@ private fun LocalModInfoTooltip(
                     }
                     //模组描述
                     mod.description?.takeIf { it.isNotEmptyOrBlank() }?.let { description ->
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
+                        Row {
                             Text(text = stringResource(R.string.mods_manage_description))
                             Text(
                                 modifier = Modifier.weight(1f, fill = false),

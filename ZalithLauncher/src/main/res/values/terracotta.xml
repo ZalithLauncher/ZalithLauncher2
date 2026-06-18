@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="MissingTranslation">
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="terracotta">Multiplayer</string>
     <string name="terracotta_metadata_ver">Terracotta Version: %s</string>
     <string name="terracotta_metadata_easytier_ver">EasyTier Version: %s</string>
@@ -9,7 +8,7 @@
     <string name="terracotta_back">Exit</string>
     <string name="terracotta_enable">Enable Multiplayer</string>
     <string name="terracotta_difficulty_easiest">Excellent network: almost connected!</string>
-    <string name="terracotta_difficulty_simple">Good network: connection may take some time</string>
+    <string name="terracotta_difficulty_simple">Good network: connection may take some time…</string>
     <string name="terracotta_difficulty_medium">Average network: enabling fallback routes, though connection may fail</string>
     <string name="terracotta_difficulty_tough">Poor network: enabling fallback routes, though connection may fail</string>
     <string name="terracotta_difficulty_estimate_only">Success rate is an estimate based on host and client NAT types, for reference only!</string>

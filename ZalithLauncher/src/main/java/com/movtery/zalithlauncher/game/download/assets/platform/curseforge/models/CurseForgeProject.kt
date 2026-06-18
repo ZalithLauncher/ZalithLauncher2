@@ -87,3 +87,8 @@ class CurseForgeProject(
         }
     }
 }
+
+/**
+ * @return 该项目是否可见
+ */
+fun CurseForgeProject.isApproved(): Boolean = this.data.isApproved()

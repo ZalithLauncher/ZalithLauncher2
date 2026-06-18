@@ -162,6 +162,9 @@ class ModUpdater(
                             file.nameWithoutExtension
                         )
 
+                        // 过滤不可检查远端的模组
+                        if (!mod.localMod.checkRemote) return@forEachIndexed
+
                         val modFile = mod.remoteFile
                         val project = mod.projectInfo
 

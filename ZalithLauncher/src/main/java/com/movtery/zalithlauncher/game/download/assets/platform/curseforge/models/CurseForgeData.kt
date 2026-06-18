@@ -354,3 +354,8 @@ class CurseForgeData(
             ?.sortedWith { o1, o2 -> o1.index() - o2.index() }
     }
 }
+
+/**
+ * @return 该模组是否可见
+ */
+fun CurseForgeData.isApproved(): Boolean = this.status == 4

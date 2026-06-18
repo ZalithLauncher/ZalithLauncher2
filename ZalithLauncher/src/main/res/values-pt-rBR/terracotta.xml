@@ -8,7 +8,7 @@
     <string name="terracotta_back">Sair</string>
     <string name="terracotta_enable">Habilitar Multijogador</string>
     <string name="terracotta_difficulty_easiest">Excelente rede: quase conectado!</string>
-    <string name="terracotta_difficulty_simple">Boa rede: a conexão pode demorar um pouco</string>
+    <string name="terracotta_difficulty_simple">Boa rede: a conexão pode demorar um pouco…</string>
     <string name="terracotta_difficulty_medium">Rede média: rotas alternativas ativadas, embora a conexão possa falhar</string>
     <string name="terracotta_difficulty_tough">Rede ruim: rotas alternativas ativadas, embora a conexão possa falhar</string>
     <string name="terracotta_difficulty_estimate_only">A taxa de sucesso é uma estimativa baseada nos tipos de NAT do host e do cliente, apenas para referência!</string>

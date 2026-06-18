@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
+import androidx.annotation.DrawableRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
@@ -59,6 +60,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.DefaultAlpha
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
@@ -930,7 +933,7 @@ fun VersionIconImage(
     refreshKey: Any? = null
 ) {
     val defaultIconRes = remember(version) {
-        version?.let { getLoaderIconRes(it) } ?: R.drawable.img_minecraft
+        version?.let { getLoaderIconRes(it.getVersionInfo()?.loaderInfo?.loader) } ?: R.drawable.img_minecraft
     }
     val defaultIcon = painterResource(defaultIconRes)
 
@@ -973,8 +976,38 @@ fun VersionIconImage(
     }
 }
 
-private fun getLoaderIconRes(version: Version): Int {
-    return when (version.getVersionInfo()?.loaderInfo?.loader) {
+/**
+ * 模组加载器图标展示组件，包装 [Image]
+ */
+@Composable
+fun ModLoaderIcon(
+    modloader: ModLoader,
+    @DrawableRes
+    defaultIcon: Int,
+    modifier: Modifier = Modifier,
+    alignment: Alignment = Alignment.Center,
+    contentScale: ContentScale = ContentScale.Fit,
+    alpha: Float = DefaultAlpha,
+    colorFilter: ColorFilter? = null,
+) {
+    val icon = getLoaderIconRes(modloader, defaultIcon)
+    Image(
+        modifier = modifier,
+        painter = painterResource(icon),
+        contentDescription = null,
+        alignment = alignment,
+        contentScale = contentScale,
+        alpha = alpha,
+        colorFilter = colorFilter,
+    )
+}
+
+private fun getLoaderIconRes(
+    loader: ModLoader?,
+    @DrawableRes
+    defaultIcon: Int = R.drawable.img_minecraft,
+): Int {
+    return when (loader) {
         ModLoader.FABRIC,
         ModLoader.BABRIC -> R.drawable.img_loader_fabric
         ModLoader.LEGACY_FABRIC -> R.drawable.img_loader_legacy_fabric
@@ -985,6 +1018,6 @@ private fun getLoaderIconRes(version: Version): Int {
         ModLoader.OPTIFINE -> R.drawable.img_loader_optifine
         ModLoader.LITE_LOADER -> R.drawable.img_chicken_old
         ModLoader.CLEANROOM -> R.drawable.img_loader_cleanroom
-        else -> R.drawable.img_minecraft
+        else -> defaultIcon
     }
 }

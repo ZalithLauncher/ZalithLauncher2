@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.core.util.set
 import androidx.lifecycle.ViewModel
+import com.movtery.layer_controller.layout.JoystickDirection
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.control.gamepad.DpadDirection
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadMap
@@ -36,7 +37,6 @@ import com.movtery.zalithlauncher.ui.control.gamepad.Joystick
 import com.movtery.zalithlauncher.ui.control.gamepad.JoystickType
 import com.movtery.zalithlauncher.ui.control.gamepad.keyMappingListMMKV
 import com.movtery.zalithlauncher.ui.control.gamepad.keyMappingMMKV
-import com.movtery.zalithlauncher.ui.control.joystick.JoystickDirection
 import io.ktor.util.collections.ConcurrentSet
 
 private const val BUTTON_PRESS_THRESHOLD = 0.85f

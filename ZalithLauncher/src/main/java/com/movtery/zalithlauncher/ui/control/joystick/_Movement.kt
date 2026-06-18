@@ -25,6 +25,7 @@ import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import com.movtery.layer_controller.event.ClickEvent
+import com.movtery.layer_controller.layout.JoystickDirection
 import com.movtery.zalithlauncher.game.keycodes.MOVEMENT_BACK
 import com.movtery.zalithlauncher.game.keycodes.MOVEMENT_BACK_VALUE
 import com.movtery.zalithlauncher.game.keycodes.MOVEMENT_FORWARD

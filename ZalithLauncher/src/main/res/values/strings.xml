@@ -424,20 +424,11 @@
     <string name="game_menu_option_show_menu">Enable Menu Overlay</string>
     <string name="game_menu_option_show_menu_hided">Game menu overlay has been disabled. You can open the game menu using the system back button</string>
     <string name="game_menu_option_controls_opacity">Control Layout Opacity</string>
-    <string name="game_styles_joystick">Manage Joystick</string>
-    <string name="game_styles_joystick_enable">Enable Joystick</string>
-    <string name="game_styles_joystick_x">Joystick X Position</string>
-    <string name="game_styles_joystick_y">Joystick Y Position</string>
     <string name="game_styles_joystick_size">Joystick Size</string>
-    <string name="game_styles_joystick_edit">Edit Joystick Style</string>
-    <string name="game_styles_joystick_edit_use_control_layout">Use Style Provided by Control Layout</string>
     <string name="game_styles_joystick_deadzone">Joystick Deadzone Range</string>
     <string name="game_styles_joystick_lock_threshold">Joystick Forward Lock Threshold</string>
     <string name="game_styles_joystick_can_lock">Forward Lock</string>
     <string name="game_styles_joystick_lock_sprint">Force Sprint When Locked</string>
-    <string name="game_styles_joystick_hide_when_mouse">Hide When Using Physical Mouse</string>
-    <string name="game_styles_joystick_hide_when_gamepad">Hide When Using Gamepad</string>
-    <string name="game_styles_save_failed">Failed to Save Style</string>
     <string name="game_saponsorship_finished_game">The launcher has successfully launched the game %s times! If you find it useful, please consider supporting the developer! :)</string>
 
     <string name="game_vulkan_check_title">Vulkan Check</string>
@@ -1101,6 +1092,7 @@
     <string name="control_manage_import_failed_to_parse">Control layout format error, the launcher cannot recognize it!</string>
     <string name="control_editor_menu_title">Editor Menu</string>
     <string name="control_editor_menu_new_widget_button">Add Button</string>
+    <string name="control_editor_menu_new_widget_joystick">Add Joystick</string>
     <string name="control_editor_menu_new_widget_text">Add Text Box</string>
     <string name="control_editor_menu_no_layers_title">No Control Layers</string>
     <string name="control_editor_menu_no_layers_message">No control layers have been created for the current control layout. Please create a control layer first.</string>
@@ -1126,7 +1118,6 @@
     <string name="control_editor_layers_attribute_hide">Hide Control Layer by Default</string>
     <string name="control_editor_layers_attribute_hide_when_mouse">Hide when using mouse</string>
     <string name="control_editor_layers_attribute_hide_when_gamepad">Hide when using gamepad</string>
-    <string name="control_editor_layers_attribute_hide_when_joystick">Hide when joystick is enabled</string>
     <string name="control_editor_layers_merge_downward">Merge Control Downward</string>
     <string name="control_editor_edit_dialog_open_preview">Open Preview</string>
     <string name="control_editor_edit_dialog_close_preview">Close Preview</string>
@@ -1135,6 +1126,7 @@
     <string name="control_editor_edit_dialog_delete_widget">Are you sure you want to delete this widget?</string>
     <string name="control_editor_edit_category_info">Information</string>
     <string name="control_editor_edit_category_event">Click Event</string>
+    <string name="control_editor_edit_category_joystick">Joystick Settings</string>
     <string name="control_editor_edit_category_style">Control Style</string>
     <string name="control_editor_edit_layer_default">New Control Layer</string>
     <string name="control_editor_edit_button_default">Button</string>
@@ -1209,13 +1201,6 @@
     <string name="control_editor_edit_style_config_widget_radius_right_top">Top Right Corner</string>
     <string name="control_editor_edit_style_config_widget_radius_left_bottom">Bottom Left Corner</string>
     <string name="control_editor_edit_style_config_widget_radius_right_bottom">Bottom Right Corner</string>
-    <string name="control_editor_special_joystick_style">Joystick Style</string>
-    <string name="control_editor_special_joystick_style_tip_title">Can\'t Create Joystick?</string>
-    <string name="control_editor_special_joystick_style_tip_summary">Due to high implementation complexity, the control layout system cannot directly integrate joystick components. To use joystick components, you can only enable the universal joystick in the in-game menu. However, you can still provide the joystick appearance through the control layout to maintain a consistent style.</string>
-    <string name="control_editor_special_joystick_style_create_title">Create Joystick Style</string>
-    <string name="control_editor_special_joystick_style_create_summary">Create a joystick style configuration provided by the control layout. If the current control layout does not provide a joystick style, the launcher\'s joystick style will be used.</string>
-    <string name="control_editor_special_joystick_style_delete_title">Delete Joystick Style</string>
-    <string name="control_editor_special_joystick_style_delete_summary">Delete the joystick style configuration for the current control layout and use the launcher\'s joystick style.</string>
     <string name="control_editor_special_joystick_style_joystick_color">Joystick Color</string>
     <string name="control_editor_special_joystick_style_joystick_can_lock_color">Joystick Color (Lockable)</string>
     <string name="control_editor_special_joystick_style_joystick_locked_color">Joystick Color (Locked)</string>

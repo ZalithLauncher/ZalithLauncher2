@@ -18,6 +18,9 @@
 
 package com.movtery.layer_controller.observable
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.movtery.layer_controller.EDITOR_VERSION
 import com.movtery.layer_controller.data.ButtonStyle
 import com.movtery.layer_controller.layout.ControlLayer
@@ -34,9 +37,31 @@ class ObservableControlLayout(
 ): Packable<ControlLayout> {
     val info = ObservableControlInfo(layout.info)
 
-    private val _layers = MutableStateFlow(layout.layers.map { ObservableControlLayer(it) })
+    private val _layers = MutableStateFlow(layout.layers.map { initLayer(it) })
     val layers = _layers.asStateFlow()
-    
+
+    /**
+     * 全局唯一的摇杆（如果存在）
+     */
+    var globalJoystick by mutableStateOf(findGlobalJoystick())
+        private set
+
+    private fun findGlobalJoystick(): ObservableJoystickData? {
+        _layers.value.forEach { layer ->
+            val found = layer.joysticks.value.firstOrNull()
+            if (found != null) return found
+        }
+        return null
+    }
+
+    private fun initLayer(layer: ControlLayer): ObservableControlLayer {
+        return ObservableControlLayer(layer).apply {
+            onJoysticksChanged = {
+                globalJoystick = findGlobalJoystick()
+            }
+        }
+    }
+
     private val _styles = MutableStateFlow(layout.styles.map { ObservableButtonStyle(it) })
     val styles = _styles.asStateFlow()
 
@@ -48,10 +73,22 @@ class ObservableControlLayout(
      * @return 新添加的可观察控件层
      */
     fun addLayer(layer: ControlLayer): ObservableControlLayer {
-        val newLayer = ObservableControlLayer(layer)
-        //               在顶部添加
-        _layers.update { listOf(newLayer) + it }
+        val newLayer = initLayer(layer)
+        // 在顶部添加
+        _layers.update { oldList ->
+            val newList = listOf(newLayer) + oldList
+            globalJoystick = findGlobalJoystickInternal(newList)
+            newList
+        }
         return newLayer
+    }
+
+    private fun findGlobalJoystickInternal(currentLayers: List<ObservableControlLayer>): ObservableJoystickData? {
+        for (layer in currentLayers) {
+            val found = layer.joysticks.value.firstOrNull()
+            if (found != null) return found
+        }
+        return null
     }
 
     /**
@@ -59,7 +96,9 @@ class ObservableControlLayout(
      */
     fun removeLayer(uuid: String) {
         _layers.update { oldLayers ->
-            oldLayers.filterNot { it.uuid == uuid }
+            val newList = oldLayers.filterNot { it.uuid == uuid }
+            globalJoystick = findGlobalJoystickInternal(newList)
+            newList
         }
     }
 
@@ -88,7 +127,12 @@ class ObservableControlLayout(
                 downLayer.addAllTextBox(it)
             }
 
+            layer.joysticks.value.takeIf { it.isNotEmpty() }?.let {
+                downLayer.addAllJoystick(it)
+            }
+
             layers.removeAt(index)
+            globalJoystick = findGlobalJoystickInternal(layers)
             layers
         }
     }
@@ -100,6 +144,7 @@ class ObservableControlLayout(
         _layers.update { oldLayers ->
             oldLayers.toMutableList().apply {
                 add(toIndex, removeAt(fromIndex))
+                globalJoystick = findGlobalJoystickInternal(this)
             }
         }
     }

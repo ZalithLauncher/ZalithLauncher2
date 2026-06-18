@@ -39,6 +39,7 @@ import com.movtery.layer_controller.data.ButtonSize
 import com.movtery.layer_controller.data.MIN_SIZE_DP
 import com.movtery.layer_controller.data.SIZE_PERCENTAGE_EDITOR
 import com.movtery.layer_controller.data.VisibilityType
+import com.movtery.layer_controller.observable.ObservableJoystickData
 import com.movtery.layer_controller.observable.ObservableNormalData
 import com.movtery.layer_controller.observable.ObservableTextData
 import com.movtery.layer_controller.observable.ObservableWidget
@@ -95,6 +96,7 @@ fun EditWidgetInfo(
                         onButtonSizeChanged = { data.buttonSize = it }
                     )
                 }
+
                 is ObservableNormalData -> {
                     commonInfos(
                         onPreviewRequested = onPreviewRequested,
@@ -109,8 +111,156 @@ fun EditWidgetInfo(
                         onButtonSizeChanged = { data.buttonSize = it }
                     )
                 }
+
+                is ObservableJoystickData -> {
+                    joystickInfos(
+                        onPreviewRequested = onPreviewRequested,
+                        onDismissRequested = onDismissRequested,
+                        screenWidth = screenWidth,
+                        screenHeight = screenHeight,
+                        data = data
+                    )
+                }
             }
         }
+    }
+}
+
+private fun LazyListScope.joystickInfos(
+    onPreviewRequested: () -> Unit,
+    onDismissRequested: () -> Unit,
+    screenWidth: Float,
+    screenHeight: Float,
+    data: ObservableJoystickData
+) {
+    val position = data.position
+    val buttonSize = data.size
+
+    //x
+    item {
+        InfoLayoutSliderItem(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.control_editor_edit_position_x),
+            value = position.x / 100f,
+            onValueChange = {
+                data.position = position.copy(x = (it * 100).toInt())
+                onPreviewRequested()
+            },
+            valueRange = 0f..100f,
+            onValueChangeFinished = onDismissRequested,
+            decimalFormat = "#0.00",
+            suffix = "%"
+        )
+    }
+
+    //y
+    item {
+        InfoLayoutSliderItem(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.control_editor_edit_position_y),
+            value = position.y / 100f,
+            onValueChange = {
+                data.position = position.copy(y = (it * 100).toInt())
+                onPreviewRequested()
+            },
+            valueRange = 0f..100f,
+            onValueChangeFinished = onDismissRequested,
+            decimalFormat = "#0.00",
+            suffix = "%"
+        )
+    }
+
+    item {
+        Spacer(modifier = Modifier.height(4.dp))
+    }
+
+    //尺寸类型
+    item {
+        InfoLayoutListItem(
+            modifier = Modifier.fillMaxWidth(),
+            title = stringResource(R.string.control_editor_edit_size_type),
+            items = listOf(ButtonSize.Type.Dp, ButtonSize.Type.Percentage),
+            selectedItem = buttonSize.type,
+            onItemSelected = {
+                data.size = buttonSize.copy(type = it)
+            },
+            getItemText = { type ->
+                val textRes = when (type) {
+                    ButtonSize.Type.Dp -> R.string.control_editor_edit_size_type_dp
+                    ButtonSize.Type.Percentage -> R.string.control_editor_edit_size_type_percentage
+                    ButtonSize.Type.WrapContent -> R.string.control_editor_edit_size_type_wrap_content
+                }
+                stringResource(textRes)
+            }
+        )
+    }
+
+    when (buttonSize.type) {
+        ButtonSize.Type.Dp -> {
+            //绝对大小
+            item {
+                InfoLayoutSliderItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.game_styles_joystick_size),
+                    value = buttonSize.widthDp,
+                    onValueChange = {
+                        data.size = buttonSize.copy(widthDp = it, heightDp = it)
+                        onPreviewRequested()
+                    },
+                    valueRange = MIN_SIZE_DP..minOf(screenWidth, screenHeight),
+                    onValueChangeFinished = onDismissRequested,
+                    suffix = "Dp"
+                )
+            }
+        }
+
+        ButtonSize.Type.Percentage -> {
+            @Composable
+            fun ButtonSize.Reference.getReferenceText(): String {
+                val textRes = when (this) {
+                    ButtonSize.Reference.ScreenWidth -> R.string.control_editor_edit_size_reference_screen_width
+                    ButtonSize.Reference.ScreenHeight -> R.string.control_editor_edit_size_reference_screen_height
+                }
+                return stringResource(textRes)
+            }
+
+            //百分比大小
+            item {
+                InfoLayoutSliderItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.game_styles_joystick_size),
+                    value = buttonSize.widthPercentage / 100f,
+                    onValueChange = {
+                        val percentage = (it * 100).toInt()
+                        data.size = buttonSize.copy(
+                            widthPercentage = percentage,
+                            heightPercentage = percentage
+                        )
+                        onPreviewRequested()
+                    },
+                    valueRange = SIZE_PERCENTAGE_EDITOR,
+                    onValueChangeFinished = onDismissRequested,
+                    decimalFormat = "#0.00",
+                    suffix = "%"
+                )
+            }
+
+            //控件尺寸参考对象
+            item {
+                InfoLayoutListItem(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.control_editor_edit_size_width_reference),
+                    items = ButtonSize.Reference.entries,
+                    selectedItem = buttonSize.widthReference,
+                    onItemSelected = {
+                        data.size = buttonSize.copy(widthReference = it, heightReference = it)
+                    },
+                    getItemText = { it.getReferenceText() }
+                )
+            }
+        }
+
+        ButtonSize.Type.WrapContent -> {}
     }
 }
 
@@ -233,8 +383,10 @@ private fun LazyListScope.commonInfos(
                 )
             }
         }
+
         ButtonSize.Type.Percentage -> {
-            @Composable fun ButtonSize.Reference.getReferenceText(): String {
+            @Composable
+            fun ButtonSize.Reference.getReferenceText(): String {
                 val textRes = when (this) {
                     ButtonSize.Reference.ScreenWidth -> R.string.control_editor_edit_size_reference_screen_width
                     ButtonSize.Reference.ScreenHeight -> R.string.control_editor_edit_size_reference_screen_height
@@ -304,6 +456,7 @@ private fun LazyListScope.commonInfos(
                 )
             }
         }
+
         ButtonSize.Type.WrapContent -> {}
     }
 }

@@ -28,5 +28,5 @@ import com.movtery.layer_controller.observable.ObservableWidget
  */
 data class SelectedWidgetData(
     val data: ObservableWidget,
-    val layer: ObservableControlLayer
+    val layer: ObservableControlLayer?
 )

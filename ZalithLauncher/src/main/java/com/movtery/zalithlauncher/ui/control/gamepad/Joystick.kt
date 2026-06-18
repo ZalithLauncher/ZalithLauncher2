@@ -19,7 +19,7 @@
 package com.movtery.zalithlauncher.ui.control.gamepad
 
 import androidx.compose.ui.geometry.Offset
-import com.movtery.zalithlauncher.ui.control.joystick.JoystickDirection
+import com.movtery.layer_controller.layout.JoystickDirection
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel.Event
 import kotlin.math.abs
 import kotlin.math.atan2

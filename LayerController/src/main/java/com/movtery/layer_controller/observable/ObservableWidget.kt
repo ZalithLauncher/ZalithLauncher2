@@ -44,6 +44,11 @@ abstract class ObservableWidget {
     var movingOffset by mutableStateOf(Offset.Zero)
 
     /**
+     * 控件的内部渲染位置（相对于画布的像素偏移量）
+     */
+    internal var internalRenderOffsetPx by mutableStateOf(Offset.Zero)
+
+    /**
      * 控件的内部渲染大小
      */
     internal var internalRenderSize by mutableStateOf(IntSize.Zero)

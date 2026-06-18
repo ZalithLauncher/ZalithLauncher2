@@ -715,18 +715,9 @@
     <string name="game_menu_option_show_menu">Menü Yer Paylaşımını Etkinleştir</string>
     <string name="game_menu_option_show_menu_hided">Oyun menüsü yer paylaşımı devre dışı bırakıldı. Oyun menüsünü sistem geri düğmesini kullanarak açabilirsiniz</string>
     <string name="game_menu_option_controls_opacity">Kontrol Düzeni Şeffaflığı</string>
-    <string name="game_styles_joystick">Joystick\'i Yönetin</string>
-    <string name="game_styles_joystick_enable">Joystick\'i Etkinleştir</string>
-    <string name="game_styles_joystick_x">Joystick X Konumu</string>
-    <string name="game_styles_joystick_y">Joystick Y Konumu</string>
     <string name="game_styles_joystick_size">Joystick Boyutu</string>
-    <string name="game_styles_joystick_edit">Joystick Stilini Düzenle</string>
-    <string name="game_styles_joystick_edit_use_control_layout">Kontrol Düzeni Tarafından Sağlanan Stili Kullanın</string>
     <string name="game_styles_joystick_can_lock">İleri Kilit</string>
     <string name="game_styles_joystick_lock_sprint">Kilitliyken Zorla Koşma</string>
-    <string name="game_styles_joystick_hide_when_mouse">Fiziksel Fare Kullanırken Gizle</string>
-    <string name="game_styles_joystick_hide_when_gamepad">Oyun Kumandası Kullanırken Gizle</string>
-    <string name="game_styles_save_failed">Stili Kurtarma Başarısız</string>
     <string name="renderer_version_storage_permissions">Mevcut render motoru %s, bir yapılandırma dosyası aracılığıyla yapılandırılabilir. Lütfen öncelikle başlatıcı için harici depolama iznini etkinleştirin, aksi takdirde render motorunun yapılandırmasını okuyamaz ve yükleyemez!</string>
     <string name="renderer_version_storage_permissions_sdk30">Mevcut render motoru %s, bir yapılandırma dosyası aracılığıyla yapılandırılabilir. Lütfen öncelikle başlatıcı için Tüm Dosyaları Yönet iznini etkinleştirin, aksi takdirde render motorunun yapılandırma dosyasını okuyup yükleyemez!</string>
     <string name="account_logging_xbox_banned">Hesabınız Xbox Topluluk Kurallarını ihlal ettiği için yasaklandı ve artık kullanılamaz!</string>
@@ -1007,11 +998,6 @@
     <string name="control_editor_menu_preview_mode">Önizleme Modu</string>
     <string name="control_editor_edit_text_size">Metin Boyutu</string>
     <string name="control_editor_edit_text_size_custom">Özel Boyut</string>
-    <string name="control_editor_special_joystick_style">Joystick Stili</string>
-    <string name="control_editor_special_joystick_style_create_title">Yeni Stil Oluştur</string>
-    <string name="control_editor_special_joystick_style_create_summary">Özel bir joystick görünümü tasarla.</string>
-    <string name="control_editor_special_joystick_style_delete_title">Stili Sil</string>
-    <string name="control_editor_special_joystick_style_delete_summary">Bu stili kalıcı olarak siler.</string>
     <string name="control_editor_special_joystick_style_joystick_color">Joystick Rengi</string>
     <string name="control_editor_special_joystick_style_joystick_can_lock_color">Kilitleme Rengi</string>
     <string name="control_editor_special_joystick_style_joystick_locked_color">Kilitli Renk</string>
@@ -1032,8 +1018,6 @@
     <string name="upgrade_is_latest">Zaten en son sürümü kullanıyorsunuz</string>
     <string name="upgrade_cloud_drive">Bulut Sürücü</string>
     <string name="game_styles_joystick_deadzone">Joystick Ölü Bölge Aralığı</string>
-    <string name="control_editor_special_joystick_style_tip_title">Joystick oluşturamıyor musunuz?</string>
-    <string name="control_editor_special_joystick_style_tip_summary">Uygulamasının zor olması nedeniyle, kontrol düzeni sistemi joystick bileşenlerini doğrudan entegre edemez. Joystick bileşenini kullanmak istiyorsanız, yalnızca oyun içi menüde evrensel joystick bileşenini etkinleştirebilirsiniz. Ancak, kontrol düzeni aracılığıyla joystick bileşeninin görünümünü sağlayarak stil birliğini koruyabilirsiniz.</string>
     <string name="settings_launcher_mirror_assets_search_title">Varlık Platformu Arama Kaynağı</string>
     <string name="settings_launcher_mirror_assets_download_title">Varlık Platformu İndirme Kaynağı</string>
     <string name="about_acknowledgements_mcim_text">%s, MCIM aynalama kaynağını kullanıyor</string>
@@ -1158,7 +1142,6 @@
     <string name="control_editor_layers_delete">%s kontrol katmanını silmek istediğinizden emin misiniz?</string>
     <string name="control_editor_layers_attribute_hide_when_mouse">Fareyi Kullanırken Gizle</string>
     <string name="control_editor_layers_attribute_hide_when_gamepad">Kontrolcü Kullanırken Gizle</string>
-    <string name="control_editor_layers_attribute_hide_when_joystick">Joystick Aktifken Gizle</string>
     <string name="control_editor_edit_dialog_delete_widget">Bu widget\'ı silmek istediğinizden emin misiniz?</string>
     <string name="control_editor_edit_style_config_common_style">Koyu Temayı Ayırt Etmeyin</string>
     <string name="control_editor_edit_style_config_delete">%s kontrol görünümünü silmek istediğinizden emin misiniz?</string>

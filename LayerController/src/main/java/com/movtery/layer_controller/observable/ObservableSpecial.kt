@@ -19,31 +19,13 @@
 package com.movtery.layer_controller.observable
 
 import com.movtery.layer_controller.layout.ControlLayout
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
 
 class ObservableSpecial(
     private val special: ControlLayout.Special
-): Packable<ControlLayout.Special> {
-    private val _joystickStyle = MutableStateFlow(
-        special.joystickStyle?.let { style ->
-            ObservableJoystickStyle(style)
-        }
-    )
-    val joystickStyle = _joystickStyle.asStateFlow()
-
-    /**
-     * 设置摇杆独立样式
-     */
-    fun setJoystickStyle(joystickStyle: ObservableJoystickStyle?) {
-        this._joystickStyle.update { joystickStyle }
-    }
+) : Packable<ControlLayout.Special> {
 
     override fun pack(): ControlLayout.Special {
-        return ControlLayout.Special(
-            joystickStyle = _joystickStyle.value?.pack()
-        )
+        return ControlLayout.Special()
     }
 
     override fun isModified(): Boolean {

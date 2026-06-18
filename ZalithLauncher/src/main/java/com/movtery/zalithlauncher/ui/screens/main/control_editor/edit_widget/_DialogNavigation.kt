@@ -31,6 +31,8 @@ sealed interface EditWidgetCategory : TitledNavKey {
     @Serializable data object TextStyle : EditWidgetCategory
     /** 点击事件 */
     @Serializable data object ClickEvent : EditWidgetCategory
+    /** 摇杆设置 */
+    @Serializable data object JoystickSettings : EditWidgetCategory
     /** 控件样式 */
     @Serializable data object Style : EditWidgetCategory
 }
@@ -42,5 +44,6 @@ val editWidgetCategories = listOf(
     CategoryItem(EditWidgetCategory.Info, { CategoryIcon(R.drawable.ic_info_outlined, R.string.control_editor_edit_category_info) }, R.string.control_editor_edit_category_info),
     CategoryItem(EditWidgetCategory.TextStyle, { CategoryIcon(R.drawable.ic_text_format, R.string.control_editor_edit_text) }, R.string.control_editor_edit_text),
     CategoryItem(EditWidgetCategory.ClickEvent, { CategoryIcon(R.drawable.ic_touch_app_outlined, R.string.control_editor_edit_category_event) }, R.string.control_editor_edit_category_event),
+    CategoryItem(EditWidgetCategory.JoystickSettings, { CategoryIcon(R.drawable.ic_joystick, R.string.control_editor_edit_category_joystick) }, R.string.control_editor_edit_category_joystick),
     CategoryItem(EditWidgetCategory.Style, { CategoryIcon(R.drawable.ic_style_outlined, R.string.control_editor_edit_category_style) }, R.string.control_editor_edit_category_style)
 )

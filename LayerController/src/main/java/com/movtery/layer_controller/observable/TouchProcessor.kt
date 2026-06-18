@@ -40,14 +40,8 @@ class TouchProcessor(
                 position.y in offset.y..(offset.y + size.height)
     }
 
-
-
     /**
      * 处理单帧指针事件
-     * @param visibleWidgets 预过滤后的可见控件列表
-     * @param allLayers 所有控件层
-     * @param consumeEvent 消费事件的回调
-     * @param markPointerAsMoveOnly 标记指针为仅移动的回调
      */
     fun processFrame(
         session: TouchSession,
@@ -75,9 +69,6 @@ class TouchProcessor(
         )
     }
 
-    /**
-     * 从可见控件中找出当前指针命中的目标控件
-     */
     private fun findTargets(
         visibleWidgets: List<ObservableWidget>,
         position: Offset,
@@ -87,20 +78,15 @@ class TouchProcessor(
         }
         if (hitList.isEmpty()) return emptyList()
 
-        //找到第一个支持深度检测的控件
-        val firstDeepWidget = hitList
-            .firstOrNull { it.supportsDeepTouchDetection() }
+        // 找到第一个支持深度检测的控件（通常是拦截后续分发的终点，如摇杆）
+        val firstDeepWidget = hitList.firstOrNull { it.supportsDeepTouchDetection() }
             ?: return hitList
 
         val topIndex = hitList.indexOf(firstDeepWidget)
-        //只保留该控件及其上方的可穿透控件
+        // 返回从顶层到该深层控件之间的所有控件
         return hitList.subList(0, topIndex + 1)
-            .filter { !it.canProcess() }
     }
 
-    /**
-     * 处理活跃控件的越界释放
-     */
     private fun handleOutOfBounds(
         session: TouchSession,
         pointerId: PointerId,
@@ -121,7 +107,6 @@ class TouchProcessor(
                 widget.onReleaseEvent(eventHandler, allLayers)
                 removed.add(widget)
             } else {
-                //指针重新回到控件边界内
                 backInBounds.add(widget)
             }
         }
@@ -134,22 +119,15 @@ class TouchProcessor(
             widget.onPointerBackInBounds(eventHandler, allLayers)
         }
 
-
         val currentWidgets = session.activeWidgets(pointerId)
-        if (
-            currentWidgets.isEmpty() &&
-            //越界前存在可滑动控件
-            preSnapshot.any { it.behavior is InteractionBehavior.Swipable }
-        ) {
+        if (currentWidgets.isEmpty() && preSnapshot.any { it.behavior is InteractionBehavior.Swipable }) {
             session.enterSwipeChain(pointerId)
         }
 
-        //指针回到了控件上，退出滑动链
         if (currentWidgets.isNotEmpty() && session.isInSwipeChain(pointerId)) {
             session.exitSwipeChain(pointerId)
         }
     }
-
 
     private fun routeToTargets(
         session: TouchSession,
@@ -160,18 +138,16 @@ class TouchProcessor(
         consumeEvent: (PointerInputChange) -> Unit,
         markPointerAsMoveOnly: (PointerId) -> Unit,
     ) {
-        if (targets.isEmpty()) return
-
         val activeWidgets = session.activeWidgets(pointerId)
+        
+        // 优先处理已激活的控件（捕获模式），确保在拖动过程中不被其他控件拦截
+        // 其次处理新命中的目标
+        val combinedTargets = (activeWidgets + targets).distinct()
 
-        for (target in targets) {
-            if (target.canProcess()) return
+        if (combinedTargets.isEmpty()) return
 
-            //只允许可滑动且非可切换的控件通过
-            if (
-                session.isInSwipeChain(pointerId) &&
-                !target.behavior.canBeSwipedTo
-            ) {
+        for (target in combinedTargets) {
+            if (session.isInSwipeChain(pointerId) && !target.behavior.canBeSwipedTo) {
                 continue
             }
 
@@ -191,6 +167,8 @@ class TouchProcessor(
                     }
                 },
             )
+
+            if (target.canProcess()) break
         }
     }
 }

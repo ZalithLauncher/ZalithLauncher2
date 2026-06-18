@@ -72,7 +72,10 @@ class TouchSession {
      * 将控件加入指定指针的活跃列表。
      */
     fun addActiveWidget(pointerId: PointerId, widget: ObservableWidget) {
-        _activeWidgets.getOrPut(pointerId) { mutableListOf() }.add(widget)
+        val list = _activeWidgets.getOrPut(pointerId) { mutableListOf() }
+        if (!list.contains(widget)) {
+            list.add(widget)
+        }
     }
 
     /**

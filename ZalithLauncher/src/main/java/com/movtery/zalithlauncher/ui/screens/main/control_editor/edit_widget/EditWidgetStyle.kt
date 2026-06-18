@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.movtery.layer_controller.layout.RendererStyleBox
 import com.movtery.layer_controller.observable.ObservableButtonStyle
+import com.movtery.layer_controller.observable.ObservableJoystickData
 import com.movtery.layer_controller.observable.ObservableNormalData
 import com.movtery.layer_controller.observable.ObservableTextData
 import com.movtery.layer_controller.observable.ObservableWidget
@@ -48,6 +49,7 @@ import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutItem
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutTextItem
+import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_joystick.JoystickStyleEditor
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
 
 /**
@@ -78,12 +80,20 @@ fun EditWidgetStyle(
                         openStyleList = openStyleList
                     )
                 }
+
                 is ObservableNormalData -> {
                     MainContent(
                         styles = styles,
                         buttonStyle = data.buttonStyle,
                         onButtonStyleChanged = { data.buttonStyle = it },
                         openStyleList = openStyleList
+                    )
+                }
+
+                is ObservableJoystickData -> {
+                    JoystickStyleEditor(
+                        modifier = Modifier.fillMaxSize(),
+                        style = data.style
                     )
                 }
             }
@@ -151,7 +161,8 @@ private fun ChoseStyleItem(
             Spacer(modifier = Modifier.height(4.dp))
             MarqueeText(
                 modifier = Modifier.fillMaxWidth(),
-                text = style.name.takeIf { it.isNotEmptyOrBlank() } ?: stringResource(R.string.generic_unspecified),
+                text = style.name.takeIf { it.isNotEmptyOrBlank() }
+                    ?: stringResource(R.string.generic_unspecified),
                 textAlign = TextAlign.Center
             )
             RadioButton(

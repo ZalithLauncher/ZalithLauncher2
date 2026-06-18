@@ -67,10 +67,12 @@ import com.movtery.layer_controller.data.ButtonSize
 import com.movtery.layer_controller.data.MAX_SIZE_PERCENTAGE
 import com.movtery.layer_controller.data.MIN_SIZE_DP
 import com.movtery.layer_controller.data.MIN_SIZE_PERCENTAGE
+import com.movtery.layer_controller.layout.JoystickButton
 import com.movtery.layer_controller.layout.TextButton
 import com.movtery.layer_controller.observable.ObservableButtonStyle
 import com.movtery.layer_controller.observable.ObservableControlLayer
 import com.movtery.layer_controller.observable.ObservableControlLayout
+import com.movtery.layer_controller.observable.ObservableJoystickData
 import com.movtery.layer_controller.observable.ObservableWidget
 import com.movtery.layer_controller.utils.getWidgetPosition
 import com.movtery.layer_controller.utils.snap.GuideLine
@@ -94,7 +96,7 @@ import kotlin.math.roundToInt
 fun ControlEditorLayer(
     observedLayout: ObservableControlLayout,
     selectedWidget: ObservableWidget?,
-    onButtonTap: (data: ObservableWidget, layer: ObservableControlLayer) -> Unit,
+    onButtonTap: (data: ObservableWidget, layer: ObservableControlLayer?) -> Unit,
     onBackgroundClick: () -> Unit,
     floatingButtons: @Composable RowScope.() -> Unit,
     enableSnap: Boolean,
@@ -338,10 +340,14 @@ fun ControlEditorLayer(
                                             change.consume()
                                             if (isTopLeft) {
                                                 val newTL = dragTL + dragAmount
-                                                val finalTL = Offset(
+                                                var finalTL = Offset(
                                                     newTL.x.coerceIn(maxOf(0f, dragBR.x - maxWidth), dragBR.x - minWidth),
                                                     newTL.y.coerceIn(maxOf(0f, dragBR.y - maxHeight), dragBR.y - minHeight)
                                                 )
+                                                if (widget is ObservableJoystickData) {
+                                                    val size = minOf(dragBR.x - finalTL.x, dragBR.y - finalTL.y)
+                                                    finalTL = Offset(dragBR.x - size, dragBR.y - size)
+                                                }
                                                 dragTL = finalTL
                                                 widget.movingOffset = finalTL
                                                 val finalSize = IntSize(
@@ -351,10 +357,14 @@ fun ControlEditorLayer(
                                                 updateSizeAndPos(finalTL, finalSize)
                                             } else {
                                                 val newBR = dragBR + dragAmount
-                                                val finalBR = Offset(
+                                                var finalBR = Offset(
                                                     newBR.x.coerceIn(dragTL.x + minWidth, minOf(screenSize.width.toFloat(), dragTL.x + maxWidth)),
                                                     newBR.y.coerceIn(dragTL.y + minHeight, minOf(screenSize.height.toFloat(), dragTL.y + maxHeight))
                                                 )
+                                                if (widget is ObservableJoystickData) {
+                                                    val size = minOf(finalBR.x - dragTL.x, finalBR.y - dragTL.y)
+                                                    finalBR = Offset(dragTL.x + size, dragTL.y + size)
+                                                }
                                                 dragBR = finalBR
                                                 val finalSize = IntSize(
                                                     (finalBR.x - dragTL.x).roundToInt(),
@@ -469,11 +479,11 @@ private fun ControlWidgetRenderer(
     snapMode: SnapMode,
     localSnapRange: Dp,
     snapThresholdValue: Dp,
-    onButtonTap: (data: ObservableWidget, layer: ObservableControlLayer) -> Unit,
+    onButtonTap: (data: ObservableWidget, layer: ObservableControlLayer?) -> Unit,
     drawLine: (ObservableWidget, List<GuideLine>) -> Unit,
     onLineCancel: (ObservableWidget) -> Unit
 ) {
-    val allWidgetsMap = remember { mutableStateMapOf<ObservableControlLayer, List<ObservableWidget>>() }
+    val allWidgetsMap = remember { mutableStateMapOf<ObservableControlLayer?, List<ObservableWidget>>() }
     val snapInAllLayers1 by rememberUpdatedState(snapInAllLayers)
 
     @Composable
@@ -482,30 +492,57 @@ private fun ControlWidgetRenderer(
         layer: ObservableControlLayer,
         isPressed: Boolean
     ) {
-        TextButton(
-            isEditMode = true,
-            data = data,
-            allStyles = styles,
-            screenSize = screenSize,
-            isDark = isDark,
-            enableSnap = enableSnap,
-            snapMode = snapMode,
-            localSnapRange = localSnapRange,
-            getOtherWidgets = {
-                allWidgetsMap
-                    .filter { (layer1, _) ->
-                        snapInAllLayers1 || layer1 == layer
+        when (data) {
+            is ObservableJoystickData -> {
+                JoystickButton(
+                    data = data,
+                    screenSize = screenSize,
+                    isDark = isDark,
+                    enableSnap = enableSnap,
+                    snapMode = snapMode,
+                    localSnapRange = localSnapRange,
+                    getOtherWidgets = {
+                        allWidgetsMap
+                            .filter { (layer1, _) ->
+                                snapInAllLayers1 || layer1 == layer
+                            }
+                            .values.flatten().filter { it != data }
+                    },
+                    snapThresholdValue = snapThresholdValue,
+                    drawLine = drawLine,
+                    onLineCancel = onLineCancel,
+                    onTapInEditMode = {
+                        onButtonTap(data, layer)
                     }
-                    .values.flatten().filter { it != data }
-            },
-            snapThresholdValue = snapThresholdValue,
-            drawLine = drawLine,
-            onLineCancel = onLineCancel,
-            isPressed = isPressed,
-            onTapInEditMode = {
-                onButtonTap(data, layer)
+                )
             }
-        )
+            else -> {
+                TextButton(
+                    isEditMode = true,
+                    data = data,
+                    allStyles = styles,
+                    screenSize = screenSize,
+                    isDark = isDark,
+                    enableSnap = enableSnap,
+                    snapMode = snapMode,
+                    localSnapRange = localSnapRange,
+                    getOtherWidgets = {
+                        allWidgetsMap
+                            .filter { (layer1, _) ->
+                                snapInAllLayers1 || layer1 == layer
+                            }
+                            .values.flatten().filter { it != data }
+                    },
+                    snapThresholdValue = snapThresholdValue,
+                    drawLine = drawLine,
+                    onLineCancel = onLineCancel,
+                    isPressed = isPressed,
+                    onTapInEditMode = {
+                        onButtonTap(data, layer)
+                    }
+                )
+            }
+        }
     }
 
     Layout(
@@ -514,8 +551,9 @@ private fun ControlWidgetRenderer(
             renderingLayers.forEach { layer ->
                 val normalButtons by layer.normalButtons.collectAsStateWithLifecycle()
                 val textBoxes by layer.textBoxes.collectAsStateWithLifecycle()
+                val joysticks by layer.joysticks.collectAsStateWithLifecycle()
 
-                val widgetsInLayer = normalButtons + textBoxes
+                val widgetsInLayer = normalButtons + textBoxes + joysticks
                 allWidgetsMap[layer] = widgetsInLayer
 
                 textBoxes.forEach { data ->
@@ -524,6 +562,10 @@ private fun ControlWidgetRenderer(
 
                 normalButtons.forEach { data ->
                     RenderWidget(data, layer, data.isPressed)
+                }
+
+                joysticks.forEach { data ->
+                    RenderWidget(data, layer, isPressed = false)
                 }
             }
         }
@@ -544,6 +586,7 @@ private fun ControlWidgetRenderer(
         renderingLayers.fastForEach { layer ->
             layer.textBoxes.value.fastForEach { it.putSize() }
             layer.normalButtons.value.fastForEach { it.putSize() }
+            layer.joysticks.value.fastForEach { it.putSize() }
         }
 
         layout(constraints.maxWidth, constraints.maxHeight) {
@@ -564,6 +607,7 @@ private fun ControlWidgetRenderer(
             renderingLayers.fastForEach { layer ->
                 layer.textBoxes.value.fastForEach { it.place() }
                 layer.normalButtons.value.fastForEach { it.place() }
+                layer.joysticks.value.fastForEach { it.place() }
             }
         }
     }

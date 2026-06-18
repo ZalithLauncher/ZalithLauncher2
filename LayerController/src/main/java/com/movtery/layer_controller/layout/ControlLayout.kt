@@ -20,7 +20,6 @@ package com.movtery.layer_controller.layout
 
 import com.movtery.layer_controller.EDITOR_VERSION
 import com.movtery.layer_controller.data.ButtonStyle
-import com.movtery.layer_controller.data.JoystickStyle
 import com.movtery.layer_controller.data.lang.EmptyTranslatableString
 import com.movtery.layer_controller.data.lang.TranslatableString
 import com.movtery.layer_controller.layout.ControlLayout.Info
@@ -55,7 +54,7 @@ data class ControlLayout(
     val special: Special = Special(),
     @SerialName("editorVersion")
     val editorVersion: Int
-): Modifiable<ControlLayout> {
+) : Modifiable<ControlLayout> {
     @Serializable
     data class Info(
         @SerialName("name")
@@ -68,7 +67,7 @@ data class ControlLayout(
         val versionCode: Int,
         @SerialName("versionName")
         val versionName: String
-    ): Modifiable<Info> {
+    ) : Modifiable<Info> {
         override fun isModified(other: Info): Boolean {
             return other.name.isModified(this.name) ||
                     other.author.isModified(this.author) ||
@@ -80,23 +79,14 @@ data class ControlLayout(
 
     /**
      * 特殊设定，比如由控制布局改变启动器的部分组件属性之类的
-     * @param joystickStyle 控制启动器层的摇杆的样式
      */
     @Serializable
     data class Special(
-        val joystickStyle: JoystickStyle? = null
+        val _dummy: Int = 0
         //将来可扩展更多设定
-    ): Modifiable<Special> {
+    ) : Modifiable<Special> {
         override fun isModified(other: Special): Boolean {
-            val joystickStyle0 = this.joystickStyle
-            val joystickModified = if (joystickStyle0 == null) {
-                other.joystickStyle != null
-            } else {
-                if (other.joystickStyle == null) true
-                else joystickStyle0.isModified(other.joystickStyle)
-            }
-
-            return joystickModified
+            return false
         }
     }
 

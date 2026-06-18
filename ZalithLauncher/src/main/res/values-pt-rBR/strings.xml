@@ -346,7 +346,6 @@
     <string name="game_button_mouse_right">Clique Direito</string>
     <string name="game_menu_option_replacement_control">Mudar layout do HUD</string>
     <string name="game_menu_option_controls_opacity">Opacidade do HUD</string>
-    <string name="game_styles_joystick_edit_use_control_layout">Usar estilo fornecido pelo layout de controle</string>
     <string name="versions_config_control">Layout de controle</string>
     <string name="control_manage_create_new_title">Novo Layout de Controle</string>
     <string name="control_manage_create_new_name">Nome Do Layout</string>
@@ -363,9 +362,6 @@
     <string name="control_editor_menu_no_layers_message">Nenhuma camada de controle foi criada para o layout de controle atual. Crie uma camada de controle primeiro.</string>
     <string name="control_editor_menu_preview_mode">Layout de controle de visualização</string>
     <string name="control_editor_edit_style_config_empty">Nenhuma aparição de controle no layout de controle atual layout de controle</string>
-    <string name="control_editor_special_joystick_style_tip_summary">Devido à alta complexidade de implementação, o sistema de layout de controle não pode integrar componentes de joystick diretamente. Para usar componentes de joystick, você só pode habilitar o joystick universal no menu do jogo. No entanto, você ainda pode fornecer a aparência do joystick por meio do layout de controle para manter um estilo consistente.</string>
-    <string name="control_editor_special_joystick_style_create_summary">Cria uma configuração de estilo de joystick fornecida pelo layout de controle. Se o layout de controle atual não fornecer um estilo de joystick, o estilo de joystick do launcher será usado.</string>
-    <string name="control_editor_special_joystick_style_delete_summary">Exclua a configuração de estilo de joystick para o layout de controle atual e use o estilo de joystick do launcher.</string>
     <string name="game_dialog_force_close_message">Tem certeza de que deseja fechar de maneira forçada e voltar para à tela principal?</string>
     <string name="game_loading">O jogo está em execução, Aguardando a tela do jogo aparecer…</string>
     <string name="game_loading_version_name">Versão do jogo: %s</string>
@@ -385,18 +381,10 @@
     <string name="game_menu_option_hotbar_height">Altura da Hotbar</string>
     <string name="game_menu_option_show_menu">Ativar menu flutuante</string>
     <string name="game_menu_option_show_menu_hided">O menu flutuante foi desativada. Você pode abrir a interface novamente usando o botão de voltar do sistema do seu dispositivo.</string>
-    <string name="game_styles_joystick">Gerenciar Joystick</string>
-    <string name="game_styles_joystick_enable">Ativar Joystick</string>
-    <string name="game_styles_joystick_x">Posição X do joystick</string>
-    <string name="game_styles_joystick_y">Posição Y do Joystick</string>
     <string name="game_styles_joystick_size">Tamanho do Joystick</string>
-    <string name="game_styles_joystick_edit">Editar estilo do Joystick</string>
     <string name="game_styles_joystick_deadzone">Alcance da zona morta do joystick</string>
     <string name="game_styles_joystick_can_lock">Bloqueio para frente</string>
     <string name="game_styles_joystick_lock_sprint">Forçar corrida quando travado</string>
-    <string name="game_styles_joystick_hide_when_mouse">Ocultar ao usar o mouse físico</string>
-    <string name="game_styles_joystick_hide_when_gamepad">Ocultar ao usar o gamepad</string>
-    <string name="game_styles_save_failed">Falha ao salvar o estilo</string>
     <string name="renderer_version_support">Suporte à versão do MC:</string>
     <string name="renderer_version_unsupported_warning">O renderizador atual %s não é compatível com esta versão do jogo. Continuar a usá-lo pode causar erros de renderização ou travamentos! Tem certeza de que deseja prosseguir?</string>
     <string name="renderer_version_storage_permissions">O renderizador atual %s pode ser configurado por meio de um arquivo de configuração. Primeiro, habilite a permissão de armazenamento externo para o launcher; caso contrário, ele não poderá ler e carregar a configuração do renderizador!</string>
@@ -1020,10 +1008,6 @@
     <string name="control_editor_edit_style_config_widget_radius_right_top">Canto superior direito</string>
     <string name="control_editor_edit_style_config_widget_radius_left_bottom">Canto Inferior Esquerdo</string>
     <string name="control_editor_edit_style_config_widget_radius_right_bottom">Canto Inferior Direito</string>
-    <string name="control_editor_special_joystick_style">Estilo do joystick</string>
-    <string name="control_editor_special_joystick_style_tip_title">Não consegue criar um joystick?</string>
-    <string name="control_editor_special_joystick_style_create_title">Criar estilo de joystick</string>
-    <string name="control_editor_special_joystick_style_delete_title">Excluir estilo de joystick</string>
     <string name="control_editor_special_joystick_style_joystick_color">Cor do Joystick</string>
     <string name="control_editor_special_joystick_style_joystick_can_lock_color">Cor do Joystick (Bloqueável)</string>
     <string name="control_editor_special_joystick_style_joystick_locked_color">Cor do Joystick (Bloqueada)</string>
@@ -1148,7 +1132,6 @@
     <string name="control_editor_layers_delete">Mano, ocê tem certeza que deseja excluir a camada %s do seu HUD?</string>
     <string name="control_editor_layers_attribute_hide_when_mouse">Ocultar ao usar o mouse</string>
     <string name="control_editor_layers_attribute_hide_when_gamepad">Ocultar ao usar um gamepad</string>
-    <string name="control_editor_layers_attribute_hide_when_joystick">Ocultar quando o joystick estiver ativado</string>
     <string name="control_editor_edit_dialog_delete_widget">Tem certeza de que deseja excluir este widget?</string>
     <string name="control_editor_edit_style_config_common_style">Ignorar Tema Escuro</string>
     <string name="control_editor_edit_style_config_delete">Mano, ocê tem certeza que deseja excluir a aparência do HUD %s?</string>

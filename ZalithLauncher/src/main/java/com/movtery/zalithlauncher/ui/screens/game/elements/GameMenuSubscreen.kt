@@ -94,7 +94,6 @@ fun GameMenuSubscreen(
     onInputMethod: () -> Unit,
     onSendKeycode: () -> Unit,
     onReplacementControl: () -> Unit,
-    onManageJoystick: () -> Unit,
     onEditLayout: () -> Unit
 ) {
     DualMenuSubscreen(
@@ -147,7 +146,6 @@ fun GameMenuSubscreen(
                                 onInputMethod = onInputMethod,
                                 onSendKeycode = onSendKeycode,
                                 onReplacementControl = onReplacementControl,
-                                onManageJoystick = onManageJoystick,
                                 onEditLayout = onEditLayout
                             )
                         }
@@ -339,7 +337,6 @@ private fun ControlOverview(
     onInputMethod: () -> Unit,
     onSendKeycode: () -> Unit,
     onReplacementControl: () -> Unit,
-    onManageJoystick: () -> Unit,
     onEditLayout: () -> Unit
 ) {
     LazyColumn(
@@ -409,20 +406,6 @@ private fun ControlOverview(
                 onValueChange = { AllSettings.controlsOpacity.updateState(it) },
                 onValueChangeFinished = { AllSettings.controlsOpacity.save(it) },
                 suffix = "%",
-                color = color,
-                contentColor = contentColor,
-            )
-        }
-
-        //管理摇杆
-        item {
-            MenuTextButton(
-                modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.game_styles_joystick),
-                onClick = {
-                    onManageJoystick()
-                    closeScreen()
-                },
                 color = color,
                 contentColor = contentColor,
             )

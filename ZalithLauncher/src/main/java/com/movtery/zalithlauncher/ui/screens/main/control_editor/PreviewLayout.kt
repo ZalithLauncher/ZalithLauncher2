@@ -20,29 +20,18 @@ package com.movtery.zalithlauncher.ui.screens.main.control_editor
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
-import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateSetOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerId
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.layer_controller.ControlBoxLayout
 import com.movtery.layer_controller.data.HideLayerWhen
-import com.movtery.layer_controller.observable.DefaultObservableJoystickStyle
 import com.movtery.layer_controller.observable.ObservableControlLayout
-import com.movtery.layer_controller.observable.ObservableSpecial
-import com.movtery.layer_controller.utils.widgetPosition
-import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
-import com.movtery.zalithlauncher.ui.control.joystick.StyleableJoystick
 import com.movtery.zalithlauncher.ui.control.mouse.SwitchableMouseLayout
 
 /**
@@ -57,7 +46,6 @@ fun BoxWithConstraintsScope.PreviewControlBox(
     observableLayout: ObservableControlLayout,
     previewScenario: PreviewScenario,
     previewHideLayerWhen: HideLayerWhen,
-    enableJoystick: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val occupiedPointers = remember(observableLayout) { mutableStateSetOf<PointerId>() }
@@ -70,8 +58,8 @@ fun BoxWithConstraintsScope.PreviewControlBox(
         observedLayout = observableLayout,
         checkOccupiedPointers = { occupiedPointers.contains(it) },
         markPointerAsMoveOnly = { moveOnlyPointers.add(it) },
-        isUsingJoystick = previewScenario.isCursorGrabbing && enableJoystick,
         isCursorGrabbing = previewScenario.isCursorGrabbing,
+        enableJoystick = true,
         hideLayerWhen = previewHideLayerWhen,
         isDark = isLauncherInDarkTheme()
     ) {
@@ -87,16 +75,6 @@ fun BoxWithConstraintsScope.PreviewControlBox(
             previewScenario = previewScenario
         )
     }
-
-    //预览摇杆
-    val special by observableLayout.special.collectAsStateWithLifecycle()
-    PreviewJoystickControlLayout(
-        special = special,
-        screenSize = screenSize,
-        enableJoystick = enableJoystick,
-        previewHideLayerWhen = previewHideLayerWhen,
-        previewScenario = previewScenario
-    )
 }
 
 /**
@@ -125,64 +103,6 @@ private fun PreviewMouseLayout(
             isMoveOnlyPointer = isMoveOnlyPointer,
             onOccupiedPointer = onOccupiedPointer,
             onReleasePointer = onReleasePointer
-        )
-    }
-}
-
-/**
- * 预览摇杆控制层
- * @param special 由控制布局提供的特殊设定，摇杆会根据这里的配置应用样式
- * @param previewScenario 控制布局预览的场景
- */
-@Composable
-private fun PreviewJoystickControlLayout(
-    screenSize: IntSize,
-    special: ObservableSpecial,
-    enableJoystick: Boolean,
-    previewHideLayerWhen: HideLayerWhen,
-    previewScenario: PreviewScenario
-) {
-    val joystickStyle by special.joystickStyle.collectAsStateWithLifecycle()
-
-    val density = LocalDensity.current
-
-    val hideState = when (previewHideLayerWhen) {
-        HideLayerWhen.WhenMouse -> AllSettings.joystickHideWhenMouse.state
-        HideLayerWhen.WhenGamepad -> AllSettings.joystickHideWhenGamepad.state
-        HideLayerWhen.None -> false
-    }
-
-    if (enableJoystick && previewScenario.isCursorGrabbing && !hideState) {
-        val size = AllSettings.joystickControlSize.state.dp
-        val x = AllSettings.joystickControlX.state
-        val y = AllSettings.joystickControlY.state
-
-        val position = remember(screenSize, size, x, y) {
-            val widgetSize = with(density) {
-                val pixelSize = size.roundToPx()
-                IntSize(
-                    width = pixelSize,
-                    height = pixelSize
-                )
-            }
-
-            widgetPosition(
-                xPercentage = x / 10000f,
-                yPercentage = y / 10000f,
-                widgetSize = widgetSize,
-                screenSize = screenSize
-            )
-        }
-
-        StyleableJoystick(
-            modifier = Modifier
-                .absoluteOffset {
-                    IntOffset(x = position.x.toInt(), y = position.y.toInt())
-                },
-            style = joystickStyle ?: DefaultObservableJoystickStyle, //预览模式不显示启动器默认样式
-            size = size,
-            deadZoneRatio = AllSettings.joystickDeadZoneRatio.state / 100f,
-            canLock = AllSettings.joystickControlCanLock.state
         )
     }
 }

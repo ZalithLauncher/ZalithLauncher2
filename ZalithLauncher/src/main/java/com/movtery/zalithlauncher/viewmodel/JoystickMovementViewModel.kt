@@ -18,19 +18,16 @@
 
 package com.movtery.zalithlauncher.viewmodel
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import com.movtery.zalithlauncher.ui.control.joystick.JoystickDirection
-import com.movtery.zalithlauncher.ui.screens.game.elements.JoystickManageOperation
+import com.movtery.layer_controller.layout.JoystickDirection
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 /**
  * 摇杆、方向键组件处理 ViewModel
  */
-class JoystickMovementViewModel: ViewModel() {
-    var operation by mutableStateOf<JoystickManageOperation>(JoystickManageOperation.None)
-
+@HiltViewModel
+class JoystickMovementViewModel @Inject constructor() : ViewModel() {
     private val listeners = mutableListOf<(JoystickDirection) -> Unit>()
 
     /**

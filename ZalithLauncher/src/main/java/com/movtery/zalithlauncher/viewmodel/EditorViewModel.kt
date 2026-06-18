@@ -31,6 +31,7 @@ import com.movtery.layer_controller.layout.ControlLayout
 import com.movtery.layer_controller.observable.ObservableButtonStyle
 import com.movtery.layer_controller.observable.ObservableControlLayer
 import com.movtery.layer_controller.observable.ObservableControlLayout
+import com.movtery.layer_controller.observable.ObservableJoystickData
 import com.movtery.layer_controller.observable.ObservableNormalData
 import com.movtery.layer_controller.observable.ObservableTextData
 import com.movtery.layer_controller.observable.ObservableWidget
@@ -45,17 +46,20 @@ import com.movtery.zalithlauncher.ui.screens.main.control_editor.EditorWidgetOpe
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.PreviewScenario
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_widget.SelectedWidgetData
 import com.movtery.zalithlauncher.ui.theme.showThemed
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
+import javax.inject.Inject
 
 /**
  * 控制布局编辑器
  */
-class EditorViewModel() : ViewModel() {
+@HiltViewModel
+class EditorViewModel @Inject constructor() : ViewModel() {
     lateinit var observableLayout: ObservableControlLayout
         private set
 
@@ -117,13 +121,6 @@ class EditorViewModel() : ViewModel() {
      */
     var previewHideLayerWhen by mutableStateOf(HideLayerWhen.None)
 
-    /**
-     * 预览控制布局时是否启用摇杆
-     */
-    var enableJoystick by mutableStateOf(false)
-
-
-
     fun initLayout(layout: ControlLayout) {
         if (!::observableLayout.isInitialized) {
             this.observableLayout = ObservableControlLayout(layout)
@@ -164,10 +161,11 @@ class EditorViewModel() : ViewModel() {
     /**
      * 在控件层移除控件
      */
-    fun removeWidget(layer: ObservableControlLayer, widget: ObservableWidget) {
+    fun removeWidget(layer: ObservableControlLayer?, widget: ObservableWidget) {
         when (widget) {
-            is ObservableNormalData -> layer.removeNormalButton(widget.uuid)
-            is ObservableTextData -> layer.removeTextBox(widget.uuid)
+            is ObservableNormalData -> layer?.removeNormalButton(widget.uuid)
+            is ObservableTextData -> layer?.removeTextBox(widget.uuid)
+            is ObservableJoystickData -> layer?.removeJoystick(widget.uuid)
         }
     }
 

@@ -18,28 +18,17 @@
 
 package com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_joystick
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,11 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.movtery.layer_controller.data.BORDER_RADIO_RANGE
@@ -62,174 +47,74 @@ import com.movtery.layer_controller.observable.ObservableJoystickStyleConfig
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.unit.toFloatRange
 import com.movtery.zalithlauncher.ui.components.MarqueeText
-import com.movtery.zalithlauncher.ui.control.joystick.StyleableJoystick
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutColorItem
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutSliderItem
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutTextItem
-import com.movtery.zalithlauncher.ui.screens.rememberSwapTween
 import com.movtery.zalithlauncher.ui.theme.cardColor
-import com.movtery.zalithlauncher.ui.theme.itemColor
-import com.movtery.zalithlauncher.ui.theme.onCardColor
-import com.movtery.zalithlauncher.ui.theme.onItemColor
 
-private data class TabItem(val titleRes: Int)
+internal data class JoystickTabItem(val titleRes: Int)
 
-/**
- * 编辑摇杆样式模式
- */
-enum class EditJoystickStyleMode {
-    /** 控制布局编辑其独立的样式 */
-    ControlLayout,
-    /** 编辑启动器默认样式 */
-    Launcher
-}
-
-/**
- * 摇杆样式编辑对话框
- * **不再真正使用Dialog，真的会有性能问题！**
- * @param mode 编辑样式的模式
- * @param onInfoButtonClick 根据模式变更文本的按钮被点击时的回调
- */
 @Composable
-fun EditJoystickStyleDialog(
-    visible: Boolean,
-    style: ObservableJoystickStyle?,
-    mode: EditJoystickStyleMode,
-    onClose: () -> Unit,
-    onInfoButtonClick: () -> Unit
+fun JoystickStyleEditor(
+    modifier: Modifier = Modifier,
+    style: ObservableJoystickStyle,
+    onTabChanged: (Int) -> Unit = {}
 ) {
-    val tween = rememberSwapTween()
+    val tabs = remember {
+        listOf(
+            JoystickTabItem(R.string.control_editor_edit_style_config_light),
+            JoystickTabItem(R.string.control_editor_edit_style_config_dark)
+        )
+    }
 
-    AnimatedVisibility(
-        modifier = Modifier.fillMaxSize(),
-        visible = visible,
-        enter = fadeIn(animationSpec = tween),
-        exit = fadeOut(animationSpec = tween)
+    val pagerState = rememberPagerState(pageCount = { tabs.size })
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+
+    LaunchedEffect(selectedTabIndex) {
+        pagerState.animateScrollToPage(selectedTabIndex)
+        onTabChanged(selectedTabIndex)
+    }
+
+    Column(
+        modifier = modifier
     ) {
-        val tabs = remember {
-            listOf(
-                TabItem(R.string.control_editor_edit_style_config_light),
-                TabItem(R.string.control_editor_edit_style_config_dark)
-            )
-        }
-
-        val pagerState = rememberPagerState(pageCount = { tabs.size })
-        var selectedTabIndex by remember { mutableIntStateOf(0) }
-
-        LaunchedEffect(selectedTabIndex) {
-            pagerState.animateScrollToPage(selectedTabIndex)
-        }
-
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+        //顶贴标签栏
+        SecondaryTabRow(
+            selectedTabIndex = selectedTabIndex,
+            containerColor = cardColor(false)
         ) {
-            //作为背景层，被点击时关闭Dialog
-            if (visible) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .alpha(0f)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() },
-                            onClick = onClose
-                        )
+            tabs.forEachIndexed { index, item ->
+                Tab(
+                    selected = index == selectedTabIndex,
+                    onClick = {
+                        selectedTabIndex = index
+                    },
+                    text = {
+                        MarqueeText(text = stringResource(item.titleRes))
+                    }
                 )
             }
+        }
 
-            if (style != null) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f)
-                        .fillMaxHeight()
-                        .padding(all = 16.dp),
-                    shadowElevation = 3.dp,
-                    color = cardColor(false),
-                    contentColor = onCardColor(),
-                    shape = MaterialTheme.shapes.extraLarge
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxHeight()
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .padding(all = 12.dp)
-                                .weight(0.4f),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            RenderBox(
-                                modifier = Modifier.weight(1f),
-                                style = style,
-                                isDarkMode = selectedTabIndex == 1
-                            )
+        HorizontalPager(
+            state = pagerState,
+            userScrollEnabled = false,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) { page ->
+            when (page) {
+                0 -> {
+                    StyleConfigEditor(
+                        modifier = Modifier.fillMaxSize(),
+                        config = style.lightStyle,
+                    )
+                }
 
-                            val buttonText = when (mode) {
-                                EditJoystickStyleMode.ControlLayout -> {
-                                    //在编辑控制布局独立样式时，这里是删除样式按钮
-                                    stringResource(R.string.generic_delete)
-                                }
-                                EditJoystickStyleMode.Launcher -> {
-                                    //在编辑启动器默认样式时，这里是保存按钮
-                                    stringResource(R.string.generic_save)
-                                }
-                            }
-                            InfoLayoutTextItem(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = buttonText,
-                                onClick = onInfoButtonClick,
-                                showArrow = false
-                            )
-                        }
-
-                        Column(
-                            modifier = Modifier
-                                .weight(0.6f)
-                                .fillMaxHeight()
-                        ) {
-                            //顶贴标签栏
-                            SecondaryTabRow(
-                                selectedTabIndex = selectedTabIndex,
-                                containerColor = cardColor(false)
-                            ) {
-                                tabs.forEachIndexed { index, item ->
-                                    Tab(
-                                        selected = index == selectedTabIndex,
-                                        onClick = {
-                                            selectedTabIndex = index
-                                        },
-                                        text = {
-                                            MarqueeText(text = stringResource(item.titleRes))
-                                        }
-                                    )
-                                }
-                            }
-
-                            HorizontalPager(
-                                state = pagerState,
-                                userScrollEnabled = false,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f)
-                            ) { page ->
-                                when (page) {
-                                    0 -> {
-                                        StyleConfigEditor(
-                                            modifier = Modifier.fillMaxSize(),
-                                            config = style.lightStyle,
-                                        )
-                                    }
-                                    1 -> {
-                                        StyleConfigEditor(
-                                            modifier = Modifier.fillMaxSize(),
-                                            config = style.darkStyle,
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
+                1 -> {
+                    StyleConfigEditor(
+                        modifier = Modifier.fillMaxSize(),
+                        config = style.darkStyle,
+                    )
                 }
             }
         }
@@ -237,7 +122,7 @@ fun EditJoystickStyleDialog(
 }
 
 @Composable
-private fun StyleConfigEditor(
+internal fun StyleConfigEditor(
     modifier: Modifier = Modifier,
     config: ObservableJoystickStyleConfig
 ) {
@@ -405,39 +290,6 @@ private fun StyleConfigEditor(
                 },
                 valueRange = SIZE_PERCENT_RANGE,
                 suffix = "%",
-            )
-        }
-    }
-}
-
-/**
- * 渲染摇杆样式预览
- */
-@Composable
-private fun RenderBox(
-    style: ObservableJoystickStyle,
-    isDarkMode: Boolean,
-    modifier: Modifier = Modifier,
-    color: Color = itemColor(false),
-    contentColor: Color = onItemColor(),
-    shape: Shape = MaterialTheme.shapes.large
-) {
-    Surface(
-        modifier = modifier,
-        color = color,
-        contentColor = contentColor,
-        shape = shape
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(all = 16.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            StyleableJoystick(
-                modifier = Modifier.size(120.dp),
-                style = style,
-                isDarkTheme = isDarkMode
             )
         }
     }

@@ -64,7 +64,9 @@ import com.movtery.layer_controller.observable.ObservableButtonStyle
 import com.movtery.layer_controller.observable.ObservableControlLayer
 import com.movtery.layer_controller.observable.ObservableNormalData
 import com.movtery.layer_controller.observable.ObservableTranslatableString
+import com.movtery.layer_controller.observable.ObservableTextData
 import com.movtery.layer_controller.observable.ObservableWidget
+import com.movtery.layer_controller.observable.ObservableJoystickData
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -105,7 +107,7 @@ fun EditWidgetDialog(
     data: SelectedWidgetData?,
     styles: List<ObservableButtonStyle>,
     onDismissRequest: () -> Unit,
-    onDelete: (ObservableWidget, ObservableControlLayer) -> Unit,
+    onDelete: (ObservableWidget, ObservableControlLayer?) -> Unit,
     onClone: (ObservableWidget, ObservableControlLayer) -> Unit,
     onEditWidgetText: (ObservableTranslatableString) -> Unit,
     switchControlLayers: (ObservableNormalData, ClickEvent.Type) -> Unit,
@@ -149,10 +151,11 @@ fun EditWidgetDialog(
 
             if (data != null) {
                 val categories = remember(data) {
-                    if (data.data is ObservableNormalData) {
-                        editWidgetCategories
-                    } else {
-                        editWidgetCategories.filterNot { it.key == EditWidgetCategory.ClickEvent }
+                    when (data.data) {
+                        is ObservableNormalData -> editWidgetCategories.filterNot { it.key == EditWidgetCategory.JoystickSettings }
+                        is ObservableTextData -> editWidgetCategories.filterNot { it.key == EditWidgetCategory.ClickEvent || it.key == EditWidgetCategory.JoystickSettings }
+                        is ObservableJoystickData -> editWidgetCategories.filter { it.key == EditWidgetCategory.Info || it.key == EditWidgetCategory.JoystickSettings || it.key == EditWidgetCategory.Style }
+                        else -> editWidgetCategories
                     }
                 }
 
@@ -248,12 +251,14 @@ fun EditWidgetDialog(
                                     MarqueeText(text = stringResource(R.string.generic_delete))
                                 }
 
-                                FilledTonalButton(
-                                    onClick = {
-                                        onClone(data.data, data.layer)
+                                if (data.data !is ObservableJoystickData) {
+                                    FilledTonalButton(
+                                        onClick = {
+                                            onClone(data.data, data.layer!!)
+                                        }
+                                    ) {
+                                        MarqueeText(text = stringResource(R.string.control_editor_edit_dialog_clone_widget))
                                     }
-                                ) {
-                                    MarqueeText(text = stringResource(R.string.control_editor_edit_dialog_clone_widget))
                                 }
 
                                 Button(
@@ -353,6 +358,13 @@ private fun EditWidgetNavigation(
                         data = data as ObservableNormalData,
                         switchControlLayers = switchControlLayers,
                         sendText = sendText
+                    )
+                }
+                entry<EditWidgetCategory.JoystickSettings> { key ->
+                    EditJoystickSettings(
+                        screenKey = key,
+                        currentKey = currentKey,
+                        data = data as ObservableJoystickData
                     )
                 }
                 entry<EditWidgetCategory.Style> { key ->

@@ -117,22 +117,28 @@ class ObservableJoystickData(data: JoystickData) : ObservableWidget() {
         addThis: () -> Unit,
         consumeEvent: (Boolean) -> Unit
     ) {
-        // 使用相对中心点的偏移量进行计算
-        val center = Offset(
-            internalRenderOffsetPx.x + internalRenderSize.width / 2f,
-            internalRenderOffsetPx.y + internalRenderSize.height / 2f
-        )
-        val pos = change.position
-        val deadZoneRadius = (internalRenderSize.width * deadZoneRatio) / 2f
-        val lockThresholdPx = internalRenderSize.width * lockThreshold
+        if (!change.pressed) return
 
-        if (change.pressed) {
-            addThis()
-            if (isLockedState) {
-                isLockedState = false
-                // 如果当前处于锁定状态，按下时应立即通知外部解锁
-                onLock(false)
+        val isAlreadyActive = this in activeWidgets
+        val isFirstPress = activeWidgets.isEmpty()
+
+        if (isAlreadyActive || isFirstPress) {
+            if (isFirstPress) {
+                addThis()
+                if (isLockedState) {
+                    isLockedState = false
+                    // 如果当前处于锁定状态，按下时应立即通知外部解锁
+                    onLock(false)
+                }
             }
+
+            val center = Offset(
+                internalRenderOffsetPx.x + internalRenderSize.width / 2f,
+                internalRenderOffsetPx.y + internalRenderSize.height / 2f
+            )
+            val pos = change.position
+            val deadZoneRadius = (internalRenderSize.width * deadZoneRatio) / 2f
+            val lockThresholdPx = internalRenderSize.width * lockThreshold
 
             updateState(pos, center, deadZoneRadius, lockThresholdPx)
             consumeEvent(true)

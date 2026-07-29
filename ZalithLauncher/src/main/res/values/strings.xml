@@ -438,6 +438,7 @@
     <string name="game_styles_save_failed">Failed to Save Style</string>
     <string name="game_saponsorship_finished_game">The launcher has successfully launched the game %s times! If you find it useful, please consider supporting the developer! :)</string>
     <string name="game_vulkan_check_title">Vulkan Check</string>
+    <string name="game_plugin_verification_title">Verifying plugin safety</string>
     <string name="game_vulkan_check_text">Check whether your device supports running Minecraft 26.2+ with Vulkan. Results are for reference only.</string>
     <string name="game_vulkan_check_version">Vulkan version: %s</string>
     <string name="game_vulkan_check_turnip">Using Turnip: %s</string>
@@ -1300,11 +1301,6 @@
     <string name="plugin_trust_level_info">Review required</string>
     <string name="plugin_trust_level_warning">Risk notice</string>
     <string name="plugin_trust_level_error">Launch blocked</string>
-    <string name="plugin_trust_general_information">Basic information</string>
-    <string name="plugin_trust_technical_information">Technical information</string>
-    <string name="plugin_trust_general_details">Plugin: %1$s\nVersion: %2$s\nType: %3$s</string>
-    <string name="plugin_trust_technical_details">Package: %1$s\n\nSignature SHA-256:\n%2$s</string>
-    <string name="plugin_trust_author_details">\n\nDeveloper: %1$s\nType: %2$s\nDescription: %3$s\nWebsite: %4$s</string>
     <string name="plugin_trust_untrusted_body">The launcher cannot confirm who published this plugin or whether it is safe. If you later allow untrusted plugins, verify where it came from first. Safety, data, or compatibility problems are caused by the third-party plugin, not the launcher, and are outside the launcher\'s support scope.</string>
     <string name="plugin_trust_unknown_body">The launcher cannot confirm who published this plugin or whether it is safe. Continue only after you have verified where it came from; if you continue, safety, data, or compatibility problems are caused by the third-party plugin, not the launcher, and are outside the launcher\'s support scope.</string>
     <string name="plugin_trust_banned_body">This plugin version has been marked unsafe and cannot be started.\n\n%1$s</string>
@@ -1312,8 +1308,6 @@
     <string name="plugin_trust_banned_confidence_known">This plugin\'s safety verification may no longer be valid. Remove it and get a current version from the developer\'s official channel.</string>
     <string name="plugin_trust_failed_body">We could not complete a safety check for this plugin, so it cannot be started. Download it again from the developer\'s official channel or contact the developer.</string>
     <string name="plugin_trust_key_trust_disabled_body">You allowed this plugin individually before, but &quot;Allow loading untrusted plugins&quot; is now off. To continue, verify where it came from first, then enable the setting. Safety, data, or compatibility problems are caused by the third-party plugin, not the launcher, and are outside the launcher\'s support scope.</string>
-    <string name="plugin_trust_banned_technical_details">\n\nReason: %1$s</string>
-    <string name="plugin_trust_failed_technical_details">\n\nCheck code: %1$s</string>
     <string name="plugin_trust_summary_registered">This plugin will run in the launcher. Confirm the publisher before deciding whether to continue.</string>
     <string name="plugin_trust_summary_unknown">The launcher cannot confirm that this plugin is safe. Continue only after verifying where it came from.</string>
     <string name="plugin_trust_summary_untrusted">To protect your device, the launcher has blocked this plugin.</string>
@@ -1331,4 +1325,39 @@
     <string name="plugin_trust_key_wait">Read the risk notice (%1$d)</string>
     <string name="plugin_trust_cancel">Cancel launch</string>
     <string name="plugin_trust_close">Close</string>
+    <!-- Trust dialog: section headings (76e60a86) -->
+    <string name="plugin_trust_section_plugin">Plugin</string>
+    <string name="plugin_trust_section_publisher">Registered publisher</string>
+    <string name="plugin_trust_section_signature">Signature</string>
+    <string name="plugin_trust_section_diagnosis">Diagnosis</string>
+    <!-- Trust dialog: row labels (76e60a86) -->
+    <string name="plugin_trust_label_name">Name</string>
+    <string name="plugin_trust_label_version">Version</string>
+    <string name="plugin_trust_label_type">Type</string>
+    <string name="plugin_trust_label_description">Description</string>
+    <string name="plugin_trust_label_website">Website</string>
+    <string name="plugin_trust_label_package">Package</string>
+    <string name="plugin_trust_label_fingerprint">SHA-256</string>
+    <string name="plugin_trust_label_reason">Reason</string>
+    <string name="plugin_trust_label_check_code">Check code</string>
+    <!-- Plugin trust management page (01b3d2db) -->
+    <string name="plugin_trust_management_title">Manage plugin trust</string>
+    <string name="plugin_trust_management_description">Review publishers and certificates you trusted manually. Revoking trust affects the next plugin load and does not stop a game that is already running.</string>
+    <string name="plugin_trust_management_authors">Trusted publishers</string>
+    <string name="plugin_trust_management_keys">Trusted certificates</string>
+    <string name="plugin_trust_management_authors_count">Trusted publishers (%1$d)</string>
+    <string name="plugin_trust_management_keys_count">Trusted certificates (%1$d)</string>
+    <string name="plugin_trust_management_authors_empty">No publishers have been trusted manually.</string>
+    <string name="plugin_trust_management_keys_empty">No certificates have been trusted manually.</string>
+    <string name="plugin_trust_management_revoke">Revoke trust</string>
+    <string name="plugin_trust_management_unknown_author">Unknown publisher</string>
+    <string name="plugin_trust_management_author_unavailable">Publisher record unavailable</string>
+    <string name="plugin_trust_management_certificate">Plugin certificate</string>
+    <string name="plugin_trust_management_impact">Installed plugins affected: %1$s</string>
+    <string name="plugin_trust_management_no_installed_impact">No installed plugin currently uses this trust record.</string>
+    <string name="plugin_trust_management_revoke_author_confirm">Revoke trust for “%1$s”? Plugins from this publisher will require verification again the next time they are loaded.</string>
+    <string name="plugin_trust_management_revoke_key_confirm">Revoke trust for “%1$s”? Plugins signed with this certificate will require verification again the next time they are loaded.</string>
+    <string name="plugin_trust_management_recovered_title">Trust records recovered</string>
+    <string name="plugin_trust_management_recovered_message">The latest trust record was damaged. The launcher restored the previous valid copy; please review the remaining entries.</string>
+    <string name="plugin_trust_management_error">Could not update plugin trust.\n%1$s</string>
 </resources>

@@ -439,6 +439,7 @@
     <string name="game_styles_save_failed">保存样式失败</string>
     <string name="game_saponsorship_finished_game">启动器已经成功运行了 %s 次游戏！如果您觉得好用的话，可以考虑赞助支持一下作者喔！qwq</string>
     <string name="game_vulkan_check_title">Vulkan 检测</string>
+    <string name="game_plugin_verification_title">正在验证插件安全性</string>
     <string name="game_vulkan_check_text">检查您的设备是否支持使用 Vulkan 运行 Minecraft 26.2+，结果仅供参考。</string>
     <string name="game_vulkan_check_version">Vulkan 版本：%s</string>
     <string name="game_vulkan_check_turnip">使用 Turnip：%s</string>
@@ -1283,11 +1284,6 @@
     <string name="plugin_trust_level_info">请确认</string>
     <string name="plugin_trust_level_warning">请注意风险</string>
     <string name="plugin_trust_level_error">已阻止启动</string>
-    <string name="plugin_trust_general_information">基本信息</string>
-    <string name="plugin_trust_technical_information">专业信息</string>
-    <string name="plugin_trust_general_details">插件：%1$s\n版本：%2$s\n类型：%3$s</string>
-    <string name="plugin_trust_technical_details">包名：%1$s\n\n签名 SHA-256：\n%2$s</string>
-    <string name="plugin_trust_author_details">\n\n开发者：%1$s\n类别：%2$s\n说明：%3$s\n网站：%4$s</string>
     <string name="plugin_trust_untrusted_body">启动器无法确认这个插件来自谁，也无法确认它是否安全。若你之后允许加载不受信任的插件，请先确认下载来源；第三方插件造成的安全、数据或兼容性问题与启动器无关，也不属于启动器支持范围。</string>
     <string name="plugin_trust_unknown_body">启动器无法确认这个插件来自谁，也无法确认它是否安全。只有在你已确认下载来源时才继续；选择继续后，第三方插件造成的安全、数据或兼容性问题与启动器无关，也不属于启动器支持范围。</string>
     <string name="plugin_trust_banned_body">这个插件版本已被标记为不安全，无法启动。\n\n%1$s</string>
@@ -1295,8 +1291,6 @@
     <string name="plugin_trust_banned_confidence_known">这个插件的安全验证可能已失效。请删除它，并从开发者官方渠道获取新版。</string>
     <string name="plugin_trust_failed_body">无法完成此插件的安全检查，因此无法启动。请从开发者官方渠道重新下载，或联系插件作者。</string>
     <string name="plugin_trust_key_trust_disabled_body">你以前单独允许过这个插件，但现在已关闭“允许加载不受信任的插件”。如要继续，请先确认下载来源，再到设置中开启它；第三方插件造成的安全、数据或兼容性问题与启动器无关，也不属于启动器支持范围。</string>
-    <string name="plugin_trust_banned_technical_details">\n\n原因：%1$s</string>
-    <string name="plugin_trust_failed_technical_details">\n\n检查代码：%1$s</string>
     <string name="plugin_trust_summary_registered">这个插件会在启动器中运行。请先确认发布者身份，再决定是否继续。</string>
     <string name="plugin_trust_summary_unknown">启动器无法确认这个插件是否安全。请只在确认来源后继续。</string>
     <string name="plugin_trust_summary_untrusted">为保护你的设备，启动器已阻止这个插件启动。</string>
@@ -1314,4 +1308,39 @@
     <string name="plugin_trust_key_wait">请阅读风险说明（%1$d）</string>
     <string name="plugin_trust_cancel">取消启动</string>
     <string name="plugin_trust_close">关闭</string>
+    <!-- 信任对话框：分区标题 (76e60a86) -->
+    <string name="plugin_trust_section_plugin">插件</string>
+    <string name="plugin_trust_section_publisher">已登记的发布者</string>
+    <string name="plugin_trust_section_signature">签名</string>
+    <string name="plugin_trust_section_diagnosis">诊断</string>
+    <!-- 信任对话框：条目标签 (76e60a86) -->
+    <string name="plugin_trust_label_name">名称</string>
+    <string name="plugin_trust_label_version">版本</string>
+    <string name="plugin_trust_label_type">类型</string>
+    <string name="plugin_trust_label_description">说明</string>
+    <string name="plugin_trust_label_website">网站</string>
+    <string name="plugin_trust_label_package">包名</string>
+    <string name="plugin_trust_label_fingerprint">SHA-256</string>
+    <string name="plugin_trust_label_reason">原因</string>
+    <string name="plugin_trust_label_check_code">检查代码</string>
+    <!-- 插件信任管理页面 (01b3d2db) -->
+    <string name="plugin_trust_management_title">管理插件信任</string>
+    <string name="plugin_trust_management_description">查看您手动信任的发布者和证书。撤销信任将在下次加载插件时生效，不会中断正在运行的游戏。</string>
+    <string name="plugin_trust_management_authors">已信任的发布者</string>
+    <string name="plugin_trust_management_keys">已信任的证书</string>
+    <string name="plugin_trust_management_authors_count">已信任的发布者（%1$d）</string>
+    <string name="plugin_trust_management_keys_count">已信任的证书（%1$d）</string>
+    <string name="plugin_trust_management_authors_empty">尚未手动信任任何发布者。</string>
+    <string name="plugin_trust_management_keys_empty">尚未手动信任任何证书。</string>
+    <string name="plugin_trust_management_revoke">撤销信任</string>
+    <string name="plugin_trust_management_unknown_author">未知发布者</string>
+    <string name="plugin_trust_management_author_unavailable">发布者记录不可用</string>
+    <string name="plugin_trust_management_certificate">插件证书</string>
+    <string name="plugin_trust_management_impact">受影响的已安装插件：%1$s</string>
+    <string name="plugin_trust_management_no_installed_impact">当前没有已安装的插件使用此信任记录。</string>
+    <string name="plugin_trust_management_revoke_author_confirm">撤销对"%1$s"的信任？该发布者的插件在下次加载时将需要重新验证。</string>
+    <string name="plugin_trust_management_revoke_key_confirm">撤销对"%1$s"的信任？使用此证书签名的插件在下次加载时将需要重新验证。</string>
+    <string name="plugin_trust_management_recovered_title">信任记录已恢复</string>
+    <string name="plugin_trust_management_recovered_message">最新的信任记录已损坏，启动器已还原上一份有效副本，请检查剩余条目。</string>
+    <string name="plugin_trust_management_error">无法更新插件信任。\n%1$s</string>
 </resources>

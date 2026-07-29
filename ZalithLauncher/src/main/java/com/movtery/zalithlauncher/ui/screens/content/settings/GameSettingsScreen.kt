@@ -72,7 +72,8 @@ fun GameSettingsScreen(
     key: NestedNavKey.Settings,
     settingsScreenKey: TitledNavKey?,
     mainScreenKey: TitledNavKey?,
-    eventViewModel: EventViewModel
+    eventViewModel: EventViewModel,
+    navigateTo: (TitledNavKey) -> Unit = {}
 ) {
     BaseScreen(
         Triple(key, mainScreenKey, false),
@@ -113,6 +114,16 @@ fun GameSettingsScreen(
                         unit = AllSettings.allowUntrustedPlugins,
                         title = stringResource(R.string.settings_launcher_allow_untrusted_plugins),
                         summary = stringResource(R.string.settings_launcher_allow_untrusted_plugins_summary)
+                    )
+
+                    // Sits beside the switch it relates to: the switch decides whether an untrusted
+                    // plugin may be trusted at all, this page reviews what was trusted already.
+                    SettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        title = stringResource(R.string.plugin_trust_management_title),
+                        summary = stringResource(R.string.plugin_trust_management_description),
+                        onClick = { navigateTo(NormalNavKey.Settings.PluginTrustManager) }
                     )
 
                     TextInputSettingsCard(

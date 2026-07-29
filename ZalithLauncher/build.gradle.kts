@@ -252,6 +252,7 @@ dependencies {
     implementation(project(":LayerController"))
     implementation(project(":ColorPicker"))
     implementation(project(":Terracotta"))
+    implementation(project(":VerifiedPluginLoad"))
     //Utils
     implementation(libs.bytehook)
     implementation(libs.gson)
@@ -276,7 +277,6 @@ dependencies {
     implementation(libs.fishnet)
     implementation(libs.process.phoenix)
     implementation(libs.lunarcalendar)
-    implementation(libs.verifiedpluginload)
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar", "*.aar"))))
     //Safe
     implementation(libs.androidx.room.runtime)
@@ -291,6 +291,7 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     //Test
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

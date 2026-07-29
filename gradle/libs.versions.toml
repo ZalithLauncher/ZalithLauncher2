@@ -1,5 +1,8 @@
 [versions]
 agp = "9.2.0"
+compileSdk = "37"
+minSdk = "26"
+bcprov = "1.80"
 #noinspection GradleDependency,NewerVersionAvailable
 bytehook = "1.0.10"
 coilCompose = "3.5.0"
@@ -40,7 +43,6 @@ proxyClientAndroid = "0.0.5"
 reorderable = "3.1.0"
 room = "2.8.4"
 toml4j = "0.7.2"
-verifiedpluginload = "v1.0.0"
 xz = "1.12"
 sqlcipher = "4.16.0"
 junit = "4.13.2"
@@ -52,6 +54,7 @@ hilt = "1.4.0"
 webkit = "1.16.0"
 
 [libraries]
+bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bcprov" }
 androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3Exoplayer" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
 buildkeys = { module = "com.github.MovTery.BuildKeys:core", version.ref = "buildKeys" }
@@ -94,6 +97,7 @@ commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons
 commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesAndroid" }
 ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
@@ -119,7 +123,6 @@ proxy-client-android = { module = "top.fifthlight.touchcontroller:proxy-client-a
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 sqlcipher-android = { module = "net.zetetic:sqlcipher-android", version.ref = "sqlcipher" }
 toml4j = { module = "com.moandjiezana.toml:toml4j", version.ref = "toml4j" }
-verifiedpluginload = { module = "com.github.ZalithLauncher:VerifiedPluginLoad", version.ref = "verifiedpluginload" }
 xz = { module = "org.tukaani:xz", version.ref = "xz" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "hilt" }
@@ -131,4 +134,5 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp-plugin = { id = "com.google.devtools.ksp", version.ref = "kspPlugin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "dagger" }

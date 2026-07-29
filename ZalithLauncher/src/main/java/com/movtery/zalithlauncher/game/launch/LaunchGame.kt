@@ -33,6 +33,8 @@ import com.movtery.zalithlauncher.game.account.microsoft.XboxLoginException
 import com.movtery.zalithlauncher.game.account.microsoft.toLocal
 import com.movtery.zalithlauncher.game.plugin.vpl.PluginNativeLoadGuard
 import com.movtery.zalithlauncher.game.plugin.vpl.PluginTrustGate
+import com.movtery.zalithlauncher.utils.string.getMessageOrToString
+import com.vpl.verifiedpluginload.model.PluginLoadAuthorization
 import com.movtery.zalithlauncher.game.version.download.DownloadMode
 import com.movtery.zalithlauncher.game.version.download.MinecraftDownloader
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
@@ -79,12 +81,17 @@ object LaunchGame {
         //以及，没有联网时，让微软账号、外置账号作为离线账号登录
         val hasNetwork = isNetworkAvailable(context)
 
+        // Captured by the verification task below and consumed by the native load guard immediately
+        // before any plugin directory is used, so the guard re-checks what the user actually approved.
+        var authorizations: List<PluginLoadAuthorization> = emptyList()
+
         val downloadTask = createDownloadTask(
             context = context,
             version = version,
             account = account,
             exitActivity = exitActivity,
             waitForVulkanChecker = waitForVulkanChecker,
+            authorizations = { authorizations },
             submitError = submitError
         )
         fun startDownloadTask() {
@@ -100,16 +107,73 @@ object LaunchGame {
             startDownloadTask()
         }
 
-        if (loginTask != null) {
-            TaskSystem.submitTask(loginTask)
-        } else {
-            if (!hasNetwork && !account.isLocalAccount()) {
-                //没联网时作为离线账号登录
-                version.offlineAccountLogin = true
+        fun startLaunchWork() {
+            if (loginTask != null) {
+                TaskSystem.submitTask(loginTask)
+            } else {
+                if (!hasNetwork && !account.isLocalAccount()) {
+                    //没联网时作为离线账号登录
+                    version.offlineAccountLogin = true
+                }
+                startDownloadTask()
             }
-            startDownloadTask()
+        }
+
+        // Plugin trust is settled before any other launch work. Refusing here costs the user nothing
+        // that a download or a login already spent, and the confirmation dialog does not have to
+        // compete with download progress for the same task message.
+        if (PluginTrustGate.isVerificationRequired()) {
+            TaskSystem.submitTask(
+                createPluginVerificationTask(
+                    context = context,
+                    onVerified = {
+                        authorizations = it
+                        startLaunchWork()
+                    },
+                    submitError = submitError
+                )
+            ) { if (authorizations.isEmpty()) isLaunching = false }
+        } else {
+            startLaunchWork()
         }
     }
+
+    /**
+     * Settles plugin trust before the rest of the launch runs.
+     *
+     * A refusal has to say why: every guard and gate rejection is reported, so a blocked launch does
+     * not look like a launch that silently stopped.
+     */
+    private fun createPluginVerificationTask(
+        context: Context,
+        onVerified: (List<PluginLoadAuthorization>) -> Unit,
+        submitError: (ErrorViewModel.ThrowableMessage) -> Unit
+    ): Task = Task.runTask(
+        task = { task ->
+            task.updateProgress(-1f)
+            task.updateMessage(androidText(R.string.game_plugin_verification_title))
+            val authorizations = PluginTrustGate.verifyForLaunch(context) { title ->
+                task.updateMessage(title)
+            }
+            onVerified(authorizations)
+        },
+        onCancel = {
+            Logger.info(TAG, "Plugin trust gate cancelled by user")
+        },
+        onError = { e ->
+            if (e is CancellationException) {
+                Logger.info(TAG, "Plugin trust gate cancelled by user")
+            } else {
+                Logger.error(TAG, "Plugin trust gate failed", e)
+                submitError(
+                    ErrorViewModel.ThrowableMessage(
+                        title = androidText(R.string.plugin_trust_level_error),
+                        message = androidText(e.getMessageOrToString())
+                    )
+                )
+            }
+        }
+    )
 
     private fun createDownloadTask(
         context: Context,
@@ -117,6 +181,7 @@ object LaunchGame {
         account: Account,
         exitActivity: () -> Unit,
         waitForVulkanChecker: suspend () -> Unit,
+        authorizations: () -> List<PluginLoadAuthorization>,
         submitError: (ErrorViewModel.ThrowableMessage) -> Unit
     ): Task {
         return MinecraftDownloader(
@@ -133,22 +198,21 @@ object LaunchGame {
                 checkVulkanCapabilities(version, waitForVulkanChecker)
 
                 runCatching {
-                    val authorizations = PluginTrustGate.verifyForLaunch(context) { title ->
-                        task.updateMessage(title)
-                    }
-                    PluginNativeLoadGuard.verify(context, authorizations)
+                    // TOCTOU re-check: the guard validates that the APK, native directory, and
+                    // signatures still match what verifyForLaunch authorized at launch start.
+                    PluginNativeLoadGuard.verify(context, authorizations())
                 }.onSuccess {
                     runGame(context, version, account)
                     exitActivity()
                 }.onFailure { e ->
                     if (e is CancellationException) {
-                        Logger.info(TAG, "Plugin trust gate cancelled by user")
+                        Logger.info(TAG, "Plugin load guard cancelled")
                     } else {
-                        Logger.error(TAG, "Plugin trust gate failed", e)
+                        Logger.error(TAG, "Plugin load guard failed", e)
                         submitError(
                             ErrorViewModel.ThrowableMessage(
                                 title = androidText(R.string.plugin_trust_level_error),
-                                message = androidText(e.stackTraceToString())
+                                message = androidText(e.getMessageOrToString())
                             )
                         )
                     }

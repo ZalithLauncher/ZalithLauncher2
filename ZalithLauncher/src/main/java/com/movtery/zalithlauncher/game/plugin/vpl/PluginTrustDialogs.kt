@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -73,8 +74,7 @@ fun PluginTrustDialogHost() {
                     title = req.title,
                     summary = req.summary,
                     message = req.message,
-                    generalDetails = req.generalDetails,
-                    technicalDetails = req.technicalDetails,
+                    sections = req.sections,
                     severity = req.severity,
                     onTrust = { req.deferred.complete(PluginTrustDialogState.DialogAction.TRUST) },
                     onCancel = { req.deferred.complete(PluginTrustDialogState.DialogAction.CANCEL) }
@@ -86,9 +86,9 @@ fun PluginTrustDialogHost() {
                     title = req.title,
                     summary = req.summary,
                     message = req.message,
-                    generalDetails = req.generalDetails,
-                    technicalDetails = req.technicalDetails,
+                    sections = req.sections,
                     cooldownSeconds = req.cooldownSeconds,
+                    cooldownGeneration = req.cooldownGeneration,
                     onTrust = { req.deferred.complete(PluginTrustDialogState.DialogAction.TRUST) },
                     onCancel = { req.deferred.complete(PluginTrustDialogState.DialogAction.CANCEL) }
                 )
@@ -99,8 +99,7 @@ fun PluginTrustDialogHost() {
                     title = req.title,
                     summary = req.summary,
                     message = req.message,
-                    generalDetails = req.generalDetails,
-                    technicalDetails = req.technicalDetails,
+                    sections = req.sections,
                     onClose = { req.deferred.complete(PluginTrustDialogState.DialogAction.CANCEL) }
                 )
             }
@@ -113,8 +112,7 @@ private fun AuthorTrustDialog(
     title: AndroidStringText,
     summary: AndroidStringText?,
     message: AndroidStringText?,
-    generalDetails: AndroidStringText?,
-    technicalDetails: AndroidStringText?,
+    sections: List<TrustSection>,
     severity: PluginTrustDialogState.Severity,
     onTrust: () -> Unit,
     onCancel: () -> Unit
@@ -151,8 +149,7 @@ private fun AuthorTrustDialog(
             TrustDialogContent(
                 summary = summary,
                 message = message,
-                generalDetails = generalDetails,
-                technicalDetails = technicalDetails
+                sections = sections
             )
         },
         confirm = {
@@ -173,16 +170,18 @@ private fun KeyTrustDialog(
     title: AndroidStringText,
     summary: AndroidStringText?,
     message: AndroidStringText?,
-    generalDetails: AndroidStringText?,
-    technicalDetails: AndroidStringText?,
+    sections: List<TrustSection>,
     cooldownSeconds: Int,
+    cooldownGeneration: Int,
     onTrust: () -> Unit,
     onCancel: () -> Unit
 ) {
     var remainingSeconds by remember { mutableIntStateOf(cooldownSeconds) }
     val isReady = remainingSeconds <= 0
 
-    LaunchedEffect(cooldownSeconds) {
+    // Keyed on the generation as well, so a handled configuration change restarts the countdown
+    // rather than leaving an already-enabled button behind.
+    LaunchedEffect(cooldownSeconds, cooldownGeneration) {
         remainingSeconds = cooldownSeconds
         while (remainingSeconds > 0) {
             delay(1_000L.milliseconds)
@@ -208,8 +207,7 @@ private fun KeyTrustDialog(
             TrustDialogContent(
                 summary = summary,
                 message = message,
-                generalDetails = generalDetails,
-                technicalDetails = technicalDetails
+                sections = sections
             )
         },
         confirm = {
@@ -239,8 +237,7 @@ private fun ErrorDialog(
     title: AndroidStringText,
     summary: AndroidStringText?,
     message: AndroidStringText?,
-    generalDetails: AndroidStringText?,
-    technicalDetails: AndroidStringText?,
+    sections: List<TrustSection>,
     onClose: () -> Unit
 ) {
     TrustDialog(
@@ -261,8 +258,7 @@ private fun ErrorDialog(
             TrustDialogContent(
                 summary = summary,
                 message = message,
-                generalDetails = generalDetails,
-                technicalDetails = technicalDetails
+                sections = sections
             )
         },
         confirm = {
@@ -277,8 +273,7 @@ private fun ErrorDialog(
 private fun TrustDialogContent(
     summary: AndroidStringText?,
     message: AndroidStringText?,
-    generalDetails: AndroidStringText?,
-    technicalDetails: AndroidStringText?
+    sections: List<TrustSection>
 ) {
     Column(
         modifier = Modifier
@@ -294,49 +289,64 @@ private fun TrustDialogContent(
             )
         }
 
-        BasicInfoChunk(
-            modifier = Modifier.fillMaxWidth(),
-            title = stringResource(R.string.plugin_trust_general_information),
-            message, generalDetails
-        )
+        if (message != null) {
+            AndroidStringText(
+                text = message,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
 
-        BasicInfoChunk(
-            modifier = Modifier.fillMaxWidth(),
-            title = stringResource(R.string.plugin_trust_technical_information),
-            technicalDetails
-        )
+        sections.filter { it.hasContent }.forEach { section ->
+            TrustSectionRow(section)
+        }
     }
 }
 
 @Composable
-private fun BasicInfoChunk(
-    modifier: Modifier = Modifier,
-    title: String,
-    vararg infos: AndroidStringText?
-) {
-    infos.filterNotNull()
-        .takeIf { it.isNotEmpty() }
-        ?.let { infos0 ->
-            Column(
-                modifier = modifier,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold
-                )
-
-                infos0.forEach { info ->
-                    AndroidStringText(
-                        text = info,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 4.dp)
-                    )
-                }
+private fun TrustSectionRow(section: TrustSection) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Text(
+            text = stringResource(section.title),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold
+        )
+        section.facts.forEach { fact ->
+            if (fact.value != null) {
+                FactRow(fact)
             }
         }
+    }
 }
+
+@Composable
+private fun FactRow(fact: TrustFact) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = stringResource(fact.label),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.widthIn(min = 80.dp, max = 100.dp)
+        )
+        if (fact.value != null) {
+            AndroidStringText(
+                text = fact.value,
+                style = if (fact.monospace)
+                    MaterialTheme.typography.bodySmall.copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
+                else
+                    MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
 
 
 @Composable

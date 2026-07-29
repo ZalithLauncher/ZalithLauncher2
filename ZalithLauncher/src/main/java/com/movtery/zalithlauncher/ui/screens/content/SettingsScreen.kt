@@ -63,6 +63,7 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.GameSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.GamepadSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.JavaManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.LauncherSettingsScreen
+import com.movtery.zalithlauncher.ui.screens.content.settings.PluginTrustManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.RendererSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.navigateOnce
 import com.movtery.zalithlauncher.ui.screens.onBack
@@ -214,7 +215,8 @@ private fun NavigationUI(
                     RendererSettingsScreen(key, settingsScreenKey, mainScreenKey, eventViewModel)
                 }
                 entry<NormalNavKey.Settings.Game> {
-                    GameSettingsScreen(key, settingsScreenKey, mainScreenKey, eventViewModel)
+                    GameSettingsScreen(key, settingsScreenKey, mainScreenKey, eventViewModel,
+                        navigateTo = { key.backStack.navigateOnce(it) })
                 }
                 entry<NormalNavKey.Settings.Control> {
                     ControlSettingsScreen(key, settingsScreenKey, mainScreenKey, eventViewModel, submitError)
@@ -234,6 +236,9 @@ private fun NavigationUI(
                 }
                 entry<NormalNavKey.Settings.JavaManager> {
                     JavaManageScreen(key, settingsScreenKey, mainScreenKey, eventViewModel, submitError)
+                }
+                entry<NormalNavKey.Settings.PluginTrustManager> {
+                    PluginTrustManageScreen(key, settingsScreenKey, mainScreenKey, eventViewModel, submitError)
                 }
                 entry<NormalNavKey.Settings.ControlManager> {
                     ControlManageScreen(key, settingsScreenKey, mainScreenKey, eventViewModel, submitError)

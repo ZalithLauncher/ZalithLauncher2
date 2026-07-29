@@ -21,7 +21,6 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
-        maven { url = uri("https://jitpack.io") }
     }
 }
 
@@ -31,3 +30,8 @@ include(":LWJGL")
 include(":LayerController")
 include(":ColorPicker")
 include(":Terracotta")
+include(":VerifiedPluginLoad")
+// The submodule's own build script targets FCL's AGP 8 toolchain and applies
+// org.jetbrains.kotlin.android, which AGP 9 rejects outright. ZL2 supplies its own build
+// script for it so the submodule can stay pinned at an untouched upstream commit.
+project(":VerifiedPluginLoad").buildFileName = "../gradle/vpl/build.gradle.kts"

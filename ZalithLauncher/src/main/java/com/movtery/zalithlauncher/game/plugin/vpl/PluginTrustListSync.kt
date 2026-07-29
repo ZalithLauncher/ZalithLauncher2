@@ -21,10 +21,10 @@ package com.movtery.zalithlauncher.game.plugin.vpl
 import android.content.Context
 import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.utils.logging.Logger
-import com.tungsten.verifiedpluginload.api.VerifiedPluginLoad
-import com.tungsten.verifiedpluginload.api.VerifiedPluginLoadBlocking
-import com.tungsten.verifiedpluginload.api.VerifiedPluginLoadConfig
-import com.tungsten.verifiedpluginload.api.VerifiedPluginLoadRegistry
+import com.vpl.verifiedpluginload.api.VerifiedPluginLoad
+import com.vpl.verifiedpluginload.api.VerifiedPluginLoadBlocking
+import com.vpl.verifiedpluginload.api.VerifiedPluginLoadConfig
+import com.vpl.verifiedpluginload.api.VerifiedPluginLoadRegistry
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext

@@ -40,6 +40,7 @@ import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
+import kotlinx.coroutines.CancellationException
 import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import java.io.File
@@ -125,22 +126,32 @@ fun executeJarWithUri(
 
             val task = Task.runTask(
                 task = { task ->
-                    runCatching {
-                        val authorizations = PluginTrustGate.verifyForLaunch(activity) { title ->
-                            task.updateMessage(title)
-                        }
-                        PluginNativeLoadGuard.verify(activity, authorizations)
-                    }.onSuccess {
-                        runJar(activity, cacheFile, jreName, null)
-                    }.getOrThrow()
+                    task.updateProgress(-1f)
+                    task.updateMessage(androidText(R.string.game_plugin_verification_title))
+                    val authorizations = PluginTrustGate.verifyForLaunch(activity) { title ->
+                        task.updateMessage(title)
+                    }
+                    PluginNativeLoadGuard.verify(activity, authorizations)
+                    runJar(activity, cacheFile, jreName, null)
+                },
+                onCancel = {
+                    Logger.info(TAG, "Plugin trust gate cancelled by user")
                 },
                 onError = { e ->
-                    submitError(
-                        ErrorViewModel.ThrowableMessage(
-                            title = androidText(R.string.plugin_trust_level_error),
-                            message = androidText(e.stackTraceToString())
+                    // The guard reports every refusal by throwing, and several of its checks have no
+                    // counterpart in the trust dialog. A stack trace tells the user nothing about
+                    // which plugin was refused or why, so surface the reason instead.
+                    if (e is CancellationException) {
+                        Logger.info(TAG, "Plugin trust gate cancelled by user")
+                    } else {
+                        Logger.error(TAG, "Plugin verification failed", e)
+                        submitError(
+                            ErrorViewModel.ThrowableMessage(
+                                title = androidText(R.string.plugin_trust_level_error),
+                                message = androidText(e.getMessageOrToString())
+                            )
                         )
-                    )
+                    }
                 }
             )
             TaskSystem.submitTask(task)

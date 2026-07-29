@@ -20,33 +20,25 @@ package com.movtery.zalithlauncher.game.plugin.vpl
 
 import android.content.Context
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
-import com.movtery.zalithlauncher.game.plugin.ffmpeg.FFmpegPluginManager
-import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
-import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
+import com.movtery.zalithlauncher.game.plugin.vpl.PluginCandidateRepository.PluginCandidate
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.logging.Logger
-import com.tungsten.verifiedpluginload.api.VerifiedPluginLoad
-import com.tungsten.verifiedpluginload.api.VerifiedPluginLoadRegistry
-import com.tungsten.verifiedpluginload.model.AuthorType
-import com.tungsten.verifiedpluginload.model.PluginLoadAuthorization
-import com.tungsten.verifiedpluginload.model.PluginTrustStatus
-import com.tungsten.verifiedpluginload.model.PluginVerificationResult
-import com.tungsten.verifiedpluginload.model.TrustActionStatus
-import com.tungsten.verifiedpluginload.model.TrustSource
-import com.tungsten.verifiedpluginload.model.TrustedAuthorInfo
+import com.vpl.verifiedpluginload.api.VerifiedPluginLoad
+import com.vpl.verifiedpluginload.api.VerifiedPluginLoadRegistry
+import com.vpl.verifiedpluginload.model.AuthorType
+import com.vpl.verifiedpluginload.model.PluginLoadAuthorization
+import com.vpl.verifiedpluginload.model.PluginTrustStatus
+import com.vpl.verifiedpluginload.model.PluginVerificationResult
+import com.vpl.verifiedpluginload.model.TrustActionStatus
+import com.vpl.verifiedpluginload.model.TrustedAuthorInfo
 import kotlinx.coroutines.CancellationException
 
+/** Presents one source-bound confirmation at a time before any native plugin path is used. */
 object PluginTrustGate {
     private const val TAG = "VerifiedPluginLoad"
     private const val UNKNOWN_PLUGIN_COOLDOWN_SECONDS = 6
-
-    data class PluginCandidate(
-        val packageName: String,
-        val type: PluginType
-    )
 
     suspend fun verifyForLaunch(
         context: Context,
@@ -54,41 +46,18 @@ object PluginTrustGate {
     ): List<PluginLoadAuthorization> {
         PluginTrustListSync.awaitStartupRefresh()
 
-        val vpl = VerifiedPluginLoadRegistry.get(context)
-        val candidates = collectCandidates()
-
+        val candidates = PluginCandidateRepository.forLaunch()
         if (candidates.isEmpty()) return emptyList()
 
+        val vpl = VerifiedPluginLoadRegistry.get(context)
         return verifyNext(vpl, candidates, 0, mutableListOf(), onDialogShow)
     }
 
+    fun isVerificationRequired(): Boolean = PluginCandidateRepository.forLaunch().isNotEmpty()
+
+    /** MainActivity invokes this for handled configuration changes such as screen rotation. */
     fun resetUnknownPluginCooldown() {
-        PluginTrustDialogState.dismissCurrent()
-    }
-
-    private fun collectCandidates(): List<PluginCandidate> {
-        val candidates = mutableListOf<PluginCandidate>()
-
-        RendererPluginManager.selectedRendererPlugin?.let { plugin ->
-            candidates.add(PluginCandidate(plugin.packageName, PluginType.Renderer))
-        }
-
-        val driver = DriverPluginManager.getDriver()
-        if (driver.packageName.isNotEmpty() && !driver.isLauncher) {
-            candidates.add(PluginCandidate(driver.packageName, PluginType.VulkanDriver))
-        }
-
-        for (plugin in NativePluginManager.getCheckedPlugins()) {
-            candidates.add(PluginCandidate(plugin.packageName, PluginType.NativeLib))
-        }
-
-        if (FFmpegPluginManager.isAvailable) {
-            candidates.add(
-                PluginCandidate("net.kdt.pojavlaunch.ffmpeg", PluginType.FFmpeg)
-            )
-        }
-
-        return candidates
+        PluginTrustDialogState.restartCooldown()
     }
 
     private suspend fun verifyNext(
@@ -98,9 +67,7 @@ object PluginTrustGate {
         authorizations: MutableList<PluginLoadAuthorization>,
         onDialogShow: (AndroidStringText) -> Unit
     ): List<PluginLoadAuthorization> {
-        if (index >= candidates.size) {
-            return authorizations.toList()
-        }
+        if (index >= candidates.size) return authorizations.toList()
 
         val candidate = candidates[index]
         val result = vpl.inspectInstalledPackage(candidate.packageName)
@@ -110,13 +77,12 @@ object PluginTrustGate {
 
         return when (result.status) {
             PluginTrustStatus.TRUSTED -> {
-                if (!isExplicitKeyTrustAllowed(result.trustSource, allowUntrusted)) {
+                if (!PluginNativeLoadGuard.isExplicitKeyTrustAllowed(result.trustSource, allowUntrusted)) {
                     closeWithFailure(
                         title = androidText(R.string.plugin_trust_title_key_trust_disabled),
                         summary = androidText(R.string.plugin_trust_summary_key_trust_disabled),
                         message = androidText(R.string.plugin_trust_key_trust_disabled_body),
-                        generalDetails = generalDetails(candidate, result),
-                        technicalDetails = technicalDetails(candidate, result),
+                        sections = buildDetailSections(candidate, result),
                         onDialogShow = onDialogShow
                     )
                     throw CancellationException("Key trust disabled")
@@ -125,36 +91,18 @@ object PluginTrustGate {
                 verifyNext(vpl, candidates, index + 1, authorizations, onDialogShow)
             }
 
-            PluginTrustStatus.PENDING_TRUST -> {
-                requestAuthorTrust(
-                    vpl = vpl,
-                    candidate = candidate,
-                    result = result,
-                    candidates = candidates,
-                    index = index,
-                    authorizations = authorizations,
-                    onDialogShow = onDialogShow
-                )
-            }
+            PluginTrustStatus.PENDING_TRUST ->
+                requestAuthorTrust(vpl, candidate, result, candidates, index, authorizations, onDialogShow)
 
             PluginTrustStatus.UNTRUSTED -> {
                 if (allowUntrusted) {
-                    requestKeyTrust(
-                        vpl = vpl,
-                        candidate = candidate,
-                        result = result,
-                        candidates = candidates,
-                        index = index,
-                        authorizations = authorizations,
-                        onDialogShow = onDialogShow
-                    )
+                    requestKeyTrust(vpl, candidate, result, candidates, index, authorizations, onDialogShow)
                 } else {
                     closeWithFailure(
                         title = androidText(R.string.plugin_trust_title_untrusted),
                         summary = androidText(R.string.plugin_trust_summary_untrusted),
                         message = androidText(R.string.plugin_trust_untrusted_body),
-                        generalDetails = generalDetails(candidate, result),
-                        technicalDetails = technicalDetails(candidate, result),
+                        sections = buildDetailSections(candidate, result),
                         onDialogShow = onDialogShow
                     )
                     throw CancellationException("Untrusted plugin")
@@ -162,7 +110,12 @@ object PluginTrustGate {
             }
 
             PluginTrustStatus.BANNED -> {
-                val reason = result.keyDescription ?: androidText(R.string.plugin_trust_banned_reason_default)
+                val reasonFact = result.keyDescription
+                    ?.let { TrustFact.sanitized(R.string.plugin_trust_label_reason, it, 160) }
+                    ?: TrustFact.resource(
+                        R.string.plugin_trust_label_reason,
+                        R.string.plugin_trust_banned_reason_default
+                    )
                 closeWithFailure(
                     title = androidText(R.string.plugin_trust_title_banned),
                     summary = androidText(R.string.plugin_trust_summary_banned),
@@ -170,10 +123,9 @@ object PluginTrustGate {
                         R.string.plugin_trust_banned_body,
                         bannedWarningText(result.author)
                     ),
-                    generalDetails = generalDetails(candidate, result),
-                    technicalDetails = androidText(
-                        technicalDetails(candidate, result),
-                        androidText(R.string.plugin_trust_banned_technical_details, reason)
+                    sections = buildDetailSections(
+                        candidate, result,
+                        reasonFact
                     ),
                     onDialogShow = onDialogShow
                 )
@@ -185,10 +137,9 @@ object PluginTrustGate {
                     title = androidText(R.string.plugin_trust_title_failed),
                     summary = androidText(R.string.plugin_trust_summary_failed),
                     message = androidText(R.string.plugin_trust_failed_body),
-                    generalDetails = generalDetails(candidate, result),
-                    technicalDetails = androidText(
-                        technicalDetails(candidate, result),
-                        androidText(R.string.plugin_trust_failed_technical_details, result.diagnostic.name)
+                    sections = buildDetailSections(
+                        candidate, result,
+                        TrustFact.literal(R.string.plugin_trust_label_check_code, result.diagnostic.name)
                     ),
                     onDialogShow = onDialogShow
                 )
@@ -212,18 +163,16 @@ object PluginTrustGate {
                 title = androidText(R.string.plugin_trust_title_registered),
                 summary = androidText(R.string.plugin_trust_summary_registered),
                 message = confidenceText(author),
-                generalDetails = generalDetails(candidate, result),
-                technicalDetails = technicalDetails(candidate, result),
+                sections = buildDetailSections(candidate, result),
                 onDialogShow = onDialogShow
             )
             throw CancellationException("Author not trustable")
         }
 
-        val severity = if (author.confidence == 1) {
+        val severity = if (author.confidence == 1)
             PluginTrustDialogState.Severity.WARNING
-        } else {
+        else
             PluginTrustDialogState.Severity.INFO
-        }
 
         val title = androidText(R.string.plugin_trust_title_registered)
         onDialogShow(title)
@@ -231,8 +180,7 @@ object PluginTrustGate {
             title = title,
             summary = androidText(R.string.plugin_trust_summary_registered),
             message = confidenceText(author),
-            generalDetails = generalDetails(candidate, result),
-            technicalDetails = technicalDetails(candidate, result),
+            sections = buildDetailSections(candidate, result),
             severity = severity
         )
 
@@ -240,15 +188,7 @@ object PluginTrustGate {
             throw CancellationException("User cancelled author trust")
         }
 
-        return trustAuthorThenContinue(
-            vpl = vpl,
-            candidate = candidate,
-            result = result,
-            candidates = candidates,
-            index = index,
-            authorizations = authorizations,
-            onDialogShow = onDialogShow
-        )
+        return trustAuthorThenContinue(vpl, candidate, result, candidates, index, authorizations, onDialogShow)
     }
 
     private suspend fun trustAuthorThenContinue(
@@ -287,10 +227,9 @@ object PluginTrustGate {
                 title = androidText(R.string.plugin_trust_title_failed),
                 summary = androidText(R.string.plugin_trust_summary_failed),
                 message = androidText(R.string.plugin_trust_failed_body),
-                generalDetails = generalDetails(candidate, result),
-                technicalDetails = androidText(
-                    technicalDetails(candidate, result),
-                    androidText(R.string.plugin_trust_failed_technical_details, "APK_UNSIGNED")
+                sections = buildDetailSections(
+                    candidate, result,
+                    TrustFact.literal(R.string.plugin_trust_label_check_code, "APK_UNSIGNED")
                 ),
                 onDialogShow = onDialogShow
             )
@@ -303,8 +242,7 @@ object PluginTrustGate {
             title = title,
             summary = androidText(R.string.plugin_trust_summary_unknown),
             message = androidText(R.string.plugin_trust_unknown_body),
-            generalDetails = generalDetails(candidate, result),
-            technicalDetails = technicalDetails(candidate, result),
+            sections = buildDetailSections(candidate, result),
             cooldownSeconds = UNKNOWN_PLUGIN_COOLDOWN_SECONDS
         )
 
@@ -312,15 +250,7 @@ object PluginTrustGate {
             throw CancellationException("User cancelled key trust")
         }
 
-        return trustKeyThenContinue(
-            vpl = vpl,
-            candidate = candidate,
-            result = result,
-            candidates = candidates,
-            index = index,
-            authorizations = authorizations,
-            onDialogShow = onDialogShow
-        )
+        return trustKeyThenContinue(vpl, candidate, result, candidates, index, authorizations, onDialogShow)
     }
 
     private suspend fun trustKeyThenContinue(
@@ -349,16 +279,11 @@ object PluginTrustGate {
         title: AndroidStringText,
         summary: AndroidStringText?,
         message: AndroidStringText?,
-        generalDetails: AndroidStringText?,
-        technicalDetails: AndroidStringText?,
+        sections: List<TrustSection>,
         onDialogShow: (AndroidStringText) -> Unit
     ) {
         onDialogShow(title)
-        PluginTrustDialogState.showError(title, summary, message, generalDetails, technicalDetails)
-    }
-
-    fun isExplicitKeyTrustAllowed(trustSource: TrustSource?, allowUntrusted: Boolean): Boolean {
-        return trustSource != TrustSource.KEY || allowUntrusted
+        PluginTrustDialogState.showError(title, summary, message, sections)
     }
 
     private fun requireAuthorization(result: PluginVerificationResult): PluginLoadAuthorization {
@@ -379,51 +304,68 @@ object PluginTrustGate {
         )
     }
 
-    private fun generalDetails(candidate: PluginCandidate, result: PluginVerificationResult): AndroidStringText {
+    /**
+     * Builds the labelled sections. Plugin-supplied text can only ever become a value here, never a
+     * heading, and every value is bounded, so the dialog's shape is fixed by the launcher no matter
+     * what a plugin declares.  The registered-publisher section is emitted only when the signed list
+     * actually names a publisher, so its presence is itself a claim a plugin cannot fabricate.
+     */
+    internal fun buildDetailSections(
+        candidate: PluginCandidate,
+        result: PluginVerificationResult,
+        vararg extraDiagnosisFacts: TrustFact
+    ): List<TrustSection> {
+        val sections = mutableListOf<TrustSection>()
+
         val label = result.packageInfo.applicationLabel?.takeIf { it.isNotBlank() } ?: candidate.packageName
-        val version = result.packageInfo.versionName ?: "-"
-        val details = androidText(
-            R.string.plugin_trust_general_details,
-            label,
-            version,
-            candidate.type.localeText
+        sections += TrustSection(
+            R.string.plugin_trust_section_plugin,
+            listOf(
+                TrustFact.sanitized(R.string.plugin_trust_label_name, label, 64),
+                TrustFact.sanitized(R.string.plugin_trust_label_version, result.packageInfo.versionName, 32),
+                TrustFact(R.string.plugin_trust_label_type, candidate.type.localeText)
+            )
         )
+
         val author = result.author
-        return if (author != null) {
-            androidText(details, authorDetails(author))
-        } else {
-            details
+        if (author != null) {
+            sections += TrustSection(
+                R.string.plugin_trust_section_publisher,
+                listOf(
+                    TrustFact.sanitized(R.string.plugin_trust_label_name, author.name, 128),
+                    TrustFact.resource(
+                        R.string.plugin_trust_label_type,
+                        if (author.type == AuthorType.ORG) R.string.plugin_trust_author_org
+                        else R.string.plugin_trust_author_person
+                    ),
+                    TrustFact.sanitized(R.string.plugin_trust_label_description, author.description, 128),
+                    TrustFact.sanitized(R.string.plugin_trust_label_website, author.web, 128)
+                )
+            )
         }
-    }
 
-    private fun technicalDetails(candidate: PluginCandidate, result: PluginVerificationResult): AndroidStringText {
         val packageName = result.packageInfo.packageName ?: candidate.packageName
-        val sha256 = if (result.currentSignatures.isNotEmpty()) result.currentSignatures.first().sha256 else "-"
-        return androidText(R.string.plugin_trust_technical_details, packageName, sha256)
-    }
-
-    private fun authorDetails(author: TrustedAuthorInfo): AndroidStringText {
-        val type = if (author.type == AuthorType.ORG) {
-            androidText(R.string.plugin_trust_author_org)
-        } else {
-            androidText(R.string.plugin_trust_author_person)
-        }
-        return androidText(
-            R.string.plugin_trust_author_details,
-            author.name,
-            type,
-            author.description ?: "-",
-            author.web ?: "-"
+        val sha256 = result.currentSignatures.firstOrNull()?.sha256
+        sections += TrustSection(
+            R.string.plugin_trust_section_signature,
+            listOf(
+                TrustFact.sanitized(R.string.plugin_trust_label_package, packageName, 128),
+                TrustFact.literal(R.string.plugin_trust_label_fingerprint, formatFingerprint(sha256), monospace = true)
+            )
         )
+
+        if (extraDiagnosisFacts.isNotEmpty()) {
+            sections += TrustSection(R.string.plugin_trust_section_diagnosis, extraDiagnosisFacts.toList())
+        }
+
+        return sections
     }
 
-    private fun bannedWarningText(author: TrustedAuthorInfo?): AndroidStringText {
-        return if (author != null && author.confidence == 0) {
+    private fun bannedWarningText(author: TrustedAuthorInfo?): AndroidStringText =
+        if (author != null && author.confidence == 0)
             androidText(R.string.plugin_trust_banned_confidence_0)
-        } else {
+        else
             androidText(R.string.plugin_trust_banned_confidence_known)
-        }
-    }
 
     private fun confidenceText(author: TrustedAuthorInfo?): AndroidStringText {
         if (author == null) return androidText(R.string.plugin_trust_confidence_0)

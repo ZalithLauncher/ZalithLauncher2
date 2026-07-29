@@ -1,0 +1,3 @@
+[submodule "VerifiedPluginLoad"]
+	path = VerifiedPluginLoad
+	url = https://github.com/ZalithLauncher/VerifiedPluginLoad.git

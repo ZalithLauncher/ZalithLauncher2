@@ -34,16 +34,19 @@ object PluginTrustDialogState {
         abstract val title: AndroidStringText
         abstract val summary: AndroidStringText?
         abstract val message: AndroidStringText?
-        abstract val generalDetails: AndroidStringText?
-        abstract val technicalDetails: AndroidStringText?
+
+        /**
+         * Labelled rows rather than one text blob. The launcher owns every heading and every value
+         * is bounded, so no plugin-supplied string can grow the dialog or forge its structure.
+         */
+        abstract val sections: List<TrustSection>
         abstract val deferred: CompletableDeferred<DialogAction>
 
         data class AuthorTrust(
             override val title: AndroidStringText,
             override val summary: AndroidStringText?,
             override val message: AndroidStringText?,
-            override val generalDetails: AndroidStringText?,
-            override val technicalDetails: AndroidStringText?,
+            override val sections: List<TrustSection>,
             val severity: Severity,
             override val deferred: CompletableDeferred<DialogAction> = CompletableDeferred()
         ) : DialogRequest()
@@ -52,9 +55,13 @@ object PluginTrustDialogState {
             override val title: AndroidStringText,
             override val summary: AndroidStringText?,
             override val message: AndroidStringText?,
-            override val generalDetails: AndroidStringText?,
-            override val technicalDetails: AndroidStringText?,
+            override val sections: List<TrustSection>,
             val cooldownSeconds: Int,
+            /**
+             * Bumped on every handled configuration change so the countdown restarts.  A rotation
+             * must not be a way to reach the enabled action button without reading the notice.
+             */
+            val cooldownGeneration: Int = 0,
             override val deferred: CompletableDeferred<DialogAction> = CompletableDeferred()
         ) : DialogRequest()
 
@@ -62,8 +69,7 @@ object PluginTrustDialogState {
             override val title: AndroidStringText,
             override val summary: AndroidStringText?,
             override val message: AndroidStringText?,
-            override val generalDetails: AndroidStringText?,
-            override val technicalDetails: AndroidStringText?,
+            override val sections: List<TrustSection>,
             override val deferred: CompletableDeferred<DialogAction> = CompletableDeferred()
         ) : DialogRequest()
     }
@@ -79,16 +85,14 @@ object PluginTrustDialogState {
         title: AndroidStringText,
         summary: AndroidStringText?,
         message: AndroidStringText?,
-        generalDetails: AndroidStringText?,
-        technicalDetails: AndroidStringText?,
+        sections: List<TrustSection>,
         severity: Severity
     ): DialogAction {
         val request = DialogRequest.AuthorTrust(
             title = title,
             summary = summary,
             message = message,
-            generalDetails = generalDetails,
-            technicalDetails = technicalDetails,
+            sections = sections,
             severity = severity
         )
         setCurrentRequest(request)
@@ -103,16 +107,14 @@ object PluginTrustDialogState {
         title: AndroidStringText,
         summary: AndroidStringText?,
         message: AndroidStringText?,
-        generalDetails: AndroidStringText?,
-        technicalDetails: AndroidStringText?,
+        sections: List<TrustSection>,
         cooldownSeconds: Int
     ): DialogAction {
         val request = DialogRequest.KeyTrust(
             title = title,
             summary = summary,
             message = message,
-            generalDetails = generalDetails,
-            technicalDetails = technicalDetails,
+            sections = sections,
             cooldownSeconds = cooldownSeconds
         )
         setCurrentRequest(request)
@@ -127,15 +129,13 @@ object PluginTrustDialogState {
         title: AndroidStringText,
         summary: AndroidStringText?,
         message: AndroidStringText?,
-        generalDetails: AndroidStringText?,
-        technicalDetails: AndroidStringText?
+        sections: List<TrustSection>
     ): DialogAction {
         val request = DialogRequest.Error(
             title = title,
             summary = summary,
             message = message,
-            generalDetails = generalDetails,
-            technicalDetails = technicalDetails
+            sections = sections
         )
         setCurrentRequest(request)
         return try {
@@ -152,5 +152,21 @@ object PluginTrustDialogState {
             }
         }
         setCurrentRequest(null)
+    }
+
+    /**
+     * Restarts the unknown-plugin countdown after a handled configuration change.
+     *
+     * Only the cooldown is reset; the pending request itself is left alone. Cancelling it here would
+     * turn any rotation into an aborted launch, and re-showing it would let a rotation land on an
+     * already-enabled action button.
+     */
+    fun restartCooldown() {
+        val request = _currentRequest.value
+        if (request is DialogRequest.KeyTrust) {
+            _currentRequest.value = request.copy(
+                cooldownGeneration = request.cooldownGeneration + 1
+            )
+        }
     }
 }

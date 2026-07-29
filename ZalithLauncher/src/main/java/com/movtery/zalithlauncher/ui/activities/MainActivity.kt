@@ -59,6 +59,7 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
+import com.movtery.zalithlauncher.ui.base.ObserveFullScreenSetting
 import com.movtery.zalithlauncher.ui.buildAppendedText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -115,6 +116,8 @@ private const val TAG = "MainActivity"
 
 @AndroidEntryPoint
 class MainActivity : BaseAppCompatActivity() {
+    override fun isIgnoreNotch(): Boolean = AllSettings.launcherFullScreen.getValue()
+
     /**
      * 屏幕堆栈管理ViewModel
      */
@@ -303,6 +306,7 @@ class MainActivity : BaseAppCompatActivity() {
                 backgroundViewModel = backgroundViewModel,
                 festivals = festivals
             ) {
+                ObserveFullScreenSetting(AllSettings.launcherFullScreen.state)
                 Box {
                     Background(
                         modifier = Modifier.fillMaxSize(),

@@ -18,15 +18,12 @@
 
 package com.movtery.zalithlauncher.game.renderer
 
-import android.content.Context
 import com.movtery.zalithlauncher.game.renderer.renderers.FreedrenoRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.KopperZinkRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.PanfrostRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VirGLRenderer
-import com.movtery.zalithlauncher.game.renderer.renderers.VulkanZinkRenderer
-import com.movtery.zalithlauncher.utils.device.Architecture
-import com.movtery.zalithlauncher.utils.device.checkVulkanSupport
 import com.movtery.zalithlauncher.utils.logging.Logger
 
 private const val TAG = "Renderers"
@@ -36,7 +33,6 @@ private const val TAG = "Renderers"
  */
 object Renderers {
     private val renderers: MutableList<RendererInterface> = mutableListOf()
-    private var compatibleRenderers: Pair<RenderersList, MutableList<RendererInterface>>? = null
     private var currentRenderer: RendererInterface? = null
     private var isInitialized: Boolean = false
 
@@ -48,14 +44,13 @@ object Renderers {
 
         if (reset) {
             renderers.clear()
-            compatibleRenderers = null
             currentRenderer = null
         }
 
         addRenderers(
             NGGL4ESRenderer,
             GL4ESRenderer,
-            VulkanZinkRenderer,
+            KopperZinkRenderer,
             VirGLRenderer,
             FreedrenoRenderer,
             PanfrostRenderer
@@ -63,36 +58,13 @@ object Renderers {
     }
 
     /**
-     * 获取兼容当前设备的所有渲染器
+     * 获取当前的渲染器列表
      */
-    fun getCompatibleRenderers(context: Context): Pair<RenderersList, List<RendererInterface>> = compatibleRenderers ?: run {
-        val deviceHasVulkan = checkVulkanSupport(context.packageManager)
-        // Currently, only 32-bit x86 does not have the Zink binary
-        val deviceHasZinkBinary = !(Architecture.is32BitsDevice && Architecture.isx86Device())
-
-        val compatibleRenderers1: MutableList<RendererInterface> = mutableListOf()
-        renderers.forEach { renderer ->
-            if (renderer.getRendererId().contains("vulkan") && !deviceHasVulkan) return@forEach
-            if (renderer.getRendererId().contains("zink") && !deviceHasZinkBinary) return@forEach
-            compatibleRenderers1.add(renderer)
-        }
-
-        val rendererIdentifiers: MutableList<String> = mutableListOf()
-        val rendererNames: MutableList<String> = mutableListOf()
-        compatibleRenderers1.forEach { renderer ->
-            rendererIdentifiers.add(renderer.getUniqueIdentifier())
-            rendererNames.add(renderer.getRendererName())
-        }
-
-        val rendererPair = Pair(RenderersList(rendererIdentifiers, rendererNames), compatibleRenderers1)
-        compatibleRenderers = rendererPair
-        rendererPair
-    }
+    fun getRenderers(): List<RendererInterface> = renderers
 
     /**
      * 加入一些渲染器
      */
-    @JvmStatic
     fun addRenderers(vararg renderers: RendererInterface) {
         renderers.forEach { renderer ->
             addRenderer(renderer)
@@ -102,7 +74,6 @@ object Renderers {
     /**
      * 加入单个渲染器
      */
-    @JvmStatic
     fun addRenderer(renderer: RendererInterface): Boolean {
         return if (renderers.any { it.getUniqueIdentifier() == renderer.getUniqueIdentifier() }) {
             Logger.warning(TAG, "The unique identifier of this renderer (${renderer.getRendererName()} - ${renderer.getUniqueIdentifier()}) conflicts with an already loaded renderer. " +
@@ -117,16 +88,14 @@ object Renderers {
 
     /**
      * 设置当前的渲染器
-     * @param context 用于初始化适配当前设备的渲染器
      * @param uniqueIdentifier 渲染器的唯一标识符，用于找到当前想要设置的渲染器
      * @param retryToFirstOnFailure 如果未找到匹配的渲染器，是否跳回渲染器列表的首个渲染器
      */
-    fun setCurrentRenderer(context: Context, uniqueIdentifier: String, retryToFirstOnFailure: Boolean = true) {
+    fun setCurrentRenderer(uniqueIdentifier: String, retryToFirstOnFailure: Boolean = true) {
         if (!isInitialized) throw IllegalStateException("Uninitialized renderer!")
-        val compatibleRenderers = getCompatibleRenderers(context).second
-        currentRenderer = compatibleRenderers.find { it.getUniqueIdentifier() == uniqueIdentifier } ?: run {
+        currentRenderer = renderers.find { it.getUniqueIdentifier() == uniqueIdentifier } ?: run {
             if (retryToFirstOnFailure) {
-                val renderer = compatibleRenderers[0]
+                val renderer = renderers[0]
                 Logger.warning(TAG, "Incompatible renderer $uniqueIdentifier will be replaced with ${renderer.getUniqueIdentifier()} (${renderer.getRendererName()})")
                 renderer
             } else null

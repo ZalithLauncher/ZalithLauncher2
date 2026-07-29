@@ -154,8 +154,6 @@ private fun VersionConfigs(
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-
     SettingsCardColumn(
         modifier = modifier
     ) {
@@ -194,7 +192,7 @@ private fun VersionConfigs(
             summary = stringResource(R.string.settings_game_skip_game_integrity_check_summary)
         )
 
-        val renderers = Renderers.getCompatibleRenderers(context).second
+        val renderers = Renderers.getRenderers()
         val renderersIdList = getIDList(renderers) { IDItem(it.getUniqueIdentifier(), it.getRendererName()) }
         ListSettingsCard(
             modifier = Modifier.fillMaxWidth(),

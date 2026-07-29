@@ -112,9 +112,11 @@ fun microsoftLogin(
         id = MICROSOFT_LOGGING_TASK,
         dispatcher = Dispatchers.IO,
         task = { task ->
+            Logger.info(TAG, "Starting Microsoft account login")
             task.updateProgress(-1f)
             task.updateMessage(androidText(R.string.account_microsoft_fetch_device_code))
             val deviceCode = fetchDeviceCodeResponse(coroutineContext)
+            Logger.debug(TAG, "Device code received, verification url: ${deviceCode.verificationUrl}, expires in ${deviceCode.expiresIn}s")
             copyText(COPY_LABEL_DEVICE_CODE, deviceCode.userCode, context, false)
             showToast(
                 androidText(R.string.account_microsoft_coped_device_code, deviceCode.userCode),
@@ -128,6 +130,7 @@ fun microsoftLogin(
                     if (exit && time > 0) {
                         //如果已退出网页，则视为用户想要退出登录
                         //弹出提示
+                        Logger.debug(TAG, "User left the web page during device code polling")
                         showToast(
                             androidText(R.string.account_microsoft_exit_by_user),
                             Toast.LENGTH_LONG
@@ -147,8 +150,12 @@ fun microsoftLogin(
             task.updateMessage(androidText(R.string.account_logging_in_saving))
             account.downloadYggdrasil()
             AccountsManager.saveAccount(account)
+            Logger.info(TAG, "Microsoft account login successful: ${account.username}")
         },
         onError = { th ->
+            if (th !is CancellationException) {
+                Logger.error(TAG, "Microsoft account login failed", th)
+            }
             when (th) {
                 is HttpRequestTimeoutException -> androidText(R.string.account_logging_time_out)
                 is NotPurchasedMinecraftException -> toLocal()

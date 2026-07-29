@@ -249,7 +249,7 @@ fun LaunchGameOperation(
                 }
 
                 //开始检查渲染器的版本支持情况
-                Renderers.setCurrentRenderer(activity, version.getRenderer())
+                Renderers.setCurrentRenderer(version.getRenderer())
                 val currentRenderer = Renderers.getCurrentRenderer()
                 val rendererMinVer = currentRenderer.getMinMCVersion()
                 val rendererMaxVer = currentRenderer.getMaxMCVersion()

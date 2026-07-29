@@ -874,6 +874,7 @@
     <string name="settings_renderer_global_renderer_summary">全局默认的渲染器，通过动态库转换层，确保游戏能在移动端运行</string>
     <string name="settings_renderer_global_vulkan_driver_title">Vulkan 驱动器</string>
     <string name="settings_renderer_env_title">环境变量：%s</string>
+    <string name="settings_renderer_config_title">渲染器配置</string>
     <string name="settings_renderer_from_plugins">来自 %s 插件</string>
     <string name="settings_renderer_resolution_scale_title">游戏窗口分辨率</string>
     <string name="settings_renderer_resolution_scale_summary">数值越低性能越高，数值越高画质越清晰，根据实际需求进行调整</string>

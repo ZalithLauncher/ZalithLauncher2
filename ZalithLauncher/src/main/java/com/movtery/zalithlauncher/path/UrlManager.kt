@@ -20,8 +20,9 @@ package com.movtery.zalithlauncher.path
 
 import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.BuildKeys
+import com.movtery.zalithlauncher.utils.network.ResilientDns
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
@@ -60,38 +61,6 @@ const val URL_GITHUB_NATIVE_LIB_PLUGINS = "https://github.com/ZalithLauncher/Nat
 const val URL_CLOUD_RENDERER_PLUGINS = "https://www.123865.com/s/YLIUVv-hae0v"
 const val URL_CLOUD_DRIVE_DRIVER_PLUGINS = "https://www.123865.com/s/YLIUVv-3ae0v"
 const val URL_CLOUD_NATIVE_LIB_PLUGINS = "https://www.123865.com/s/YLIUVv-Hae0v"
-
-val GLOBAL_JSON = Json {
-    ignoreUnknownKeys = true
-    explicitNulls = true
-    coerceInputValues = true
-}
-
-val GLOBAL_CLIENT = HttpClient(CIO) {
-    install(HttpTimeout) {
-        requestTimeoutMillis = TIME_OUT
-    }
-    install(ContentNegotiation) {
-        json(GLOBAL_JSON)
-    }
-    expectSuccess = true
-
-    defaultRequest {
-        header(HttpHeaders.UserAgent, URL_USER_AGENT)
-    }
-}.apply {
-    requestPipeline.intercept(HttpRequestPipeline.State) {
-        // 检查 host 是否为 CurseForge
-        // 自动添加 CurseForge 的 api 密钥
-        val host = context.url.host
-        if (host == HOST_CURSEFORGE_API || host == HOST_CURSEFORGE_EDGE) {
-            val apiKey = BuildKeys.CURSEFORGE_API
-            if (apiKey.isNotBlank()) {
-                context.header("x-api-key", apiKey)
-            }
-        }
-    }
-}
 
 /**
  * An [Interceptor] for CurseForge API requests.
@@ -132,6 +101,42 @@ private val USER_AGENT_INTERCEPTOR = Interceptor { chain ->
     }
 }
 
+val GLOBAL_JSON = Json {
+    ignoreUnknownKeys = true
+    explicitNulls = true
+    coerceInputValues = true
+}
+
+val GLOBAL_CLIENT = HttpClient(OkHttp) {
+    install(HttpTimeout) {
+        requestTimeoutMillis = TIME_OUT
+    }
+    install(ContentNegotiation) {
+        json(GLOBAL_JSON)
+    }
+    expectSuccess = true
+
+    defaultRequest {
+        header(HttpHeaders.UserAgent, URL_USER_AGENT)
+    }
+    engine {
+        // 使用内置的 OkHttp 客户端：遵循系统代理设置，并具备容灾 DNS 解析能力
+        preconfigured = createOkHttpClientBuilder().build()
+    }
+}.apply {
+    requestPipeline.intercept(HttpRequestPipeline.State) {
+        // 检查 host 是否为 CurseForge
+        // 自动添加 CurseForge 的 api 密钥
+        val host = context.url.host
+        if (host == HOST_CURSEFORGE_API || host == HOST_CURSEFORGE_EDGE) {
+            val apiKey = BuildKeys.CURSEFORGE_API
+            if (apiKey.isNotBlank()) {
+                context.header("x-api-key", apiKey)
+            }
+        }
+    }
+}
+
 fun createRequestBuilder(url: String): Request.Builder {
     return createRequestBuilder(url, null)
 }
@@ -149,6 +154,7 @@ fun createOkHttpClient(): OkHttpClient = createOkHttpClientBuilder().build()
  */
 fun createOkHttpClientBuilder(action: (OkHttpClient.Builder) -> Unit = { }): OkHttpClient.Builder {
     return OkHttpClient.Builder()
+        .dns(ResilientDns) //系统 DNS 解析失败时，自动回退到 DoH 解析
         .callTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
         .addInterceptor(CURSEFORGE_INTERCEPTOR)
         .addInterceptor(USER_AGENT_INTERCEPTOR)
@@ -166,6 +172,7 @@ fun createOkHttpClientBuilder(action: (OkHttpClient.Builder) -> Unit = { }): OkH
  */
 val DOWNLOAD_OKHTTP_CLIENT: OkHttpClient by lazy {
     OkHttpClient.Builder()
+        .dns(ResilientDns) //系统 DNS 解析失败时，自动回退到 DoH 解析
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)

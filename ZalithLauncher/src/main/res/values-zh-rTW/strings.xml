@@ -785,6 +785,7 @@
     <string name="settings_renderer_global_renderer_summary">全域預設的渲染器，透過動態函式庫轉換層，確保遊戲能在行動裝置上執行</string>
     <string name="settings_renderer_global_vulkan_driver_title">Vulkan 驅動程式</string>
     <string name="settings_renderer_env_title">環境變數：%s</string>
+    <string name="settings_renderer_config_title">渲染器設定</string>
     <string name="settings_renderer_from_plugins">來自 %s 外掛程式</string>
     <string name="settings_renderer_resolution_scale_title">遊戲視窗解析度</string>
     <string name="settings_renderer_resolution_scale_summary">數值越低效能越高，數值越高畫質越清晰，請依實際需求調整</string>

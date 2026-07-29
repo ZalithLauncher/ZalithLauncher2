@@ -253,6 +253,7 @@ private fun PageController(
                         .width(72.dp),
                     value = numberText,
                     onValueChange = onValueChange@ { value ->
+                        if (page.totalPage <= 0) return@onValueChange
                         val number0 = if (value.isEmptyOrBlank()) {
                             1 //为了编辑体验，留空时视为1
                         } else {
@@ -306,7 +307,7 @@ private fun PageController(
         ) {
             Row(
                 modifier = Modifier
-                    .clickable(enabled = !editPageNumber) {
+                    .clickable(enabled = !editPageNumber && page.totalPage > 0) {
                         editPageNumber = true
                     },
                 verticalAlignment = Alignment.CenterVertically

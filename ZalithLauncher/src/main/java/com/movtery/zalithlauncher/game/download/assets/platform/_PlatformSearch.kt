@@ -153,6 +153,7 @@ suspend fun searchAssets(
         }
 
         var lastResult: PlatformSearchResult? = null
+        var lastException: Exception? = null
         for (query in queries) {
             try {
                 val r = when (searchPlatform) {
@@ -179,12 +180,13 @@ suspend fun searchAssets(
                 }
                 lastResult = r
                 if (r.getAssetsPage(platformClasses).data.isNotEmpty()) break
-            } catch (_: Exception) {
-                //当前关键词搜索失败，继续尝试下一个
+            } catch (e: Exception) {
+                //当前关键词搜索失败，记录异常并继续尝试下一个
+                lastException = e
             }
         }
 
-        val result = lastResult ?: throw IOException("Failed to search for all queries")
+        val result = lastResult ?: throw lastException ?: IOException("Failed to search for all queries")
 
         onSuccess(
             if (containsChinese) result.processChineseSearchResults(searchFilter.searchName, platformClasses)

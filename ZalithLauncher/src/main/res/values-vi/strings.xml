@@ -1031,7 +1031,7 @@
     <string name="upgrade_version_change">Bản: %s</string>
     <string name="upgrade_version_size">Dung lượng: %s</string>
     <string name="upgrade_version_create_at">Cập nhật: %s</string>
-    <string name="upgrade_get_remote_failed">Lỗi kiểm tra, thử lại</string>
+    <string name="upgrade_get_remote_failed">Lỗi khi kiểm tra cập nhật. Vui lòng thử lại sau</string>
     <string name="upgrade_is_latest">Đã mới nhất</string>
     <string name="upgrade_cloud_drive">Drive</string>
     <string name="generic_copied">Đã sao chép</string>

@@ -874,6 +874,7 @@
     <string name="settings_renderer_global_renderer_summary">The global default renderer uses a dynamic library translation layer to ensure the game runs smoothly on mobile devices</string>
     <string name="settings_renderer_global_vulkan_driver_title">Vulkan Driver</string>
     <string name="settings_renderer_env_title">Environment Variable: %s</string>
+    <string name="settings_renderer_config_title">Renderer Configuration</string>
     <string name="settings_renderer_from_plugins">From %s plugin</string>
     <string name="settings_renderer_resolution_scale_title">Resolution Scale</string>
     <string name="settings_renderer_resolution_scale_summary">Lower values improve performance; higher values enhance graphics quality. Adjust according to your needs</string>

@@ -84,4 +84,6 @@
     <string name="terracotta_tutorial_guest_step_become_guest">- Toque em \"Quero participar de uma sessão\", insira o código de convite fornecido pelo anfitrião e aguarde pacientemente</string>
     <string name="terracotta_tutorial_guest_step_join_room">- Após entrar na sala, vá para Multijogador no menu principal, atualize e clique duas vezes para entrar no lobby Terracotta</string>
     <string name="terracotta_tutorial_guest_step_alternate_server">- Contas offline não são suportadas ao ingressar por meio de endereços de servidor alternativos; resolva isso você mesmo.</string>
+    <string name="terracotta_custom_note_list">Nós de servidor EasyTier personalizados</string>
+    <string name="terracotta_custom_note_list_hint">Deixe em branco para usar os nós padrão</string>
 </resources>

@@ -18,6 +18,9 @@
 
 package com.movtery.zalithlauncher.game.plugin.renderer_v2.data
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import com.movtery.zalithlauncher.setting.unit.AbstractSettingUnit
 
 /**
@@ -51,7 +54,33 @@ sealed class EnvSettingUnit(
         defaultValue: String,
         val values: List<String>,
         summary: String? = null,
-    ) : EnvSettingUnit(mmkvKey, defaultValue, summary)
+    ) : EnvSettingUnit(mmkvKey, defaultValue, summary) {
+        private val checkKey = "${mmkvKey}:check"
+
+        /**
+         * 当前是否启用此环境变量
+         */
+        var isEnabled by mutableStateOf(rawEnv.check != false)
+            private set
+
+        fun initCheck() {
+            val mmkv = rendererEnvMMKV()
+            val pluginDefault = rawEnv.check != false
+
+            if (rawEnv.check == null) {
+                isEnabled = true
+            } else if (mmkv.containsKey(checkKey)) {
+                isEnabled = mmkv.getBoolean(checkKey, pluginDefault)
+            } else {
+                isEnabled = pluginDefault
+            }
+        }
+
+        fun saveCheck(enabled: Boolean) {
+            isEnabled = enabled
+            rendererEnvMMKV().putBoolean(checkKey, enabled).apply()
+        }
+    }
 
     /**
      * 自由填写式环境变量：用户可自行输入任意值

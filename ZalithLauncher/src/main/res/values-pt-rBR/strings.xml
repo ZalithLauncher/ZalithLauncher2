@@ -770,8 +770,8 @@
     <string name="settings_game_java_runtime_summary">Especifique o ambiente Java padrão a ser usado</string>
     <string name="settings_game_java_memory_title">Taxa de alocação da memória RAM</string>
     <string name="settings_game_java_memory_summary">Ajustar o uso de ram que você quer que seja usada no seu Minecraft</string>
-    <string name="settings_game_java_memory_used_text">Usando: %1$dMB | Total do dispositivo: %2$dMB</string>
-    <string name="settings_game_java_memory_allocation_text">Alocado: %dMB</string>
+    <string name="settings_game_java_memory_used_text">Total que seu dispositivo está usando: %1$dMB | Total do seu dispositivo: %2$dMB</string>
+    <string name="settings_game_java_memory_allocation_text">Alocado pro jogo: %dMB</string>
     <string name="settings_game_jvm_args_title">Argumentos JVM</string>
     <string name="settings_game_jvm_args_summary">Argumentos adicionais da JVM adicionados ao iniciar a JVM. Modificá-los sem o conhecimento adequado não é recomendado, pois pode causar travamentos, qualquer coisa utilize o CHAT GPT para lhe auxiliar/ajudar</string>
     <string name="settings_game_show_log_automatic_title">Exibir as logs automaticamente</string>
@@ -910,7 +910,7 @@
     <string name="settings_launcher_background_opacity_title">Opacidade do Elemento de Fundo</string>
     <string name="settings_launcher_background_opacity_summary">Ajuste a opacidade dos elementos de fundo para melhor visualização e para evitar conflitos com o plano de fundo</string>
     <string name="settings_launcher_background_video_volume_title">Volume do vídeo de fundo</string>
-    <string name="settings_launcher_background_video_volume_summary">Quando o plano de fundo for um vídeo, você pode ajustar o volume usando esta opção.</string>
+    <string name="settings_launcher_background_video_volume_summary">Quando o plano de fundo for um vídeo, você pode ajustar o volume usando esta opção. (Caso o vídeo contenha áudio)</string>
     <string name="control_keyboard_bind_title">Tecla de atalho</string>
     <string name="control_keyboard_bind_summary">Pressione a tecla que deseja vincular no seu teclado</string>
     <string name="control_manage_create_new">Criar</string>
@@ -932,7 +932,7 @@
     <string name="control_editor_menu_preview_is_gamepad">Usando controle físico</string>
     <string name="control_editor_menu_widget_snap">Ajuste de controle</string>
     <string name="control_editor_menu_widget_snap_all_layers">Ajustar a todas as camadas de controle</string>
-    <string name="control_editor_menu_widget_snap_mode">Modo de encaixe de controles</string>
+    <string name="control_editor_menu_widget_snap_mode">Modo de encaixe de controle</string>
     <string name="control_editor_menu_widget_snap_mode_fullscreen">Ajuste de tela cheia</string>
     <string name="control_editor_menu_widget_snap_mode_local">Ajuste local</string>
     <string name="control_editor_menu_save_and_exit">Salvar e sair</string>
@@ -1231,4 +1231,6 @@
     <string name="download_assets_id_not_found">Projeto não encontrado!</string>
     <string name="download_assets_id_unsupported">Projeto não suportado!</string>
     <string name="settings_launcher_color_theme_style">Estilo de paleta</string>
+    <string name="settings_renderer_env_title">Variável de ambiente: %s</string>
+    <string name="settings_renderer_config_title">Configuração do Renderizador</string>
 </resources>

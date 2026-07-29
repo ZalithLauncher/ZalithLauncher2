@@ -1218,7 +1218,7 @@
     <string name="error_bad_gateway">(%s) Sunucu, yukarı akış sunucusundan geçersiz bir yanıt aldı</string>
     <string name="error_service_unavailable">(%s) Sunucu geçici olarak isteği işleyemiyor</string>
     <string name="error_gateway_timeout">(%s) Sunucu zamanında yanıt alamadı</string>
-    <string name="download_category_by_id">Kimlik numarasına göre ara</string>
+    <string name="download_category_by_id">ID\'ye Göre Ara</string>
     <string name="download_assets_id_holder">Proje Kimliği</string>
     <string name="download_assets_id_tip">Proje kimliğiyle ilgili projeye hızlıca ulaşın</string>
     <string name="download_assets_id_not_found">Proje bulunamadı!</string>

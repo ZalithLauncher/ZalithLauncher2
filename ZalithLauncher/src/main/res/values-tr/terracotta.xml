@@ -84,4 +84,6 @@
     <string name="terracotta_tutorial_guest_step_become_guest">- \"Oturuma katılmak istiyorum\" seçeneğine dokunun, ev sahibi tarafından verilen davet kodunu girin ve sabırla bekleyin.</string>
     <string name="terracotta_tutorial_guest_step_join_room">- Odaya katıldıktan sonra ana menüde Çok Oyunculu seçeneğine gidin, sayfayı yenileyin ve Terracotta lobisine girmek için çift tıklayın.</string>
     <string name="terracotta_tutorial_guest_step_alternate_server">- Alternatif sunucu adresleri üzerinden katılırken çevrimdışı hesaplar desteklenmemektedir; bu sorunu kendiniz çözün.</string>
+    <string name="terracotta_custom_note_list">Özel EasyTier Sunucu Düğümleri</string>
+    <string name="terracotta_custom_note_list_hint">Varsayılan düğmeleri kullanmak için boş bırakın.</string>
 </resources>

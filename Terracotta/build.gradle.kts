@@ -13,7 +13,7 @@ android {
     }
 
     lint {
-        targetSdk = 35
+        targetSdk = 34
     }
 
     buildTypes {

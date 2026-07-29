@@ -50,7 +50,8 @@ class RendererEnv(
             ?.filter { it.startsWith(prefix) }
             ?.forEach { storedKey ->
                 val envKey = storedKey.removePrefix(prefix)
-                if (envKey !in currentConfigurableKeys) {
+                val baseKey = envKey.removeSuffix(":check")
+                if (baseKey !in currentConfigurableKeys) {
                     mmkv.remove(storedKey)
                 }
         }
@@ -75,6 +76,7 @@ class RendererEnv(
                         summary = summary
                     )
                     unit.init()
+                    unit.initCheck()
 
                     // 校验已保存的值是否仍在当前可选值列表中，不在则重置为默认值
                     if (unit.state !in env.items.values) {
@@ -129,7 +131,7 @@ class RendererEnv(
                 }
                 is RendererConfig.Env.SelectableEnv -> {
                     val unit = settingUnits[env.key] as? EnvSettingUnit.Selectable
-                    if (unit != null) {
+                    if (unit != null && unit.isEnabled) {
                         result[env.key] = unit.state
                     }
                 }

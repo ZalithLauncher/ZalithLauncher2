@@ -41,6 +41,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.decodeFromStream
 import java.io.IOException
+import java.nio.channels.UnresolvedAddressException
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -125,7 +126,8 @@ suspend fun <T> withRetry(
             Logger.debug(TAG, "$logTag: Cancelled: ${e.message}")
             throw e
         } catch (e: Exception) {
-            Logger.debug(TAG, "$logTag: Attempt ${retryCount + 1} failed: ${e.message}")
+            // 部分异常（如 UnresolvedAddressException）message 为 null，需要输出异常类型以便诊断
+            Logger.debug(TAG, "$logTag: Attempt ${retryCount + 1} failed: ${e::class.simpleName}: ${e.message}")
             lastError = e
             if (canRetry(e)) {
                 delay(currentDelay.milliseconds)
@@ -142,6 +144,7 @@ suspend fun <T> withRetry(
 private fun canRetry(e: Exception): Boolean {
     return when (e) {
         is ClientRequestException -> e.response.status.value in 500..599 //5xx错误可重试
+        is UnresolvedAddressException -> true // DNS解析失败，可能是临时性故障
         is IOException -> true //网络错误
         else -> false
     }

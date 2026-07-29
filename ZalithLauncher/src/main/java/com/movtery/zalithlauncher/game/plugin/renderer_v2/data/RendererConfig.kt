@@ -50,6 +50,10 @@ data class RendererConfig(
         /**
          * 可根据预设值自由选择值的环境变量
          * @see EnvItems
+         * @param check 启动器侧控制此环境变量是否启用
+         *
+         *              设置为 null 时启动器侧始终应用此环境变量
+         *              设置为 true 或 false 时则指定启动器侧默认开启或关闭此环境变量
          * @param title 该配置项的标题（meta-data 索引）
          * @param items 该环境变量的配置项
          */
@@ -60,6 +64,8 @@ data class RendererConfig(
             val key: String,
             @SerialName("title")
             val title: MetaString? = null,
+            @SerialName("check")
+            val check: Boolean? = true,
             @SerialName("items")
             val items: EnvItems
         ): Env

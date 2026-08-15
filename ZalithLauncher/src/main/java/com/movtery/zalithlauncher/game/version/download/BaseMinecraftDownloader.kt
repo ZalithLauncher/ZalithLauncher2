@@ -152,10 +152,11 @@ class BaseMinecraftDownloader(
     ) {
         gameManifest.libraries?.let { libraries ->
             processLibraries { libraries }
+            val usesLwjglSdl = libraries.usesLwjglSdl()
             libraries.forEach { library ->
                 currentCoroutineContext().ensureActive()
 
-                if (library.name.startsWith("org.lwjgl")) return@forEach
+                if (library.filterLibrary(allowLwjglSdlClasses = usesLwjglSdl)) return@forEach
 
                 val artifactPath: String = artifactToPath(library) ?: return@forEach
                 val (sha1: String?, url, size, isDownloadable) = library.downloads?.let { downloads ->

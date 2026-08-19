@@ -27,8 +27,10 @@ dependencyResolutionManagement {
 rootProject.name = "ZalithLauncher"
 include(":ZalithLauncher")
 include(":LWJGL")
-include(":LWJGL:lwjgl-3.3.6")
+include(":LWJGL:lwjgl-3.3.3")
+project(":LWJGL:lwjgl-3.3.3").projectDir = file("LWJGL/3.3.3")
 include(":LWJGL:lwjgl-3.4.1")
+project(":LWJGL:lwjgl-3.4.1").projectDir = file("LWJGL/3.4.1")
 include(":LayerController")
 include(":ColorPicker")
 include(":Terracotta")

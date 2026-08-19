@@ -48,6 +48,8 @@ struct PotatoBridge potatoBridge;
 void* loadTurnipVulkan(const char* driver_path, const char* native_dir, const char* cache_dir);
 void calculateFPS();
 
+extern void updateMonitorSize(int width, int height);
+
 EXTERNAL_API void pojavTerminate() {
     printf("EGLBridge: Terminating\n");
 
@@ -183,11 +185,31 @@ int pojavInitOpenGL() {
     return 0;
 }
 
+// 获取当前线程的 JNIEnv（未附着则先 Attach，不 Detach，保留渲染线程的附着状态）
+static JNIEnv *get_attached_env(JavaVM *jvm) {
+    JNIEnv *jvm_env = NULL;
+    jint env_result = (*jvm)->GetEnv(jvm, (void **) &jvm_env, JNI_VERSION_1_4);
+    if (env_result == JNI_EDETACHED) {
+        env_result = (*jvm)->AttachCurrentThread(jvm, &jvm_env, NULL);
+    }
+    if (env_result != JNI_OK) {
+        printf("get_attached_env failed: %i\n", env_result);
+        return NULL;
+    }
+    return jvm_env;
+}
+
 EXTERNAL_API int pojavInit() {
+    pojav_environ->glfwThreadVmEnv = get_attached_env(pojav_environ->runtimeJavaVMPtr);
+    if (pojav_environ->glfwThreadVmEnv == NULL) {
+        printf("Failed to attach Java-side JNIEnv to GLFW thread\n");
+        return 0;
+    }
     ANativeWindow_acquire(pojav_environ->pojavWindow);
     pojav_environ->savedWidth = ANativeWindow_getWidth(pojav_environ->pojavWindow);
     pojav_environ->savedHeight = ANativeWindow_getHeight(pojav_environ->pojavWindow);
     ANativeWindow_setBuffersGeometry(pojav_environ->pojavWindow,pojav_environ->savedWidth,pojav_environ->savedHeight,AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM);
+    updateMonitorSize(pojav_environ->savedWidth, pojav_environ->savedHeight);
     pojavInitOpenGL();
     return 1;
 }

@@ -1,5 +1,9 @@
-val lwjglVersions = arrayOf("3.3.6", "3.4.1")
+plugins {
+    java
+}
 
-tasks.register("jar") {
+val lwjglVersions = arrayOf("3.3.3", "3.4.1")
+
+tasks.register("buildLwjgl") {
     dependsOn(lwjglVersions.map { ":LWJGL:lwjgl-$it:jar" })
 }

@@ -63,18 +63,14 @@ abstract class Launcher(
     /** 当前启动版本要求的 LWJGL 版本（见 [detectLwjglVersion]），0 = 未探测/默认 */
     protected var lwjglVersion: Int = 0
 
-    /** LWJGL 组件目录名（3.3.6 / 3.4.1） */
+    /** LWJGL 组件目录名（3.3.3 / 3.4.1） */
     protected fun getLwjglVersionDir(): String = lwjglVersionDir(lwjglVersion)
 
-    /** LWJGL natives 组件目录名（AAMC 原版布局：lwjgl-3.3.6-natives / lwjgl-3.4.1-natives） */
-    protected fun getLwjglNativesDirName(): String =
-        if (lwjglVersion >= 341) "lwjgl-3.4.1-natives" else "lwjgl-3.3.6-natives"
-
-    /** 当前启动版本的 LWJGL natives 目录（per-version natives，组件解包后） */
+    /** 当前启动版本的 LWJGL natives 目录 */
     protected val lwjglNativesDir: String
         get() = File(
             PathManager.DIR_COMPONENTS,
-            "${getLwjglNativesDirName()}/${Architecture.archAsStringAndroid(Architecture.getDeviceArchitecture())}"
+            "lwjgl/${getLwjglVersionDir()}/natives/${Architecture.archAsStringAndroid(Architecture.getDeviceArchitecture())}"
         ).absolutePath
 
     private val runtimeHome: String by lazy {
@@ -190,7 +186,7 @@ abstract class Launcher(
             put("pojav.path.private.account", PathManager.DIR_DATA_BASES.absolutePath)
             put("org.lwjgl.vulkan.libname", "libvulkan.so")
             // LWJGL 3.4 的 Library.loadSystem 通过该属性定位 native 库（AAMC 同款机制）。
-            // 指向 per-version natives 组件，保证 3.4.x 游戏加载对应版本的 liblwjgl.so 等。
+            // 指向 per-version natives 目录，保证 3.4.x 游戏加载对应版本的 liblwjgl.so 等。
             put("org.lwjgl.librarypath", lwjglNativesDir)
             put("glfwstub.windowWidth", screenSize.width.toString())
             put("glfwstub.windowHeight", screenSize.height.toString())
@@ -358,6 +354,7 @@ abstract class Launcher(
             add("/system_ext/$libName")
             add(LibPath.JNA.absolutePath)
             PathManager.DIR_RUNTIME_MOD?.absolutePath?.let { add(it) }
+            add(lwjglNativesDir)
             add(PathManager.DIR_NATIVE_LIB)
         }
         return paths.joinToString(":")
@@ -366,7 +363,7 @@ abstract class Launcher(
     protected fun getLibraryPath(): String {
         val libDirName = if (is64BitsDevice) "lib64" else "lib"
         val path = listOfNotNull(
-            // per-version LWJGL natives 优先，避免 APK 内旧版 native 抢占（AAMC lwjgl-<ver>-natives 机制）
+            // per-version LWJGL natives 优先，避免 APK 内旧版 native 抢占
             lwjglNativesDir,
             "/system/$libDirName",
             "/vendor/$libDirName",

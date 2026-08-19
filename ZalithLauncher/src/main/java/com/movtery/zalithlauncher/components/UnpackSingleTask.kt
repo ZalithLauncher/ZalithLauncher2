@@ -36,7 +36,6 @@ abstract class UnpackSingleTask(
     val rootDir: File,
     val assetsDirName: String,
     val fileDirName: String,
-    private val companionComponent: String? = null,
 ) : AbstractUnpackTask() {
     private lateinit var am: AssetManager
     private lateinit var versionFile: File
@@ -47,9 +46,9 @@ abstract class UnpackSingleTask(
         runCatching {
             am = context.assets
             versionFile = File("$rootDir/$fileDirName/version")
-            input = am.open("$assetsDirName/$fileDirName/version")
+            input = am.open("$assetsDirName/version")
         }.onFailure { e ->
-            Logger.warning(TAG, "Failed to init asset version. assetsPath=$assetsDirName/$fileDirName/version", e)
+            Logger.warning(TAG, "Failed to init asset version. assetsPath=$assetsDirName/version", e)
             isCheckFailed = true
         }
     }
@@ -72,15 +71,8 @@ abstract class UnpackSingleTask(
                     requestEmptyParentDir(versionFile)
                     InstallableItem.State.PENDING
                 } else {
-                    val companionMissing = companionComponent != null &&
-                            !File(rootDir, companionComponent).exists()
-                    if (companionMissing) {
-                        Logger.info(TAG, "$fileDirName: Pack is up-to-date but companion $companionComponent is missing, re-unpacking...")
-                        InstallableItem.State.PENDING
-                    } else {
-                        Logger.info(TAG, "$fileDirName: Pack is up-to-date with the launcher, continuing...")
-                        InstallableItem.State.FINISHED
-                    }
+                    Logger.info(TAG, "$fileDirName: Pack is up-to-date with the launcher, continuing...")
+                    InstallableItem.State.FINISHED
                 }
             }.onFailure { e ->
                 Logger.error("CheckComponent", "An exception occurred while detecting the assets resource.", e)
@@ -95,19 +87,10 @@ abstract class UnpackSingleTask(
         val dir = File(rootDir, fileDirName)
         FileUtils.deleteDirectory(dir)
 
-        // 伴随组件与主组件，主组件重解时一并删除并重解
-        companionComponent?.let { companion ->
-            val companionDir = File(rootDir, companion)
-            FileUtils.deleteDirectory(companionDir)
-            copyAssetDirectory("$assetsDirName/$companion", companionDir)
-            Logger.info(TAG, "$companion: unpacked together with $fileDirName")
-        }
+        copyAssetDirectory(assetsDirName, dir)
 
-        copyAssetDirectory("$assetsDirName/$fileDirName", dir)
-
-        //最后才写入version
         context.copyAssetFile(
-            fileName = "$assetsDirName/$fileDirName/version",
+            fileName = "$assetsDirName/version",
             output = File(dir, "version"),
             overwrite = true
         )
@@ -141,7 +124,7 @@ abstract class UnpackSingleTask(
         return try {
             am.open(assetPath).close()
             false
-        } catch (e: IOException) {
+        } catch (_: IOException) {
             true
         }
     }

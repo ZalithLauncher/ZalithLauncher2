@@ -30,7 +30,7 @@ import java.util.zip.ZipFile
 class UnpackJnaTask(context: Context) : UnpackSingleTask(
     context = context,
     rootDir = PathManager.DIR_JNA,
-    assetsDirName = "runtimes",
+    assetsDirName = "runtimes/jna",
     fileDirName = "jna"
 ) {
     override suspend fun moreProgress(file: File) {

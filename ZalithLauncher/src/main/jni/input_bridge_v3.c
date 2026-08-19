@@ -26,11 +26,9 @@
 #define EVENT_TYPE_CHAR 1000
 #define EVENT_TYPE_CHAR_MODS 1001
 #define EVENT_TYPE_CURSOR_ENTER 1002
-#define EVENT_TYPE_FRAMEBUFFER_SIZE 1004
 #define EVENT_TYPE_KEY 1005
 #define EVENT_TYPE_MOUSE_BUTTON 1006
 #define EVENT_TYPE_SCROLL 1007
-#define EVENT_TYPE_WINDOW_SIZE 1008
 
 static void registerFunctions(JNIEnv *env);
 
@@ -88,7 +86,8 @@ JNIEXPORT void JNICALL Java_org_lwjgl_glfw_GLFW_nativeInitializeGLFWNativeBridge
         return;
     }
     pojav_environ->method_glftSetWindowAttrib = (*vmEnv)->GetStaticMethodID(vmEnv, pojav_environ->vmGlfwClass, "glfwSetWindowAttrib", "(JII)V");
-    pojav_environ->method_internalWindowSizeChanged = (*vmEnv)->GetStaticMethodID(vmEnv, pojav_environ->vmGlfwClass, "internalWindowSizeChanged", "(JII)V");
+    pojav_environ->method_internalWindowSizeChanged = (*vmEnv)->GetStaticMethodID(vmEnv, pojav_environ->vmGlfwClass, "internalWindowSizeChanged", "(J)V");
+    pojav_environ->method_internalChangeMonitorSize = (*vmEnv)->GetStaticMethodID(vmEnv, pojav_environ->vmGlfwClass, "internalChangeMonitorSize", "(II)V");
     jfieldID field_keyDownBuffer = (*vmEnv)->GetStaticFieldID(vmEnv, pojav_environ->vmGlfwClass, "keyDownBuffer", "Ljava/nio/ByteBuffer;");
     jobject keyDownBufferJ = (*vmEnv)->GetStaticObjectField(vmEnv, pojav_environ->vmGlfwClass, field_keyDownBuffer);
     pojav_environ->keyDownBuffer = (*vmEnv)->GetDirectBufferAddress(vmEnv, keyDownBufferJ);
@@ -120,14 +119,25 @@ ADD_CALLBACK_WWIN(WindowSize)
 
 #undef ADD_CALLBACK_WWIN
 
-void handleFramebufferSizeJava(long window, int w, int h) {
-    (*pojav_environ->runtimeJNIEnvPtr_JRE)->CallStaticVoidMethod(pojav_environ->runtimeJNIEnvPtr_JRE, pojav_environ->vmGlfwClass, pojav_environ->method_internalWindowSizeChanged, (long)window, w, h);
+void updateMonitorSize(int width, int height) {
+    (*pojav_environ->glfwThreadVmEnv)->CallStaticVoidMethod(
+            pojav_environ->glfwThreadVmEnv, pojav_environ->vmGlfwClass,
+            pojav_environ->method_internalChangeMonitorSize, width, height);
+}
+
+void updateWindowSize(void *window) {
+    (*pojav_environ->glfwThreadVmEnv)->CallStaticVoidMethod(
+            pojav_environ->glfwThreadVmEnv, pojav_environ->vmGlfwClass,
+            pojav_environ->method_internalWindowSizeChanged, (jlong) window);
 }
 
 void pojavPumpEvents(void* window) {
     if(pojav_environ->shouldUpdateMouse) {
         pojav_environ->GLFW_invoke_CursorPos(window, floor(pojav_environ->cursorX),
                                              floor(pojav_environ->cursorY));
+    }
+    if (pojav_environ->shouldUpdateMonitorSize) {
+        updateWindowSize(window);
     }
 
     size_t index = pojav_environ->outEventIndex;
@@ -153,14 +163,6 @@ void pojavPumpEvents(void* window) {
                 break;
             case EVENT_TYPE_SCROLL:
                 if(pojav_environ->GLFW_invoke_Scroll) pojav_environ->GLFW_invoke_Scroll(window, event.i1, event.i2);
-                break;
-            case EVENT_TYPE_FRAMEBUFFER_SIZE:
-                handleFramebufferSizeJava(pojav_environ->showingWindow, event.i1, event.i2);
-                if(pojav_environ->GLFW_invoke_FramebufferSize) pojav_environ->GLFW_invoke_FramebufferSize(window, event.i1, event.i2);
-                break;
-            case EVENT_TYPE_WINDOW_SIZE:
-                handleFramebufferSizeJava(pojav_environ->showingWindow, event.i1, event.i2);
-                if(pojav_environ->GLFW_invoke_WindowSize) pojav_environ->GLFW_invoke_WindowSize(window, event.i1, event.i2);
                 break;
         }
 
@@ -191,6 +193,12 @@ void pojavStartPumping() {
         pojav_environ->cLastY = pojav_environ->cursorY;
         pojav_environ->shouldUpdateMouse = true;
     }
+    if (pojav_environ->shouldUpdateMonitorSize) {
+        // Perform a monitor size update here to avoid doing it on every single window
+        updateMonitorSize(pojav_environ->savedWidth, pojav_environ->savedHeight);
+        // Mark the monitor size as consumed (since GLFW was made aware of it)
+        pojav_environ->monitorSizeConsumed = true;
+    }
 }
 
 /** Prepare the library for the next round of new events */
@@ -201,6 +209,13 @@ void pojavStopPumping() {
     atomic_fetch_sub_explicit(&pojav_environ->eventCounter, pojav_environ->inEventCount, memory_order_acquire);
     // Make sure the next frame won't send mouse updates if it's unnecessary
     pojav_environ->shouldUpdateMouse = false;
+    // Only reset the update flag if the monitor size was consumed by pojavStartPumping. This
+    // will delay the update to next frame if it had occured between pojavStartPumping and pojavStopPumping,
+    // but it's better than not having it apply at all
+    if (pojav_environ->shouldUpdateMonitorSize && pojav_environ->monitorSizeConsumed) {
+        pojav_environ->shouldUpdateMonitorSize = false;
+        pojav_environ->monitorSizeConsumed = false;
+    }
 }
 
 JNIEXPORT void JNICALL
@@ -459,23 +474,15 @@ void noncritical_send_mouse_button(__attribute__((unused)) JNIEnv* env, __attrib
 void critical_send_screen_size(jint width, jint height) {
     pojav_environ->savedWidth = width;
     pojav_environ->savedHeight = height;
-    if (pojav_environ->isInputReady) {
-        if (pojav_environ->GLFW_invoke_FramebufferSize) {
-            if (pojav_environ->isUseStackQueueCall) {
-                sendData(EVENT_TYPE_FRAMEBUFFER_SIZE, width, height, 0, 0);
-            } else {
-                pojav_environ->GLFW_invoke_FramebufferSize((void*) pojav_environ->showingWindow, width, height);
-            }
-        }
-
-        if (pojav_environ->GLFW_invoke_WindowSize) {
-            if (pojav_environ->isUseStackQueueCall) {
-                sendData(EVENT_TYPE_WINDOW_SIZE, width, height, 0, 0);
-            } else {
-                pojav_environ->GLFW_invoke_WindowSize((void*) pojav_environ->showingWindow, width, height);
-            }
-        }
-    }
+    // Even if there was call to pojavStartPumping that consumed the size, this call
+    // might happen right after it (or right before pojavStopPumping)
+    // So unmark the size as "consumed"
+    pojav_environ->monitorSizeConsumed = false;
+    pojav_environ->shouldUpdateMonitorSize = true;
+    // Don't use the direct updates for screen dimensions.
+    // This is done to ensure that we have predictable conditions to correctly call
+    // updateMonitorSize() and updateWindowSize() while on the render thread with an attached
+    // JNIEnv.
 }
 
 void noncritical_send_screen_size(__attribute__((unused)) JNIEnv* env, __attribute__((unused)) jclass clazz, jint width, jint height) {

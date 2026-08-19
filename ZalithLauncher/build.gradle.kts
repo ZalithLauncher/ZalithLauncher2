@@ -139,17 +139,43 @@ androidComponents {
                 val variantName = variant.name.replaceFirstChar { it.uppercaseChar() }
                 afterEvaluate {
                     val task = tasks.named("merge${variantName}Assets").get() as MergeSourceSetFolders
+                    task.inputs.property("lwjglArch", projectArch)
                     task.doLast {
                         val assetsDir = task.outputDir.get().asFile
-                        val jreList = listOf("jre-8", "jre-17", "jre-21", "jre-25")
                         val tag = "JREAssetsCleanup"
                         logger.lifecycle("[$tag] arch: $projectArch")
+                        val jreList = listOf("jre-8", "jre-17", "jre-21", "jre-25")
                         jreList.forEach { jreVersion ->
                             val runtimeDir = File("$assetsDir/runtimes/$jreVersion")
                             logger.lifecycle("[$tag] runtimeDir: ${runtimeDir.absolutePath}")
                             runtimeDir.listFiles()?.forEach {
                                 if (projectArch != "all" && it.name != "version" && !it.name.contains("universal") && it.name != "bin-$projectArch.tar.xz") {
                                     logger.lifecycle("[$tag] delete: $it : ${it.delete()}")
+                                }
+                            }
+                        }
+
+                        if (projectArch == "all") return@doLast
+                        val abi = when (projectArch) {
+                            "arm" -> "armeabi-v7a"
+                            "arm64" -> "arm64-v8a"
+                            "x86" -> "x86"
+                            "x86_64" -> "x86_64"
+                            else -> return@doLast
+                        }
+                        val lwjglVersions = file("libs").listFiles { f ->
+                            f.name.matches(Regex("lwjgl-\\d+\\.\\d+\\.\\d+-natives-release\\.aar"))
+                        }
+                            ?.map { Regex("lwjgl-(\\d+\\.\\d+\\.\\d+)-natives-release\\.aar").find(it.name)!!.groupValues[1] }
+                            ?: emptyList()
+                        lwjglVersions.forEach { version ->
+                            val nativesDir = File(assetsDir, "app_runtime/lwjgl/$version/natives")
+                            if (nativesDir.isDirectory) {
+                                nativesDir.listFiles()?.forEach { dir ->
+                                    if (dir.isDirectory && dir.name != abi) {
+                                        logger.lifecycle("Removing non-target-arch natives: $dir")
+                                        dir.deleteRecursively()
+                                    }
                                 }
                             }
                         }
@@ -271,7 +297,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
 }
 
-// assets/components/lwjgl3/
+// assets/app_runtime/lwjgl/
 tasks.matching { it.name.startsWith("merge") && it.name.endsWith("Assets") }.configureEach {
-    dependsOn(":LWJGL:lwjgl-3.3.6:jar", ":LWJGL:lwjgl-3.4.1:jar")
+    dependsOn(":LWJGL:lwjgl-3.3.3:jar", ":LWJGL:lwjgl-3.4.1:jar")
 }

@@ -153,13 +153,13 @@ class LaunchArgs(
 
     /**
      * 组装 LWJGL 组件 classpath
-     * 版本 >= 3.4.1 -> 使用 3.4.1 组件；否则使用 3.3.6 组件。
+     * 版本 >= 3.4.1 -> 使用 3.4.1 组件；否则使用 3.3.3 组件。
      * LWJGL2 时代（版本 <= 299）额外加入 lwjgl-lwjglx.jar 桥接层。
      * lwjgl.jar 核心优先 -> merged-modules -> 其余模块。
      */
     private fun getLWJGL3ClassPath(lwjglVersion: Int): String {
         val versionDir = lwjglVersionDir(lwjglVersion)
-        val dir = File(PathManager.DIR_COMPONENTS, "lwjgl3/$versionDir")
+        val dir = File(PathManager.DIR_COMPONENTS, "lwjgl/$versionDir")
         val isLwjgl2 = lwjglVersion in 1..299
         return dir.listFiles { file -> file.name.endsWith(".jar") }
             ?.sortedBy { file -> lwjglJarOrder(file.name, versionDir, isLwjgl2) }
@@ -400,7 +400,7 @@ class LaunchArgs(
 /**
  * 从版本清单中探测要求的 LWJGL 主版本
  * 解析 `org.lwjgl:lwjgl:X.Y.Z` / `org.lwjgl.lwjgl:lwjgl:X.Y.Z` 坐标，
- * 返回去掉句点后的整数（如 3.3.6→336、3.4.1→341、2.9.9→299）
+ * 返回去掉句点后的整数（如 3.3.3→333、3.4.1→341、2.9.9→299）
  * @return 无法确定时返回 0（默认按 LWJGL3 处理）
  */
 fun detectLwjglVersion(manifest: GameManifest): Int {
@@ -422,6 +422,6 @@ fun detectLwjglVersion(manifest: GameManifest): Int {
 
 /**
  * LWJGL 版本整数 -> 组件目录名。
- * 版本 >= 3.4.1 -> 3.4.1 组件；否则（含 LWJGL2 桥接场景）-> 3.3.6 组件
+ * 版本 >= 3.4.1 -> 3.4.1 组件；否则（含 LWJGL2 桥接场景）-> 3.3.3 组件
  */
-fun lwjglVersionDir(lwjglVersion: Int): String = if (lwjglVersion >= 341) "3.4.1" else "3.3.6"
+fun lwjglVersionDir(lwjglVersion: Int): String = if (lwjglVersion >= 341) "3.4.1" else "3.3.3"

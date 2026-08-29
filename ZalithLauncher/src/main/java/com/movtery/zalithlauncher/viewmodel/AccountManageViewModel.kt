@@ -56,7 +56,6 @@ import com.movtery.zalithlauncher.game.account.yggdrasil.uploadSkin
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
-import com.movtery.zalithlauncher.ui.buildAppendedText
 import com.movtery.zalithlauncher.ui.screens.content.elements.AccountOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.AccountSkinOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.ChangeCape
@@ -66,8 +65,8 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.LoginMenuOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.MicrosoftLoginOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.OtherLoginOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.ServerOperation
-import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.utils.network.toLocal
+import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -649,18 +648,13 @@ class AccountManageViewModel @Inject constructor(
                         }
                     }
 
-                    if (isReset) emitToast(androidText(R.string.account_change_cape_apply_reset))
-                    else emitToast(
-                        buildAppendedText {
-                            append(R.string.account_change_cape_apply_success)
-                            val capeLocal = cape.capeLocalRes()
-                            if (capeLocal == null) {
-                                append(cape.alias)
-                            } else {
-                                append(capeLocal)
-                            }
-                        }
-                    )
+                    if (isReset) {
+                        emitToast(androidText(R.string.account_change_cape_apply_reset))
+                    } else {
+                        val capeName =
+                            cape.capeLocalRes()?.let { context.getString(it) } ?: cape.alias
+                        emitToast(androidText(R.string.account_change_cape_apply_success, capeName))
+                    }
                 },
                 onError = { th ->
                     when {

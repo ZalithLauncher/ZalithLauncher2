@@ -651,9 +651,13 @@ class AccountManageViewModel @Inject constructor(
                     if (isReset) {
                         emitToast(androidText(R.string.account_change_cape_apply_reset))
                     } else {
-                        val capeName =
-                            cape.capeLocalRes()?.let { context.getString(it) } ?: cape.alias
-                        emitToast(androidText(R.string.account_change_cape_apply_success, capeName))
+                        val capeName = cape.capeLocalRes()?.let { localRes ->
+                            androidText(localRes)
+                        } ?: androidText(cape.alias)
+
+                        emitToast(androidText(
+                            androidText(R.string.account_change_cape_apply_success), capeName
+                        ))
                     }
                 },
                 onError = { th ->

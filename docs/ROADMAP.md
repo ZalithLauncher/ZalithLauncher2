@@ -9,10 +9,10 @@ Cada fase vive na sua branch; a principal recebe merges estabilizados.
 - [ ] Build debug/release assinado
 
 ## Fase 1 — Multiplayer (branch multiplayer)
-- [ ] Gerenciador de contas: offline (nome/UUID/skin local) e Microsoft
-- [ ] Login offline sem depender de serviço externo
-- [ ] Lista de servidores com ping, versão e favoritos
-- [ ] Sessão persistente e troca rápida de perfil
+- [x] Gerenciador de contas: offline (nome/UUID/skin local) e Microsoft
+- [x] Login offline sem depender de serviço externo
+- [x] Lista de servidores com ping, versão e favoritos
+- [x] Sessão persistente e troca rápida de perfil
 
 ## Fase 2 — Minecraft Java (branch minecraft-java)
 - [ ] Leitura do version manifest (Mojang) e download de versões

@@ -15,10 +15,10 @@ Cada fase vive na sua branch; a principal recebe merges estabilizados.
 - [ ] Sessão persistente e troca rápida de perfil
 
 ## Fase 2 — Minecraft Java (branch minecraft-java)
-- [ ] Leitura do version manifest (Mojang) e download de versões
-- [ ] Loaders por instância: Fabric, Forge, Quilt
-- [ ] .minecraft isolado por instância (libs e config separados)
-- [ ] Runtime Java por versão do jogo (8 / 17 / 21)
+- [x] Leitura do version manifest (Mojang) e download de versões
+- [x] Loaders por instância: Fabric, Forge, Quilt
+- [x] .minecraft isolado por instância (libs e config separados)
+- [x] Runtime Java por versão do jogo (8 / 17 / 21)
 
 ## Fase 3 — Melhorias e otimização (branch melhorias)
 - [ ] Presets de flags JVM conforme a RAM do aparelho

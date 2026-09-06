@@ -19,10 +19,12 @@
 package com.movtery.zalithlauncher.path
 
 import android.content.Context
-import android.os.Environment
 import com.movtery.zalithlauncher.game.launch.LogName
+import com.movtery.zalithlauncher.utils.logging.Logger
 import org.apache.commons.io.FileUtils
 import java.io.File
+
+private const val TAG = "PathManager"
 
 class PathManager {
     companion object {
@@ -63,8 +65,9 @@ class PathManager {
         fun refreshPaths(context: Context) {
             DIR_FILES_PRIVATE = context.filesDir
             DIR_FILES_EXTERNAL = context.getExternalFilesDir(null) ?: run {
-                //from FCL (commit 744156a)
-                File(Environment.getExternalStorageDirectory(), "Android/data/${context.packageName}/files")
+                // 外部存储不可用时，改用内部存储
+                Logger.warning(TAG, "External files dir is unavailable, falling back to internal storage")
+                File(DIR_FILES_PRIVATE, "data_files")
             }
             DIR_CACHE = context.cacheDir
             DIR_NATIVE_LIB = context.applicationInfo.nativeLibraryDir
@@ -103,27 +106,18 @@ class PathManager {
         }
 
         private fun createDirs() {
-            DIR_RUNTIME_MOD?.mkdirs()
-            DIR_GAME.mkdirs()
-            DIR_ACCOUNT_SKIN.mkdirs()
-            DIR_ACCOUNT_CAPE.mkdirs()
-            DIR_MULTIRT.mkdirs()
-            DIR_JNA.mkdirs()
-            DIR_COMPONENTS.mkdirs()
-            DIR_MOUSE_POINTER.mkdirs()
-            DIR_BACKGROUND.mkdirs()
-            DIR_CACHE_GAME_DOWNLOADER.mkdirs()
-            DIR_CACHE_MODPACK_DOWNLOADER.mkdirs()
-            DIR_CACHE_MODPACK_EXPORTER.mkdirs()
-            DIR_CACHE_MOD_UPDATER.mkdirs()
-            DIR_CACHE_APP_ICON.mkdirs()
-            DIR_CACHE_HOME_PAGE.mkdirs()
-            DIR_LAUNCHER_LOGS.mkdirs()
-            DIR_NATIVE_LOGS.mkdirs()
-            DIR_IMAGE_CACHE.mkdirs()
-            DIR_CONTROL_LAYOUTS.mkdirs()
-            DIR_TERRACOTTA.mkdirs()
-            DIR_STYLES.mkdirs()
+            listOfNotNull(
+                DIR_RUNTIME_MOD, DIR_GAME, DIR_ACCOUNT_SKIN, DIR_ACCOUNT_CAPE, DIR_MULTIRT,
+                DIR_JNA, DIR_COMPONENTS, DIR_MOUSE_POINTER, DIR_BACKGROUND,
+                DIR_CACHE_GAME_DOWNLOADER, DIR_CACHE_MODPACK_DOWNLOADER, DIR_CACHE_MODPACK_EXPORTER,
+                DIR_CACHE_MOD_UPDATER, DIR_CACHE_APP_ICON, DIR_CACHE_HOME_PAGE,
+                DIR_LAUNCHER_LOGS, DIR_NATIVE_LOGS, DIR_IMAGE_CACHE, DIR_CONTROL_LAYOUTS,
+                DIR_TERRACOTTA, DIR_STYLES
+            ).forEach { dir ->
+                if (!dir.exists() && !dir.mkdirs()) {
+                    Logger.warning(TAG, "Failed to create directory: ${dir.absolutePath}")
+                }
+            }
         }
 
         /**

@@ -151,6 +151,7 @@ fun SimpleGamepadCapture(
 
     LaunchedEffect(gamepadViewModel.gamepadEngaged) {
         withContext(Dispatchers.Default) {
+            var lastPollTime = 0L
             while (true) {
                 try {
                     ensureActive()
@@ -160,7 +161,13 @@ fun SimpleGamepadCapture(
                     val pollLevel = gamepadViewModel.checkGamepadActive()
                     if (pollLevel == GamepadViewModel.PollLevel.Close) break
 
-                    gamepadViewModel.pollJoystick()
+                    // 按实际轮询间隔归一化本帧偏移量
+                    // 首轮询间隔记为0，避免重启循环后视角跳动
+                    val now = System.nanoTime()
+                    val deltaMs = if (lastPollTime == 0L) 0.0 else (now - lastPollTime) / 1_000_000.0
+                    lastPollTime = now
+
+                    gamepadViewModel.pollJoystick(deltaMs)
                     delay(pollLevel.delayMs.milliseconds)
                 } catch (_: CancellationException) {
                     break

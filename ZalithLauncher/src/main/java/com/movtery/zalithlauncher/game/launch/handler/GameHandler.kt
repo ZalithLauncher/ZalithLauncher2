@@ -27,7 +27,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
-import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
 import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.game.control.ControlManager
 import com.movtery.zalithlauncher.game.input.EfficientAndroidLWJGLKeycode
@@ -222,8 +221,8 @@ class GameHandler(
         }
     }
 
-    override fun sendMouseRight(isPressed: Boolean) {
-        CallbackBridge.sendMouseButton(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_RIGHT.toInt(), isPressed)
+    override fun sendMouseButton(button: Int, isPressed: Boolean) {
+        CallbackBridge.sendMouseButton(button, isPressed)
     }
 
     @Composable

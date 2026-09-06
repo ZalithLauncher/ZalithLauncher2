@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.IntSize
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.withSave
+import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
 import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.game.input.AWTInputEvent
 import com.movtery.zalithlauncher.game.launch.JvmLauncher
@@ -122,8 +123,16 @@ class JVMHandler(
         return true
     }
 
-    override fun sendMouseRight(isPressed: Boolean) {
-        ZLBridge.sendMousePress(AWTInputEvent.BUTTON3_DOWN_MASK, isPressed)
+    override fun sendMouseButton(button: Int, isPressed: Boolean) {
+        when (button) {
+            LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt() ->
+                ZLBridge.sendMousePress(AWTInputEvent.BUTTON1_DOWN_MASK, isPressed)
+            LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_MIDDLE.toInt() ->
+                ZLBridge.sendMousePress(AWTInputEvent.BUTTON2_DOWN_MASK, isPressed)
+            LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_RIGHT.toInt() ->
+                ZLBridge.sendMousePress(AWTInputEvent.BUTTON3_DOWN_MASK, isPressed)
+            //旧 JVM/AWT 后端不支持侧键
+        }
     }
 
     @Composable

@@ -101,6 +101,11 @@ object LWJGLCharSender : CharacterSenderStrategy {
             MotionEvent.BUTTON_PRIMARY -> LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT
             MotionEvent.BUTTON_SECONDARY, MotionEvent.BUTTON_STYLUS_SECONDARY -> LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_RIGHT
             MotionEvent.BUTTON_TERTIARY -> LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_MIDDLE
+            // 处理鼠标侧键
+            // 部分设备将物理鼠标侧键以 MotionEvent 的按钮状态上报
+            // 而另一些设备会重映射为 KEYCODE_BACK/FORWARD
+            MotionEvent.BUTTON_BACK -> LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_4
+            MotionEvent.BUTTON_FORWARD -> LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_5
             else -> null
         }
     }

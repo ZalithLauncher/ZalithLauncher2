@@ -653,11 +653,17 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
             if (source and InputDevice.SOURCE_MOUSE_RELATIVE == InputDevice.SOURCE_MOUSE_RELATIVE ||
                 source and InputDevice.SOURCE_MOUSE == InputDevice.SOURCE_MOUSE) {
 
-                if (event.keyCode == KeyEvent.KEYCODE_BACK) {
-                    //一些系统会将鼠标右键当成KEYCODE_BACK来处理，需要在这里进行拦截
-                    //然后发送真实的鼠标右键
-                    withHandler { sendMouseRight(isPressed) }
-                    return false
+                // 部分系统会将物理鼠标的侧键重映射为 BACK/FORWARD 按键上报
+                // 这里拦截并把它们转换为对应的鼠标侧键
+                when (event.keyCode) {
+                    KeyEvent.KEYCODE_BACK -> {
+                        withHandler { sendMouseButton(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_4.toInt(), isPressed) }
+                        return true
+                    }
+                    KeyEvent.KEYCODE_FORWARD -> {
+                        withHandler { sendMouseButton(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_5.toInt(), isPressed) }
+                        return true
+                    }
                 }
             }
         }

@@ -385,10 +385,11 @@ class GamepadViewModel : ViewModel() {
 
     /**
      * 轮询调用，持续发送当前拥有的摇杆状态
+     * @param deltaMs 距离上次轮询经过的毫秒数
      */
-    fun pollJoystick() {
-        leftJoystick.onTick(::sendEvent)
-        rightJoystick.onTick(::sendEvent)
+    fun pollJoystick(deltaMs: Double) {
+        leftJoystick.onTick(deltaMs, ::sendEvent)
+        rightJoystick.onTick(deltaMs, ::sendEvent)
     }
 
     private fun sendEvent(event: Event) {
@@ -439,9 +440,9 @@ class GamepadViewModel : ViewModel() {
 
     enum class PollLevel(val delayMs: Long) {
         /**
-         * 高轮询等级：16ms延迟 ≈ 60fps
+         * 高轮询等级：4ms延迟 ≈ 250fps
          */
-        High(16L),
+        High(4L),
 
         /**
          * 不进行轮询

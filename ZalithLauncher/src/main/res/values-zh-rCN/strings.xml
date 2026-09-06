@@ -1237,6 +1237,7 @@
     <string name="about_launcher_author_movtery_title">墨北MovTery</string>
     <string name="about_launcher_author_movtery_text">%s 的作者</string>
     <string name="about_launcher_project_link">项目地址</string>
+    <string name="about_launcher_official_website">官网地址</string>
     <string name="about_sponsor">赞助支持</string>
     <string name="about_acknowledgements_title">鸣谢</string>
     <string name="about_acknowledgements_pojav_text">%s 使用了 PojavLauncher 的启动后端</string>

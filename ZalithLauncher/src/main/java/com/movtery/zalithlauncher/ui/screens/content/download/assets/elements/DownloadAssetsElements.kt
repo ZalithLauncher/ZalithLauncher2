@@ -216,6 +216,7 @@ private fun isVersionAdapt(
 
 /**
  * 资源版本分组可折叠列表
+ * @param trailingContent 版本行尾插槽（如收藏按钮），按行注入；为 null 时版本行保持原布局
  */
 @Composable
 fun AssetsVersionItemLayout(
@@ -227,6 +228,7 @@ fun AssetsVersionItemLayout(
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
     blur: Int = AllSettings.backgroundBlur.state,
+    trailingContent: (@Composable (PlatformVersion) -> Unit)? = null,
     onItemClicked: (PlatformVersion) -> Unit = {}
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -271,6 +273,7 @@ fun AssetsVersionItemLayout(
                                         .fillMaxWidth()
                                         .padding(all = 4.dp),
                                     version = version,
+                                    trailingContent = trailingContent,
                                     onClick = {
                                         onItemClicked(version)
                                     }
@@ -351,6 +354,7 @@ private fun AssetsVersionHeadLayout(
 private fun AssetsVersionListItem(
     modifier: Modifier = Modifier,
     version: PlatformVersion,
+    trailingContent: (@Composable (PlatformVersion) -> Unit)? = null,
     onClick: () -> Unit = {}
 ) {
     Row(
@@ -382,7 +386,9 @@ private fun AssetsVersionListItem(
 
         //版本简要信息
         Column(
-            modifier = Modifier.padding(all = 8.dp),
+            modifier = Modifier
+                .weight(1f)
+                .padding(all = 8.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
@@ -446,6 +452,9 @@ private fun AssetsVersionListItem(
                 }
             }
         }
+
+        //行尾插槽（如收藏按钮），为 null 时不占位
+        trailingContent?.invoke(version)
     }
 }
 

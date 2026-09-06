@@ -278,6 +278,21 @@
     <string name="download_modpack_download_mods">Download all mods (%1$d/%2$d, %3$s)</string>
     <string name="download_modpack_get_loaders">Retrieve loader information</string>
     <string name="download_modpack_final_move">Moving modpack files</string>
+    <!-- Download Favorites -->
+    <string name="download_favorites_title">Favorites</string>
+    <string name="download_favorites_tab_all">All</string>
+    <string name="download_favorites_empty">No favorites yet. Browse and tap the heart icon to save resources.</string>
+    <string name="download_favorites_no_version">No version specified</string>
+    <string name="download_favorites_add">Add to favorites</string>
+    <string name="download_favorites_remove">Remove from favorites</string>
+    <string name="download_favorites_copy_link">Copy download link</string>
+    <string name="download_favorites_link_copied">Download link copied</string>
+    <string name="download_favorites_search_hint">Search favorites</string>
+    <string name="download_favorites_version_count">%1$d versions saved</string>
+    <string name="download_favorites_remove_group">Remove all favorites</string>
+    <string name="download_favorites_remove_group_message">Remove all favorites of this project? This will also remove %1$d saved versions.</string>
+    <string name="download_favorites_no_results">No favorites match the current search or filter.</string>
+    <string name="download_favorites_download_fallback">Failed to fetch the latest version info online. Downloading from the saved snapshot instead.</string>
     <!--  Assets Category  -->
     <string name="download_assets_category_worldgen">World Generation</string>
     <string name="download_assets_category_biomes">Biomes</string>

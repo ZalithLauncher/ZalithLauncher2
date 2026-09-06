@@ -46,6 +46,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,9 +59,12 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.download.assets.favorites.AssetFavoriteManager
+import com.movtery.zalithlauncher.game.download.assets.favorites.toAssetFavorite
 import com.movtery.zalithlauncher.game.download.assets.mapExceptionToMessage
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
@@ -81,6 +85,7 @@ import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
+import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.FavoriteToggleButton
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.PlatformListLayout
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.ProjectUrlsContent
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.ResultProjectLayout
@@ -385,6 +390,15 @@ private fun ResultLayout(
     val urls = remember { project.platformUrls(classes) }
     val screenshots = remember { project.platformScreenshots() }
 
+    //项目收藏状态
+    val favoriteKeys by AssetFavoriteManager.favoriteKeys.collectAsStateWithLifecycle()
+    val projectId = remember(project) { project.platformId() }
+    val isFavorite = remember(favoriteKeys, platform, projectId) {
+        AssetFavoriteManager.isProjectFavorite(platform, projectId)
+    }
+    //防止点击闭包捕获陈旧的收藏态
+    val currentIsFavorite by rememberUpdatedState(isFavorite)
+
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -403,6 +417,19 @@ private fun ResultLayout(
                 follows = follows,
                 modloaders = modloaders,
                 categories = categories?.sortedWith { o1, o2 -> o1.index() - o2.index() },
+                trailingContent = {
+                    FavoriteToggleButton(
+                        isFavorite = isFavorite,
+                        onToggle = {
+                            //项目收藏与版本收藏完全独立，这里只切换项目收藏
+                            if (currentIsFavorite) {
+                                AssetFavoriteManager.removeProject(platform, projectId)
+                            } else {
+                                AssetFavoriteManager.addProject(project.toAssetFavorite(classes))
+                            }
+                        }
+                    )
+                },
                 onClick = {
                     onView(platform, classes, project.platformId(), iconUrl)
                 }

@@ -51,6 +51,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,6 +64,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.download.assets.favorites.AssetFavoriteManager
+import com.movtery.zalithlauncher.game.download.assets.favorites.toAssetFavorite
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformDependencyType
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformProject
@@ -439,6 +442,7 @@ private fun LazyListScope.dependencyLayout(
             AssetsVersionDependencyItem(
                 modifier = Modifier.fillMaxWidth(),
                 project = dependencyProject,
+                defaultClasses = defaultClasses,
                 onClick = {
                     onDependencyClicked(dependency, dependencyProject.platformClasses(defaultClasses))
                 }
@@ -451,6 +455,7 @@ private fun LazyListScope.dependencyLayout(
 private fun AssetsVersionDependencyItem(
     modifier: Modifier = Modifier,
     project: PlatformProject,
+    defaultClasses: PlatformClasses,
     onClick: () -> Unit = {},
     shape: Shape = MaterialTheme.shapes.large,
     color: Color = itemColor(false),
@@ -458,9 +463,19 @@ private fun AssetsVersionDependencyItem(
 ) {
     //项目基本信息
     val platform = remember { project.platform() }
+    val projectId = remember { project.platformId() }
+    val classes = remember { project.platformClasses(defaultClasses) }
     val title = remember { project.platformTitle() }
     val summary = remember { project.platformSummary() }
     val iconUrl = remember { project.platformIconUrl() }
+
+    //项目收藏状态
+    val favoriteKeys by AssetFavoriteManager.favoriteKeys.collectAsStateWithLifecycle()
+    val isFavorite = remember(favoriteKeys, platform, projectId) {
+        AssetFavoriteManager.isProjectFavorite(platform, projectId)
+    }
+    //防止点击闭包捕获陈旧的收藏态
+    val currentIsFavorite by rememberUpdatedState(isFavorite)
 
     Surface(
         modifier = modifier,
@@ -486,7 +501,20 @@ private fun AssetsVersionDependencyItem(
                 ProjectTitleHead(
                     platform = platform,
                     title = title,
-                    author = null //ui太小，展示不下
+                    author = null, //ui太小，展示不下
+                    trailingContent = {
+                        FavoriteToggleButton(
+                            isFavorite = isFavorite,
+                            onToggle = {
+                                //项目收藏与版本收藏完全独立，这里只切换项目收藏
+                                if (currentIsFavorite) {
+                                    AssetFavoriteManager.removeProject(platform, projectId)
+                                } else {
+                                    AssetFavoriteManager.addProject(project.toAssetFavorite(classes))
+                                }
+                            }
+                        )
+                    }
                 )
                 summary?.let { summary ->
                     Text(

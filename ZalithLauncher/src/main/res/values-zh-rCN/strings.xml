@@ -279,6 +279,21 @@
     <string name="download_modpack_download_mods">下载所有模组 (%1$d/%2$d, %3$s)</string>
     <string name="download_modpack_get_loaders">获取加载器信息</string>
     <string name="download_modpack_final_move">迁移整合包文件中</string>
+    <!--  下载收藏  -->
+    <string name="download_favorites_title">资源收藏</string>
+    <string name="download_favorites_tab_all">全部</string>
+    <string name="download_favorites_empty">还没有收藏。浏览资源时点击心形图标即可收藏。</string>
+    <string name="download_favorites_no_version">未指定版本</string>
+    <string name="download_favorites_add">添加到收藏</string>
+    <string name="download_favorites_remove">取消收藏</string>
+    <string name="download_favorites_copy_link">复制下载链接</string>
+    <string name="download_favorites_link_copied">下载链接已复制</string>
+    <string name="download_favorites_search_hint">搜索收藏</string>
+    <string name="download_favorites_version_count">已收藏 %1$d 个版本</string>
+    <string name="download_favorites_remove_group">删除全部收藏</string>
+    <string name="download_favorites_remove_group_message">删除该项目的全部收藏？将同时删除 %1$d 条版本收藏。</string>
+    <string name="download_favorites_no_results">没有符合当前搜索或筛选条件的收藏。</string>
+    <string name="download_favorites_download_fallback">在线获取最新版本信息失败，已回退到收藏快照下载。</string>
     <!-- 资源类别 -->
     <string name="download_assets_category_worldgen">世界元素</string>
     <string name="download_assets_category_biomes">生物群系</string>

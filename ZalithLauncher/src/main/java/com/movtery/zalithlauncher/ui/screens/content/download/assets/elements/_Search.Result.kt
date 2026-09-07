@@ -61,6 +61,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -78,7 +79,10 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.download.assets.favorites.AssetFavoriteManager
+import com.movtery.zalithlauncher.game.download.assets.favorites.toAssetFavorite
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformDisplayLabel
@@ -362,6 +366,7 @@ private fun ResultList(
     swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
 ) {
     val context = LocalContext.current
+    val favoriteKeys by AssetFavoriteManager.favoriteKeys.collectAsStateWithLifecycle()
     LazyColumn(
         modifier = modifier,
         state = state,
@@ -369,6 +374,7 @@ private fun ResultList(
     ) {
         items(data) { (item, mcmod) ->
             val platform = remember(item) { item.platform() }
+            val projectId = remember(item) { item.platformId() }
             val title = remember(item) { item.platformTitle() }
             val description = remember(item) { item.platformDescription() }
             val iconUrl = remember(item) { item.platformIconUrl() }
@@ -377,6 +383,12 @@ private fun ResultList(
             val follows = remember(item) { item.platformFollows() }
             val modloaders = remember(item) { item.platformModLoaders() }
             val categories = remember(item, classes) { item.platformCategories(classes) }
+
+            val isFavorite = remember(favoriteKeys, projectId, platform) {
+                AssetFavoriteManager.isProjectFavorite(platform, projectId)
+            }
+            //防止点击闭包捕获陈旧的收藏态
+            val currentIsFavorite by rememberUpdatedState(isFavorite)
 
             ResultProjectLayout(
                 modifier = Modifier
@@ -391,8 +403,21 @@ private fun ResultList(
                 follows = follows,
                 modloaders = modloaders,
                 categories = categories?.sortedWith { o1, o2 -> o1.index() - o2.index() },
+                trailingContent = {
+                    FavoriteToggleButton(
+                        isFavorite = isFavorite,
+                        onToggle = {
+                            //项目收藏与版本收藏完全独立，这里只切换项目收藏
+                            if (currentIsFavorite) {
+                                AssetFavoriteManager.removeProject(platform, projectId)
+                            } else {
+                                AssetFavoriteManager.addProject(item.toAssetFavorite(classes))
+                            }
+                        }
+                    )
+                },
                 onClick = {
-                    swapToDownload(platform, item.platformId(), iconUrl)
+                    swapToDownload(platform, projectId, iconUrl)
                 }
             )
         }
@@ -417,6 +442,7 @@ fun ResultProjectLayout(
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
     blur: Int = AllSettings.backgroundBlur.state,
+    trailingContent: (@Composable () -> Unit)? = null,
     onClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -455,7 +481,8 @@ fun ResultProjectLayout(
                 ProjectTitleHead(
                     platform = platform,
                     title = title,
-                    author = author
+                    author = author,
+                    trailingContent = trailingContent
                 )
 
                 Row(
@@ -557,7 +584,8 @@ fun ProjectTitleHead(
     modifier: Modifier = Modifier,
     platform: Platform,
     title: String,
-    author: String?
+    author: String?,
+    trailingContent: (@Composable () -> Unit)? = null
 ) {
     //标题栏、作者栏、平台标签
     Row(
@@ -596,6 +624,8 @@ fun ProjectTitleHead(
                 )
             }
         }
+        //行尾插槽（如收藏按钮），位于平台标签之前，为 null 时不占位
+        trailingContent?.invoke()
         //平台标签
         PlatformIdentifier(platform = platform)
     }

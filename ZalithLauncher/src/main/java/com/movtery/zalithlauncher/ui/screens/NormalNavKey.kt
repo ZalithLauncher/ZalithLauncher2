@@ -184,6 +184,11 @@ sealed interface NormalNavKey : TitledNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.download_category_by_id)
     }
 
+    /** 资源收藏列表屏幕 */
+    @Serializable data object FavoritesList : NormalNavKey {
+        @Contextual override val title: AndroidStringText = androidText(R.string.download_favorites_title)
+    }
+
     /** 下载资源屏幕 */
     @Serializable data class DownloadAssets(
         val platform: Platform,

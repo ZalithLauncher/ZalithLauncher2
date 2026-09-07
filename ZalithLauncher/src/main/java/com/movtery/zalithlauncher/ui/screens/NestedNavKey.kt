@@ -135,4 +135,12 @@ sealed interface NestedNavKey {
             )
         }
     }
+    /** 资源收藏屏幕 */
+    @Serializable class DownloadFavorites : BackStackNavKey<TitledNavKey>(
+        androidText(R.string.download_favorites_title)
+    ) {
+        init {
+            backStack.addIfEmpty(NormalNavKey.FavoritesList)
+        }
+    }
 }

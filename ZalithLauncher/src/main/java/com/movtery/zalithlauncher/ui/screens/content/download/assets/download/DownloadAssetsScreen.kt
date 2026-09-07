@@ -47,6 +47,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,7 +62,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.download.assets.favorites.AssetFavoriteManager
+import com.movtery.zalithlauncher.game.download.assets.favorites.toAssetFavorite
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformProject
@@ -88,6 +92,7 @@ import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.As
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.AssetsVersionItemLayout
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.DownloadAssetsState
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.DownloadAssetsVersionLoading
+import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.FavoriteToggleButton
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.ProjectUrlsContent
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.ScreenshotItemLayout
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.VersionInfoMap
@@ -219,6 +224,58 @@ private class DownloadScreenViewModel(
         }
     }
 
+    //收藏：项目收藏与版本收藏完全独立，互不级联
+
+    /** 当前项目是否已收藏项目本身（同步查内存态） */
+    fun isProjectFavorite(): Boolean =
+        AssetFavoriteManager.isProjectFavorite(platform, projectId)
+
+    /** 指定版本是否已收藏（同步查内存态，版本身份为平台版本 ID） */
+    fun isVersionFavorite(versionId: String): Boolean =
+        AssetFavoriteManager.isVersionFavorite(platform, projectId, versionId)
+
+    /** 收藏当前项目（仅项目本身，不级联版本）；项目信息未就绪时忽略 */
+    fun addProjectFavorite() {
+        val project = (projectResult as? DownloadAssetsState.Success)?.result?.first ?: return
+        viewModelScope.launch {
+            AssetFavoriteManager.addProject(project.toAssetFavorite(classes))
+        }
+    }
+
+    /** 取消收藏当前项目（不连带删除版本收藏） */
+    fun removeProjectFavorite() {
+        viewModelScope.launch {
+            AssetFavoriteManager.removeProject(platform, projectId)
+        }
+    }
+
+    /**
+     * 收藏指定版本；项目信息未就绪时无法构建版本收藏快照，直接忽略。
+     * 仅同一版本再次收藏（同 key 更新）时传入原收藏时间，保留首次收藏时间
+     */
+    fun addVersionFavorite(version: PlatformVersion) {
+        val project = (projectResult as? DownloadAssetsState.Success)?.result?.first ?: return
+        viewModelScope.launch {
+            val versionId = version.platformId()
+            val previousSavedAt = AssetFavoriteManager.findVersions(platform, projectId)
+                .firstOrNull { it.versionId == versionId }?.savedAt
+            AssetFavoriteManager.addVersion(
+                version.toAssetFavorite(
+                    project = project,
+                    classes = classes,
+                    previousSavedAt = previousSavedAt
+                )
+            )
+        }
+    }
+
+    /** 取消收藏指定版本 */
+    fun removeVersionFavorite(versionId: String) {
+        viewModelScope.launch {
+            AssetFavoriteManager.removeVersion(platform, projectId, versionId)
+        }
+    }
+
     //缓存依赖项目
     val cachedDependencyProject = mutableStateMapOf<String, PlatformProject>()
     //该依赖项目未找到，但是多个版本同时依赖这个不存在的项目
@@ -341,6 +398,7 @@ fun DownloadAssetsScreen(
                     .padding(vertical = 12.dp)
                     .padding(end = 12.dp)
                     .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+                viewModel = viewModel,
                 projectResult = viewModel.projectResult,
                 defaultClasses = key.classes,
                 onReload = { viewModel.getProject() },
@@ -362,6 +420,9 @@ private fun Versions(
     onReload: () -> Unit = {},
     onItemClicked: (PlatformVersion) -> Unit = {}
 ) {
+    val favoriteKeys by AssetFavoriteManager.favoriteKeys.collectAsStateWithLifecycle()
+    //项目信息未就绪时无法构建版本收藏快照，版本行收藏按钮禁用（避免静默无效点击）
+    val projectReady = viewModel.projectResult is DownloadAssetsState.Success
     when (val versions = viewModel.versionsResult) {
         is DownloadAssetsState.Getting -> {
             Box(
@@ -480,6 +541,26 @@ private fun Versions(
                                 .fillMaxWidth()
                                 .padding(vertical = 6.dp),
                             infoMap = info,
+                            trailingContent = { version ->
+                                val versionId = remember(version) { version.platformId() }
+                                val isFavorite = remember(favoriteKeys, versionId) {
+                                    viewModel.isVersionFavorite(versionId)
+                                }
+                                //防止点击闭包捕获陈旧的收藏态
+                                val currentIsFavorite by rememberUpdatedState(isFavorite)
+                                FavoriteToggleButton(
+                                    isFavorite = isFavorite,
+                                    enabled = projectReady,
+                                    onToggle = {
+                                        //版本收藏与项目收藏完全独立，这里只切换版本收藏
+                                        if (currentIsFavorite) {
+                                            viewModel.removeVersionFavorite(versionId)
+                                        } else {
+                                            viewModel.addVersionFavorite(version)
+                                        }
+                                    }
+                                )
+                            },
                             onItemClicked = onItemClicked
                         )
                     }
@@ -511,6 +592,7 @@ private fun Versions(
 @Composable
 private fun ProjectInfo(
     modifier: Modifier = Modifier,
+    viewModel: DownloadScreenViewModel,
     projectResult: DownloadAssetsState<Triple<PlatformProject, ModTranslations, ModTranslations.McMod?>>,
     defaultClasses: PlatformClasses,
     onReload: () -> Unit = {},
@@ -575,6 +657,12 @@ private fun ProjectInfo(
                 val urls = remember { project.platformUrls(defaultClasses) }
                 val screenshots = remember { project.platformScreenshots() }
 
+                //项目收藏状态
+                val favoriteKeys by AssetFavoriteManager.favoriteKeys.collectAsStateWithLifecycle()
+                val isProjectFavorite = remember(favoriteKeys) { viewModel.isProjectFavorite() }
+                //防止点击闭包捕获陈旧的收藏态
+                val currentIsProjectFavorite by rememberUpdatedState(isProjectFavorite)
+
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(all = 12.dp),
@@ -599,11 +687,27 @@ private fun ProjectInfo(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.spacedBy(4.dp)
                             ) {
-                                Text(
-                                    text = mcmod.getMcmodTitle(title, context),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    textAlign = TextAlign.Center
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    Text(
+                                        text = mcmod.getMcmodTitle(title, context),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        textAlign = TextAlign.Center
+                                    )
+                                    //项目收藏入口（项目收藏与版本收藏完全独立，这里只切换项目收藏）
+                                    FavoriteToggleButton(
+                                        isFavorite = isProjectFavorite,
+                                        onToggle = {
+                                            if (currentIsProjectFavorite) {
+                                                viewModel.removeProjectFavorite()
+                                            } else {
+                                                viewModel.addProjectFavorite()
+                                            }
+                                        }
+                                    )
+                                }
                                 summary?.let { summary ->
                                     Text(
                                         text = summary,

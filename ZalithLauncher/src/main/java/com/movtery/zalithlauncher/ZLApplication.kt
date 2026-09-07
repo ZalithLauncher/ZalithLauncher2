@@ -35,6 +35,7 @@ import com.kyant.fishnet.Fishnet
 import com.movtery.zalithlauncher.context.refreshContext
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.account.AccountsManager
+import com.movtery.zalithlauncher.game.download.assets.favorites.AssetFavoriteManager
 import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.loadAllSettings
@@ -138,5 +139,6 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
     private fun initializeData() {
         AccountsManager.initialize(this)
         GamePathManager.initialize(this)
+        AssetFavoriteManager.initialize()
     }
 }

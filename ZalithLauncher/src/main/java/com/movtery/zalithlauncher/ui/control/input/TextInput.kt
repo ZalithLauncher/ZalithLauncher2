@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -45,6 +46,7 @@ fun HidableInputLayout(
     keyboardController: SoftwareKeyboardController? = LocalSoftwareKeyboardController.current,
 ) {
     var view by remember { mutableStateOf<TouchCharInput?>(null) }
+    val localView = LocalView.current
 
     AndroidView(
         modifier = Modifier
@@ -100,6 +102,7 @@ fun HidableInputLayout(
             view?.disableKeyboard()
             keyboardController?.hide()
             view = null
+            localView.requestFocus()
         }
     }
 

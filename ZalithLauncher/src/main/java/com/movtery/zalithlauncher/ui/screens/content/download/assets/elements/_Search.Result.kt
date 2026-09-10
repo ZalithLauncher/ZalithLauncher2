@@ -86,6 +86,7 @@ import com.movtery.zalithlauncher.game.download.assets.platform.PlatformFilterCo
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformSearchData
 import com.movtery.zalithlauncher.game.download.assets.utils.ModTranslations
 import com.movtery.zalithlauncher.game.download.assets.utils.getMcmodTitle
+import com.movtery.zalithlauncher.game.version.mod.InstalledMod
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
@@ -107,6 +108,7 @@ sealed interface SearchAssetsState {
 /**
  * 资源搜索结果展示列表
  * @param swapToDownload 跳转到下载详情页
+ * @param installedInfo 查询项目本地是否已安装，键为平台与平台项目ID
  * @param onNavigatePage 导航到指定页面
  */
 @Composable
@@ -121,7 +123,8 @@ fun ResultListLayout(
     onPreviousPage: (pageNumber: Int) -> Unit,
     onNextPage: (pageNumber: Int, isLastPage: Boolean) -> Unit,
     onNavigatePage: (Int) -> Unit,
-    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
+    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> },
+    installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null
 ) {
     when (searchState) {
         is SearchAssetsState.Searching -> {
@@ -161,7 +164,8 @@ fun ResultListLayout(
                     contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 60.dp, bottom = 6.dp),
                     classes = classes,
                     data = page.data,
-                    swapToDownload = swapToDownload
+                    swapToDownload = swapToDownload,
+                    installedInfo = installedInfo
                 )
 
                 val targetScale = 1f - (1f - controllerMinScale) * fraction
@@ -359,7 +363,8 @@ private fun ResultList(
     contentPadding: PaddingValues = PaddingValues(),
     classes: PlatformClasses,
     data: List<Pair<PlatformSearchData, ModTranslations.McMod?>>,
-    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
+    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> },
+    installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null
 ) {
     val context = LocalContext.current
     LazyColumn(
@@ -377,6 +382,7 @@ private fun ResultList(
             val follows = remember(item) { item.platformFollows() }
             val modloaders = remember(item) { item.platformModLoaders() }
             val categories = remember(item, classes) { item.platformCategories(classes) }
+            val isInstalled = installedInfo?.invoke(platform, item.platformId()) != null
 
             ResultProjectLayout(
                 modifier = Modifier
@@ -391,6 +397,7 @@ private fun ResultList(
                 follows = follows,
                 modloaders = modloaders,
                 categories = categories?.sortedWith { o1, o2 -> o1.index() - o2.index() },
+                isInstalled = isInstalled,
                 onClick = {
                     swapToDownload(platform, item.platformId(), iconUrl)
                 }
@@ -412,6 +419,7 @@ fun ResultProjectLayout(
     follows: Long? = null,
     modloaders: List<PlatformDisplayLabel>? = null,
     categories: List<PlatformFilterCode>? = null,
+    isInstalled: Boolean = false,
     shape: Shape = MaterialTheme.shapes.large,
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
@@ -545,6 +553,12 @@ fun ResultProjectLayout(
                     //资源的类别
                     if (classes != null) {
                         ClassesIdentifier(classes = classes)
+                    }
+
+                    if (isInstalled) {
+                        InstalledModBadge(
+                            modifier = Modifier.align(Alignment.Bottom)
+                        )
                     }
                 }
             }

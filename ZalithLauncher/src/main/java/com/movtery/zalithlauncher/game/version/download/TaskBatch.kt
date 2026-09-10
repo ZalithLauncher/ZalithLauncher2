@@ -96,6 +96,8 @@ suspend fun Task.runBatchDownloads(
     } catch (e: Exception) {
         val failedDetail = batch.lastRunFailures.keys.joinToString("\n") { path -> path }
         throw DownloadFailedException("Failed downloads:\n$failedDetail", e)
+    } finally {
+        clearSpeed()
     }
 }
 

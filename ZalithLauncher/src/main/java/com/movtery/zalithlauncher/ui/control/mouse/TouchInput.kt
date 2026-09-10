@@ -45,11 +45,14 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
 import com.movtery.zalithlauncher.ui.components.FocusableBox
+import com.movtery.zalithlauncher.ui.control.input.TouchCharInput
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -65,6 +68,15 @@ private data class DragState(
     var longPressTriggered: Boolean = false,
     val startPosition: Offset
 )
+
+/**
+ * 判定双指同时按下的最大时间间隔（ms）
+ */
+private const val SCROLL_GESTURE_DOWN_WINDOW_MILLIS = 200L
+/**
+ * 双指滑动滚动时，滑动该距离对应滚动一次滚轮
+ */
+private val SCROLL_GESTURE_SCROLL_DISTANCE = 6.dp
 
 /**
  * 原始触摸控制模拟层
@@ -85,6 +97,8 @@ private data class DragState(
  * @param isMoveOnlyPointer         指针是否被父级标记为仅可滑动指针
  * @param onOccupiedPointer         占用指针回调
  * @param onReleasePointer          释放指针回调
+ * @param enableScrollGesture       是否启用双指滑动滚动手势
+ * @param onScrollGesture           双指滑动滚动回调，参数为滚轮滚动的偏移量
  * @param inputChange               重新启动内部的 pointerInput 块，让触摸逻辑能够实时拿到最新的外部参数
  */
 @Composable
@@ -107,6 +121,8 @@ fun TouchpadLayout(
     isMoveOnlyPointer: (PointerId) -> Boolean = { false },
     onOccupiedPointer: (PointerId) -> Unit = {},
     onReleasePointer: (PointerId) -> Unit = {},
+    enableScrollGesture: Boolean = false,
+    onScrollGesture: (Offset) -> Unit = {},
     inputChange: Array<out Any> = arrayOf(Unit),
     requestFocusKey: Any? = null
 ) {
@@ -123,6 +139,11 @@ fun TouchpadLayout(
     val currentOnLongPress by rememberUpdatedState(onLongPress)
     val currentOnLongPressEnd by rememberUpdatedState(onLongPressEnd)
     val currentOnPointerMove by rememberUpdatedState(onPointerMove)
+    val currentEnableScrollGesture by rememberUpdatedState(enableScrollGesture)
+    val currentOnScrollGesture by rememberUpdatedState(onScrollGesture)
+    val currentScrollGestureDistancePx by rememberUpdatedState(
+        with(LocalDensity.current) { SCROLL_GESTURE_SCROLL_DISTANCE.toPx() }
+    )
 
     FocusableBox(
         modifier = modifier
@@ -142,6 +163,14 @@ fun TouchpadLayout(
 
                     /** moveOnly 指针集合，用于处理滑动事件 */
                     val moveOnlyPointers = mutableSetOf<PointerId>()
+                    /** 双指滑动滚动手势占用的指针 */
+                    val scrollGesturePointers = mutableSetOf<PointerId>()
+                    /** 双指滑动滚动手势是否正在进行 */
+                    var scrollGestureActive = false
+                    /** 双指滑动滚动手势中，未满一次滚动的位移余量 */
+                    var scrollGestureRemainder = Offset.Zero
+                    /** 活跃指针的按下时间，用于判定双指是否几乎同时按下 */
+                    var activePointerDownTime = 0L
 
                     /** 清除鼠标触摸层的状态 */
                     fun resetTouchState() {
@@ -152,6 +181,9 @@ fun TouchpadLayout(
                         occupiedPointers.forEach { onReleasePointer(it) }
                         occupiedPointers.clear()
                         moveOnlyPointers.clear()
+                        scrollGesturePointers.clear()
+                        scrollGestureActive = false
+                        scrollGestureRemainder = Offset.Zero
                     }
 
                     awaitPointerEventScope {
@@ -192,6 +224,7 @@ fun TouchpadLayout(
                                             }
 
                                             activePointer = pointerId
+                                            activePointerDownTime = change.uptimeMillis
 
                                             dragStates[pointerId] =
                                                 DragState(startPosition = change.position)
@@ -219,11 +252,61 @@ fun TouchpadLayout(
                                                 //点击模式下，如果触摸，无论如何都应该更新指针位置
                                                 currentOnPointerMove(change.position, false)
                                             }
+                                        } else if (currentEnableScrollGesture && scrollGesturePointers.isEmpty() && !change.isConsumed) {
+                                            //尝试与已按下的指针组成双指滑动滚动手势
+                                            //两根指针都不能来源于控制布局，需几乎同时按下，且第一根指针尚未开始拖动虚拟鼠标
+                                            activePointer?.takeIf { it != pointerId }?.let { first ->
+                                                if (!isMoveOnlyPointer(first)
+                                                    && change.uptimeMillis - activePointerDownTime <= SCROLL_GESTURE_DOWN_WINDOW_MILLIS
+                                                    && dragStates[first]?.let { !it.isDragging && !it.longPressTriggered } == true
+                                                ) {
+                                                    longPressJobs.remove(first)?.cancel()
+                                                    //标记第一根指针为拖动状态，避免手势结束后误触点击
+                                                    dragStates[first]?.isDragging = true
+                                                    //第二根指针同样注册为占用，避免被控制布局抢占
+                                                    if (pointerId !in occupiedPointers) {
+                                                        onOccupiedPointer(pointerId)
+                                                        occupiedPointers.add(pointerId)
+                                                    }
+                                                    scrollGesturePointers.add(first)
+                                                    scrollGesturePointers.add(pointerId)
+                                                    scrollGestureActive = true
+                                                    scrollGestureRemainder = Offset.Zero
+                                                }
+                                            }
                                         }
                                     }
 
+                                //处理双指滑动滚动手势的移动，取双指位移的平均值，
+                                //滑动距离累计满一次阈值时，发送一次滚轮滚动事件
+                                if (scrollGestureActive) {
+                                    var deltaSum = Offset.Zero
+                                    event.changes
+                                        .filter { it.id in scrollGesturePointers && it.positionChanged() && !it.isConsumed }
+                                        .forEach { change ->
+                                            deltaSum += change.positionChange()
+                                            change.consume()
+                                        }
+
+                                    if (deltaSum != Offset.Zero) {
+                                        val scaled = deltaSum / scrollGesturePointers.size.coerceAtLeast(1).toFloat()
+                                        val hScroll = scaled.x / currentScrollGestureDistancePx + scrollGestureRemainder.x
+                                        val vScroll = scaled.y / currentScrollGestureDistancePx + scrollGestureRemainder.y
+                                        val hRound = hScroll.toInt()
+                                        val vRound = vScroll.toInt()
+
+                                        if (hRound != 0 || vRound != 0) {
+                                            currentOnScrollGesture(Offset(hScroll, vScroll))
+                                        }
+                                        scrollGestureRemainder = Offset(
+                                            x = hScroll - hRound,
+                                            y = vScroll - vRound
+                                        )
+                                    }
+                                }
+
                                 //处理移动事件，处理活跃指针的移动
-                                activePointer?.let { pointerId ->
+                                activePointer?.takeIf { it !in scrollGesturePointers }?.let { pointerId ->
                                     event.changes
                                         .firstOrNull { it.id == pointerId && it.positionChanged() && !it.isConsumed }
                                         ?.let { moveChange ->
@@ -300,8 +383,14 @@ fun TouchpadLayout(
                                         longPressJobs.remove(pointerId)?.cancel()
                                         val dragState = dragStates.remove(pointerId)
 
-                                        //如果是活跃指针，处理释放逻辑
-                                        if (pointerId == activePointer) {
+                                        if (pointerId in scrollGesturePointers) {
+                                            //滚动手势的指针抬起，直接结束手势，不触发点击
+                                            scrollGesturePointers.remove(pointerId)
+                                            scrollGestureActive = false
+                                            if (pointerId == activePointer) {
+                                                activePointer = null
+                                            }
+                                        } else if (pointerId == activePointer) {
                                             if (!isMoveOnly) {
                                                 if (dragState?.longPressTriggered == true) {
                                                     currentOnLongPressEnd()
@@ -354,7 +443,7 @@ fun TouchpadLayout(
                 )
             ),
         requestKey = requestFocusKey to composeFocusCount,
-        canRequestFocus = { !SDLActivity.isUsingSDLTextEdit() }
+        canRequestFocus = { !SDLActivity.isUsingSDLTextEdit() && !TouchCharInput.isActive() }
     )
 
     SimpleMouseCapture(

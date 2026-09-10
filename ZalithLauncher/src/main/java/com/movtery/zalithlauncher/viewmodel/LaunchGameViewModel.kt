@@ -47,7 +47,6 @@ class LaunchGameViewModel : ViewModel() {
         activity: Activity,
         version: Version,
         exitActivity: () -> Unit,
-        waitForVulkanChecker: suspend () -> Unit,
         submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
         quickPlay: QuickPlay?,
         skipAccountRefresh: Boolean
@@ -58,7 +57,6 @@ class LaunchGameViewModel : ViewModel() {
                     context = activity,
                     version = version,
                     exitActivity = exitActivity,
-                    waitForVulkanChecker = waitForVulkanChecker,
                     submitError = submitError,
                     onReloginRequired = { account ->
                         activity.runOnUiThread {

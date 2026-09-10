@@ -172,8 +172,7 @@ class GameLauncher(
     override fun initEnv(screenSize: IntSize): MutableMap<String, String> {
         val envMap = super.initEnv(screenSize)
 
-        DriverPluginManager.setDriverById(version.getDriver())
-        envMap["DRIVER_PATH"] = DriverPluginManager.getDriver().path
+        envMap["DRIVER_PATH"] = DriverPluginManager.getDriver(version.getDriver()).path
 
         checkAndUsedJSPH(envMap, runtime)
         version.getVersionInfo()?.loaderInfo?.getLoaderEnvKey()?.let { loaderKey ->

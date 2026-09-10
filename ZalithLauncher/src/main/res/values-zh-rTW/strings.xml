@@ -140,6 +140,8 @@
     <string name="notification_data_jvm_service_running">正在透過前景服務安裝遊戲中</string>
     <string name="notification_data_terracotta_message">在多人連線的過程中，啟動器會使用前台服務來顯示當前連線狀態，因此需要您開啟通知權限。</string>
     <string name="notification_jvm_running_name">JVM 保活服務</string>
+    <string name="notification_task_service_name">任務保活服務</string>
+    <string name="notification_task_service_running">正在背景下執行任務，請保持啟動器運行</string>
     <!--  麥克風  -->
     <string name="microphone_check_title">檢查麥克風輸入</string>
     <string name="microphone_check_volume">音量：%d</string>
@@ -390,12 +392,18 @@
     <string name="game_vulkan_check_text">檢查您的裝置是否支援使用 Vulkan 執行 Minecraft 26.2+，結果僅供參考</string>
     <string name="game_vulkan_check_version">Vulkan 版本：%s</string>
     <string name="game_vulkan_check_turnip">使用 Turnip：%s</string>
+    <string name="game_vulkan_check_versions">各版本支援情況：</string>
+    <string name="game_vulkan_check_profile_supp">支援</string>
+    <string name="game_vulkan_check_profile_unsupp">不支援</string>
+    <string name="game_vulkan_check_dep_required">必需：</string>
+    <string name="game_vulkan_check_dep_optional">可選：</string>
+    <string name="game_vulkan_check_item_missing">（缺失）</string>
+    <string name="game_vulkan_check_failed">無法取得裝置的 Vulkan 支援情況</string>
+    <string name="game_vulkan_check_partial">您的裝置僅支援使用 Vulkan 執行部分 Minecraft 版本：</string>
     <string name="game_vulkan_check_extensions">依賴的擴充功能：</string>
-    <string name="game_vulkan_check_missing_extensions">缺少的擴充功能：</string>
     <string name="game_vulkan_check_features">依賴的功能：</string>
-    <string name="game_vulkan_check_missing_features">缺少的功能：</string>
-    <string name="game_vulkan_check_unsupp">您的裝置不支援使用 Vulkan 執行 Minecraft 26.2+</string>
-    <string name="game_vulkan_check_supp">您的裝置可以使用 Vulkan 執行 Minecraft 26.2+</string>
+    <string name="game_vulkan_check_unsupp">您的裝置不支援使用 Vulkan 執行任何 Minecraft 版本</string>
+    <string name="game_vulkan_check_supp">您的裝置可以使用 Vulkan 執行 Minecraft %s 及以上版本</string>
     <!--  渲染器  -->
     <string name="renderer_version_support">MC 版本支援：</string>
     <string name="renderer_version_unsupported_warning">目前渲染器 %s 不支援此遊戲版本，繼續使用可能導致渲染錯誤或遊戲崩潰！您確定要忽略風險並繼續嗎？</string>
@@ -783,6 +791,13 @@
     <string name="settings_renderer_from_plugins">來自 %s 外掛程式</string>
     <string name="settings_renderer_resolution_scale_title">遊戲視窗解析度</string>
     <string name="settings_renderer_resolution_scale_summary">數值越低效能越高，數值越高畫質越清晰，請依實際需求調整</string>
+
+    <string name="settings_renderer_resolution_rule_title">解析度規則</string>
+    <string name="settings_renderer_resolution_rule_summary">選擇遊戲視窗解析度的計算規則</string>
+    <string name="settings_renderer_resolution_rule_percentage">百分比</string>
+    <string name="settings_renderer_resolution_custom_summary">以精確的寬高渲染遊戲，畫面將等比縮放以適應螢幕</string>
+    <string name="settings_renderer_resolution_custom_width">寬度</string>
+    <string name="settings_renderer_resolution_custom_height">高度</string>
     <string name="settings_renderer_full_screen_title">遊戲頁面全螢幕化</string>
     <string name="settings_renderer_full_screen_summary">使遊戲頁面全螢幕化，忽略瀏海螢幕、挖孔螢幕等螢幕的安全區域</string>
     <string name="settings_renderer_sustained_performance_title">啟用持續效能模式</string>
@@ -866,7 +881,7 @@
     <string name="settings_control_mouse_long_press_delay_title">虛擬滑鼠長按觸發延遲</string>
     <string name="settings_control_mouse_long_press_delay_summary">設定螢幕長按辨識的延遲時間（實體滑鼠長按不受此設定影響，包括停用實體滑鼠控制時）</string>
     <string name="settings_control_gesture_control_title">手勢控制</string>
-    <string name="settings_control_gesture_control_summary">支援透過點擊和長按等手勢，在遊戲中進行互動，類似基岩版</string>
+    <string name="settings_control_gesture_control_summary">支援透過點擊、長按以及雙指滑動捲動等手勢，在遊戲中進行互動，類似基岩版</string>
     <string name="settings_control_gesture_tap_action_title">點擊觸發的操作類型</string>
     <string name="settings_control_gesture_tap_action_summary">選擇在輕觸螢幕時應觸發的滑鼠按鍵操作</string>
     <string name="settings_control_gesture_long_press_action_title">長按觸發的操作類型</string>
@@ -1104,6 +1119,8 @@
     <string name="download_assets_install_progress_downloading">下載並安裝資源\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">安裝資源\n%s</string>
     <string name="download_assets_install_failed">安裝資源失敗!</string>
+    <string name="download_assets_dependency_no_compatible_version">依賴 %s 未找到適配的版本</string>
+    <string name="download_assets_dependency_project_unavailable">無法取得依賴專案資訊</string>
     <string name="download_assets_id_holder">專案 ID</string>
     <string name="download_assets_id_tip">根據專案 ID 快速取得對應專案</string>
     <string name="download_assets_id_not_found">未找到該專案！</string>

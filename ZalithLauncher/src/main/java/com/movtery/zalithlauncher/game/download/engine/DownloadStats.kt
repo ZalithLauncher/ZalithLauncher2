@@ -37,7 +37,7 @@ data class BatchProgress(
  * 热路径只有原子加法。
  * 文件/字节维度全部使用原子量，最多与并发连接数同量级的线程同时完成也不会丢计数。
  */
-class DownloadStats internal constructor() {
+class DownloadStats {
     private val downloaded = AtomicLong(0L)
     private val totalBytesCounter = AtomicLong(-1L)
     private val totalFilesCounter = AtomicInteger(0)
@@ -52,7 +52,7 @@ class DownloadStats internal constructor() {
         downloaded.addAndGet(count)
     }
 
-    internal fun registerFile(expectedSize: Long) {
+    fun registerFile(expectedSize: Long) {
         totalFilesCounter.incrementAndGet()
         if (expectedSize > 0) {
             totalBytesCounter.accumulateAndGet(expectedSize) { previous, add ->
@@ -61,14 +61,14 @@ class DownloadStats internal constructor() {
         }
     }
 
-    internal fun markFileFinished() {
+    fun markFileFinished() {
         downloadedFilesCounter.incrementAndGet()
     }
 
     /**
      * 把"本地已复用文件"的字节并入已下载量
      */
-    internal fun resetSpeedBaseline() {
+    fun resetSpeedBaseline() {
         synchronized(this) {
             blockStartNanos = System.nanoTime()
             blockStartBytes = downloaded.get()

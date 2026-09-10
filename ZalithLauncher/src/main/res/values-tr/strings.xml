@@ -197,6 +197,8 @@
     <string name="download_assets_install_progress_downloading">Varlıklar indiriliyor ve yükleniyor\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">Varlıklar yükleniyor\n%s</string>
     <string name="download_assets_install_failed">Varlıklar yüklenemedi!</string>
+    <string name="download_assets_dependency_no_compatible_version">%s bağımlılığı için uyumlu sürüm bulunamadı</string>
+    <string name="download_assets_dependency_project_unavailable">Proje bilgileri alınamadı</string>
     <string name="download_modpack_warning1">Kurulumdan önce, çoğu mod paketinin PC için yapıldığını ve bunları başlatmaya çalıştığınızda çökme veya başka sorunlar yaşama olasılığının yüksek olduğunu anlamanız gerekir. Bu sorunlar genellikle tahmin edilemeyecek kadar büyüktür.</string>
     <string name="download_modpack_warning2">Sorunları kendi başınıza çözmeye çalışmak veya başkalarından yardım almak için ilgili bilgileri öğrenmeniz gerekecektir.</string>
     <string name="download_modpack_warning3">Not: Başlatıcı geliştiricileri genellikle mod paketlerinden kaynaklanan sorunları çözmez.</string>
@@ -483,6 +485,13 @@
     <string name="settings_renderer_from_plugins">%s eklentisinden</string>
     <string name="settings_renderer_resolution_scale_title">Çözünürlük</string>
     <string name="settings_renderer_resolution_scale_summary">Değer düşük oldukça performans artar, değer yüksek oldukça görüntü kalitesi artar; ihtiyacınıza göre ayarlayın</string>
+
+    <string name="settings_renderer_resolution_rule_title">Çözünürlük Kuralı</string>
+    <string name="settings_renderer_resolution_rule_summary">Oyun penceresi çözünürlüğünün nasıl hesaplanacağını seçin</string>
+    <string name="settings_renderer_resolution_rule_percentage">Yüzde</string>
+    <string name="settings_renderer_resolution_custom_summary">Oyunu tam genişlik ve yükseklikle işleyin; görüntü ekrana sığacak şekilde ölçeklenir</string>
+    <string name="settings_renderer_resolution_custom_width">Genişlik</string>
+    <string name="settings_renderer_resolution_custom_height">Yükseklik</string>
     <string name="settings_renderer_full_screen_title">Oyun Tam Ekranı</string>
     <string name="settings_renderer_full_screen_summary">Oyun ekranını tam ekran yapar, çentikli ekranlar, delikli ekranlar gibi ekran güvenlik alanlarını görmezden gelir</string>
     <string name="settings_renderer_sustained_performance_title">Sürekli Performans Modu</string>
@@ -537,7 +546,7 @@
     <string name="settings_control_mouse_long_press_delay_title">Uzun Basma Gecikmesi</string>
     <string name="settings_control_mouse_long_press_delay_summary">Ekranda uzun basmayı tanıma gecikme süresini ayarlayın (gerçek fare uzun basması bu ayardan etkilenmez, gerçek fare kontrolü devre dışı bırakılmış olsa bile)</string>
     <string name="settings_control_gesture_control_title">Hareketlerle Kontrol</string>
-    <string name="settings_control_gesture_control_summary">Oyun içinde, tıklama ve uzun basma gibi jestlerle etkileşimde bulunmayı destekler; Bedrock sürümüne benzer şekilde</string>
+    <string name="settings_control_gesture_control_summary">Oyun içinde, tıklama, uzun basma ve iki parmakla kaydırarak içerik kaydırma gibi jestlerle etkileşimde bulunmayı destekler; Bedrock sürümüne benzer şekilde</string>
     <string name="settings_control_gesture_tap_action_title">Dokunma Eylemi</string>
     <string name="settings_control_gesture_tap_action_summary">Ekrana hafif dokunulduğunda tetiklenecek fare tuşu işlemini seçin</string>
     <string name="settings_control_gesture_long_press_action_title">Uzun Basma Eylemi</string>
@@ -1171,12 +1180,18 @@
     <string name="game_vulkan_check_text">Cihazınızın Minecraft 26.2+ sürümünü Vulkan ile çalıştırmayı destekleyip desteklemediğini kontrol edin. Sonuçlar yalnızca referans amaçlıdır.</string>
     <string name="game_vulkan_check_version">Vulkan sürümü: %s</string>
     <string name="game_vulkan_check_turnip">Turnip Kullanımı: %s</string>
-    <string name="game_vulkan_check_extensions">Gerekli eklentiler:</string>
-    <string name="game_vulkan_check_missing_extensions">Eksik uzantılar:</string>
-    <string name="game_vulkan_check_features">Gerekli özellikler:</string>
-    <string name="game_vulkan_check_missing_features">Eksik özellikler:</string>
-    <string name="game_vulkan_check_unsupp">Cihazınız Minecraft 26.2+ sürümünü Vulkan ile çalıştırmayı desteklemiyor.</string>
-    <string name="game_vulkan_check_supp">Cihazınız Minecraft 26.2+ sürümünü Vulkan ile çalıştırmayı destekliyor.</string>
+    <string name="game_vulkan_check_versions">Sürüm desteği:</string>
+    <string name="game_vulkan_check_profile_supp">Destekleniyor</string>
+    <string name="game_vulkan_check_profile_unsupp">Desteklenmiyor</string>
+    <string name="game_vulkan_check_dep_required">Zorunlu:</string>
+    <string name="game_vulkan_check_dep_optional">İsteğe bağlı:</string>
+    <string name="game_vulkan_check_item_missing">" (eksik)"</string>
+    <string name="game_vulkan_check_failed">Cihazın Vulkan destek bilgileri alınamadı</string>
+    <string name="game_vulkan_check_partial">Cihazınız yalnızca bazı Minecraft sürümlerini Vulkan ile çalıştırabilir:</string>
+    <string name="game_vulkan_check_extensions">Uzantılar:</string>
+    <string name="game_vulkan_check_features">Özellikler:</string>
+    <string name="game_vulkan_check_unsupp">Cihazınız hiçbir Minecraft sürümünü Vulkan ile çalıştıramıyor</string>
+    <string name="game_vulkan_check_supp">Cihazınız Minecraft %s ve üzeri sürümleri Vulkan ile çalıştırabilir</string>
     <string name="error_bad_request">(%s) Sunucu isteği anlayamadı</string>
     <string name="error_forbidden">(%s) Bu kaynağa erişim izniniz yok.</string>
     <string name="error_not_acceptable">(%s) Kabul Edilemez</string>

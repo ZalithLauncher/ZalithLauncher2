@@ -273,9 +273,10 @@ class TerracottaViewModel(
                             withContext(Dispatchers.Main) {
                                 val activity = gameHandler.activity
                                 if (TerracottaVPNService.isRunning()) {
-                                    val vpnIntent = Intent(activity, TerracottaVPNService::class.java)
-                                        .setAction(TerracottaVPNService.ACTION_STOP)
-                                    activity.startForegroundService(vpnIntent)
+                                    //必须用 stopService 下发停止指令，避免 FGS 启动时限崩溃
+                                    activity.stopService(
+                                        Intent(activity, TerracottaVPNService::class.java)
+                                    )
                                 }
                             }
                         }

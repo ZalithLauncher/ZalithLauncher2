@@ -524,8 +524,8 @@ private fun VersionsLayout(
                             .topFade(listTopFadePx),
                         contentPadding = PaddingValues(
                             start = 12.dp,
-                            top = 24.dp + with(density) {
-                                (headerHeightPx + topAppBarState.heightOffset).coerceAtLeast(-headerTopPaddingPx).toDp()
+                            top = with(density) {
+                                (headerHeightPx + topAppBarState.heightOffset).coerceAtLeast(0f).toDp()
                             },
                             end = 12.dp,
                             bottom = 12.dp
@@ -568,87 +568,92 @@ private fun VersionsLayout(
                     }
                 }
 
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(IntrinsicSize.Min)
                         .zIndex(1f)
-                        .padding(start = 12.dp, end = 12.dp, top = 12.dp)
                         .onSizeChanged {
                             headerHeightPx = it.height
-                            topAppBarState.heightOffsetLimit = -(it.height + headerTopPaddingPx)
+                            topAppBarState.heightOffsetLimit = -it.height.toFloat()
                         }
-                        .offset { IntOffset(x = 0, y = topAppBarState.heightOffset.roundToInt()) },
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        .offset { IntOffset(x = 0, y = topAppBarState.heightOffset.roundToInt()) }
                 ) {
-                    Surface(
-                        modifier = Modifier.height(IntrinsicSize.Max),
-                        color = cardColor(false),
-                        contentColor = onCardColor(),
-                        shape = MaterialTheme.shapes.large,
-                        shadowElevation = actionBarShadowElevation,
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(all = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconTextButton(
-                                onClick = onRefresh,
-                                painter = painterResource(R.drawable.ic_refresh),
-                                contentDescription = stringResource(R.string.generic_refresh),
-                                text = stringResource(R.string.generic_refresh)
-                            )
-                            IconTextButton(
-                                onClick = onInstall,
-                                painter = painterResource(R.drawable.ic_download),
-                                contentDescription = stringResource(R.string.versions_manage_install_new),
-                                text = stringResource(R.string.versions_manage_install_new),
-                            )
-                        }
-                    }
-
-                    // 版本分类
-                    Surface(
+                    Row(
                         modifier = Modifier
-                            .weight(1f, fill = false)
-                            .height(IntrinsicSize.Max),
-                        color = cardColor(false),
-                        contentColor = onCardColor(),
-                        shape = MaterialTheme.shapes.large,
-                        shadowElevation = actionBarShadowElevation,
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min)
+                            .padding(all = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        val scrollState = rememberScrollState()
-                        Row(
-                            modifier = Modifier
-                                .fadeEdge(
-                                    state = scrollState,
-                                    length = 32.dp,
-                                    direction = EdgeDirection.Horizontal
-                                )
-                                .horizontalScroll(state = scrollState)
-                                .padding(all = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                        Surface(
+                            modifier = Modifier.height(IntrinsicSize.Max),
+                            color = cardColor(false),
+                            contentColor = onCardColor(),
+                            shape = MaterialTheme.shapes.large,
+                            shadowElevation = actionBarShadowElevation,
                         ) {
-                            VersionCategoryItem(
-                                value = VersionCategory.ALL,
-                                versionsCount = allVersionsCount,
-                                selected = versionCategory == VersionCategory.ALL,
-                                onClick = { onCategoryChange(VersionCategory.ALL) }
-                            )
-                            VersionCategoryItem(
-                                value = VersionCategory.VANILLA,
-                                versionsCount = vanillaVersionsCount,
-                                selected = versionCategory == VersionCategory.VANILLA,
-                                onClick = { onCategoryChange(VersionCategory.VANILLA) }
-                            )
-                            VersionCategoryItem(
-                                value = VersionCategory.MODLOADER,
-                                versionsCount = modloaderVersionsCount,
-                                selected = versionCategory == VersionCategory.MODLOADER,
-                                onClick = { onCategoryChange(VersionCategory.MODLOADER) }
-                            )
+                            Row(
+                                modifier = Modifier.padding(all = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconTextButton(
+                                    onClick = onRefresh,
+                                    painter = painterResource(R.drawable.ic_refresh),
+                                    contentDescription = stringResource(R.string.generic_refresh),
+                                    text = stringResource(R.string.generic_refresh)
+                                )
+                                IconTextButton(
+                                    onClick = onInstall,
+                                    painter = painterResource(R.drawable.ic_download),
+                                    contentDescription = stringResource(R.string.versions_manage_install_new),
+                                    text = stringResource(R.string.versions_manage_install_new),
+                                )
+                            }
+                        }
+
+                        // 版本分类
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                                .height(IntrinsicSize.Max),
+                            color = cardColor(false),
+                            contentColor = onCardColor(),
+                            shape = MaterialTheme.shapes.large,
+                            shadowElevation = actionBarShadowElevation,
+                        ) {
+                            val scrollState = rememberScrollState()
+                            Row(
+                                modifier = Modifier
+                                    .fadeEdge(
+                                        state = scrollState,
+                                        length = 32.dp,
+                                        direction = EdgeDirection.Horizontal
+                                    )
+                                    .horizontalScroll(state = scrollState)
+                                    .padding(all = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                VersionCategoryItem(
+                                    value = VersionCategory.ALL,
+                                    versionsCount = allVersionsCount,
+                                    selected = versionCategory == VersionCategory.ALL,
+                                    onClick = { onCategoryChange(VersionCategory.ALL) }
+                                )
+                                VersionCategoryItem(
+                                    value = VersionCategory.VANILLA,
+                                    versionsCount = vanillaVersionsCount,
+                                    selected = versionCategory == VersionCategory.VANILLA,
+                                    onClick = { onCategoryChange(VersionCategory.VANILLA) }
+                                )
+                                VersionCategoryItem(
+                                    value = VersionCategory.MODLOADER,
+                                    versionsCount = modloaderVersionsCount,
+                                    selected = versionCategory == VersionCategory.MODLOADER,
+                                    onClick = { onCategoryChange(VersionCategory.MODLOADER) }
+                                )
+                            }
                         }
                     }
                 }

@@ -39,11 +39,19 @@ private class UnknownHost : java.net.UnknownHostException("synthetic")
 class SourceSetTest {
 
     @Test
-    fun `acquire rotates through every healthy source`() {
+    fun `acquire keeps preference order while every host is healthy`() {
         val sources = SourceSet(listOf("a", "b", "c"))
-        val visited = mutableListOf<String>()
-        repeat(3) { visited += sources.acquire(requireRange = false)!!.url }
-        assertEquals(listOf("a", "b", "c"), visited)
+        assertEquals("a", sources.acquire(requireRange = false)!!.url)
+        assertEquals("a", sources.acquire(requireRange = false)!!.url)
+    }
+
+    @Test
+    fun `acquire prefers the host with fewer recent failures`() {
+        val health = HostHealth(tripThreshold = 10)
+        repeat(2) { health.recordFailure("https://mirror.example/f1", fault(500)) }
+
+        val sources = SourceSet(listOf("https://mirror.example/f", "https://official.example/f"), health)
+        assertEquals("https://official.example/f", sources.acquire(false)!!.url)
     }
 
     @Test
@@ -58,8 +66,8 @@ class SourceSetTest {
         assertEquals("b", sources.acquire(false)!!.url)
 
         sources.degrade()
-        //轮转游标停在了 b，健康扫描会重新接纳被软禁用的 a
-        assertEquals(setOf("a", "b"), mutableSetOf(sources.acquire(false)!!.url, sources.acquire(false)!!.url))
+        //软禁用的 a 复活，但它的主机失败计数更高，健康排序仍先给出 b
+        assertEquals("b", sources.acquire(false)!!.url)
     }
 
     @Test
@@ -78,7 +86,16 @@ class SourceSetTest {
     }
 
     @Test
-    fun `range requirement skips no-range sources even after cursor wrap`() {
+    fun `server overload statuses stay soft instead of fatal`() {
+        val sources = SourceSet(listOf("a", "b"))
+        val first = sources.acquire(false)!!
+
+        //502 属于源过载的常见形态，第一次失败后源仍可用
+        assertTrue(first.recordFailure(fault(502)))
+    }
+
+    @Test
+    fun `range requirement skips no-range sources`() {
         val sources = SourceSet(listOf("noRange", "ranged"))
         sources.acquire(false)!!.markNoRangeSupport()
         assertEquals("ranged", sources.acquire(requireRange = true)!!.url)

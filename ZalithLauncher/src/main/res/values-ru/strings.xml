@@ -351,6 +351,13 @@
     <string name="settings_renderer_from_plugins">Из плагина %s</string>
     <string name="settings_renderer_resolution_scale_title">Разрешение экрана</string>
     <string name="settings_renderer_resolution_scale_summary">Меньшее значение может увеличить FPS, но изображение станет мыльным, так же и в обратную сторону (ᵔ⩊ᵔ)</string>
+
+    <string name="settings_renderer_resolution_rule_title">Правило разрешения</string>
+    <string name="settings_renderer_resolution_rule_summary">Выберите способ расчёта разрешения игрового окна</string>
+    <string name="settings_renderer_resolution_rule_percentage">Процент</string>
+    <string name="settings_renderer_resolution_custom_summary">Запускайте игру с точной шириной и высотой; изображение масштабируется под экран</string>
+    <string name="settings_renderer_resolution_custom_width">Ширина</string>
+    <string name="settings_renderer_resolution_custom_height">Высота</string>
     <string name="settings_renderer_full_screen_title">Игнорирование выреза</string>
     <string name="settings_renderer_full_screen_summary">Игнорирует вырез под фронтальную камеру и даёт дополнительное место для изображение под ней</string>
     <string name="settings_renderer_sustained_performance_title">Режим стабильной производительности</string>
@@ -393,7 +400,7 @@
     <string name="settings_control_mouse_long_press_delay_title">Задержка жеста длительного касания</string>
     <string name="settings_control_mouse_long_press_delay_summary">Установить время задержки для распознавания жеста длительного нажатия на экране (Работает только если собственно включены жесты)</string>
     <string name="settings_control_gesture_control_title">Управление жестами</string>
-    <string name="settings_control_gesture_control_summary">Поддерживает взаимодействие в игре через жесты, такие как касание и длительное нажатие, аналогично Bedrock Edition</string>
+    <string name="settings_control_gesture_control_summary">Поддерживает взаимодействие в игре через жесты, такие как касание, длительное нажатие и прокрутка свайпом двумя пальцами, аналогично Bedrock Edition</string>
     <string name="settings_control_gesture_tap_action_title">Тип действия при касании</string>
     <string name="settings_control_gesture_tap_action_summary">Выберите действие кнопки мыши, которое будет вызвано при касании экрана</string>
     <string name="settings_control_gesture_long_press_action_title">Тип действия при длительном нажатии</string>
@@ -459,6 +466,8 @@
     <string name="download_assets_install_progress_downloading">Загрузка и установка ресурсов\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">Установка ресурсов\n%s</string>
     <string name="download_assets_install_failed">Не удалось установить ресурсы!</string>
+    <string name="download_assets_dependency_no_compatible_version">Не найдено совместимой версии для зависимости %s</string>
+    <string name="download_assets_dependency_project_unavailable">Информация о проекте недоступна</string>
     <string name="download_assets_category_worldgen">Генерация мира</string>
     <string name="download_assets_category_biomes">Биомы</string>
     <string name="download_assets_category_dimensions">Измерения</string>
@@ -1191,12 +1200,18 @@
     <string name="game_vulkan_check_text">Проверьте, поддерживает ли ваше устройство запуск Minecraft 26.2+ с Vulkan. Результаты приведены только для справки.</string>
     <string name="game_vulkan_check_version">Vulkan версия: %s</string>
     <string name="game_vulkan_check_turnip">Использование Turnip: %s</string>
-    <string name="game_vulkan_check_extensions">Необходимые расширения:</string>
-    <string name="game_vulkan_check_missing_extensions">Отсутствующие расширения:</string>
-    <string name="game_vulkan_check_features">Необходимые функции:</string>
-    <string name="game_vulkan_check_missing_features">Отсутствующие функции:</string>
-    <string name="game_vulkan_check_unsupp">Ваше устройство не поддерживает запуск Minecraft 26.2+ с Vulkan.</string>
-    <string name="game_vulkan_check_supp">Ваше устройство поддерживает запуск Minecraft 26.2+ с Vulkan.</string>
+    <string name="game_vulkan_check_versions">Поддержка версий:</string>
+    <string name="game_vulkan_check_profile_supp">Поддерживается</string>
+    <string name="game_vulkan_check_profile_unsupp">Не поддерживается</string>
+    <string name="game_vulkan_check_dep_required">Обязательно:</string>
+    <string name="game_vulkan_check_dep_optional">Необязательно:</string>
+    <string name="game_vulkan_check_item_missing">" (отсутствует)"</string>
+    <string name="game_vulkan_check_failed">Не удалось получить сведения о поддержке Vulkan на этом устройстве</string>
+    <string name="game_vulkan_check_partial">Ваше устройство может запускать лишь некоторые версии Minecraft с Vulkan:</string>
+    <string name="game_vulkan_check_extensions">Зависимые расширения:</string>
+    <string name="game_vulkan_check_features">Зависимые функции:</string>
+    <string name="game_vulkan_check_unsupp">Ваше устройство не может запускать ни одну версию Minecraft с Vulkan</string>
+    <string name="game_vulkan_check_supp">Ваше устройство может запускать Minecraft %s и новее с Vulkan</string>
     <string name="error_bad_request">(%s) Сервер не мог понять запрос</string>
     <string name="error_forbidden">(%s) У вас нет прав на доступ к этому ресурсу</string>
     <string name="error_not_acceptable">(%s) Неприемлемо</string>

@@ -24,13 +24,13 @@ import mockwebserver3.Dispatcher
 import mockwebserver3.MockResponse
 import mockwebserver3.MockWebServer
 import mockwebserver3.RecordedRequest
+import okhttp3.OkHttpClient
 import okio.Buffer
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import okhttp3.OkHttpClient
 import java.io.File
 import java.nio.file.Files
 import java.util.Random
@@ -128,14 +128,14 @@ class BatchDownloaderE2ETest {
         assertEquals(finalProgress.downloadedFiles, requests.size)
         assertTrue(observedFailures.isEmpty())
 
-        //双源都被使用过（轮转策略），且落盘内容与源一致
+        //落盘内容与源一致，且请求总量覆盖了全部文件
         assertArrayEquals(
             StaticSource.payloadFor(0),
             File(workDir, "file-0.bin").readBytes()
         )
-        val mixedSources = servers.map { server ->
+        val totalHits = servers.map { server ->
             (server.dispatcher as StaticSource).hits.get()
         }.sum()
-        assert(mixedSources >= requests.size)
+        assert(totalHits >= requests.size)
     }
 }

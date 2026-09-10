@@ -139,6 +139,8 @@ class ModrinthVersion(
 
     override fun platformId(): String = id
 
+    override fun platformProjectId(): String = projectId
+
     override fun platformDisplayName(): String = name
 
     override fun platformFileName(): String = thisPrimaryFile.fileName
@@ -154,10 +156,11 @@ class ModrinthVersion(
     override fun platformReleaseType(): PlatformReleaseType = versionType
 
     override fun platformDependencies(): List<PlatformVersion.PlatformDependency> = dependencies.mapNotNull { dependency ->
+        if (dependency.projectId == null && dependency.versionId == null) return@mapNotNull null
         PlatformVersion.PlatformDependency(
             platform = platform(),
-            //若未提供项目Id，则判定其无效或被删除，跳过该依赖
-            projectId = dependency.projectId ?: return@mapNotNull null,
+            projectId = dependency.projectId,
+            versionId = dependency.versionId,
             type = dependency.dependencyType
         )
     }

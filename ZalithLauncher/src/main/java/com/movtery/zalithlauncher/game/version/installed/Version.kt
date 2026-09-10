@@ -24,6 +24,7 @@ import androidx.annotation.Keep
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.google.gson.JsonObject
 import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.game.path.getGameHome
@@ -33,12 +34,20 @@ import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.unit.getOrMin
 import com.movtery.zalithlauncher.ui.screens.content.elements.QuickPlay
+import com.movtery.zalithlauncher.utils.GSON
+import com.movtery.zalithlauncher.utils.file.readText
+import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.platform.getMaxMemoryForSettings
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.parcelize.IgnoredOnParcel
 import kotlinx.parcelize.Parcelize
 import java.io.File
+import java.util.zip.ZipFile
 import kotlin.math.min
+
+private const val TAG = "Version"
 
 /**
  * Minecraft 版本，由版本名称进行区分
@@ -185,4 +194,30 @@ class Version(
     fun getTouchVibrateDuration(): Int? = versionConfig.touchVibrateDuration.takeIf { it >= 80 }
 
     fun getTouchVibrateKind(): VibrationHandler.VibrateKind = versionConfig.touchVibrateKind ?: VibrationHandler.VibrateKind.default
+}
+
+/** 26.2-snapshot-1 */
+private const val VULKAN_RUNTIME_WORLD_VERSION = 4883
+
+/**
+ * 游戏是否带有 Vulkan 后端
+ */
+suspend fun Version.hasVulkanBackend(): Boolean {
+    return withContext(Dispatchers.IO) {
+        val clientJar = getClientJar()
+        if (!clientJar.exists()) return@withContext false
+        runCatching {
+            //在客户端中读取数据版本
+            ZipFile(clientJar).use { zip ->
+                val worldVersion = zip.getEntry("version.json")
+                    ?.readText(zip)
+                    ?.let { GSON.fromJson(it, JsonObject::class.java) }
+                    //https://zh.minecraft.wiki/w/%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F
+                    ?.get("world_version")?.asInt
+                worldVersion != null && worldVersion >= VULKAN_RUNTIME_WORLD_VERSION
+            }
+        }.onFailure { e ->
+            Logger.warning(TAG, "Unable to determine the data version of this client Jar, possibly due to an outdated version.", e)
+        }.getOrDefault(false)
+    }
 }

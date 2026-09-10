@@ -236,6 +236,8 @@
     <string name="download_assets_no_installed_versions">Nenhuma versão do jogo está instalada no momento, portanto, não é possível determinar o local de download do recurso. Por favor, instale uma versão do jogo primeiro!</string>
     <string name="download_assets_install_progress_installing">Instalando recursos\n%s</string>
     <string name="download_assets_install_failed">Falha ao instalar os recursos!</string>
+    <string name="download_assets_dependency_no_compatible_version">Não foi encontrada nenhuma versão compatível para a dependência %s</string>
+    <string name="download_assets_dependency_project_unavailable">Informações do projeto indisponíveis</string>
     <string name="game_launch_no_version">Nenhuma versão do jogo selecionada!</string>
     <string name="game_launch_no_account">Nenhuma conta está logada!</string>
     <string name="game_button_force_close">Forçar Fechamento</string>
@@ -265,6 +267,13 @@
     <string name="settings_renderer_global_renderer_summary">O renderizador global padrão usa uma camada de tradução de biblioteca dinâmica para garantir que o jogo funcione suavemente em dispositivos móveis</string>
     <string name="settings_renderer_resolution_scale_title">Escala de Resolução</string>
     <string name="settings_renderer_resolution_scale_summary">Valores mais baixos melhoram o desempenho; valores mais altos aumentam a qualidade gráfica. Ajuste de acordo com suas necessidades</string>
+
+    <string name="settings_renderer_resolution_rule_title">Regra de resolução</string>
+    <string name="settings_renderer_resolution_rule_summary">Escolha como a resolução da janela do jogo é calculada</string>
+    <string name="settings_renderer_resolution_rule_percentage">Percentagem</string>
+    <string name="settings_renderer_resolution_custom_summary">Renderiza o jogo com uma largura e altura exatas; a imagem é dimensionada para caber no ecrã</string>
+    <string name="settings_renderer_resolution_custom_width">Largura</string>
+    <string name="settings_renderer_resolution_custom_height">Altura</string>
     <string name="generic_all">Todos</string>
     <string name="crash_type">Tipo de crash: %s</string>
     <string name="crash_type_launcher">O launcher crashou</string>
@@ -578,7 +587,7 @@
     <string name="settings_control_mouse_capture_sensitivity_summary">Ajusta a sensibilidade do mouse quando capturado, como a sensibilidade do movimento da câmera do jogo</string>
     <string name="settings_control_mouse_control_mode_summary">Escolhe o método de controle do mouse virtual; Deslizar ou tocar na tela para mover o cursor</string>
     <string name="settings_control_mouse_long_press_delay_summary">Define o tempo de resposta para o toque longo (não afeta o mouse físico, mesmo que seu controle esteja desativado)</string>
-    <string name="settings_control_gesture_control_summary">Suporta interações no jogo por meio de gestos como tocar e pressionar longamente, semelhante à vesão Bedrock</string>
+    <string name="settings_control_gesture_control_summary">Suporta interações no jogo por meio de gestos como tocar, pressionar longamente e rolar deslizando com dois dedos, semelhante à vesão Bedrock</string>
     <string name="settings_control_gesture_tap_action_summary">Seleciona a ação do botão do mouse quando um toque na tela é feito</string>
     <string name="settings_control_gesture_long_press_action_summary">Seleciona a ação do botão do mouse quando um toque longo na tela é feito</string>
     <string name="settings_launcher_color_theme_summary">Personaliza as cores do launcher</string>
@@ -885,12 +894,18 @@
     <string name="game_vulkan_check_text">Verifique se o seu dispositivo é compatível com a execução do Minecraft 26.2 ou superior com Vulkan. Os resultados são apenas para referência.</string>
     <string name="game_vulkan_check_version">Versão do Vulkan: %s</string>
     <string name="game_vulkan_check_turnip">A usar Turnip: %s</string>
-    <string name="game_vulkan_check_extensions">Extensões necessárias:</string>
-    <string name="game_vulkan_check_missing_extensions">Extensões ausentes:</string>
-    <string name="game_vulkan_check_features">Recursos necessários:</string>
-    <string name="game_vulkan_check_missing_features">Recursos ausentes:</string>
-    <string name="game_vulkan_check_unsupp">O seu dispositivo não apoia a execução do minecraft 26.2+ com Vulkan</string>
-    <string name="game_vulkan_check_supp">O seu dispositivo é compatível com a execução do minecraft 26.2+ com Vulkan</string>
+    <string name="game_vulkan_check_versions">Suporte por versão:</string>
+    <string name="game_vulkan_check_profile_supp">Suportado</string>
+    <string name="game_vulkan_check_profile_unsupp">Não suportado</string>
+    <string name="game_vulkan_check_dep_required">Obrigatório:</string>
+    <string name="game_vulkan_check_dep_optional">Opcional:</string>
+    <string name="game_vulkan_check_item_missing">" (ausente)"</string>
+    <string name="game_vulkan_check_failed">Não foi possível obter as informações de Vulkan deste dispositivo</string>
+    <string name="game_vulkan_check_partial">O seu dispositivo só pode executar algumas versões do Minecraft com Vulkan:</string>
+    <string name="game_vulkan_check_extensions">Extensões:</string>
+    <string name="game_vulkan_check_features">Recursos:</string>
+    <string name="game_vulkan_check_unsupp">O seu dispositivo não pode executar nenhuma versão do Minecraft com Vulkan</string>
+    <string name="game_vulkan_check_supp">O seu dispositivo pode executar o Minecraft %s ou superior com Vulkan</string>
     <string name="plugin_unsupported_warning">O plugin %s não é compatível com esta versão do jogo. Continuar a usá-lo pode causar o crash, bug de renderer ou travamento no jogo! Tem certeza que vai ignorar o risco e prosseguir?</string>
     <string name="plugin_download_title">Descarregar Plugin</string>
     <string name="plugin_download_summary">Descarregue o plugin e instale-o como uma app. Basta reabrir o launcher e ele será carregado automaticamente!</string>

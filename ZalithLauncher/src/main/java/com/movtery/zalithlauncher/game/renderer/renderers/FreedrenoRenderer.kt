@@ -27,6 +27,10 @@ object FreedrenoRenderer : RendererInterface {
 
     override fun getRendererName(): String = "Freedreno (Adreno)"
 
+    override fun getMaxMCVersion(): String = "26.3-snapshot-3"
+
+    override fun getDisplayMaxMCVersion(): String = "26.2"
+
     override fun getRendererEnv(): Lazy<Map<String, String>> = lazy { emptyMap() }
 
     override fun getDlopenLibrary(): Lazy<List<String>> = lazy { emptyList() }

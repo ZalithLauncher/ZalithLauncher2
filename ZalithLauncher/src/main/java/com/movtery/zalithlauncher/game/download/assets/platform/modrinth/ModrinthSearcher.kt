@@ -25,8 +25,11 @@ import com.movtery.zalithlauncher.game.download.assets.platform.PlatformSearchFi
 import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthSingleProject
 import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthVersion
 import com.movtery.zalithlauncher.utils.network.httpGetJson
+import com.movtery.zalithlauncher.utils.network.httpPostJson
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.Parameters
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.io.File
 
 class ModrinthSearcher(
@@ -90,6 +93,15 @@ class ModrinthSearcher(
         )
     }
 
+    /**
+     * 获取 Modrinth 指定Id的单个版本
+     */
+    suspend fun getVersion(versionID: String): ModrinthVersion {
+        return httpGetJson(
+            url = "$api/version/$versionID"
+        )
+    }
+
     override suspend fun getVersionByLocalFile(
         file: File,
         sha1: String
@@ -105,4 +117,29 @@ class ModrinthSearcher(
             null
         }
     }
+
+    /**
+     * 通过多个本地文件的 SHA-1 值批量获取对应的版本信息
+     * @return 键为 SHA-1 值，值为匹配到的版本，未命中的指纹不在结果中
+     */
+    suspend fun getVersionFiles(
+        sha1List: List<String>
+    ): Map<String, ModrinthVersion> {
+        if (sha1List.isEmpty()) return emptyMap()
+        return httpPostJson(
+            url = "$api/version_files",
+            body = ModrinthVersionFilesRequest(hashes = sha1List)
+        )
+    }
 }
+
+/**
+ * 批量获取版本信息的请求体
+ */
+@Serializable
+private data class ModrinthVersionFilesRequest(
+    @SerialName("hashes")
+    val hashes: List<String>,
+    @SerialName("algorithm")
+    val algorithm: String = "sha1"
+)

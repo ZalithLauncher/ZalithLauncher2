@@ -39,6 +39,8 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import java.io.File
 
 class CurseForgeSearcher(
@@ -138,7 +140,32 @@ class CurseForgeSearcher(
             ?.firstOrNull()
             ?.file
     }
+
+    /**
+     * 通过多个本地文件的 CurseForge 指纹批量获取对应的文件信息
+     * @return 键为文件指纹，值为匹配到的文件，未命中的指纹不在结果中
+     */
+    suspend fun getFilesByFingerprints(
+        fingerprints: List<Long>
+    ): Map<Long, CurseForgeFile> {
+        if (fingerprints.isEmpty()) return emptyMap()
+        val matches = httpPostJson<CurseForgeFingerprintsMatches>(
+            url = "$api/fingerprints",
+            body = CurseForgeFingerprintsRequest(fingerprints = fingerprints)
+        )
+        return matches.data.exactMatches.orEmpty()
+            .associate { it.file.fileFingerprint to it.file }
+    }
 }
+
+/**
+ * 批量获取文件指纹匹配的请求体
+ */
+@Serializable
+private data class CurseForgeFingerprintsRequest(
+    @SerialName("fingerprints")
+    val fingerprints: List<Long>
+)
 
 /**
  * 持续分页获取项目的所有版本文件，直到全部加载完成

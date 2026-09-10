@@ -35,7 +35,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.UUID
+import kotlin.io.path.exists
 
 private const val TAG = "GamePathManager"
 
@@ -114,13 +117,13 @@ object GamePathManager {
     }
 
     private fun String.createNoMediaFile() {
-        val noMediaFile = File(this, ".nomedia")
-        if (!noMediaFile.exists()) {
-            runCatching {
-                noMediaFile.createNewFile()
-            }.onFailure { e ->
-                Logger.error(TAG, "Failed to create .nomedia file in $this", e)
-            }
+        runCatching {
+            val parent = Paths.get(this)
+            Files.createDirectories(parent)
+            val noMediaFile = parent.resolve(".nomedia")
+            if (!noMediaFile.exists()) Files.createFile(noMediaFile)
+        }.onFailure { e ->
+            Logger.error(TAG, "Failed to create .nomedia file in $this", e)
         }
     }
 

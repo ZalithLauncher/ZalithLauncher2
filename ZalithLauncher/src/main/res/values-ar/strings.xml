@@ -192,6 +192,8 @@
     <string name="download_assets_install_progress_downloading">تنزيل الأصول وتثبيتها\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">تثبيت الأصول\n%s</string>
     <string name="download_assets_install_failed">فشل في تثبيت الأصول!</string>
+    <string name="download_assets_dependency_no_compatible_version">لا توجد نسخة متوافقة للتبعية %s</string>
+    <string name="download_assets_dependency_project_unavailable">معلومات المشروع غير متوفرة</string>
     <string name="download_modpack_warning1">قبل التثبيت، عليك أن تفهم أن معظم حزم التعديل مصممة لأجهزة الكمبيوتر، وهناك احتمال كبير لحدوث أعطال أو مشاكل أخرى عند محاولة تشغيلها. غالبًا ما تكون هذه المشاكل تفوق قدرة المشغل على حلها.</string>
     <string name="download_modpack_warning2">‎سوف تحتاج إلى تعلم المعرفة ذات الصلة لمحاولة حل المشكلات بنفسك، أو طلب المساعدة من الآخرين.</string>
     <string name="download_modpack_warning3">ملاحظة: لا يتعامل مطورو برنامج التشغيل عادةً مع المشكلات التي تسببها المودباكات.</string>
@@ -512,4 +514,11 @@
     <string name="files_browse_folder">تصفح المجلد</string>
     <string name="files_importing">استيراد الملفات</string>
     <string name="files_delete_file">…هل أنت متأكد من رغبتك في حذف %s؟</string>
+
+    <string name="settings_renderer_resolution_rule_title">قاعدة الدقة</string>
+    <string name="settings_renderer_resolution_rule_summary">اختر طريقة حساب دقة نافذة اللعبة</string>
+    <string name="settings_renderer_resolution_rule_percentage">نسبة مئوية</string>
+    <string name="settings_renderer_resolution_custom_summary">اعرض اللعبة بعرض وارتفاع محددين؛ سيتم تكبير الصورة لتناسب الشاشة</string>
+    <string name="settings_renderer_resolution_custom_width">العرض</string>
+    <string name="settings_renderer_resolution_custom_height">الارتفاع</string>
 </resources>

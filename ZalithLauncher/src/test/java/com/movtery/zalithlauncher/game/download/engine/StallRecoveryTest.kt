@@ -129,7 +129,7 @@ class StallRecoveryTest {
             targetFile = target,
             expectedSize = payloadFor(1).size.toLong()
         )
-        val health = SourceHealth(tripThreshold = 1, cooldownNanos = 400_000_000L)
+        val health = HostHealth(tripThreshold = 1, baseCooldownNanos = 400_000_000L)
 
         try {
             withTimeout(30_000) {
@@ -163,7 +163,7 @@ class StallRecoveryTest {
             targetFile = target,
             expectedSize = payloadFor(2).size.toLong()
         )
-        val health = SourceHealth(tripThreshold = 1, cooldownNanos = 400_000_000L)
+        val health = HostHealth(tripThreshold = 1, baseCooldownNanos = 400_000_000L)
 
         try {
             withTimeout(30_000) {

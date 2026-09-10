@@ -24,8 +24,8 @@ import java.util.concurrent.atomic.AtomicLong
  * 单个文件内部的分段链表：每段的右边界由后继段的起点隐式定义，
  * 运行中可在任意段的剩余区间中部插入新段（动态分块）。
  */
-internal class SegmentChain(initialSize: Long) {
-    inner class Segment internal constructor(
+class SegmentChain(initialSize: Long) {
+    inner class Segment(
         @JvmField val start: Long,
         next: Segment?
     ) {
@@ -33,7 +33,7 @@ internal class SegmentChain(initialSize: Long) {
         val done = AtomicLong(0L)
 
         @Volatile
-        internal var next: Segment? = next
+        var next: Segment? = next
 
         fun position(): Long = start + done.get()
 
@@ -52,7 +52,7 @@ internal class SegmentChain(initialSize: Long) {
 
     /** 总大小未知时由读到 EOF 的那一端置位 */
     @Volatile
-    internal var eof = false
+    var eof = false
 
     val first: Segment get() = head
 

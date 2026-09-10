@@ -28,11 +28,25 @@ import androidx.core.app.NotificationCompat
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.notification.NOTIFICATION_ID_GAME_SERVICE
 import com.movtery.zalithlauncher.notification.NotificationChannelData
+import com.movtery.zalithlauncher.utils.logging.Logger
+
+private const val TAG = "GameService"
 
 class GameService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
+    override fun onCreate() {
+        super.onCreate()
+        startForegroundNotification()
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        //确保服务处于前台
+        startForegroundNotification()
+        return START_NOT_STICKY
+    }
+
+    private fun startForegroundNotification() {
         val data = NotificationChannelData.GAME_SERVICE_CHANNEL
 
         val notification: Notification = NotificationCompat.Builder(this, data.channelId)
@@ -42,16 +56,19 @@ class GameService : Service() {
             .setSmallIcon(R.mipmap.ic_launcher)
             .build()
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(
-                NOTIFICATION_ID_GAME_SERVICE,
-                notification,
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
-            )
-        } else {
-            startForeground(NOTIFICATION_ID_GAME_SERVICE, notification)
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(
+                    NOTIFICATION_ID_GAME_SERVICE,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
+                )
+            } else {
+                startForeground(NOTIFICATION_ID_GAME_SERVICE, notification)
+            }
+        } catch (e: Exception) {
+            //提升期间应用退至后台时系统会拒绝前台身份，此时保活已无意义
+            Logger.error(TAG, "Failed to start foreground notification", e)
         }
-
-        return START_NOT_STICKY
     }
 }

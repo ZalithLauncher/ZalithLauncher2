@@ -37,7 +37,7 @@ import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration.Companion.milliseconds
 
 /** 整批下载结束后仍有未成功（且未被 [BatchDownloader.onFailureFilter] 接受）的文件 */
-class BatchDownloadException internal constructor(summary: String) : IOException(summary)
+class BatchDownloadException(summary: String) : IOException(summary)
 
 /**
  * 批量下载编排器：
@@ -56,8 +56,8 @@ class BatchDownloader(
 ) {
     val stats = DownloadStats()
 
-    /** 整批共享的主机级熔断：一个源停摆时，后续文件直接换源，不再逐文件付超时 */
-    private val sourceHealth = SourceHealth()
+    /** 整批共享的主机级健康登记 */
+    private val sourceHealth = HostHealth()
 
     /** 每 100ms 收到一次进度快照；回调运行在调度线程上，只应做轻量转发 */
     var onUpdate: (suspend (BatchProgress) -> Unit)? = null
@@ -186,7 +186,7 @@ class BatchDownloader(
         /** 小于该阈值的文件走 h2 多路复用客户端；更大的文件保持 1.1 分段并发 */
         const val SMALL_TRANSFER_MAX_BYTES: Long = 4L * 1024L * 1024L
 
-        internal fun resolveTransferClient(sample: DownloadRequest?): OkHttpClient =
+        fun resolveTransferClient(sample: DownloadRequest?): OkHttpClient =
             sample?.takeIf { it.expectedSize in 1 until SMALL_TRANSFER_MAX_BYTES }
                 ?.let { DOWNLOAD_OKHTTP_CLIENT_MULTIPLEX }
                 ?: DOWNLOAD_OKHTTP_CLIENT

@@ -30,6 +30,16 @@ object MurmurHash2Incremental {
         return computeHashInternal(file, byteToSkip, totalLength, seed)
     }
 
+    /**
+     * 已知过滤后长度时的哈希计算，避免为统计长度而重复扫描文件
+     */
+    fun computeHash(
+        file: File,
+        byteToSkip: List<Int>,
+        filteredLength: Int,
+        seed: Int = 1
+    ): Long = computeHashInternal(file, byteToSkip, filteredLength, seed)
+
     private fun getFilteredLength(
         file: File,
         byteToSkip: List<Int>

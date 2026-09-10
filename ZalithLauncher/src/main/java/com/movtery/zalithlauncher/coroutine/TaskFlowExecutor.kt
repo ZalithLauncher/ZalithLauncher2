@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.coroutine
 
 import com.movtery.zalithlauncher.coroutine.TaskFlowExecutor.TaskPhase
+import com.movtery.zalithlauncher.keepalive.TaskKeepAlive
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.isInterruptedIOException
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
@@ -169,8 +170,14 @@ class TaskFlowExecutor(
         onCancel: () -> Unit = {}
     ) {
         job = scope.launch(Dispatchers.IO) {
-            onStart()
-            executePhases(onComplete, onError, onCancel)
+            //持有保活，避免启动器切至后台后任务流被系统中断
+            TaskKeepAlive.acquire()
+            try {
+                onStart()
+                executePhases(onComplete, onError, onCancel)
+            } finally {
+                TaskKeepAlive.release()
+            }
         }
     }
 

@@ -5,6 +5,8 @@ import java.util.*;
 public class GLFWWindowProperties {
     public int width = GLFW.mGLFWWindowWidth;
     public int height = GLFW.mGLFWWindowHeight;
+    public int lastDispatchedWidth = -1;
+    public int lastDispatchedHeight = -1;
     public int x, y;
     public CharSequence title;
     public boolean shouldClose, isInitialSizeCalled, isCursorEntered;

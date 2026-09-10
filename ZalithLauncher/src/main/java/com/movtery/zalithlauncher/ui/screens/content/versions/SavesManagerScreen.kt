@@ -136,7 +136,6 @@ import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.util.Date
-import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
@@ -804,7 +803,10 @@ private fun SaveInfoTooltip(
         //游戏时长
         if (saveData.playTime != null) {
             val duration = (saveData.playTime / 20).toDuration(DurationUnit.SECONDS)
-            Text(text = stringResource(R.string.saves_manage_playtime,stringResource(R.string.duration_format,duration.inWholeDays,duration.inWholeHours,duration.inWholeMinutes)))
+            val playtime = duration.toComponents { days, hours, minutes, _, _ ->
+                stringResource(R.string.duration_format, days, hours, minutes)
+            }
+            Text(text = stringResource(R.string.saves_manage_playtime, playtime))
         }
         //世界种子
         val worldSeed = saveData.worldSeed?.toString()

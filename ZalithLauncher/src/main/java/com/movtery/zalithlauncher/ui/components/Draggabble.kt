@@ -78,7 +78,7 @@ fun FloatingBall(
             .alpha(alpha)
             .fillMaxSize()
             .onSizeChanged { size ->
-                if (isInitialized && currentPosition != Offset.Zero) {
+                if (currentPosition != Offset.Zero) {
                     val maxX = (size.width - ballSize.width).toFloat().coerceAtLeast(0f)
                     val maxY = (size.height - ballSize.height).toFloat().coerceAtLeast(0f)
 
@@ -105,7 +105,12 @@ fun FloatingBall(
                     onPositionChanged(Offset(positionX, positionY))
                 }
                 .offset {
-                    IntOffset(currentPosition.x.roundToInt(), currentPosition.y.roundToInt())
+                    val maxX = (parentWidth - ballSize.width).coerceAtLeast(0)
+                    val maxY = (parentHeight - ballSize.height).coerceAtLeast(0)
+                    IntOffset(
+                        currentPosition.x.roundToInt().coerceIn(0, maxX),
+                        currentPosition.y.roundToInt().coerceIn(0, maxY)
+                    )
                 }
                 .pointerInput(Unit) {
                     awaitEachGesture {
@@ -113,6 +118,14 @@ fun FloatingBall(
 
                         val startPosition = down.position
                         var isDragging = false
+
+                        val clampedX = currentPosition.x
+                            .coerceIn(0f, (parentWidth - ballSize.width).toFloat().coerceAtLeast(0f))
+                        val clampedY = currentPosition.y
+                            .coerceIn(0f, (parentHeight - ballSize.height).toFloat().coerceAtLeast(0f))
+                        if (clampedX != currentPosition.x || clampedY != currentPosition.y) {
+                            onPositionChanged(Offset(clampedX, clampedY))
+                        }
 
                         drag(down.id) { change ->
                             val delta = change.positionChange()

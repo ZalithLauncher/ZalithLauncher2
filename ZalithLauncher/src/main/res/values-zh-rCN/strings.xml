@@ -155,6 +155,8 @@
     <string name="notification_data_jvm_service_running">正在前台服务安装游戏中</string>
     <string name="notification_data_terracotta_message">在多人联机的过程中，启动器会使用前台服务来显示当前联机状态，因此需要您开启通知权限。</string>
     <string name="notification_jvm_running_name">JVM 保活服务</string>
+    <string name="notification_task_service_name">任务保活服务</string>
+    <string name="notification_task_service_running">正在后台运行任务，请保持启动器运行</string>
     <!--  麦克风  -->
     <string name="microphone_check_title">检查麦克风输入</string>
     <string name="microphone_check_volume">音量：%d</string>
@@ -264,6 +266,8 @@
     <string name="download_assets_install_progress_downloading">下载安装资源中\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">安装资源中\n%s</string>
     <string name="download_assets_install_failed">安装资源失败！</string>
+    <string name="download_assets_dependency_no_compatible_version">依赖 %s 未找到适配的版本</string>
+    <string name="download_assets_dependency_project_unavailable">依赖项目信息获取失败</string>
     <string name="download_assets_id_holder">项目 ID</string>
     <string name="download_assets_id_tip">根据项目 ID 快速获取对应项目</string>
     <string name="download_assets_id_not_found">未找到该项目！</string>
@@ -431,12 +435,18 @@
     <string name="game_vulkan_check_text">检查您的设备是否支持使用 Vulkan 运行 Minecraft 26.2+，结果仅供参考。</string>
     <string name="game_vulkan_check_version">Vulkan 版本：%s</string>
     <string name="game_vulkan_check_turnip">使用 Turnip：%s</string>
+    <string name="game_vulkan_check_versions">各版本支持情况：</string>
+    <string name="game_vulkan_check_profile_supp">支持</string>
+    <string name="game_vulkan_check_profile_unsupp">不支持</string>
+    <string name="game_vulkan_check_dep_required">必需：</string>
+    <string name="game_vulkan_check_dep_optional">可选：</string>
+    <string name="game_vulkan_check_item_missing">（缺失）</string>
+    <string name="game_vulkan_check_failed">无法获取设备的 Vulkan 支持情况</string>
+    <string name="game_vulkan_check_partial">您的设备仅支持使用 Vulkan 运行部分 Minecraft 版本：</string>
     <string name="game_vulkan_check_extensions">依赖的扩展：</string>
-    <string name="game_vulkan_check_missing_extensions">缺失的扩展：</string>
     <string name="game_vulkan_check_features">依赖的功能：</string>
-    <string name="game_vulkan_check_missing_features">缺失的功能：</string>
-    <string name="game_vulkan_check_unsupp">您的设备不支持使用 Vulkan 运行 Minecraft 26.2+</string>
-    <string name="game_vulkan_check_supp">您的设备可以使用 Vulkan 运行 Minecraft 26.2+</string>
+    <string name="game_vulkan_check_unsupp">您的设备不支持使用 Vulkan 运行任何 Minecraft 版本</string>
+    <string name="game_vulkan_check_supp">您的设备可以使用 Vulkan 运行 Minecraft %s 及以上版本</string>
     <!--  渲染器  -->
     <string name="renderer_version_support">MC 版本支持：</string>
     <string name="renderer_version_unsupported_warning">当前渲染器 %s 不支持该游戏版本，继续使用可能导致渲染错误或游戏崩溃！您确定要无视风险坚持访问吗？</string>
@@ -872,6 +882,12 @@
     <string name="settings_renderer_from_plugins">来自 %s 插件</string>
     <string name="settings_renderer_resolution_scale_title">游戏窗口分辨率</string>
     <string name="settings_renderer_resolution_scale_summary">数值越低性能越高，数值越高画质越清晰，根据实际需求进行调整</string>
+    <string name="settings_renderer_resolution_rule_title">分辨率规则</string>
+    <string name="settings_renderer_resolution_rule_summary">选择游戏窗口分辨率的计算规则</string>
+    <string name="settings_renderer_resolution_rule_percentage">百分比</string>
+    <string name="settings_renderer_resolution_custom_summary">以精确的宽高渲染游戏，画面将等比缩放适配屏幕</string>
+    <string name="settings_renderer_resolution_custom_width">宽度</string>
+    <string name="settings_renderer_resolution_custom_height">高度</string>
     <string name="settings_renderer_full_screen_title">游戏页面全屏化</string>
     <string name="settings_renderer_full_screen_summary">使游戏页面全屏化，忽略刘海屏、挖孔屏等屏幕的安全区</string>
     <string name="settings_renderer_sustained_performance_title">启用持续性能模式</string>
@@ -955,7 +971,7 @@
     <string name="settings_control_mouse_long_press_delay_title">虚拟鼠标长按触发的延迟</string>
     <string name="settings_control_mouse_long_press_delay_summary">设置屏幕长按识别的延迟时间（实体鼠标长按不受此设置影响，包括禁用实体鼠标控制时）</string>
     <string name="settings_control_gesture_control_title">手势控制</string>
-    <string name="settings_control_gesture_control_summary">支持通过点击和长按等手势，在游戏中进行交互，类似基岩版</string>
+    <string name="settings_control_gesture_control_summary">支持通过点击、长按以及双指滑动滚动等手势，在游戏中进行交互，类似基岩版</string>
     <string name="settings_control_gesture_tap_action_title">点击触发的操作类型</string>
     <string name="settings_control_gesture_tap_action_summary">选择在轻触屏幕时应触发的鼠标按键操作</string>
     <string name="settings_control_gesture_long_press_action_title">长按触发的操作类型</string>

@@ -50,7 +50,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * 候选源失败自动轮转补位；全部源失效后降级为逐源单流整文件重试。
  * 全程写入 `<目标名>.part`，校验通过后改名为目标文件。
  */
-internal class FileDownloader(
+class FileDownloader(
     private val request: DownloadRequest,
     private val connections: Semaphore,
     private val stats: DownloadStats,
@@ -58,8 +58,10 @@ internal class FileDownloader(
     private val maxWorkersPerFile: Int = MAX_WORKERS_PER_FILE,
     private val maxAllSourcesWaits: Int = MAX_ALL_SOURCES_WAITS,
     private val client: OkHttpClient? = null,
-    /** 整批共享的主机级熔断状态，缺省时本文件独立计数 */
-    private val sourceHealth: SourceHealth = SourceHealth()
+    /** 整批共享的主机级健康状态，缺省时本文件独立计数 */
+    private val sourceHealth: HostHealth = HostHealth(),
+    private val slowWindowNanos: Long = SLOW_WINDOW_NANOS,
+    private val slowFloorBytesPerSec: Long = SLOW_FLOOR_BYTES_PER_SEC
 ) {
     private val sources = SourceSet(request.urls, sourceHealth)
     private val transferClient: OkHttpClient = client ?: BatchDownloader.resolveTransferClient(request)
@@ -83,6 +85,14 @@ internal class FileDownloader(
                 throw e
             } catch (e: Exception) {
                 partFile.delete()
+                if (e is ShaMismatchException) {
+                    //校验失败前实际写过的源可能正在返回坏数据，计入主机健康让整批避开它
+                    synchronized(contributedSources) {
+                        contributedSources.toList()
+                    }.forEach {
+                        sourceHealth.recordCorruption(it)
+                    }
+                }
                 if (attempt == hashRetries - 1) {
                     throw IOException("Failed to download ${target.name}\n${sources.describe()}", e)
                 }
@@ -211,6 +221,9 @@ internal class FileDownloader(
         Logger.info(TAG, "Downloading: ${source.url}")
         try {
             block()
+            synchronized(contributedSources) {
+                contributedSources.add(source.url)
+            }
             source.recordSuccess()
         } catch (_: AbandonedSegmentException) {
             //断点越界说明另一条连接已覆盖该区间，视作无事发生
@@ -231,9 +244,10 @@ internal class FileDownloader(
         apply { initCause(cause) }
 
     private fun executeSegment(source: SourceSet.Source, segment: SegmentChain.Segment, chain: SegmentChain, channel: FileChannel) {
-        val rangeFrom = segment.position()
+        //部分 CDN 的鉴权层会拒绝任何携带 Range 的请求，从零开始的段必须以普通 GET 起步
+        val rangeFrom = segment.position().takeIf { it > 0L } ?: -1L
         executeCall(source.url, rangeFrom).use { response ->
-            val body = checkStatus(response, rangeFrom, rangedRequest = true, source = source, chain = chain)
+            val body = checkStatus(response, rangeFrom, rangedRequest = rangeFrom >= 0, source = source, chain = chain)
             streamInto(body.byteStream(), segment, chain, channel)
         }
     }
@@ -290,6 +304,8 @@ internal class FileDownloader(
         val buffer = ByteArray(BUFFER_SIZE)
         val bufferView = ByteBuffer.wrap(buffer)
         var position = segment.position()
+        var windowStartNanos = System.nanoTime()
+        var windowBytes = 0L
 
         while (true) {
             val endNow = segment.endOr(chain.tailEnd())
@@ -310,6 +326,17 @@ internal class FileDownloader(
             position += read
             segment.done.addAndGet(read.toLong())
             stats.addBytes(read.toLong())
+            windowBytes += read
+
+            // 慢速看门狗
+            val elapsedNanos = System.nanoTime() - windowStartNanos
+            if (elapsedNanos >= slowWindowNanos) {
+                if (windowBytes * NANOS_PER_SEC / elapsedNanos < slowFloorBytesPerSec) {
+                    throw SlowTransferException(windowBytes, elapsedNanos)
+                }
+                windowStartNanos = System.nanoTime()
+                windowBytes = 0L
+            }
         }
     }
 
@@ -354,6 +381,11 @@ internal class FileDownloader(
     /** 标记区间已被其他连接完成时的静默退出信号 */
     private class AbandonedSegmentException : IOException("Range not satisfiable")
 
+    private class SlowTransferException(
+        bytes: Long,
+        elapsedNanos: Long
+    ) : IOException("Transfer rate ${bytes * NANOS_PER_SEC / elapsedNanos} B/s is below the floor")
+
     private class ShaMismatchException(
         targetName: String,
         expected: String,
@@ -388,5 +420,9 @@ internal class FileDownloader(
         private const val RANGE_HEADER = "Range"
         private const val CONTENT_RANGE = "Content-Range"
 
+        // 慢速看门狗的观测窗口与速率地板
+        const val SLOW_WINDOW_NANOS = 10_000_000_000L
+        const val SLOW_FLOOR_BYTES_PER_SEC = 8L * 1024L
+        private const val NANOS_PER_SEC = 1_000_000_000L
     }
 }

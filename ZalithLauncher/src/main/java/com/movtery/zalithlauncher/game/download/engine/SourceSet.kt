@@ -23,32 +23,33 @@ import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * 一个下载任务的候选源集合
- * 带失败计数与健康轮转，全部失效后由 [FileDownloader] 进入降级阶段逐源单流重试。
- * [health] 由整批共享时，超时风暴会触发主机级熔断，让后续文件直接跳到其他源，而不是逐文件各付一次超时。
+ * 选源按主机健康度排序：近期失败少的主机优先，平级时回到候选列表的静态偏好顺序，
+ * 因此全部源健康时行为与用户设置一致，某源病态时整批自动把流量让给其他源。
+ * 全部失效后由 [FileDownloader] 进入降级阶段逐源单流重试。
  */
-internal class SourceSet(
+class SourceSet(
     urls: List<String>,
-    private val health: SourceHealth = SourceHealth()
+    private val health: HostHealth = HostHealth()
 ) {
-    inner class Source internal constructor(
+    inner class Source(
         @JvmField val url: String,
         @JvmField val index: Int
     ) {
         private val failCount = AtomicInteger(0)
 
         @Volatile
-        internal var disabled = false
+        var disabled = false
 
         /** 404/502/DNS 解析失败等，本轮直接出局 */
         @Volatile
-        internal var fatal = false
+        var fatal = false
 
         /** 该源对 Range 请求返回了无范围应答 */
         @Volatile
-        internal var noRange = false
+        var noRange = false
 
         @Volatile
-        internal var lastReason: String? = null
+        var lastReason: String? = null
 
         val supportsRange: Boolean get() = !noRange
 
@@ -60,7 +61,7 @@ internal class SourceSet(
         /** 记录一次失败；返回该源是否仍然可用 */
         fun recordFailure(error: Throwable): Boolean {
             lastReason = error.message ?: error.toString()
-            if (error.isTimeoutError()) health.recordTimeout(url)
+            health.recordFailure(url, error)
             if (disableImmediately(error)) {
                 fatal = true
                 disabled = true
@@ -79,31 +80,26 @@ internal class SourceSet(
     }
 
     private val sources: List<Source> = urls.distinct().mapIndexed { index, url -> Source(url, index) }
-    private val cursor = AtomicInteger(0)
+    private val degradedCursor = AtomicInteger(0)
 
     /**
-     * 从游标处轮转挑出下一个健康源，要求支持 Range 时跳过不支持的源。
-     * 只返回未处于熔断冷却的源
+     * 挑选下一个源：跳过禁用、致命、不支持 Range 与处于熔断冷却的候选，
+     * 在余下的候选中按（主机近期失败数, 静态偏好顺序）取最优。
      * 全部源都在冷却中时返回 null，调用方按 [cooldownRemainingMillis] 等待后重试
      */
-    fun acquire(requireRange: Boolean): Source? {
-        val size = sources.size
-        repeat(size) {
-            val candidate = sources[Math.floorMod(cursor.getAndAdd(1), size)]
-            if (isUsable(candidate, requireRange) && health.isViable(candidate.url)) {
-                return candidate
-            }
-        }
-        return null
-    }
+    fun acquire(requireRange: Boolean): Source? =
+        sources.asSequence()
+            .filter { isUsable(it, requireRange) }
+            .filter { health.isViable(it.url) }
+            .minWithOrNull(compareBy({ health.recentFailures(it.url) }, { it.index }))
 
     /**
-     * 无视熔断冷却，保证末路阶段仍会真实尝试每一个候选源
+     * 无视熔断冷却，按轮转保证末路阶段仍会真实尝试每一个候选源
      */
     fun acquireDegraded(requireRange: Boolean): Source? {
         val size = sources.size
         repeat(size) {
-            val candidate = sources[Math.floorMod(cursor.getAndAdd(1), size)]
+            val candidate = sources[Math.floorMod(degradedCursor.getAndAdd(1), size)]
             if (isUsable(candidate, requireRange)) {
                 return candidate
             }
@@ -146,10 +142,10 @@ internal class SourceSet(
         }
 
     companion object {
-        internal const val SOFT_FAILURE_LIMIT = 3
+        const val SOFT_FAILURE_LIMIT = 3
 
         fun disableImmediately(error: Throwable): Boolean = when (error) {
-            is HttpResultException -> error.code == 404 || error.code == 410 || error.code == 502
+            is HttpResultException -> error.code == 404 || error.code == 410
             is UnknownHostException -> true
             else -> false
         }

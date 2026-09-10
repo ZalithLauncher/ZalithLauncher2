@@ -24,6 +24,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,6 +42,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -72,6 +74,7 @@ import com.movtery.zalithlauncher.bridge.ZLBridgeStates
 import com.movtery.zalithlauncher.game.keycodes.mapToKeycode
 import com.movtery.zalithlauncher.game.launch.MCOptions
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.utils.rememberGameRenderSize
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -128,7 +131,7 @@ private val keyList = listOf(
  * 点击、滑动快捷栏，会计算指针处于哪个槽位中，并触发 [sendKeycode] 回调
  *
  * @param isGrabbing 处于鼠标抓获模式下，才会开启判定箱
- * @param resolutionRatio 当前分辨率缩放
+ * @param displayOffset 游戏画面的黑边偏移，用于对齐自定义分辨率下的快捷栏位置
  */
 @Composable
 fun BoxScope.MinecraftHotbar(
@@ -138,7 +141,7 @@ fun BoxScope.MinecraftHotbar(
     heightPercentage: Float,
     sendKeycode: (key: Int) -> Unit,
     isGrabbing: Boolean = false,
-    resolutionRatio: Int,
+    displayOffset: IntOffset = IntOffset.Zero,
     onOccupiedPointer: (PointerId) -> Unit,
     onReleasePointer: (PointerId) -> Unit
 ) {
@@ -151,14 +154,12 @@ fun BoxScope.MinecraftHotbar(
         HotbarRule.Auto -> {
             val optionsChangeKey by MCOptions.refreshKey.collectAsStateWithLifecycle()
             val windowChangeKey by ZLBridgeStates.windowChangeKey.collectAsStateWithLifecycle()
+            val renderSize = rememberGameRenderSize(screenSize)
             LaunchedEffect(
                 isGrabbing, optionsChangeKey, screenSize, density,
-                resolutionRatio, windowChangeKey
+                renderSize, windowChangeKey
             ) {
-                val guiScale = getMCGuiScale(
-                    width = (screenSize.width * resolutionRatio / 100f).toInt(),
-                    height = (screenSize.height * resolutionRatio / 100f).toInt()
-                )
+                val guiScale = getMCGuiScale(renderSize.width, renderSize.height)
                 val slotSize = guiScale * 20
 
                 with(density) {
@@ -194,6 +195,10 @@ fun BoxScope.MinecraftHotbar(
         modifier = Modifier
             .size(hotbarSize)
             .align(Alignment.BottomCenter)
+            .offset {
+                //跟随游戏画面的显示区域，对齐黑边偏移
+                IntOffset(x = 0, y = -displayOffset.y)
+            }
             .then(
                 if (rule == HotbarRule.Custom) Modifier.background(Color.Red.copy(alpha = hotbarUpdateAnim.value))
                 else Modifier
@@ -379,7 +384,6 @@ private fun Modifier.mainTouchLogic(
                                     onDoubleClick()
                                     lastSlot = null
                                 } else {
-                                    onClick(finalSlotIndex)
                                     //完成单击后，记录上一次点击的槽位
                                     lastSlot = DownSlot(
                                         slot = finalSlotIndex,

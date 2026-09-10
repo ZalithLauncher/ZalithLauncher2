@@ -78,6 +78,7 @@ import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
 import com.movtery.zalithlauncher.game.download.assets.utils.ModTranslations
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.game.version.mod.InstalledMod
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.components.IconTextButton
@@ -106,8 +107,6 @@ sealed interface DownloadAssetsVersionLoading {
     data object StartLoadPage: DownloadAssetsVersionLoading
     /** 加载分页数据 */
     data class LoadingPage(val chunk: Int, val page: Int): DownloadAssetsVersionLoading
-    /** 正在加载并缓存依赖项目 */
-    data object LoadingDepProject: DownloadAssetsVersionLoading
 }
 
 /**
@@ -216,6 +215,7 @@ private fun isVersionAdapt(
 
 /**
  * 资源版本分组可折叠列表
+ * @param installedChecker 查询版本本地是否已安装，null 则不进行已安装标注
  */
 @Composable
 fun AssetsVersionItemLayout(
@@ -227,6 +227,7 @@ fun AssetsVersionItemLayout(
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
     blur: Int = AllSettings.backgroundBlur.state,
+    installedChecker: ((PlatformVersion) -> InstalledMod?)? = null,
     onItemClicked: (PlatformVersion) -> Unit = {}
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -246,6 +247,7 @@ fun AssetsVersionItemLayout(
                 modifier = Modifier.fillMaxWidth(),
                 infoMap = infoMap,
                 isAdapt = infoMap.isAdapt,
+                hasInstalled = installedChecker != null && infoMap.versions.any { installedChecker(it) != null },
                 expanded = expanded,
                 onClick = { expanded = !expanded }
             )
@@ -271,6 +273,7 @@ fun AssetsVersionItemLayout(
                                         .fillMaxWidth()
                                         .padding(all = 4.dp),
                                     version = version,
+                                    installed = installedChecker?.invoke(version),
                                     onClick = {
                                         onItemClicked(version)
                                     }
@@ -289,6 +292,7 @@ private fun AssetsVersionHeadLayout(
     modifier: Modifier = Modifier,
     infoMap: VersionInfoMap,
     isAdapt: Boolean,
+    hasInstalled: Boolean,
     expanded: Boolean,
     onClick: () -> Unit = {}
 ) {
@@ -325,6 +329,12 @@ private fun AssetsVersionHeadLayout(
                 contentDescription = null
             )
         }
+        if (hasInstalled) {
+            InstalledModBadge(
+                modifier = Modifier.padding(start = 4.dp),
+                size = 16.dp
+            )
+        }
         if (!infoMap.versions.isEmpty()) {
             Row(
                 modifier = Modifier.padding(end = 4.dp),
@@ -351,11 +361,20 @@ private fun AssetsVersionHeadLayout(
 private fun AssetsVersionListItem(
     modifier: Modifier = Modifier,
     version: PlatformVersion,
+    installed: InstalledMod? = null,
     onClick: () -> Unit = {}
 ) {
     Row(
         modifier = modifier
             .clip(shape = MaterialTheme.shapes.medium)
+            .background(
+                color = if (installed != null) {
+                    MaterialTheme.colorScheme.tertiary.copy(alpha = 0.15f)
+                } else {
+                    Color.Transparent
+                },
+                shape = MaterialTheme.shapes.medium
+            )
             .clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {

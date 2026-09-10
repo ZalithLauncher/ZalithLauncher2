@@ -19,9 +19,15 @@
 package com.movtery.zalithlauncher.ui.screens.game.elements
 
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -55,10 +61,13 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
+import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.DualMenuSubscreen
+import com.movtery.zalithlauncher.ui.components.IntInputField
 import com.movtery.zalithlauncher.ui.components.MenuListLayout
 import com.movtery.zalithlauncher.ui.components.MenuSliderLayout
 import com.movtery.zalithlauncher.ui.components.MenuState
@@ -70,6 +79,10 @@ import com.movtery.zalithlauncher.ui.control.gyroscope.isGyroscopeAvailable
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.cardTitleColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
+import com.movtery.zalithlauncher.utils.animation.getAnimateTween
+import com.movtery.zalithlauncher.utils.customResolutionRange
+import com.movtery.zalithlauncher.utils.ensureCustomResolutionInitialized
+import com.movtery.zalithlauncher.utils.getRealScreenSize
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 
 private data class IconTab(val iconRes: Int, val iconSize: Dp = 18.dp)
@@ -202,6 +215,7 @@ private fun GameActionContent(
     color: Color = cardColor(false),
     contentColor: Color = onCardColor(),
 ) {
+    val context = LocalContext.current
     val listState = rememberLazyListState()
     LazyColumn(
         modifier = modifier.lazyScrollWithBar(listState),
@@ -314,25 +328,135 @@ private fun GameActionContent(
                 enabled = AllSettings.showMenuBall.state
             )
         }
-        //游戏窗口分辨率
+
+        // 分辨率规则与游戏窗口分辨率
         item {
-            MenuSliderLayout(
-                modifier = Modifier.fillMaxWidth(),
-                title = stringResource(R.string.settings_renderer_resolution_scale_title),
-                value = AllSettings.resolutionRatio.state,
-                valueRange = AllSettings.resolutionRatio.floatRange,
-                onValueChange = { value ->
-                    AllSettings.resolutionRatio.updateState(value)
-//                        onRefreshWindowSize()
-                },
-                onValueChangeFinished = { value ->
-                    AllSettings.resolutionRatio.save(value)
-                    onRefreshWindowSize()
-                },
-                suffix = "%",
-                color = color,
-                contentColor = contentColor,
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // 分辨率规则
+                MenuListLayout(
+                    modifier = Modifier.fillMaxWidth(),
+                    title = stringResource(R.string.settings_renderer_resolution_rule_title),
+                    items = ResolutionRule.entries,
+                    currentItem = AllSettings.resolutionRule.state,
+                    onItemChange = { rule ->
+                        AllSettings.resolutionRule.save(rule)
+                        // 自定义分辨率尚未初始化时，以屏幕真实宽高填充
+                        if (rule == ResolutionRule.CUSTOM) {
+                            ensureCustomResolutionInitialized(context)
+                        }
+                        onRefreshWindowSize()
+                    },
+                    getItemText = { stringResource(it.nameRes) },
+                    color = color,
+                    contentColor = contentColor,
+                )
+
+                // 百分比分辨率
+                AnimatedVisibility(
+                    visible = AllSettings.resolutionRule.state == ResolutionRule.PERCENTAGE,
+                    enter = fadeIn(animationSpec = getAnimateTween()) +
+                            expandVertically(animationSpec = getAnimateTween()),
+                    exit = fadeOut(animationSpec = getAnimateTween()) +
+                            shrinkVertically(animationSpec = getAnimateTween())
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                    ) {
+                        MenuSliderLayout(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = stringResource(R.string.settings_renderer_resolution_scale_title),
+                            value = AllSettings.resolutionRatio.state,
+                            valueRange = AllSettings.resolutionRatio.floatRange,
+                            onValueChange = { value ->
+                                AllSettings.resolutionRatio.updateState(value)
+                            },
+                            onValueChangeFinished = { value ->
+                                AllSettings.resolutionRatio.save(value)
+                                onRefreshWindowSize()
+                            },
+                            suffix = "%",
+                            color = color,
+                            contentColor = contentColor,
+                        )
+                    }
+                }
+
+                // 自定义分辨率
+                AnimatedVisibility(
+                    visible = AllSettings.resolutionRule.state == ResolutionRule.CUSTOM,
+                    enter = fadeIn(animationSpec = getAnimateTween()) +
+                            expandVertically(animationSpec = getAnimateTween()),
+                    exit = fadeOut(animationSpec = getAnimateTween()) +
+                            shrinkVertically(animationSpec = getAnimateTween())
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                    ) {
+                        CustomResolutionContent(onValueCommitted = onRefreshWindowSize)
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * 自定义分辨率的宽高输入卡片
+ */
+@Composable
+private fun CustomResolutionContent(
+    onValueCommitted: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val context = LocalContext.current
+    val screenSize = remember(context) { getRealScreenSize(context) }
+
+    BackgroundCard(
+        modifier = modifier.fillMaxWidth(),
+        influencedByBackground = false,
+        shape = MaterialTheme.shapes.large
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(all = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_renderer_resolution_scale_title),
+                style = MaterialTheme.typography.titleSmall
             )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                IntInputField(
+                    modifier = Modifier.weight(1f),
+                    value = AllSettings.customResolutionWidth.state,
+                    permitted = customResolutionRange(screenSize.width),
+                    label = stringResource(R.string.settings_renderer_resolution_custom_width),
+                    onValueChange = { value ->
+                        AllSettings.customResolutionWidth.save(value)
+                        onValueCommitted()
+                    }
+                )
+                IntInputField(
+                    modifier = Modifier.weight(1f),
+                    value = AllSettings.customResolutionHeight.state,
+                    permitted = customResolutionRange(screenSize.height),
+                    label = stringResource(R.string.settings_renderer_resolution_custom_height),
+                    onValueChange = { value ->
+                        AllSettings.customResolutionHeight.save(value)
+                        onValueCommitted()
+                    }
+                )
+            }
         }
     }
 }

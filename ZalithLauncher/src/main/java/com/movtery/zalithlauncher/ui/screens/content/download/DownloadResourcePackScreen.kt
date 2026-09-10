@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.movtery.zalithlauncher.game.download.assets.downloadDependenciesForVersions
 import com.movtery.zalithlauncher.game.download.assets.downloadSingleForVersions
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -70,17 +71,22 @@ fun DownloadResourcePackScreen(
     DownloadSingleOperation(
         operation = operation,
         changeOperation = { operation = it },
-        doInstall = { classes, version, versions ->
+        doInstall = { classes, version, versions, dependencies ->
             downloadSingleForVersions(
                 version = version,
                 versions = versions,
                 folder = classes.versionFolder.folderName,
                 submitError = submitError
             )
+            downloadDependenciesForVersions(
+                requests = dependencies,
+                versions = versions,
+                submitError = submitError
+            )
         },
-        onDependencyClicked = { dep, classes ->
+        onDependencyClicked = { platform, projectId, classes ->
             backStack.navigateTo(
-                NormalNavKey.DownloadAssets(dep.platform, dep.projectId, classes)
+                NormalNavKey.DownloadAssets(platform, projectId, classes)
             )
         }
     )

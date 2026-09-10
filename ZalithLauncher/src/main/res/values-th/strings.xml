@@ -108,6 +108,8 @@
     <string name="download_assets_install_progress_downloading">กำลังดาวโหลดและติดตั้งข้อมูล\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">กำลังติดตั้งข้อมูล\n%s</string>
     <string name="download_assets_install_failed">การติดตั้งข้อมูล ผิดพลาด</string>
+    <string name="download_assets_dependency_no_compatible_version">ไม่พบเวอร์ชันที่เข้ากันได้สำหรับการพึ่งพา %s</string>
+    <string name="download_assets_dependency_project_unavailable">ไม่สามารถดึงข้อมูลโปรเจกต์ได้</string>
     <string name="download_modpack_warning1">ก่อนที่จะทำหารติดตั้ง โปรดเข้าใจว่า Modpacks ส่วนใหญ่ทำเพื่อให้เล่นบนคอมพิวเตอร์ มีโอกาสสูงที่จะเด้งหรือปัญหาอื่นเมื่อพยายามจะเล่น. ปัญหาพวกนั้นอยู่นอกเหนือสิ่งที่Luncherแก้ได้</string>
     <string name="download_modpack_warning2">โปรดเรียนรู้เกี่ยวกับปัญหา และพยายาที่จะแก้ด้วยตนเองหรือขอความช่วยเหลือจากผู้อื่น</string>
     <string name="download_modpack_warning3">ปล. โดยปกติผู้พัฒนาLuncherไม่ได้แก้ปัญหาที่เกิดจากmodpacks</string>
@@ -375,4 +377,11 @@
     <string name="error_bad_request">[%s เซิร์ฟเวอร์ไม่สามารถเข้าใจคําขอน้ได้</string>
     <string name="error_forbidden">(%s) คุณไม่มีสิทธิในการเข้าถึงทรัพยากรนี้</string>
     <string name="error_not_acceptable">(%s) ไม่ยอมรับ</string>
+
+    <string name="settings_renderer_resolution_rule_title">กฎความละเอียด</string>
+    <string name="settings_renderer_resolution_rule_summary">เลือกวิธีคำนวณความละเอียดของหน้าต่างเกม</string>
+    <string name="settings_renderer_resolution_rule_percentage">เปอร์เซ็นต์</string>
+    <string name="settings_renderer_resolution_custom_summary">เรนเดอร์เกมด้วยความกว้างและความสูงที่แน่นอน โดยภาพจะถูกปรับขนาดให้พอดีกับหน้าจอ</string>
+    <string name="settings_renderer_resolution_custom_width">ความกว้าง</string>
+    <string name="settings_renderer_resolution_custom_height">ความสูง</string>
 </resources>

@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.game.launch
 
 import android.content.Context
-import com.google.gson.JsonObject
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskFlowExecutor
@@ -36,16 +35,11 @@ import com.movtery.zalithlauncher.game.account.microsoft.validateAccessToken
 import com.movtery.zalithlauncher.game.account.refreshMicrosoft
 import com.movtery.zalithlauncher.game.version.download.DownloadMode
 import com.movtery.zalithlauncher.game.version.download.MinecraftDownloader
-import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
 import com.movtery.zalithlauncher.game.version.mod.AllModReader
-import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.activities.runGame
 import com.movtery.zalithlauncher.ui.androidText
-import com.movtery.zalithlauncher.utils.GSON
-import com.movtery.zalithlauncher.utils.file.readText
-import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.isNetworkAvailable
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import kotlinx.coroutines.CancellationException
@@ -53,8 +47,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.withContext
-import java.util.zip.ZipFile
 
 private const val TAG = "GameLaunchFlow"
 
@@ -86,7 +78,6 @@ class GameLaunchFlow(scope: CoroutineScope) {
         context: Context,
         version: Version,
         skipAccountRefresh: Boolean = false,
-        waitForVulkanChecker: suspend () -> Unit,
         exitActivity: () -> Unit,
         submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
         onReloginRequired: (Account) -> Unit = {},
@@ -111,7 +102,6 @@ class GameLaunchFlow(scope: CoroutineScope) {
                             version = version,
                             account = account,
                             skipAccountRefresh = skipAccountRefresh,
-                            waitForVulkanChecker = waitForVulkanChecker,
                             exitActivity = exitActivity,
                             submitError = submitError
                         )
@@ -141,7 +131,6 @@ class GameLaunchFlow(scope: CoroutineScope) {
         version: Version,
         account: Account,
         skipAccountRefresh: Boolean,
-        waitForVulkanChecker: suspend () -> Unit,
         exitActivity: () -> Unit,
         submitError: (ErrorViewModel.ThrowableMessage) -> Unit
     ): TaskFlowExecutor.TaskPhase {
@@ -196,8 +185,6 @@ class GameLaunchFlow(scope: CoroutineScope) {
                 title = androidText(R.string.main_launch_game)
             ) { task ->
                 checkEnableTouchProxy(version)
-                task.updateMessage(androidText(R.string.game_vulkan_check_title))
-                checkVulkanCapabilities(version, waitForVulkanChecker)
 
                 runGame(context, version, account)
                 exitActivity()
@@ -262,45 +249,6 @@ class GameLaunchFlow(scope: CoroutineScope) {
             if (mod.id == "touchcontroller") {
                 version.enableTouchProxy = true
                 break
-            }
-        }
-    }
-
-    private suspend fun checkVulkanCapabilities(
-        version: Version,
-        waitForVulkanChecker: suspend () -> Unit
-    ) {
-        if (!AllSettings.autoVulkanChecker.getValue()) return
-
-        val api = version.getGraphicsApi()
-        if (api == GraphicsApi.OPENGL) return
-
-        //游戏可能使用Vulkan，检查版本是否为 26.2+
-        val clientJar = version.getClientJar()
-        if (clientJar.exists()) {
-            val hasVulkan = runCatching {
-                withContext(Dispatchers.IO) {
-                    //在客户端中读取数据版本
-                    ZipFile(clientJar).use { zip ->
-                        zip.getEntry("version.json")
-                            ?.readText(zip)
-                            ?.let { GSON.fromJson(it, JsonObject::class.java) }
-                            ?.let { json ->
-                                //https://zh.minecraft.wiki/w/%E7%89%88%E6%9C%AC%E4%BF%A1%E6%81%AF%E6%96%87%E4%BB%B6%E6%A0%BC%E5%BC%8F
-                                json.get("world_version")?.asInt
-                            }
-                    }?.let { worldVersion ->
-                        //26.2-snapshot-1
-                        worldVersion >= 4883
-                    }
-                } ?: false
-            }.onFailure { e ->
-                Logger.warning(TAG, "Unable to determine the data version of this client Jar, possibly due to an outdated version.", e)
-            }.getOrDefault(false)
-
-            if (hasVulkan) {
-                //等待Vulkan检查完成
-                waitForVulkanChecker()
             }
         }
     }

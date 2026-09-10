@@ -48,6 +48,7 @@ import com.movtery.zalithlauncher.game.download.assets.platform.previousPage
 import com.movtery.zalithlauncher.game.download.assets.platform.searchAssets
 import com.movtery.zalithlauncher.game.download.assets.utils.ModTranslations
 import com.movtery.zalithlauncher.game.download.assets.utils.searchMcMods
+import com.movtery.zalithlauncher.game.version.mod.InstalledMod
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersions
 import com.movtery.zalithlauncher.game.versioninfo.popularVersions
@@ -251,6 +252,7 @@ private fun rememberSearchAssetsViewModel(
  * @param getModloaders 根据平台获取可用的模组加载器过滤器
  * @param mapCategories 通过平台获取类别本地化信息
  * @param swapToDownload 跳转到下载详情页
+ * @param installedInfo 查询项目本地是否已安装，键为平台与平台项目ID
  * @param extraFilter 额外的过滤器UI
  */
 @Composable
@@ -269,6 +271,7 @@ fun SearchAssetsScreen(
     getModloaders: (Platform) -> List<PlatformDisplayLabel> = { emptyList() },
     mapCategories: (Platform, String) -> PlatformFilterCode?,
     swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> },
+    installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null,
     extraFilter: (LazyListScope.() -> Unit)? = null
 ) {
     val viewModel: SearchScreenViewModel = rememberSearchAssetsViewModel(
@@ -305,6 +308,7 @@ fun SearchAssetsScreen(
                     viewModel.search()
                 },
                 swapToDownload = swapToDownload,
+                installedInfo = installedInfo,
                 onPreviousPage = { pageNumber ->
                     previousPage(
                         pageNumber = pageNumber,

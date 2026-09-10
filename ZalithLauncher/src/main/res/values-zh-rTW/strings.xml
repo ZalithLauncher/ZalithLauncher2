@@ -114,7 +114,6 @@
     <string name="error_network_unreachable">網路無法使用</string>
     <string name="error_connection_failed">無法連線到伺服器</string>
     <string name="error_parse_failed">資料解析失敗</string>
-
     <string name="error_bad_request">(%s) 伺服器無法處理該請求</string>
     <string name="error_unauthorized">(%s) 請檢查登入憑證並重試</string>
     <string name="error_forbidden">(%s) 您沒有權限存取此資源</string>
@@ -791,7 +790,6 @@
     <string name="settings_renderer_from_plugins">來自 %s 外掛程式</string>
     <string name="settings_renderer_resolution_scale_title">遊戲視窗解析度</string>
     <string name="settings_renderer_resolution_scale_summary">數值越低效能越高，數值越高畫質越清晰，請依實際需求調整</string>
-
     <string name="settings_renderer_resolution_rule_title">解析度規則</string>
     <string name="settings_renderer_resolution_rule_summary">選擇遊戲視窗解析度的計算規則</string>
     <string name="settings_renderer_resolution_rule_percentage">百分比</string>

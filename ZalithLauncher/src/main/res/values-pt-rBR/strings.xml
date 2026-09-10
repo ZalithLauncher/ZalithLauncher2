@@ -728,7 +728,6 @@
     <string name="settings_renderer_from_plugins">Do plugin %s</string>
     <string name="settings_renderer_resolution_scale_title">Escala de Resolução do dispositivo</string>
     <string name="settings_renderer_resolution_scale_summary">Quanto menor o valor, melhor o desempenho e pior a qualidade de visualização;\nQuanto maior o valor, menor o desempenho mas melhor a qualidade de visualização;\nAjuste de acordo com o base na capacidade máxima de sua tela (valores acima de 100% não é recomendado)</string>
-
     <string name="settings_renderer_resolution_rule_title">Regra de resolução</string>
     <string name="settings_renderer_resolution_rule_summary">Escolha como a resolução da janela do jogo é calculada</string>
     <string name="settings_renderer_resolution_rule_percentage">Porcentagem</string>
@@ -1407,4 +1406,6 @@
     <string name="account_refresh_failed_skip">Ignorar atualização</string>
     <string name="account_refresh_failed_retry">Atualizar novamente</string>
     <string name="download_install_error_process_start">O sistema recusou-se a criar o processo de instalação. Isso geralmente é causado por memória insuficiente ou restrições em segundo plano no dispositivo. Feche os aplicativos em segundo plano e tente novamente ou force a parada do launcher e abra-o novamente.</string>
+    <string name="notification_task_service_name">Serviço Keep-Alive de Tarefas</string>
+    <string name="notification_task_service_running">As tarefas estão sendo executadas em segundo plano. Mantenha o launcher em execução.</string>
 </resources>

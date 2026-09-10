@@ -38,17 +38,23 @@ import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldLabelPosition
 import androidx.compose.material3.TextFieldLabelScope
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -56,6 +62,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -341,5 +348,47 @@ fun OwnOutlinedTextField(
         interactionSource = interactionSource,
         shape = shape,
         colors = colors,
+    )
+}
+
+/**
+ * 有范围约束的整数输入框，仅允许输入数字
+ * 输入为空或非法时不提交
+ */
+@Composable
+fun IntInputField(
+    value: Int,
+    permitted: IntRange,
+    label: String,
+    onValueChange: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    fun toText(value: Int): String = value.takeIf { it > 0 }?.toString().orEmpty()
+
+    var text by remember { mutableStateOf(toText(value)) }
+    var focused by remember { mutableStateOf(false) }
+
+    LaunchedEffect(value) {
+        if (!focused) text = toText(value)
+    }
+
+    OwnOutlinedTextField(
+        modifier = modifier.onFocusChanged { state ->
+            focused = state.isFocused
+            if (!state.isFocused) text = toText(value)
+        },
+        value = text,
+        onValueChange = { input ->
+            val filtered = input.filter { it.isDigit() }.take(6)
+            text = filtered
+            filtered.toIntOrNull()?.takeIf { it > 0 }?.let { nonZero ->
+                onValueChange(nonZero.coerceIn(permitted))
+            }
+        },
+        textStyle = MaterialTheme.typography.labelMedium,
+        label = { Text(text = label) },
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        singleLine = true,
+        shape = MaterialTheme.shapes.large
     )
 }

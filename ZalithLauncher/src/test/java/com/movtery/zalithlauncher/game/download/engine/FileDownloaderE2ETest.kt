@@ -88,9 +88,10 @@ private class FakeSource(
 }
 
 /**
- * 分区守卫源：prefixOnly=true 时仅服务起点位于文件前半段的 Range 请求，
+ * 分区守卫源：prefixOnly=true 时仅服务起点位于文件前半段的请求，
  * 起点越过中位的一律 500；prefixOnly=false 时拒绝起点为 0 的请求，
  * 其余区间正常服务。两者配合可强制一次下载必然发生跨源断点拼接。
+ * 未携带 Range 的请求按起点 0 处理。
  */
 private class GuardedHalfSource(
     private val content: ByteArray,
@@ -102,9 +103,7 @@ private class GuardedHalfSource(
     override fun dispatch(request: RecordedRequest): MockResponse {
         hits.incrementAndGet()
         val range = request.headers["Range"]
-            ?: return MockResponse.Builder().code(500).build()
-
-        val start = RANGE.find(range)!!.groupValues[1].toLong().toInt()
+        val start = range?.let { RANGE.find(it)!!.groupValues[1].toLong().toInt() } ?: 0
         val servesPrefixHalf = start < content.size / 2
 
         if (prefixOnly != servesPrefixHalf) {
@@ -124,6 +123,19 @@ private class GuardedHalfSource(
 
     companion object {
         private val RANGE = Regex("""bytes=(\d+)-""")
+    }
+}
+
+/** 模拟拒绝任何 Range 请求的 CDN 鉴权层：携带 Range 一律 404，普通 GET 正常服务 */
+private class RangeRejectingSource(private val content: ByteArray) : Dispatcher() {
+    override fun dispatch(request: RecordedRequest): MockResponse {
+        if (request.headers["Range"] != null) {
+            return MockResponse.Builder().code(404).build()
+        }
+        return MockResponse.Builder()
+            .addHeader("Content-Length", content.size.toString())
+            .body(Buffer().write(content))
+            .build()
     }
 }
 
@@ -217,6 +229,26 @@ class FileDownloaderE2ETest {
                 connections = Semaphore(8),
                 stats = DownloadStats(),
                 allowExtraConnection = { true },
+                client = OkHttpClient()
+            ).download()
+        }
+
+        assertArrayEquals(payload, target.readBytes())
+    }
+
+    /** 起点为零的段不得携带 Range：部分 CDN 会直接拒绝任何带 Range 的请求 */
+    @Test
+    fun `fresh download must not carry a range header`() = runBlocking {
+        val source = RangeRejectingSource(payload)
+        val server = startServer(source)
+        val (request, target) = engineRequest("no-range.bin", server.url("/file.bin").toString(), sha1 = sha1HexOf(payload))
+
+        withTimeout(TEST_TIMEOUT_MS) {
+            FileDownloader(
+                request = request,
+                connections = Semaphore(8),
+                stats = DownloadStats(),
+                allowExtraConnection = { false },
                 client = OkHttpClient()
             ).download()
         }

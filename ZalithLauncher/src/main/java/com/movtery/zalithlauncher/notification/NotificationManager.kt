@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.notification
 
 import android.Manifest
-import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
@@ -36,9 +35,9 @@ object NotificationManager {
     /**
      * 初始化通知，初始化通知渠道（频道）
      */
-    fun initManager(activity: Activity) {
+    fun initManager(context: Context) {
         NotificationChannelData.entries.forEach { data ->
-            createNotificationChannel(activity, data)
+            createNotificationChannel(context, data)
         }
     }
 
@@ -59,10 +58,10 @@ object NotificationManager {
         }
     }
 
-    private fun createNotificationChannel(activity: Activity, channelData: NotificationChannelData) {
-        val manager = activity.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        val channel = NotificationChannel(channelData.channelId, channelData.channelName(activity), channelData.level).apply {
-            channelData.channelDescription?.invoke(activity)?.let { desc ->
+    fun createNotificationChannel(context: Context, channelData: NotificationChannelData) {
+        val manager = context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val channel = NotificationChannel(channelData.channelId, channelData.channelName(context), channelData.level).apply {
+            channelData.channelDescription?.invoke(context)?.let { desc ->
                 description = desc
             }
             setShowBadge(channelData.showBadge)

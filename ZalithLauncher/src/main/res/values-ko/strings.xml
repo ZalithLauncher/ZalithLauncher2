@@ -229,6 +229,8 @@
     <string name="download_assets_install_progress_downloading">에셋 다운로드 및 설치 중\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">에셋 설치중\n%s</string>
     <string name="download_assets_install_failed">에셋 설치 실패!</string>
+    <string name="download_assets_dependency_no_compatible_version">의존성 %s에 대한 호환 버전을 찾을 수 없습니다</string>
+    <string name="download_assets_dependency_project_unavailable">프로젝트 정보를 가져올 수 없습니다</string>
     <string name="download_modpack_warning1">설치 전 안내, 대부분의 모드팩은 PC용으로 제작되었습니다, 모바일에서 실행 시 크래시(튕김)나 기타 문제가 발생할 확률이 매우 높으며, 이는 런처 수준에서 해결하기 어려운 경우가 많습니다.</string>
     <string name="download_modpack_warning2">오류가 발생하면 스스로 해결 방법을 찾아보거나, 커뮤니티 등을 통해 주변의 도움을 구해 보세요.</string>
     <string name="download_modpack_warning3">참고: 런처 개발자는 일반적으로 모드팩으로 인해 발생하는 문제를 해결해 드리지 않습니다.</string>
@@ -729,10 +731,16 @@
     <string name="download_assets_id_not_found">프로젝트를 찾을 수 없습니다!</string>
     <string name="game_vulkan_check_version">Vulkan 버전: %s</string>
     <string name="game_vulkan_check_turnip">Turnip 사용: %s</string>
-    <string name="game_vulkan_check_missing_extensions">누락된 확장:</string>
-    <string name="game_vulkan_check_missing_features">누락된 기능:</string>
-    <string name="game_vulkan_check_unsupp">현재 기기는 Minecraft 26.2 이상을 Vulkan으로 실행하는 것을 지원하지 않습니다</string>
-    <string name="game_vulkan_check_supp">현재 기기는 Minecraft 26.2 이상을 Vulkan으로 실행하는 것을 지원합니다</string>
+    <string name="game_vulkan_check_versions">버전별 지원 현황:</string>
+    <string name="game_vulkan_check_profile_supp">지원됨</string>
+    <string name="game_vulkan_check_profile_unsupp">지원 안 됨</string>
+    <string name="game_vulkan_check_dep_required">필수:</string>
+    <string name="game_vulkan_check_dep_optional">선택:</string>
+    <string name="game_vulkan_check_item_missing">(누락)</string>
+    <string name="game_vulkan_check_failed">이 기기의 Vulkan 지원 정보를 가져올 수 없습니다</string>
+    <string name="game_vulkan_check_partial">현재 기기는 일부 Minecraft 버전만 Vulkan으로 실행할 수 있습니다:</string>
+    <string name="game_vulkan_check_unsupp">현재 기기는 어떤 Minecraft 버전도 Vulkan으로 실행할 수 없습니다</string>
+    <string name="game_vulkan_check_supp">현재 기기는 Minecraft %s 이상을 Vulkan으로 실행할 수 있습니다</string>
     <string name="plugin_download_title">플러그인 다운로드</string>
     <string name="account_change_skin_arm_style">팔 스타일</string>
     <string name="account_change_skin_arm_wide">굵은 팔</string>
@@ -776,8 +784,8 @@
     <string name="error_gateway_timeout">(%s) 서버가 제시간에 응답을 받지 못했습니다</string>
     <string name="game_vulkan_check_text">현재 기기가 Minecraft 26.2 이상에서 Vulkan을 지원하는지 확인합니다. 참고만 해주세요.</string>
     <string name="game_vulkan_check_title">Vulkan 확인</string>
-    <string name="game_vulkan_check_extensions">필요한 확장:</string>
-    <string name="game_vulkan_check_features">필요한 기능:</string>
+    <string name="game_vulkan_check_extensions">의존 확장:</string>
+    <string name="game_vulkan_check_features">의존 기능:</string>
     <string name="settings_renderer_global_vulkan_driver_title">Vulkan 드라이버</string>
     <string name="settings_renderer_vulkan_driver_system_title">시스템 Vulkan 드라이버 사용</string>
     <string name="saves_manage_delete_warning">월드 \'%s\'을(를) 삭제하시겠습니까? 삭제 후에는 되돌릴 수 없습니다!</string>
@@ -816,6 +824,13 @@
     <string name="settings_renderer_from_plugins">플러그인 \'%s\'에서</string>
     <string name="settings_renderer_resolution_scale_title">해상도</string>
     <string name="settings_renderer_resolution_scale_summary">낮을수록 성능이, 높을수록 그래픽 품질이 향상됩니다. 필요에 따라 조정해 주세요</string>
+
+    <string name="settings_renderer_resolution_rule_title">해상도 규칙</string>
+    <string name="settings_renderer_resolution_rule_summary">게임 창 해상도의 계산 방식을 선택하세요</string>
+    <string name="settings_renderer_resolution_rule_percentage">백분율</string>
+    <string name="settings_renderer_resolution_custom_summary">지정한 너비와 높이로 게임을 렌더링하며, 화면에 맞게 크기가 조절됩니다</string>
+    <string name="settings_renderer_resolution_custom_width">너비</string>
+    <string name="settings_renderer_resolution_custom_height">높이</string>
     <string name="settings_renderer_full_screen_title">게임 전체화면</string>
     <string name="settings_renderer_sustained_performance_title">성능 지속 모드</string>
     <string name="settings_renderer_sustained_performance_summary">이 기능을 활성화하면 장시간 안정적인 성능이 제공되지만, 과열을 방지하기 위해 반응 속도가 떨어질 수 있습니다</string>

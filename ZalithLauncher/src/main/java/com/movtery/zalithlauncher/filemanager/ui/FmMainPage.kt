@@ -32,6 +32,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -43,17 +44,15 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -80,6 +79,7 @@ import com.movtery.zalithlauncher.filemanager.os.FmLog
 import com.movtery.zalithlauncher.filemanager.ui.components.FmAlertDialog
 import com.movtery.zalithlauncher.filemanager.ui.components.FmAppBar
 import com.movtery.zalithlauncher.filemanager.ui.components.FmBottomBar
+import com.movtery.zalithlauncher.filemanager.ui.components.FmCardPosition
 import com.movtery.zalithlauncher.filemanager.ui.components.FmEntryItem
 import com.movtery.zalithlauncher.filemanager.ui.components.FmNavRail
 import com.movtery.zalithlauncher.filemanager.ui.dialogs.FmBulkActionsDialog
@@ -98,9 +98,7 @@ import com.movtery.zalithlauncher.filemanager.ui.dialogs.FmSearchSetupDialog
 import com.movtery.zalithlauncher.filemanager.ui.dialogs.FmSearchTaskDialog
 import com.movtery.zalithlauncher.filemanager.ui.theme.FmAnimations
 import com.movtery.zalithlauncher.filemanager.ui.theme.fmBackgroundColor
-import com.movtery.zalithlauncher.filemanager.ui.theme.fmCardColor
 import com.movtery.zalithlauncher.filemanager.ui.theme.fmOnBackgroundColor
-import com.movtery.zalithlauncher.filemanager.ui.theme.fmOnCardColor
 import com.movtery.zalithlauncher.filemanager.ui.theme.fmSecondaryTextColor
 import com.movtery.zalithlauncher.filemanager.viewmodel.DialogIntent
 import com.movtery.zalithlauncher.filemanager.viewmodel.FileManagerUiState
@@ -111,6 +109,7 @@ import com.movtery.zalithlauncher.utils.file.formatFileSize
 import com.movtery.zalithlauncher.utils.formatDate
 import kotlinx.coroutines.delay
 import java.nio.file.Path
+import kotlin.math.floor
 import kotlin.time.Duration.Companion.milliseconds
 
 private sealed interface FmOperation {
@@ -225,14 +224,10 @@ fun FmMainPage(
                     canForward = uiState.canNavigateForward
                 )
                 // 文件项列表
-                Surface(
+                Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .padding(end = 12.dp, bottom = 12.dp),
-                    color = fmCardColor(),
-                    contentColor = fmOnCardColor(),
-                    shape = MaterialTheme.shapes.large
                 ) {
                     MainContent(
                         uiState = uiState,
@@ -415,10 +410,11 @@ private fun EntryList(
         }
     }
 
-    val itemContent: @Composable (FmEntry) -> Unit = { entry ->
+    val itemContent: @Composable (FmEntry, FmCardPosition) -> Unit = { entry, position ->
         val key = selectionKey(entry)
         FmEntryItem(
             entry = entry,
+            position = position,
             multiSelect = uiState.multiSelect,
             selected = key in uiState.selection,
             cutMarked = key in cutPaths && (uiState.clipboard?.isCut == true),
@@ -439,25 +435,35 @@ private fun EntryList(
     }
 
     if (isLandscape) {
-        LazyVerticalGrid(
-            state = gridState,
-            columns = GridCells.Adaptive(minSize = 280.dp),
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(0.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
-        ) {
-            items(entries, key = { it.path.toString() }) { entry ->
-                itemContent(entry)
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val gap = 2.dp
+            val minColumnSize = 280.dp
+            // 与 GridCells.Adaptive 相同的列数公式，保证条目方位与实际网格一致
+            val columns = floor(
+                (maxWidth - 24.dp + gap).value / (minColumnSize + gap).value
+            ).toInt().coerceAtLeast(1)
+            LazyVerticalGrid(
+                state = gridState,
+                columns = GridCells.Fixed(columns),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(gap),
+                verticalArrangement = Arrangement.spacedBy(gap)
+            ) {
+                itemsIndexed(entries, key = { _, entry -> entry.path.toString() }) { index, entry ->
+                    itemContent(entry, FmCardPosition.of(index, entries.size, columns))
+                }
             }
         }
     } else {
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 8.dp)
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            items(entries, key = { it.path.toString() }) { entry ->
-                itemContent(entry)
+            itemsIndexed(entries, key = { _, entry -> entry.path.toString() }) { index, entry ->
+                itemContent(entry, FmCardPosition.of(index, entries.size))
             }
         }
     }

@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.coroutine
 
+import com.movtery.zalithlauncher.keepalive.TaskKeepAlive
 import com.movtery.zalithlauncher.utils.network.isInterruptedIOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +45,8 @@ object TaskSystem {
     fun submitTask(task: Task) {
         if (containsTask(task)) return
         addTask(task)
+        //持有保活，避免启动器切至后台后任务被系统中断
+        TaskKeepAlive.acquire()
 
         allJobs[task.id] = scope.launch(task.dispatcher) {
             try {
@@ -57,7 +60,14 @@ object TaskSystem {
                 task.onFinally()
             }
         }.also { job ->
-            job.invokeOnCompletion { onTaskEnded(task) }
+            job.invokeOnCompletion {
+                try {
+                    onTaskEnded(task)
+                } finally {
+                    //确保保活一定被释放，避免任务异常导致前台服务无法停止
+                    TaskKeepAlive.release()
+                }
+            }
         }
     }
 
@@ -136,6 +146,7 @@ object TaskSystem {
         _tasksFlow.update { emptyList() }
         allJobs.clear()
         allListeners.clear()
+        TaskKeepAlive.reset()
     }
 
     private fun addTask(task: Task) {

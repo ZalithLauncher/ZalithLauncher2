@@ -66,12 +66,15 @@ import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformProject
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
+import com.movtery.zalithlauncher.game.download.assets.platform.cacheKey
 import com.movtery.zalithlauncher.game.download.assets.platform.getProject
+import com.movtery.zalithlauncher.game.download.assets.platform.getVersionById
 import com.movtery.zalithlauncher.game.download.assets.platform.getVersions
 import com.movtery.zalithlauncher.game.download.assets.platform.isAllNull
 import com.movtery.zalithlauncher.game.download.assets.utils.ModTranslations
 import com.movtery.zalithlauncher.game.download.assets.utils.getMcmodTitle
 import com.movtery.zalithlauncher.game.download.assets.utils.getTranslations
+import com.movtery.zalithlauncher.game.version.mod.InstalledMod
 import com.movtery.zalithlauncher.game.versioninfo.filterRelease
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
@@ -86,6 +89,7 @@ import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.AssetsIcon
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.AssetsVersionItemLayout
+import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.DependencyEntry
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.DownloadAssetsState
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.DownloadAssetsVersionLoading
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.ProjectUrlsContent
@@ -97,6 +101,7 @@ import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import io.ktor.client.plugins.ClientRequestException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
@@ -116,8 +121,6 @@ private class DownloadScreenViewModel(
     var versionsResult by mutableStateOf<DownloadAssetsState<List<VersionInfoMap>>>(DownloadAssetsState.Getting())
     var versionsLoading by mutableStateOf<DownloadAssetsVersionLoading>(DownloadAssetsVersionLoading.None)
         private set
-    /** 当前正在加载的依赖项目 */
-    val loadingProjects = mutableStateListOf<String>()
 
     var showOnlyMCRelease by mutableStateOf(true)
     var searchMCVersion by mutableStateOf("")
@@ -145,6 +148,8 @@ private class DownloadScreenViewModel(
     fun getVersions() {
         viewModelScope.launch {
             versionsResult = DownloadAssetsState.Getting()
+            //重新加载时重试此前获取失败的依赖项目
+            failedDependencyProjects.clear()
             if (platform == Platform.CURSEFORGE) {
                 versionsLoading = DownloadAssetsVersionLoading.StartLoadPage
             }
@@ -156,39 +161,32 @@ private class DownloadScreenViewModel(
                     versionsLoading = DownloadAssetsVersionLoading.LoadingPage(chunk, page)
                 },
                 onSuccess = { result ->
-                    val versions: List<PlatformVersion> = result.initAll(projectId) also@{ version ->
-                        if (classes == PlatformClasses.MOD_PACK) return@also //整合包不支持获取依赖
-                        val dependencies = version.platformDependencies()
-                        if (dependencies.isEmpty()) return@also
+                    val versions: List<PlatformVersion> = result.initAll(projectId)
 
-                        loadingProjects.clear()
-                        versionsLoading = DownloadAssetsVersionLoading.LoadingDepProject
-
-                        val semaphore = Semaphore(8)
-                        val jobs = dependencies.map { dependency ->
-                            async {
-                                semaphore.withPermit {
-                                    cacheDependencyProject(
-                                        platform = version.platform(),
-                                        projectId = dependency.projectId,
-                                        onLoading = {
-                                            if (!loadingProjects.contains(dependency.projectId)) {
-                                                loadingProjects.add(dependency.projectId)
-                                            }
-                                        },
-                                        onEnd = {
-                                            loadingProjects.remove(dependency.projectId)
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-                        jobs.awaitAll()
-                    }
+                    //版本列表先行展示，依赖项目信息改为后台缓存，不再阻塞列表加载
                     _versionsList = versions.mapWithVersions(classes)
                     versionsResult = DownloadAssetsState.Success(_versionsList.filterInfos())
                     versionsLoading = DownloadAssetsVersionLoading.None
+
+                    if (classes == PlatformClasses.MOD_PACK) return@getVersions
+                    val dependencies = versions
+                        .flatMap { it.platformDependencies() }
+                        .distinctBy { it.cacheKey() }
+                    if (dependencies.isEmpty()) return@getVersions
+
+                    viewModelScope.launch {
+                        val semaphore = Semaphore(8)
+                        dependencies.map { dependency ->
+                            async {
+                                semaphore.withPermit {
+                                    cacheDependencyProject(
+                                        platform = dependency.platform,
+                                        dependency = dependency
+                                    )
+                                }
+                            }
+                        }.awaitAll()
+                    }
                 },
                 onError = {
                     versionsResult = it
@@ -225,35 +223,51 @@ private class DownloadScreenViewModel(
     //就会进行很多次无效的访问，非常耗时
     //需要记录不存在的依赖项目的id，避免下次继续获取
     val notFoundDependencyProjects = mutableStateListOf<String>()
+    //依赖项目信息获取失败，在对话框里展示占位项
+    val failedDependencyProjects = mutableStateListOf<String>()
 
     /**
      * 缓存依赖项目
      */
     private suspend fun cacheDependencyProject(
         platform: Platform,
-        projectId: String,
-        onLoading: () -> Unit,
-        onEnd: () -> Unit
+        dependency: PlatformVersion.PlatformDependency
     ) {
-        if (!notFoundDependencyProjects.contains(projectId) && !cachedDependencyProject.containsKey(projectId)) {
-            onLoading()
+        val key = dependency.cacheKey()
+        if (notFoundDependencyProjects.contains(key) || cachedDependencyProject.containsKey(key)) return
+
+        try {
+            val projectId = dependency.projectId ?: run {
+                //依赖只标注了精确版本，先通过版本反查其所属项目
+                getVersionById(
+                    versionId = dependency.versionId
+                        ?: error("The dependency does not provide a project id or a version id."),
+                    platform = platform,
+                    printLog = false
+                ).platformProjectId()
+            }
             getProject<PlatformProject>(
                 projectID = projectId,
                 platform = platform,
                 onSuccess = { result ->
-                    cachedDependencyProject[projectId] = result
-                    onEnd()
+                    cachedDependencyProject[key] = result
                 },
                 onError = { _, e ->
-                    if (e is ClientRequestException && e.response.status.value == 404) {
-                        // 404 Not Found
-                        notFoundDependencyProjects.add(projectId)
+                    if (e.isNotFound()) {
+                        notFoundDependencyProjects.add(key)
                     } else {
-                        cachedDependencyProject.remove(projectId)
+                        if (!failedDependencyProjects.contains(key)) failedDependencyProjects.add(key)
                     }
-                    onEnd()
                 }
             )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Throwable) {
+            if (e.isNotFound()) {
+                notFoundDependencyProjects.add(key)
+            } else {
+                if (!failedDependencyProjects.contains(key)) failedDependencyProjects.add(key)
+            }
         }
     }
 
@@ -267,6 +281,12 @@ private class DownloadScreenViewModel(
         viewModelScope.cancel()
     }
 }
+
+/**
+ * 平台的接口是否返回了未找到
+ */
+private fun Throwable.isNotFound(): Boolean =
+    this is ClientRequestException && response.status.value == 404
 
 @Composable
 private fun rememberDownloadAssetsViewModel(
@@ -287,6 +307,7 @@ private fun rememberDownloadAssetsViewModel(
  * @param parentScreenKey 父屏幕Key
  * @param parentCurrentKey 父屏幕当前Key
  * @param currentKey 当前的Key
+ * @param installedChecker 查询版本本地是否已安装，null 则不进行已安装标注
  */
 @Composable
 fun DownloadAssetsScreen(
@@ -296,10 +317,11 @@ fun DownloadAssetsScreen(
     currentKey: TitledNavKey?,
     key: NormalNavKey.DownloadAssets,
     eventViewModel: EventViewModel,
-    onItemClicked: (PlatformClasses, PlatformVersion, iconUrl: String?, deps: List<Pair<PlatformVersion.PlatformDependency, PlatformProject>>) -> Unit,
+    onItemClicked: (PlatformClasses, PlatformVersion, iconUrl: String?, deps: List<DependencyEntry>) -> Unit,
     nestedNavKeyClass: Class<out TitledNavKey>? = null,
     versionsUIWeight: Float = 6.5f,
     projectUIWeight: Float = 3.5f,
+    installedChecker: ((PlatformVersion) -> InstalledMod?)? = null,
 ) {
     val viewModel: DownloadScreenViewModel = rememberDownloadAssetsViewModel(key)
 
@@ -320,10 +342,21 @@ fun DownloadAssetsScreen(
                     .fillMaxHeight()
                     .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
                 viewModel = viewModel,
+                installedChecker = installedChecker,
                 onReload = { viewModel.getVersions() },
                 onItemClicked = { version ->
                     val deps = version.platformDependencies().mapNotNull { dep ->
-                        viewModel.cachedDependencyProject[dep.projectId]?.let { dep to it }
+                        val key = dep.cacheKey()
+                        val project = viewModel.cachedDependencyProject[key]
+                        when {
+                            project != null -> DependencyEntry(dep, project)
+                            viewModel.notFoundDependencyProjects.contains(key) ->
+                                DependencyEntry(dep, null, notFound = true)
+                            viewModel.failedDependencyProjects.contains(key) ->
+                                DependencyEntry(dep, null)
+                            //依赖项目信息仍在获取中
+                            else -> null
+                        }
                     }
                     onItemClicked(key.classes, version, key.iconUrl, deps)
                 },
@@ -359,6 +392,7 @@ fun DownloadAssetsScreen(
 private fun Versions(
     modifier: Modifier = Modifier,
     viewModel: DownloadScreenViewModel,
+    installedChecker: ((PlatformVersion) -> InstalledMod?)? = null,
     onReload: () -> Unit = {},
     onItemClicked: (PlatformVersion) -> Unit = {}
 ) {
@@ -380,15 +414,6 @@ private fun Versions(
                             is DownloadAssetsVersionLoading.StartLoadPage -> {
                                 Text(
                                     text = stringResource(R.string.download_assets_loading_page_data),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                            is DownloadAssetsVersionLoading.LoadingDepProject -> {
-                                val ids = viewModel.loadingProjects.joinToString(", ")
-                                Text(
-                                    text = stringResource(R.string.download_assets_loading_dep_project, ids),
                                     style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     textAlign = TextAlign.Center
@@ -480,6 +505,7 @@ private fun Versions(
                                 .fillMaxWidth()
                                 .padding(vertical = 6.dp),
                             infoMap = info,
+                            installedChecker = installedChecker,
                             onItemClicked = onItemClicked
                         )
                     }

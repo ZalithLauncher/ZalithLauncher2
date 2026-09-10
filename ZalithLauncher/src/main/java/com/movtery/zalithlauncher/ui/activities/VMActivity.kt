@@ -24,6 +24,7 @@ import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
 import android.graphics.SurfaceTexture
+import android.os.Build
 import android.os.Bundle
 import android.view.InputDevice
 import android.view.KeyEvent
@@ -46,13 +47,16 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.viewinterop.AndroidView
@@ -67,6 +71,7 @@ import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.LoggerBridge
+import com.movtery.zalithlauncher.bridge.FliteTts
 import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
 import com.movtery.zalithlauncher.coroutine.DataBridge
@@ -90,6 +95,7 @@ import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import com.movtery.zalithlauncher.terracotta.TerracottaVPNService
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.base.ObserveFullScreenSetting
@@ -100,13 +106,17 @@ import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderLayer
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderOperation
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
 import com.movtery.zalithlauncher.ui.toAndroidString
+import com.movtery.zalithlauncher.utils.computeGameDisplayLayout
+import com.movtery.zalithlauncher.utils.computeGameRenderSize
 import com.movtery.zalithlauncher.utils.device.PhysicalMouseChecker
 import com.movtery.zalithlauncher.utils.getDisplayFriendlyRes
 import com.movtery.zalithlauncher.utils.getParcelableSafely
+import com.movtery.zalithlauncher.utils.rememberGameRenderSize
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -126,6 +136,11 @@ private const val INTENT_RUN_GAME = "BUNDLE_RUN_GAME"
 private const val INTENT_RUN_JAR = "INTENT_RUN_JAR"
 private const val INTENT_GAME_CONFIG = "INTENT_GAME_CONFIG"
 private const val INTENT_JAR_INFO = "INTENT_JAR_INFO"
+
+/**
+ * 事件驱动尺寸刷新的去抖间隔
+ */
+private val RESIZE_DEBOUNCE = 150L.milliseconds
 
 data class LaunchSession(
     val activityTitle: String,
@@ -363,7 +378,10 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         PhysicalMouseChecker.initChecker(this)
 
         //启动前台服务，防止后台网络中断
-        startForegroundService(Intent(this, GameService::class.java))
+        runCatching {
+            //应用处于后台等受限状态时系统会拒绝启动，此时无需保活，忽略即可
+            startService(Intent(this, GameService::class.java))
+        }
 
         val bundle = intent.extras ?: throw IllegalStateException("Unknown VM launch state!")
 
@@ -568,53 +586,80 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
             if (vmViewModel.isRunning) {
                 delay(50L.milliseconds)
                 withContext(Dispatchers.Main) {
-                    refreshWindowSize(screenSize = vmViewModel.screenSize)
+                    requestRefreshWindowSize(screenSize = vmViewModel.screenSize)
                 }
             }
+        }
+    }
+
+    /**
+     * 尺寸刷新的参照屏幕尺寸
+     * 自定义分辨率下游戏 Surface 不再铺满全屏，其视图尺寸不能作为参照，此时优先使用全屏布局尺寸
+     */
+    private fun referenceScreenSize(fallback: IntSize): IntSize {
+        return vmViewModel.screenSize.takeIf { it.width > 0 && it.height > 0 } ?: fallback
+    }
+
+    private var lastWindowSize: IntSize? = null
+    private var refreshSizeJob: Job? = null
+    private var pendingRefreshSize: IntSize? = null
+    /**
+     * 事件驱动的窗口尺寸刷新入口
+     */
+    private fun requestRefreshWindowSize(screenSize: IntSize) {
+        if (screenSize.width <= 0 || screenSize.height <= 0) return
+        pendingRefreshSize = screenSize
+        refreshSizeJob?.cancel()
+        refreshSizeJob = lifecycleScope.launch {
+            delay(RESIZE_DEBOUNCE)
+            val size = pendingRefreshSize ?: return@launch
+            pendingRefreshSize = null
+            refreshWindowSize(screenSize = size)
         }
     }
 
     private fun refreshWindowSize(
         screenSize: IntSize
     ): IntSize {
-        fun getDisplayPixels(pixels: Int): Int {
-            return withHandler {
-                when (type) {
-                    HandlerType.GAME -> getDisplayFriendlyRes(pixels, AllSettings.resolutionRatio.getValue().toFloat() / 100f)
-                    HandlerType.JVM -> getDisplayFriendlyRes(pixels, 0.8f)
-                }
+        val newSize = withHandler {
+            when (type) {
+                HandlerType.GAME -> computeGameRenderSize(screenSize)
+                HandlerType.JVM -> IntSize(
+                    getDisplayFriendlyRes(screenSize.width, 0.8f),
+                    getDisplayFriendlyRes(screenSize.height, 0.8f)
+                )
             }
         }
+        // 尺寸未变化时跳过重复应用
+        if (newSize == lastWindowSize) return newSize
+        lastWindowSize = newSize
 
-        val windowWidth = getDisplayPixels(screenSize.width)
-        val windowHeight = getDisplayPixels(screenSize.height)
-        applySizeToSurface?.invoke(windowWidth, windowHeight)
+        applySizeToSurface?.invoke(newSize.width, newSize.height)
         ZLBridgeStates.onWindowChange()
-        CallbackBridge.sendUpdateWindowSize(windowWidth, windowHeight)
+        CallbackBridge.sendUpdateWindowSize(newSize.width, newSize.height)
         if (SdlBridge.sdlEnabled) {
             SDLActivity.getSDLSurface()?.let { surface ->
                 surface.surfaceChanged()
-                surface.nativeResize(windowWidth, windowHeight)
+                surface.nativeResize(newSize.width, newSize.height)
             }
         }
 
-        return IntSize(windowWidth, windowHeight)
+        return newSize
     }
 
     override fun onDestroy() {
         stopAllService()
         withHandler { onDestroy() }
         SdlBridge.reset()
+        FliteTts.shutdown()
         super.onDestroy()
     }
 
     private fun stopAllService() {
         stopService(Intent(this, GameService::class.java))
         if (TerracottaVPNService.isRunning()) {
-            val vpnIntent = Intent(this, TerracottaVPNService::class.java).apply {
-                action = TerracottaVPNService.ACTION_STOP
-            }
-            startForegroundService(vpnIntent)
+            //停止指令必须用 stopService 下发
+            stopService(Intent(this, TerracottaVPNService::class.java))
         }
     }
 
@@ -682,8 +727,24 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
         this, flags, title, message, buttonFlags, buttonIds, buttonTexts, colors
     )
 
+    /**
+     * 请求系统将屏幕切换到设备支持的最高刷新率，避免游戏帧率被系统限制在自选的较低刷新档位
+     *
+     * 参考 MinecraftGLSurface（https://github.com/AngelAuraMC/Amethyst-Android/blob/v3_openjdk/app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java）
+     */
+    private fun voteMaxDisplayRefreshRate(surface: Surface) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        val maxRefreshRate = maxOf(120f, *display.mode.alternativeRefreshRates)
+        surface.setFrameRate(
+            maxRefreshRate,
+            Surface.FRAME_RATE_COMPATIBILITY_DEFAULT,
+            Surface.CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS
+        )
+    }
+
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
         val nativeSurface = Surface(surface)
+        voteMaxDisplayRefreshRate(nativeSurface)
         SdlBridge.prepareSurface(this, nativeSurface, gameSurfaceView?.parent as? ViewGroup, surface)
         //游戏请求 GLFW direct gamepad 时的通知接收方
         CallbackBridge.setDirectGamepadEnableHandler {
@@ -711,7 +772,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
         if (withHandler { mIsSurfaceDestroyed }) return
-        refreshWindowSize(screenSize = IntSize(width, height))
+        requestRefreshWindowSize(screenSize = referenceScreenSize(fallback = IntSize(width, height)))
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
@@ -731,11 +792,15 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
 
     override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
         if (withHandler { mIsSurfaceDestroyed }) return
-        refreshWindowSize(screenSize = IntSize(width, height))
+        val viewWidth = gameSurfaceView?.width ?: 0
+        val viewHeight = gameSurfaceView?.height ?: 0
+        if (viewWidth <= 0 || viewHeight <= 0) return
+        requestRefreshWindowSize(screenSize = referenceScreenSize(fallback = IntSize(viewWidth, viewHeight)))
     }
 
     override fun surfaceCreated(holder: SurfaceHolder) {
         val surface = holder.surface
+        voteMaxDisplayRefreshRate(surface)
         SdlBridge.prepareSurface(this, surface, gameSurfaceView?.parent as? ViewGroup, holder)
         if (vmViewModel.isRunning) {
             ZLBridge.setupBridgeWindow(surface)
@@ -774,6 +839,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
     ) {
         val imeInsets = WindowInsets.ime
         val inputArea by withHandler { inputArea }.collectAsStateWithLifecycle()
+        val density = LocalDensity.current
 
         BoxWithConstraints(
             modifier = Modifier
@@ -787,14 +853,28 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
                 vmViewModel.screenSize = screenSize
                 vmViewModel.screenSizeBridge.provideData(screenSize)
                 if (changed) {
-                    refreshWindowSize(screenSize = screenSize)
+                    requestRefreshWindowSize(screenSize = screenSize)
                     vmViewModel.onConfigurationChanged(false)
                 }
             }
 
+            //游戏模式下使用自定义分辨率时，游戏画面等比缩放居中显示（黑边）
+            val letterboxed = withHandler { type } == HandlerType.GAME &&
+                    AllSettings.resolutionRule.state == ResolutionRule.CUSTOM
+            val renderSize = rememberGameRenderSize(screenSize)
+            val displaySize = if (letterboxed) computeGameDisplayLayout(screenSize, renderSize).displaySize else screenSize
+
             AndroidView(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .then(
+                        if (displaySize == screenSize) Modifier.fillMaxSize()
+                        else Modifier
+                            .align(Alignment.Center)
+                            .size(
+                                width = with(density) { displaySize.width.toDp() },
+                                height = with(density) { displaySize.height.toDp() }
+                            )
+                    )
                     .absoluteOffset {
                         val area = inputArea ?: return@absoluteOffset IntOffset.Zero
                         val imeHeight = imeInsets.getBottom(this@absoluteOffset)
@@ -853,6 +933,7 @@ fun runGame(
     version: Version,
     account: Account,
 ) {
+    startGameService(context)
     val intent = Intent(context, VMActivity::class.java).apply {
         putExtra(INTENT_RUN_GAME, true)
         putExtra(INTENT_GAME_CONFIG, LaunchConfig(version, account))
@@ -885,9 +966,18 @@ fun runJar(
         jreName = jreName
     )
 
+    startGameService(context)
+
     val intent = Intent(context, VMActivity::class.java).apply {
         putExtra(INTENT_RUN_JAR, true)
         putExtra(INTENT_JAR_INFO, jvmLaunchInfo)
     }
     context.startActivity(intent)
+}
+
+private fun startGameService(context: Context) {
+    runCatching {
+        //应用处于后台等受限状态时系统会拒绝启动，此时无需保活，忽略即可
+        context.startService(Intent(context, GameService::class.java))
+    }
 }

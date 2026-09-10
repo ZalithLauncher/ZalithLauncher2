@@ -53,6 +53,16 @@ interface RendererInterface {
     fun getMaxMCVersion(): String? = null
 
     /**
+     * 获取渲染器最低兼容版本的展示用版本号
+     */
+    fun getDisplayMinMCVersion(): String? = getMinMCVersion()
+
+    /**
+     * 获取渲染器最高兼容版本的展示用版本号
+     */
+    fun getDisplayMaxMCVersion(): String? = getMaxMCVersion()
+
+    /**
      * 获取渲染器的环境变量
      */
     fun getRendererEnv(): Lazy<Map<String, String>>

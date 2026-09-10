@@ -25,6 +25,9 @@ import java.io.File
 
 private const val TAG = "VulkanCapabilities"
 
+/**
+ * 设备的原始 Vulkan 支持情况
+ */
 @Keep
 data class VulkanCapabilities(
     val apiVersionMajor: Int,
@@ -40,40 +43,6 @@ data class VulkanCapabilities(
     /** 检查 Vulkan 版本是否至少为 1.2 */
     val isVersionSupported: Boolean
         get() = apiVersionMajor > 1 || (apiVersionMajor == 1 && apiVersionMinor >= 2)
-
-    /** 返回设备缺失的必要扩展 */
-    val missingExtensions: List<String>
-        get() = REQUIRED_EXTENSIONS.filter { it !in extensions }
-
-    /** 返回设备不支持的必要功能 */
-    val missingFeatures: List<String>
-        get() = REQUIRED_FEATURES.filter { features[it] != true }
-
-    /** 设备是否满足所有需求 */
-    val isAllSupported: Boolean
-        get() = isVersionSupported && missingExtensions.isEmpty() && missingFeatures.isEmpty()
-
-    companion object {
-        val REQUIRED_EXTENSIONS = listOf(
-            "VK_KHR_dynamic_rendering",
-            "VK_KHR_push_descriptor",
-            "VK_KHR_synchronization2",
-            "VK_EXT_vertex_attribute_divisor",
-            "VK_KHR_swapchain"
-        )
-
-        val REQUIRED_FEATURES = listOf(
-            "multiDrawIndirect",
-            "fillModeNonSolid",
-            "samplerAnisotropy",
-            "shaderDrawParameters",
-            "timelineSemaphore",
-            "hostQueryReset",
-            "synchronization2",
-            "dynamicRendering",
-            "vertexAttributeInstanceRateDivisor"
-        )
-    }
 }
 
 @Keep
@@ -116,13 +85,21 @@ object VulkanChecker {
             )?.also { caps ->
                 Logger.info(TAG, "Vulkan version: ${caps.versionString}")
                 Logger.info(TAG, "Version >= 1.2: ${caps.isVersionSupported}")
-                if (caps.missingExtensions.isNotEmpty()) {
-                    Logger.warning(TAG, "Missing required extensions: ${caps.missingExtensions}")
+                caps.profileSupport().forEach { profile ->
+                    Logger.info(
+                        TAG,
+                        "Minecraft ${profile.versionRangeText} Vulkan supported: ${profile.supported}"
+                    )
+                    if (!profile.supported) {
+                        val support = caps.supportFor(profile.since)
+                        val missing = (support.missingRequired + support.missingOptional)
+                            .joinToString { it.dependency.name }
+                        Logger.warning(
+                            TAG,
+                            "Minecraft ${profile.versionRangeText} missing: $missing"
+                        )
+                    }
                 }
-                if (caps.missingFeatures.isNotEmpty()) {
-                    Logger.warning(TAG, "Missing required features: ${caps.missingFeatures}")
-                }
-                Logger.info(TAG, "All requirements satisfied: ${caps.isAllSupported}")
             }
         } catch (e: UnsatisfiedLinkError) {
             Logger.error(TAG, "Native library or method not found", e)

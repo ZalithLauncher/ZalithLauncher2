@@ -89,7 +89,7 @@ fun VersionConfigScreen(
     versionsScreenKey: TitledNavKey?,
     version: Version,
     backToMainScreen: () -> Unit,
-    onCheckVulkan: () -> Unit,
+    onCheckVulkan: (Version) -> Unit,
     showToast: (AndroidStringText) -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
@@ -139,7 +139,9 @@ fun VersionConfigScreen(
                         .fillMaxWidth()
                         .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
                     config = config,
-                    onCheckVulkan = onCheckVulkan,
+                    onCheckVulkan = {
+                        onCheckVulkan(version)
+                    },
                     showToast = showToast,
                     submitError = submitError
                 )

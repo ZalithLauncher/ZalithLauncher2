@@ -42,6 +42,11 @@ interface PlatformVersion {
     fun platformId(): String
 
     /**
+     * 该版本在平台上所属的项目Id
+     */
+    fun platformProjectId(): String
+
+    /**
      * 该版本在平台上的显示名称
      */
     fun platformDisplayName(): String
@@ -103,11 +108,21 @@ interface PlatformVersion {
 
     /**
      * 平台版本依赖项目类，保存依赖项关键信息
+     * @param projectId 依赖项目Id，若平台只提供了精确版本Id，则该值为null
+     * @param versionId 依赖的精确版本Id，为null则代表只指定了依赖项目
      * @param type 依赖类型
      */
     class PlatformDependency(
         val platform: Platform,
-        val projectId: String,
+        val projectId: String?,
+        val versionId: String? = null,
         val type: PlatformDependencyType
     )
+}
+
+/**
+ * 依赖项在缓存与去重时使用的键
+ */
+fun PlatformVersion.PlatformDependency.cacheKey(): String {
+    return "${platform.name}/${projectId.orEmpty()}/${versionId.orEmpty()}"
 }

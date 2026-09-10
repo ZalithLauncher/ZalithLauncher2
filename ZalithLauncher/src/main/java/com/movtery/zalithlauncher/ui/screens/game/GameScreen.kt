@@ -115,6 +115,7 @@ import com.movtery.zalithlauncher.ui.screens.game.elements.SendKeycodeState
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.TerracottaOperation
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.rememberTerracottaViewModel
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
+import com.movtery.zalithlauncher.utils.currentGameDisplayLayout
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.EditorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
@@ -515,10 +516,10 @@ fun GameScreen(
         getUserName = getAccountName
     )
 
-    LaunchedEffect(viewModel.isEditingLayout) {
-        val state = viewModel.isEditingLayout
-        //向VMActivity同步状态，编辑控制布局时，不会继续处理按键事件
-        eventViewModel.sendEvent(EventViewModel.Event.Game.KeyHandle(state.not()))
+    LaunchedEffect(viewModel.isEditingLayout, viewModel.gameMenuState) {
+        //向VMActivity同步状态，编辑控制布局或打开游戏菜单时，不会继续处理按键事件
+        val allowKeyHandle = !viewModel.isEditingLayout && viewModel.gameMenuState != MenuState.SHOW
+        eventViewModel.sendEvent(EventViewModel.Event.Game.KeyHandle(allowKeyHandle))
     }
 
     SendKeycodeOperation(
@@ -623,6 +624,7 @@ fun GameScreen(
             }
 
             //物品栏触发层
+            val gameDisplayLayout = currentGameDisplayLayout(screenSize)
             MinecraftHotbar(
                 screenSize = screenSize,
                 rule = AllSettings.hotbarRule.state,
@@ -632,7 +634,7 @@ fun GameScreen(
                     CallbackBridge.sendKeyPress(keycode)
                 },
                 isGrabbing = isGrabbing,
-                resolutionRatio = AllSettings.resolutionRatio.state,
+                displayOffset = gameDisplayLayout.offset,
                 onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) }
             )
@@ -943,7 +945,8 @@ private fun MouseControlLayout(
             onMouse = onMouseMoved,
             gamepadViewModel = gamepadViewModel,
             onTap = { position ->
-                CallbackBridge.putMouseEventWithCoords(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), position.x.sumPosition(), position.y.sumPosition())
+                val gamePosition = currentGameDisplayLayout(screenSize).mapToGame(position)
+                CallbackBridge.putMouseEventWithCoords(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), gamePosition.x, gamePosition.y)
             },
             onCapturedTap = {
                 if (AllSettings.gestureControl.state) {
@@ -967,7 +970,7 @@ private fun MouseControlLayout(
                 }
             },
             onPointerMove = { pos ->
-                pos.sendPosition()
+                pos.sendPosition(screenSize)
             },
             onCapturedMove = { delta ->
                 CallbackBridge.sendCursorDelta(
@@ -984,15 +987,16 @@ private fun MouseControlLayout(
             },
             isMoveOnlyPointer = isMoveOnlyPointer,
             onOccupiedPointer = onOccupiedPointer,
-            onReleasePointer = onReleasePointer
+            onReleasePointer = onReleasePointer,
+            enableScrollGesture = AllSettings.gestureControl.state,
+            onScrollGesture = { scroll ->
+                CallbackBridge.sendScroll(scroll.x.toDouble(), scroll.y.toDouble())
+            }
         )
     }
 }
 
-private fun Offset.sendPosition() {
-    CallbackBridge.sendCursorPos(x.sumPosition(), y.sumPosition())
-}
-
-private fun Float.sumPosition(): Float {
-    return (this * (AllSettings.resolutionRatio.state / 100f))
+private fun Offset.sendPosition(screenSize: IntSize) {
+    val gamePosition = currentGameDisplayLayout(screenSize).mapToGame(this)
+    CallbackBridge.sendCursorPos(gamePosition.x, gamePosition.y)
 }

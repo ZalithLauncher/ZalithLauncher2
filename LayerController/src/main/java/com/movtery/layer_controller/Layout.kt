@@ -171,6 +171,9 @@ private fun BoxWithConstraintsScope.BaseControlBoxLayout(
         }
     }
 
+    val currentTouchProcessor by rememberUpdatedState(touchProcessor)
+    val currentMarkPointerAsMoveOnly by rememberUpdatedState(markPointerAsMoveOnly)
+
     Box(
         modifier = modifier
             .pointerInput(reversedLayers, hideLayerWhen) {
@@ -200,13 +203,13 @@ private fun BoxWithConstraintsScope.BaseControlBoxLayout(
                                 isCursorGrabbing = currentIsCursorGrabbing,
                             )
 
-                            touchProcessor.processFrame(
+                            currentTouchProcessor.processFrame(
                                 session = pointerEventBus,
                                 change = change,
                                 visibleWidgets = visibleWidgets,
                                 allLayers = reversedLayers,
                                 consumeEvent = { it.consume() },
-                                markPointerAsMoveOnly = markPointerAsMoveOnly,
+                                markPointerAsMoveOnly = currentMarkPointerAsMoveOnly,
                             )
                         }
                     }

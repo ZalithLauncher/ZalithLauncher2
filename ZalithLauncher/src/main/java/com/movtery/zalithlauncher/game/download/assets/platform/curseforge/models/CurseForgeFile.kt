@@ -272,6 +272,8 @@ class CurseForgeFile(
 
     override fun platformId(): String = id.toString()
 
+    override fun platformProjectId(): String = modId.toString()
+
     override fun platformDisplayName(): String = thisPrimaryFile.displayName
 
     override fun platformFileName(): String = thisPrimaryFile.fileName!!

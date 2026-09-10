@@ -64,6 +64,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.layer_controller.data.ButtonSize
+import com.movtery.layer_controller.data.JOYSTICK_MIN_SIZE_DP
+import com.movtery.layer_controller.data.JOYSTICK_MIN_SIZE_PERCENTAGE
 import com.movtery.layer_controller.data.MAX_SIZE_PERCENTAGE
 import com.movtery.layer_controller.data.MIN_SIZE_DP
 import com.movtery.layer_controller.data.MIN_SIZE_PERCENTAGE
@@ -231,7 +233,11 @@ fun ControlEditorLayer(
             }?.let { widget ->
                 selectedWidgetBounds?.let { (drawTL, drawBR) ->
                     //获取尺寸约束的像素值
-                    val minSizePx = with(density) { MIN_SIZE_DP.dp.toPx() }
+                    val isJoystick = widget is ObservableJoystickData
+                    val effectiveMinDp = if (isJoystick) JOYSTICK_MIN_SIZE_DP else MIN_SIZE_DP
+                    val minSizePx = with(density) { effectiveMinDp.dp.toPx() }
+                    val effectiveMinPercentage = if (isJoystick) JOYSTICK_MIN_SIZE_PERCENTAGE else MIN_SIZE_PERCENTAGE
+                    val minPercentageRatio = effectiveMinPercentage.toFloat() / MAX_SIZE_PERCENTAGE.toFloat()
                     val oldSize = widget.widgetSize
 
                     val (minWidth, maxWidth) = when (oldSize.type) {
@@ -242,7 +248,7 @@ fun ControlEditorLayer(
                             } else {
                                 screenSize.height
                             }
-                            (reference * 0.01f) to (reference * 1.0f)
+                            (reference * minPercentageRatio) to (reference * 1.0f)
                         }
                         else -> minSizePx to screenSize.width.toFloat()
                     }
@@ -255,7 +261,7 @@ fun ControlEditorLayer(
                             } else {
                                 screenSize.height
                             }
-                            (reference * 0.01f) to (reference * 1.0f)
+                            (reference * minPercentageRatio) to (reference * 1.0f)
                         }
                         else -> minSizePx to screenSize.height.toFloat()
                     }
@@ -271,8 +277,8 @@ fun ControlEditorLayer(
                         val newWidgetSize = when (oldSize.type) {
                             ButtonSize.Type.Dp -> {
                                 oldSize.copy(
-                                    widthDp = with(density) { newSize.width.toDp().value },
-                                    heightDp = with(density) { newSize.height.toDp().value }
+                                    widthDp = with(density) { newSize.width.toDp().value }.coerceAtLeast(effectiveMinDp),
+                                    heightDp = with(density) { newSize.height.toDp().value }.coerceAtLeast(effectiveMinDp)
                                 )
                             }
 
@@ -288,10 +294,10 @@ fun ControlEditorLayer(
                                 oldSize.copy(
                                     widthPercentage = (newSize.width.toFloat() / widthRef * MAX_SIZE_PERCENTAGE)
                                         .roundToInt()
-                                        .coerceIn(MIN_SIZE_PERCENTAGE, MAX_SIZE_PERCENTAGE),
+                                        .coerceIn(effectiveMinPercentage, MAX_SIZE_PERCENTAGE),
                                     heightPercentage = (newSize.height.toFloat() / heightRef * MAX_SIZE_PERCENTAGE)
                                         .roundToInt()
-                                        .coerceIn(MIN_SIZE_PERCENTAGE, MAX_SIZE_PERCENTAGE)
+                                        .coerceIn(effectiveMinPercentage, MAX_SIZE_PERCENTAGE)
                                 )
                             }
                             else -> oldSize

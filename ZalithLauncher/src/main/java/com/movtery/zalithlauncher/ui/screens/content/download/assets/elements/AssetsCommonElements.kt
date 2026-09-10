@@ -19,11 +19,13 @@
 package com.movtery.zalithlauncher.ui.screens.content.download.assets.elements
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -34,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Shape
@@ -61,6 +64,32 @@ import com.movtery.zalithlauncher.ui.components.ShimmerBox
 import com.movtery.zalithlauncher.utils.logging.Logger
 
 private const val TAG = "AssetsCommonElements"
+
+/**
+ * 本地已安装标识
+ */
+@Composable
+fun InstalledModBadge(
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.tertiary,
+    checkColor: Color = MaterialTheme.colorScheme.onTertiary,
+    size: Dp = 14.dp
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(color),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            modifier = Modifier.size(size * 0.7f),
+            painter = painterResource(R.drawable.ic_check),
+            contentDescription = null,
+            tint = checkColor
+        )
+    }
+}
 
 /**
  * 平台标识元素，展示平台Logo + 平台名称

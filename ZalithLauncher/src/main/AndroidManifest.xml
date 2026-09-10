@@ -149,6 +149,16 @@
         </service>
 
         <service
+            android:name=".keepalive.TaskKeepAliveService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_TYPE"
+                android:value="Keep the launcher process alive while background tasks such as downloads and installations are running" />
+        </service>
+
+        <service
             android:name=".game.download.jvm_server.JvmService"
             android:enabled="true"
             android:foregroundServiceType="specialUse"
@@ -213,6 +223,9 @@
         <package android:name="net.kdt.pojavlaunch.ffmpeg"/>
         <intent>
             <action android:name="android.intent.action.MAIN" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
     </queries>
 </manifest>

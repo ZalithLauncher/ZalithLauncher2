@@ -184,6 +184,8 @@
     <string name="download_assets_install_progress_downloading">アセットのダウンロードとインストール\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">アセットをインストール\n%s</string>
     <string name="download_assets_install_failed">アセットのインストールに失敗しました！</string>
+    <string name="download_assets_dependency_no_compatible_version">依存関係 %s に互換性のあるバージョンが見つかりません</string>
+    <string name="download_assets_dependency_project_unavailable">プロジェクト情報を取得できません</string>
     <string name="download_modpack_warning1">インストール前に理解してください、ほとんどのモッドパックはPC向けに作られているため、起動時にクラッシュやその他の問題が発生する可能性が高いです。これらの問題は、ランチャーでは解決できない場合が多いです。</string>
     <string name="download_modpack_install_overrides">モッドパックファイルを抽出</string>
     <string name="download_modpack_download">モッドパックに必要なコンテンツをダウンロード</string>
@@ -784,6 +786,13 @@
     <string name="settings_renderer_shader_dump_title">シェーダーのログ出力</string>
     <string name="settings_renderer_shader_dump_summary">ゲーム中に変換されたシェーダーコードをログファイルに出力してグラッフィクレンダリングのデバッグや分析を容易にします</string>
     <string name="settings_renderer_resolution_scale_summary">値を低くするとパフォーマンスが良くなり、値を高くするとグラフィックの品質が上がります。必要に応じて変更してください</string>
+
+    <string name="settings_renderer_resolution_rule_title">解像度ルール</string>
+    <string name="settings_renderer_resolution_rule_summary">ゲームウィンドウの解像度の計算方法を選択してください</string>
+    <string name="settings_renderer_resolution_rule_percentage">パーセント</string>
+    <string name="settings_renderer_resolution_custom_summary">指定した幅と高さでゲームをレンダリングします。画面は映像に合わせて拡大・縮小されます</string>
+    <string name="settings_renderer_resolution_custom_width">幅</string>
+    <string name="settings_renderer_resolution_custom_height">高さ</string>
     <string name="settings_label_ignore_if_blank">無視する場合は空白にしてください</string>
     <string name="settings_renderer_vulkan_driver_system_summary">有効にすると、ランチャーはデフォルトのTurnipドライバーではなくシステムの埋め込みVulkanドライバー (Adreno GPU用) を強制的に使用します。この設定は、Vulkanドライバーを使用するZinkバックエンドと関連するモッドにのみ影響します</string>
     <string name="settings_renderer_zink_driver_adreno">ランチャーはあなたのデバイスにAdreno GPUが使用されていることを確認しました。このオプション有効にするとZinkレンダラーが誤作動を起こす可能性があります。有効にしてもいいですか？</string>
@@ -818,7 +827,7 @@
     <string name="settings_control_mouse_capture_sensitivity_summary">ゲームの視界の移動感度などの、キャプチャ時のマウスの移動速度を調整します</string>
     <string name="settings_control_mouse_control_mode_summary">仮想マウスの操作方法を設定します: 画面をスワイプしてカーソルを動かすか、画面をタップしてカーソルの位置を指定します</string>
     <string name="settings_control_mouse_long_press_delay_summary">画面長押しを認識するための時間を設定します (物理マウスコントロールが無効になっていても、物理マウスの長押しには影響しません)</string>
-    <string name="settings_control_gesture_control_summary">統合版と同様に、タップや長押ジェスチャーよるゲーム内操作をサポートします</string>
+    <string name="settings_control_gesture_control_summary">統合版と同様に、タップや長押、2本指スワイプによるスクロールなどのジェスチャーによるゲーム内操作をサポートします</string>
     <string name="settings_control_gyroscope_sample_rate_summary">サンプリングレートはジャイロスコープデータの更新頻度を設定します。頻度が高くなるほど、リアルタイムのデータは多くなりますが、バッテリー使用量は高くなります</string>
     <string name="settings_control_gyroscope_smoothing_summary">検出されたジャイロスコープの値を滑らかにしてシッターを減らしますが、遅延が増加します</string>
     <string name="settings_control_gyroscope_smoothing_window_summary">スムージングのために平均化されるデータポイントの数を指定します。値が大きくなるほどスムーズな結果になりますが、応答が遅くなります</string>

@@ -198,6 +198,8 @@
     <string name="download_assets_install_progress_downloading">Descargando e instalando recursos\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">Instalando recursos\n%s</string>
     <string name="download_assets_install_failed">¡Error al instalar recursos!</string>
+    <string name="download_assets_dependency_no_compatible_version">No se encontró una versión compatible para la dependencia %s</string>
+    <string name="download_assets_dependency_project_unavailable">Información del proyecto no disponible</string>
     <string name="download_modpack_warning1">Antes de la instalación, debes entender que muchos de los modpacks están diseñados para PC, y existe una alta probabilidad de cierres inesperados u otros problemas al intentar ejecutarlos. Estos problemas suelen estar fuera de lo que el launcher puede resolver.</string>
     <string name="download_modpack_warning2">Deberás aprender el conocimiento necesario para intentar resolver los problemas por tu cuenta, o buscar ayuda de otros.</string>
     <string name="download_modpack_warning3">Nota: Los desarrolladores del launcher normalmente no arreglan problemas causados por modpacks.</string>
@@ -691,6 +693,13 @@
     <string name="settings_renderer_from_plugins">Del plugin %s</string>
     <string name="settings_renderer_resolution_scale_title">Escala de resolución</string>
     <string name="settings_renderer_resolution_scale_summary">Los valores más bajos mejoran el rendimiento; los valores más altos mejoran la calidad gráfica. Ajusta según tus necesidades</string>
+
+    <string name="settings_renderer_resolution_rule_title">Regla de resolución</string>
+    <string name="settings_renderer_resolution_rule_summary">Elige cómo se calcula la resolución de la ventana del juego</string>
+    <string name="settings_renderer_resolution_rule_percentage">Porcentaje</string>
+    <string name="settings_renderer_resolution_custom_summary">Renderiza el juego con un ancho y alto exactos; la imagen se escala para ajustarse a la pantalla</string>
+    <string name="settings_renderer_resolution_custom_width">Ancho</string>
+    <string name="settings_renderer_resolution_custom_height">Alto</string>
     <string name="settings_renderer_full_screen_title">Modo de juego a pantalla completa</string>
     <string name="settings_renderer_full_screen_summary">Habilitar modo de pantalla completa, ignorando áreas seguras como muescas y perforaciones</string>
     <string name="settings_renderer_sustained_performance_title">Modo de rendimiento sostenido</string>
@@ -766,7 +775,7 @@
     <string name="settings_control_mouse_long_press_delay_title">Retardo de pulsación larga</string>
     <string name="settings_control_mouse_long_press_delay_summary">Establecer el tiempo de retardo para reconocer una pulsación larga en la pantalla (no afecta a las pulsaciones largas del ratón físico, incluso cuando el control del ratón físico está deshabilitado)</string>
     <string name="settings_control_gesture_control_title">Controles por gestos</string>
-    <string name="settings_control_gesture_control_summary">Soporta interacciones en el juego a través de gestos como tocar y mantener presionado, similar a la Edición Bedrock</string>
+    <string name="settings_control_gesture_control_summary">Soporta interacciones en el juego a través de gestos como tocar, mantener presionado y desplazar deslizando con dos dedos, similar a la Edición Bedrock</string>
     <string name="settings_control_gesture_tap_action_title">Tipo de acción de toque</string>
     <string name="settings_control_gesture_tap_action_summary">Seleccionar la acción del botón del ratón para activar al tocar la pantalla</string>
     <string name="settings_control_gesture_long_press_action_title">Tipo de acción de pulsación larga</string>

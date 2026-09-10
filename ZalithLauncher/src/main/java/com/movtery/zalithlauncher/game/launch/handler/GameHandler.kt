@@ -99,9 +99,9 @@ class GameHandler(
             set("fullscreen", "false")
             set("touchscreen", "false")
 
-            //关闭文本转语音功能
-            set("options.narrator", "0")
-            set("narrator", "0")
+//            //关闭文本转语音功能
+//            set("options.narrator", "0")
+//            set("narrator", "0")
 
             if (version.getVersionInfo()!!.minecraftVersion.isLowerVer("1.13")) {
                 //fix: 牢版本按键事件

@@ -113,3 +113,25 @@ include $(BUILD_SHARED_LIBRARY)
 # delete fake libs after linked
 $(info $(shell (rm $(HERE_PATH)/../jniLibs/*/libawt_headless.so)))
 
+
+
+LOCAL_PATH := $(HERE_PATH)/flite
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := flite
+LOCAL_SRC_FILES := flite_bridge.c
+LOCAL_LDLIBS := -llog
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := fliteWrapper
+LOCAL_SRC_FILES := flite_wrapper.c
+LOCAL_SHARED_LIBRARIES := flite
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := flite_cmu_us_kal16
+LOCAL_SRC_FILES := flite_cmu_us_kal16.c
+include $(BUILD_SHARED_LIBRARY)
+
+LOCAL_PATH := $(HERE_PATH)

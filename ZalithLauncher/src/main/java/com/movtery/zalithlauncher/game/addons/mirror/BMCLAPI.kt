@@ -62,20 +62,18 @@ private val REPLACE_MIRROR_HOLDERS = mapOf(
 fun String.mapBMCLMirrorUrls(): List<String> {
     if (!isChinaMainland()) return listOf(this)
 
-    val match = REPLACE_MIRROR_HOLDERS.entries.firstOrNull { (origin, _) ->
+    val mirrorUrl = REPLACE_MIRROR_HOLDERS.entries.firstOrNull { (origin, _) ->
         this.startsWith(origin)
-    }
-    val isAssetsFile = match?.value == BMCLAPI.ASSETS.url
-    val mirrorUrl = match?.let { (origin, mirror) ->
+    }?.let { (origin, mirror) ->
         replaceFirst(origin, mirror)
     }
 
-    //资源文件数量庞大、请求量大，assets 保持官方优先，减轻镜像服务压力
     return orderCandidates(
         official = this,
         mirror = mirrorUrl,
-        priority = resolveMirrorPriority(AllSettings.gameDownloadSource.getValue(), mainland = true).let { priority ->
-            if (isAssetsFile) MirrorPriority.OFFICIAL_FIRST else priority
-        }
+        priority = resolveMirrorPriority(
+            source = AllSettings.gameDownloadSource.getValue(),
+            mainland = true
+        )
     )
 }

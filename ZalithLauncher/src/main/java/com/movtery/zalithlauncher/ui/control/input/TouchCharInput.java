@@ -54,6 +54,13 @@ public class TouchCharInput extends androidx.appcompat.widget.AppCompatEditText 
         }
     }
 
+    /**
+     * 当前是否存在活跃的输入栏编辑器
+     */
+    public static boolean isActive() {
+        return sActiveInput != null;
+    }
+
     public void disableKeyboard() {
         if (SdlBridge.getSdlEnabled()) {
             SDLActivity.disableSDLEditKeyboard();

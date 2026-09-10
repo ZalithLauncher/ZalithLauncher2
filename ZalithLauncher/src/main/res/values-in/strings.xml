@@ -182,6 +182,8 @@
     <string name="download_assets_install_progress_downloading">Mengunduh dan menginstal aset\n%1$s\n(%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">Menginstal aset\n%s</string>
     <string name="download_assets_install_failed">Gagal menginstal aset!</string>
+    <string name="download_assets_dependency_no_compatible_version">Tidak ditemukan versi yang kompatibel untuk dependensi %s</string>
+    <string name="download_assets_dependency_project_unavailable">Informasi proyek tidak tersedia</string>
     <string name="download_modpack_warning1">Sebelum instalasi, perlu dipahami bahwa sebagian besar modpack dibuat untuk PC, dan saat dijalankan ada kemungkinan crash atau masalah lain yang biasanya tidak bisa diperbaiki oleh launcher.</string>
     <string name="download_modpack_warning2">Anda harus mempelajari ilmu yang relevan untuk mencoba memecahkan masalah sendiri, atau meminta bantuan dari orang lain.</string>
     <string name="download_modpack_warning3">CATATAN: Developer dari launcher biasanya tidak akan mengatasi masalah apa pun yang disebabkan oleh modpack.</string>
@@ -478,6 +480,13 @@
     <string name="settings_game_version_isolation_summary">Mengisolasi semua versi supaya datanya tidak saling ganggu</string>
     <string name="settings_renderer_vulkan_driver_system_title">Gunakan Driver Vulkan Sistem</string>
     <string name="settings_renderer_resolution_scale_summary">Nilai rendah bikin performa lebih bagus; nilai tinggi ningkatin kualitas grafik. Atur sesuai kebutuhanmu</string>
+
+    <string name="settings_renderer_resolution_rule_title">Aturan Resolusi</string>
+    <string name="settings_renderer_resolution_rule_summary">Pilih cara menghitung resolusi jendela permainan</string>
+    <string name="settings_renderer_resolution_rule_percentage">Persentase</string>
+    <string name="settings_renderer_resolution_custom_summary">Jalankan permainan dengan lebar dan tinggi yang tepat; gambar akan diskalakan agar pas dengan layar</string>
+    <string name="settings_renderer_resolution_custom_width">Lebar</string>
+    <string name="settings_renderer_resolution_custom_height">Tinggi</string>
     <string name="settings_control_physical_key_bind_ime_title">Pintasan IME keyboard</string>
     <string name="settings_control_physical_key_bind_ime_un_bind">Belum terikat</string>
     <string name="settings_control_physical_key_bind_ime_bound">Tombol terikat: %s</string>
@@ -603,7 +612,7 @@
     <string name="settings_control_mouse_long_press_delay_title">Penundaan Tekan Lama</string>
     <string name="settings_control_mouse_long_press_delay_summary">Atur penundaan untuk mengenali tekan lama pada layar (tidak memengaruhi tekan lama pada mouse fisik, meskipun kontrol mouse fisik dimatikan)</string>
     <string name="settings_control_gesture_control_title">Kontrol Gestur</string>
-    <string name="settings_control_gesture_control_summary">Mendukung interaksi dalam game melalui gestur seperti sentuh dan tekan lama, seperti Bedrock Edition</string>
+    <string name="settings_control_gesture_control_summary">Mendukung interaksi dalam game melalui gestur seperti sentuhan, tekan lama, dan menggulir dengan menggeser dua jari, seperti Bedrock Edition</string>
     <string name="settings_control_gesture_tap_action_title">Tindakan Saat Disentuh</string>
     <string name="settings_launcher_log_share_summary">Ketuk untuk membagikan file log launcher, agar developer bisa mengidentifikasi dan memperbaiki masalah pada launcher</string>
     <string name="settings_control_gesture_tap_action_summary">Pilih tindakan yang akan di picu saat menyentuh layar</string>
@@ -1171,12 +1180,18 @@
     <string name="game_vulkan_check_text">Periksa apakah perangkat kamu bisa menjalankan Minecraft 26.2+ dengan Vulkan. Hasil ini hanya untuk referensi saja.</string>
     <string name="game_vulkan_check_version">Versi Vulkan: %s</string>
     <string name="game_vulkan_check_turnip">Menggunakan Turnip: %s</string>
-    <string name="game_vulkan_check_extensions">Ekstensi yang diperlukan:</string>
-    <string name="game_vulkan_check_missing_extensions">Ekstensi yang tidak tersedia:</string>
-    <string name="game_vulkan_check_features">Fitur yang diperlukan:</string>
-    <string name="game_vulkan_check_missing_features">Fitur yang tidak tersedia:</string>
-    <string name="game_vulkan_check_unsupp">Perangkat kamu tidak bisa menjalankan Minecraft 26.2+ dengan Vulkan</string>
-    <string name="game_vulkan_check_supp">Perangkat kamu bisa menjalankan Minecraft 26.2+ dengan Vulkan</string>
+    <string name="game_vulkan_check_versions">Dukungan per versi:</string>
+    <string name="game_vulkan_check_profile_supp">Didukung</string>
+    <string name="game_vulkan_check_profile_unsupp">Tidak didukung</string>
+    <string name="game_vulkan_check_dep_required">Wajib:</string>
+    <string name="game_vulkan_check_dep_optional">Opsional:</string>
+    <string name="game_vulkan_check_item_missing">" (tidak tersedia)"</string>
+    <string name="game_vulkan_check_failed">Tidak dapat memperoleh informasi Vulkan dari perangkat ini</string>
+    <string name="game_vulkan_check_partial">Perangkat kamu hanya bisa menjalankan beberapa versi Minecraft dengan Vulkan:</string>
+    <string name="game_vulkan_check_extensions">Ekstensi yang dibutuhkan:</string>
+    <string name="game_vulkan_check_features">Fitur yang dibutuhkan:</string>
+    <string name="game_vulkan_check_unsupp">Perangkat kamu tidak bisa menjalankan Minecraft versi apa pun dengan Vulkan</string>
+    <string name="game_vulkan_check_supp">Perangkat kamu bisa menjalankan Minecraft %s dan yang lebih baru dengan Vulkan</string>
     <string name="cape_name_builder">Builder</string>
     <string name="cape_name_crafter">Crafter</string>
     <string name="settings_title_blur">Efek Blur</string>

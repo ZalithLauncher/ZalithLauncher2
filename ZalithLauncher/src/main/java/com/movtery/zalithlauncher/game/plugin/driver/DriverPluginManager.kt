@@ -33,18 +33,10 @@ import com.movtery.zalithlauncher.setting.AllSettings
 object DriverPluginManager: ApkPluginManager() {
     private val driverList: MutableList<Driver> = mutableListOf()
 
-    @JvmStatic
     fun getDriverList(): List<Driver> = driverList.toList()
 
-    private lateinit var currentDriver: Driver
-
-    @JvmStatic
-    fun setDriverById(driverId: String) {
-        currentDriver = driverList.find { it.id == driverId } ?: driverList[0]
-    }
-
-    @JvmStatic
-    fun getDriver(): Driver = currentDriver
+    fun getDriver(driverId: String): Driver =
+        driverList.find { it.id == driverId } ?: driverList[0]
 
     /**
      * 初始化驱动器
@@ -62,7 +54,6 @@ object DriverPluginManager: ApkPluginManager() {
                 isLauncher = true
             )
         )
-        setDriverById(AllSettings.vulkanDriver.getValue())
     }
 
     /**

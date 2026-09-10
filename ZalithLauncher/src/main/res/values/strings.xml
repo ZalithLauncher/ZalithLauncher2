@@ -154,6 +154,8 @@
     <string name="notification_data_jvm_service_running">Installing game via foreground service</string>
     <string name="notification_data_terracotta_message">During multiplayer sessions, the launcher uses a foreground service to display the current connection status, so notification permission is required.</string>
     <string name="notification_jvm_running_name">JVM Keep-Alive Service</string>
+    <string name="notification_task_service_name">Task Keep-Alive Service</string>
+    <string name="notification_task_service_running">Tasks are running in the background. Please keep the launcher running.</string>
     <!--  Microphone  -->
     <string name="microphone_check_title">Check Microphone Input</string>
     <string name="microphone_check_volume">Volume: %d</string>
@@ -263,6 +265,8 @@
     <string name="download_assets_install_progress_downloading">Downloading and installing assets\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">Installing assets\n%s</string>
     <string name="download_assets_install_failed">Failed to install assets!</string>
+    <string name="download_assets_dependency_no_compatible_version">No compatible version was found for dependency %s</string>
+    <string name="download_assets_dependency_project_unavailable">Project information is unavailable</string>
     <string name="download_assets_id_holder">Project ID</string>
     <string name="download_assets_id_tip">Quickly get the corresponding project by project ID</string>
     <string name="download_assets_id_not_found">Project not found!</string>
@@ -430,12 +434,18 @@
     <string name="game_vulkan_check_text">Check whether your device supports running Minecraft 26.2+ with Vulkan. Results are for reference only.</string>
     <string name="game_vulkan_check_version">Vulkan version: %s</string>
     <string name="game_vulkan_check_turnip">Using Turnip: %s</string>
-    <string name="game_vulkan_check_extensions">Required extensions:</string>
-    <string name="game_vulkan_check_missing_extensions">Missing extensions:</string>
-    <string name="game_vulkan_check_features">Required features:</string>
-    <string name="game_vulkan_check_missing_features">Missing features:</string>
-    <string name="game_vulkan_check_unsupp">Your device does not support running Minecraft 26.2+ with Vulkan</string>
-    <string name="game_vulkan_check_supp">Your device supports running Minecraft 26.2+ with Vulkan</string>
+    <string name="game_vulkan_check_versions">Version support:</string>
+    <string name="game_vulkan_check_profile_supp">Supported</string>
+    <string name="game_vulkan_check_profile_unsupp">Unsupported</string>
+    <string name="game_vulkan_check_dep_required">Required:</string>
+    <string name="game_vulkan_check_dep_optional">Optional:</string>
+    <string name="game_vulkan_check_item_missing">" (missing)"</string>
+    <string name="game_vulkan_check_failed">Unable to retrieve the Vulkan capabilities of this device</string>
+    <string name="game_vulkan_check_partial">Your device can only run some Minecraft versions with Vulkan:</string>
+    <string name="game_vulkan_check_extensions">Extensions:</string>
+    <string name="game_vulkan_check_features">Features:</string>
+    <string name="game_vulkan_check_unsupp">Your device does not support running any Minecraft version with Vulkan</string>
+    <string name="game_vulkan_check_supp">Your device can run Minecraft %s and later with Vulkan</string>
     <!-- Renderers -->
     <string name="renderer_version_support">MC Version Support:</string>
     <string name="renderer_version_unsupported_warning">The current renderer %s does not support this game version. Continuing to use it may cause rendering errors or crashes! Are you sure you want to proceed?</string>
@@ -872,6 +882,12 @@
     <string name="settings_renderer_from_plugins">From %s plugin</string>
     <string name="settings_renderer_resolution_scale_title">Resolution Scale</string>
     <string name="settings_renderer_resolution_scale_summary">Lower values improve performance; higher values enhance graphics quality. Adjust according to your needs</string>
+    <string name="settings_renderer_resolution_rule_title">Resolution Rule</string>
+    <string name="settings_renderer_resolution_rule_summary">Choose how the game window resolution is calculated</string>
+    <string name="settings_renderer_resolution_rule_percentage">Percentage</string>
+    <string name="settings_renderer_resolution_custom_summary">Render the game at an exact width and height; the picture is scaled to fit the screen</string>
+    <string name="settings_renderer_resolution_custom_width">Width</string>
+    <string name="settings_renderer_resolution_custom_height">Height</string>
     <string name="settings_renderer_full_screen_title">Game Fullscreen</string>
     <string name="settings_renderer_full_screen_summary">Enable fullscreen mode, ignoring safe areas like notches and punch-holes</string>
     <string name="settings_renderer_sustained_performance_title">Sustained Performance Mode</string>
@@ -955,7 +971,7 @@
     <string name="settings_control_mouse_long_press_delay_title">Long Press Delay</string>
     <string name="settings_control_mouse_long_press_delay_summary">Set the delay time for recognizing a long press on the screen (does not affect physical mouse long presses, even when physical mouse control is disabled)</string>
     <string name="settings_control_gesture_control_title">Gesture Controls</string>
-    <string name="settings_control_gesture_control_summary">Supports interactions in-game through gestures like tap and long press, similar to the Bedrock Edition</string>
+    <string name="settings_control_gesture_control_summary">Supports interactions in-game through gestures like tap, long press, and two-finger swipe scrolling, similar to the Bedrock Edition</string>
     <string name="settings_control_gesture_tap_action_title">Tap Action Type</string>
     <string name="settings_control_gesture_tap_action_summary">Select the mouse button action to trigger on a screen tap</string>
     <string name="settings_control_gesture_long_press_action_title">Long Press Action Type</string>

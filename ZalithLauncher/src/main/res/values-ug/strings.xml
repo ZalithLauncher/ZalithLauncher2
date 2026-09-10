@@ -86,4 +86,11 @@
     <string name="theme_color_urban_ash">تىتان سايىسى</string>
     <string name="theme_color_verdant_dawn">تىنچ ئورماندىكى تاڭ</string>
     <string name="theme_color_picker_title">رەڭ تاللىغۇچ</string>
+
+    <string name="settings_renderer_resolution_rule_title">ئېنىقلىق قائىدىسى</string>
+    <string name="settings_renderer_resolution_rule_summary">ئويۇن كۆزنەك ئېنىقلىقىنى ھېسابلاش ئۇسۇلىنى تاللاڭ</string>
+    <string name="settings_renderer_resolution_rule_percentage">پىرسەنت</string>
+    <string name="settings_renderer_resolution_custom_summary">ئويۇننى ئېنىق كەڭلىك ۋە ئېگىزلىك بىلەن كۆرسىتىدۇ؛ رەسىم ئېكرانغا ماس كەلگۈدەك تەڭشىلىنىدۇ</string>
+    <string name="settings_renderer_resolution_custom_width">كەڭلىك</string>
+    <string name="settings_renderer_resolution_custom_height">ئېگىزلىك</string>
 </resources>

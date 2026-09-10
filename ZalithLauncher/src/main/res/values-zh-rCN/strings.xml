@@ -129,7 +129,6 @@
     <string name="error_network_unreachable">网络不可用</string>
     <string name="error_connection_failed">无法连接到服务器</string>
     <string name="error_parse_failed">数据解析失败</string>
-
     <string name="error_bad_request">(%s) 服务器无法处理该请求</string>
     <string name="error_unauthorized">(%s) 请检查登录凭证并重试</string>
     <string name="error_forbidden">(%s) 您没有权限访问此资源</string>
@@ -1293,7 +1292,6 @@
     <string name="festivals_new_year">新年快乐！</string>
     <string name="festivals_april_fools">愚人节快乐！</string>
     <string name="festivals_christmas">圣诞节快乐！</string>
-
     <!-- 文件管理器 -->
     <string name="fm_activity_name">文件管理器</string>
     <string name="fm_initializing">初始化中…</string>

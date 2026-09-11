@@ -423,7 +423,7 @@
     <string name="versions_manage_task_error">Operasi versi gagal</string>
     <string name="versions_manage_install_new">Instal Baru</string>
     <string name="versions_manage_settings">Pengaturan Versi</string>
-    <string name="versions_manage_cleanup">Bersihkan file game</string>
+    <string name="versions_manage_cleanup">Bersihkan File Game</string>
     <string name="versions_manage_cleanup_tip">Launcher akan memeriksa file game yang terpasang, membandingkannya dengan file game yang dibutuhkan oleh versi yang ada, lalu menghapus file game yang tidak terpakai. Ini dapat melegakan penyimpanan di perangkatmu.</string>
     <string name="versions_manage_cleanup_warning">Catatan: Launcher hanya akan memindai folder di direktori permainan saat ini:</string>
     <string name="versions_manage_cleanup_collect_files">Kumpulkan file yang diinstal secara lokal</string>
@@ -475,12 +475,11 @@
     <string name="settings_renderer_global_vulkan_driver_title">Driver Vulkan</string>
     <string name="settings_renderer_global_renderer_summary">Perender bawaan global memakai lapisan translasi pustaka dinamis supaya game bisa jalan dengan lancar di perangkat mobile</string>
     <string name="settings_renderer_resolution_scale_title">Skala Resolusi</string>
-    <string name="settings_renderer_full_screen_title">Layar penuh game</string>
+    <string name="settings_renderer_full_screen_title">Layar Penuh Game</string>
     <string name="settings_renderer_full_screen_summary">Aktifkan mode layar penuh, abaikan area aman seperti notch dan punch-hole</string>
     <string name="settings_game_version_isolation_summary">Mengisolasi semua versi supaya datanya tidak saling ganggu</string>
     <string name="settings_renderer_vulkan_driver_system_title">Gunakan Driver Vulkan Sistem</string>
     <string name="settings_renderer_resolution_scale_summary">Nilai rendah bikin performa lebih bagus; nilai tinggi ningkatin kualitas grafik. Atur sesuai kebutuhanmu</string>
-
     <string name="settings_renderer_resolution_rule_title">Aturan Resolusi</string>
     <string name="settings_renderer_resolution_rule_summary">Pilih cara menghitung resolusi jendela permainan</string>
     <string name="settings_renderer_resolution_rule_percentage">Persentase</string>
@@ -501,11 +500,11 @@
     <string name="settings_control_mouse_sensitivity_summary">Atur kecepatan gerakan mouse virtual di mode normal</string>
     <string name="settings_control_mouse_capture_sensitivity_title">Sensitivitas Gerakan Mouse yang ditangkap</string>
     <string name="settings_control_mouse_capture_sensitivity_summary">Atur sensitivitas gerakan mouse saat ditangkap, misalnya sensitivitas buat gerakin tampilan game</string>
-    <string name="settings_control_mouse_control_mode_title">Mode kontrol mouse</string>
+    <string name="settings_control_mouse_control_mode_title">Mode Kontrol Mouse</string>
     <string name="settings_control_mouse_control_mode_summary">Pilih metode kontrol mouse virtual: geser layar buat mindahin kursor, atau tap layar buat nunjuk posisi kursor</string>
     <string name="settings_control_mouse_control_mode_slide">Kontrol Geser</string>
     <string name="settings_control_mouse_control_mode_click">Kontrol Sentuh</string>
-    <string name="settings_launcher_full_screen_title">Mode layar penuh</string>
+    <string name="settings_launcher_full_screen_title">Mode Layar Penuh</string>
     <string name="minecraft_download_downloading_game_files">Mengunduh file\n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">Terjadi kesalahan saat mengunduh Minecraft</string>
     <string name="generic_reset">Reset</string>
@@ -627,7 +626,7 @@
     <string name="settings_launcher_animate_speed_title">Kecepatan Animasi</string>
     <string name="settings_launcher_swap_animate_type_title">Animasi Transisi</string>
     <string name="settings_launcher_swap_animate_type_summary">Pilih animasi transisi yang paling cocok sama preferensi kamu</string>
-    <string name="settings_launcher_log_retention_days_title">Durasi penyimpanan log</string>
+    <string name="settings_launcher_log_retention_days_title">Durasi Penyimpanan Log</string>
     <string name="settings_launcher_log_retention_days_summary">Atur berapa hari log launcher harus disimpan. Log yang lebih lama dari ini bakal dihapus otomatis</string>
     <string name="settings_launcher_log_share_title">Bagikan Log Launcher</string>
     <string name="settings_launcher_animate_speed_summary">Atur kecepatan animasi launcher</string>
@@ -781,7 +780,7 @@
     <string name="versions_config_microphone_check_summary">Cek apakah mikrofon sistem tersedia atau pastikan launcher sudah dikasih izin mikrofon. Pengecekan ini buat memastikan Anda bisa pakai mod seperti Simple Voice Chat yang butuh mikrofon.</string>
     <string name="microphone_check_volume">Volume: %d</string>
     <string name="error_import_file">Terjadi kesalahan saat mengimpor file</string>
-    <string name="game_menu_option_show_menu">Aktifkan menu jendela mengambang</string>
+    <string name="game_menu_option_show_menu">Aktifkan Menu Overlay</string>
     <string name="game_menu_option_show_menu_hided">Menu jendela mengambang game telah ditutup. Anda dapat membuka menu permainan dengan menekan tombol kembali sistem</string>
     <string name="settings_control_gyroscope_title">Kontrol Giroskop</string>
     <string name="settings_control_gyroscope_unsupported">Giroskop perangkat tidak tersedia</string>
@@ -789,7 +788,7 @@
     <string name="settings_control_gyroscope_sensitivity_title">Sensitivitas Giroskop</string>
     <string name="settings_control_gyroscope_sample_rate_title">Laju Pengambilan Sampel Giroskop</string>
     <string name="settings_control_gyroscope_sample_rate_summary">Laju pengambilan sampel menentukan frekuensi pembaruan data giroskop. Semakin tinggi frekuensinya, semakin real-time datanya, tetapi semakin besar pula daya yang dikonsumsi</string>
-    <string name="settings_control_gyroscope_smoothing_title">Menghaluskan gerakan giroskop</string>
+    <string name="settings_control_gyroscope_smoothing_title">Menghaluskan Gerakan Giroskop</string>
     <string name="settings_control_gyroscope_smoothing_summary">Haluskan gerakan yang terdeteksi oleh giroskop untuk mengurangi jitter, tetapi meningkatkan latensi</string>
     <string name="settings_control_gyroscope_smoothing_window_title">Ukuran Jendela Penghalusan Giroskop</string>
     <string name="settings_control_gyroscope_smoothing_window_summary">Menentukan jumlah data yang akan dihaluskan dan dirata-ratakan. Semakin besar nilainya, semakin halus hasilnya, tetapi semakin lambat responsnya</string>
@@ -895,7 +894,7 @@
     <string name="settings_tab_gamepad">Gamepad</string>
     <string name="settings_gamepad_deadzone_title">Skala Deadzone Gamepad</string>
     <string name="settings_gamepad_deadzone_summary">Atur rasio area tengah joystick yang tidak responsif</string>
-    <string name="settings_gamepad_joystick_mode_title">Mode operasi Joystick</string>
+    <string name="settings_gamepad_joystick_mode_title">Mode Operasi Joystick</string>
     <string name="settings_gamepad_joystick_mode_summary">Konfigurasikan kontrol joystick kiri dan kanan</string>
     <string name="settings_gamepad_joystick_mode_left">Tangan kiri</string>
     <string name="settings_gamepad_joystick_mode_left_summary">Joystick kiri kontrol pemain, Joystick kanan kontrol kamera</string>
@@ -905,7 +904,7 @@
     <string name="settings_gamepad_mapping_unbound">Tidak ada tombol yang diatur</string>
     <string name="settings_gamepad_mapping_in_game">Dalam Game</string>
     <string name="settings_gamepad_mapping_in_menu">Dalam Menu</string>
-    <string name="settings_gamepad_remapping_reset_title">Atur ulang pemetaan gamepad</string>
+    <string name="settings_gamepad_remapping_reset_title">Atur Ulang Pemetaan Gamepad</string>
     <string name="settings_gamepad_remapping_reset_summary">Pemetaan tombol membantu menyesuaikan gamepad Anda. Jika konfigurasi sebelumnya salah, atur ulang lalu mulai ulang game untuk menetapkan tombol kembali</string>
     <string name="settings_gamepad_remapping_reset_finished">Semua konfigurasi tombol gamepad telah direset</string>
     <string name="settings_gamepad_remapping_tip_title">Konfigurasi ulang tombol Gamepad</string>
@@ -936,11 +935,11 @@
     <string name="settings_gamepad_cursor_sensitivity_summary">Atur kecepatan pergerakan kursor virtual joystick</string>
     <string name="settings_gamepad_camera_sensitivity_title">Sensitivitas Joystick Kamera</string>
     <string name="settings_gamepad_camera_sensitivity_summary">Atur sensitivitas kontrol kamera joystick</string>
-    <string name="settings_launcher_background_title">Latar belakang launcher</string>
+    <string name="settings_launcher_background_title">Latar Belakang Launcher</string>
     <string name="settings_launcher_background_summary">Pilih gambar atau video untuk dijadikan latar belakang launcher</string>
     <string name="settings_launcher_background_importing">Mengimpor file latar belakang launcher</string>
     <string name="settings_launcher_background_reset_message">Apakah anda yakin ingin mengatur ulang latar belakang launcher?</string>
-    <string name="settings_launcher_background_opacity_title">Transparansi elemen latar belakang</string>
+    <string name="settings_launcher_background_opacity_title">Transparansi Elemen Latar Belakang</string>
     <string name="settings_launcher_background_opacity_summary">Atur tingkat transparansi elemen latar belakang agar tampilan lebih baik dan tidak bertabrakan dengan latar belakang</string>
     <string name="control_editor_menu_preview_is_mouse">Menggunakan mouse fisik</string>
     <string name="control_editor_menu_preview_is_gamepad">Menggunakan gamepad</string>
@@ -1092,7 +1091,7 @@
     <string name="settings_gamepad_config_summary">Pilih pengaturan tombol gamepad yang digunakan</string>
     <string name="settings_gamepad_config_delete">Hapus Pengaturan Saat Ini</string>
     <string name="settings_gamepad_config_delete_message">Apakah anda yakin ingin menghapus konfigurasi ini?</string>
-    <string name="settings_gamepad_config_create">Profil gamepad baru</string>
+    <string name="settings_gamepad_config_create">Profil Gamepad Baru</string>
     <string name="settings_gamepad_config_create_name">Nama Konfigurasi</string>
     <string name="settings_gamepad_config_no_items">Belum ada konfigurasi yang dibuat, tidak bisa beralih</string>
     <string name="files_browse_folder">Telusuri Folder</string>
@@ -1120,9 +1119,9 @@
     <string name="festivals_new_year">Selamat Tahun Baru!</string>
     <string name="festivals_april_fools">Selamat Hari April Mop!</string>
     <string name="festivals_christmas">Selamat Natal!</string>
-    <string name="settings_launcher_festivals_effects_title">Festival easter egg</string>
+    <string name="settings_launcher_festivals_effects_title">Festival Easter Egg</string>
     <string name="settings_launcher_festivals_effects_summary">Tampilkan efek Easter Egg yang tetap aktif pada periode waktu tertentu</string>
-    <string name="control_manage_import">Impor layout kontrol</string>
+    <string name="control_manage_import">Impor Layout Kontrol</string>
     <string name="control_editor_layers_delete">Apakah Anda yakin ingin menghapus layer kontrol %s?</string>
     <string name="control_editor_layers_attribute_hide_when_mouse">Sembunyikan saat menggunakan mouse</string>
     <string name="control_editor_layers_attribute_hide_when_gamepad">Sembunyikan saat menggunakan gamepad</string>
@@ -1142,7 +1141,7 @@
     <string name="settings_game_graphics_api_title">API Grafis</string>
     <string name="settings_game_graphics_api_summary">Atur API grafis yang digunakan oleh Minecraft 26.2+</string>
     <string name="settings_game_graphics_api_default">Ikuti pengaturan game</string>
-    <string name="settings_renderer_surface_title">Gunakan rendering SurfaceView</string>
+    <string name="settings_renderer_surface_title">Gunakan Rendering SurfaceView</string>
     <string name="settings_renderer_surface_summary">Menggunakan layer terpisah di luar UI untuk rendering</string>
     <string name="download_game_version_overwrite">Akan mengganti versi yang sudah terpasang: %s</string>
     <string name="download_game_version_overwrite_select">Versi yang akan diganti</string>
@@ -1209,7 +1208,7 @@
     <string name="error_gateway_timeout">(%s) Server tidak menerima respons tepat waktu</string>
     <string name="game_menu_option_hotbar_double_click">Ketuk dua kali untuk menukar item dengan off-hand</string>
     <string name="game_menu_option_hotbar_long_click">Tekan lama untuk menjatuhkan item terpilih</string>
-    <string name="game_menu_option_hotbar_long_click_delay">Jeda tekan lama hotbar</string>
+    <string name="game_menu_option_hotbar_long_click_delay">Jeda Tekan Lama Hotbar</string>
     <string name="download_category_by_id">Cari berdasarkan ID</string>
     <string name="download_assets_id_holder">ID Project</string>
     <string name="download_assets_id_tip">Cari project berdasarkan ID</string>
@@ -1401,4 +1400,12 @@
     <string name="fm_property_folders">Folder</string>
     <string name="fm_calculating">Menghitung…</string>
     <string name="fm_name_conflict">Nama tersebut berkonflik dengan entri yang sudah ada</string>
+    <string name="notification_task_service_name">Layanan Task Keep-Alive</string>
+    <string name="notification_task_service_running">Tugas sedang berjalan di latar belakang. Harap biarkan launcher tetap berjalan.</string>
+    <string name="settings_gamepad_input_mode_mapped">Dipetakan (Tombol Virtual)</string>
+    <string name="settings_gamepad_input_mode_mapped_summary">Tombol gamepad dan joystick berfungsi sebagai keyboard dan mouse virtual.</string>
+    <string name="settings_gamepad_input_mode_sdl">SDL Direct</string>
+    <string name="settings_gamepad_input_mode_sdl_summary">Input gamepad mentah dikirim ke game melalui API gamepad SDL/GLFW; pemetaan tombol dilewati</string>
+    <string name="gamepad_mode_prompt_hint">Anda dapat mengubahnya nanti di tab Gamepad pada menu dalam game atau di pengaturan launcher.</string>
+    <string name="control_editor_edit_category_joystick_events">Event Arah</string>
 </resources>

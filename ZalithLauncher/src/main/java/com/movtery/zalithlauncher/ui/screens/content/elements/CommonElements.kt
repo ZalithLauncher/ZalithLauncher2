@@ -296,7 +296,9 @@ fun ImportSingleFileButton(
     progressUris: (uris: List<Uri>) -> Unit,
     modifier: Modifier = Modifier,
     painter: Painter = painterResource(R.drawable.ic_add),
-    text: String = stringResource(R.string.generic_import)
+    text: String = stringResource(R.string.generic_import),
+    onClick: () -> Unit = {},
+    onLongClick: ((launch: () -> Unit) -> Unit)? = null
 ) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -309,10 +311,18 @@ fun ImportSingleFileButton(
     IconTextButton(
         modifier = modifier,
         onClick = {
+            onClick()
             launcher.launch(extension.extensionToMimeType())
         },
         painter = painter,
-        text = text
+        text = text,
+        onLongClick = {
+            if (onLongClick != null) {
+                onLongClick { launcher.launch(extension.extensionToMimeType()) }
+            } else {
+                launcher.launch(extension.extensionToMimeType())
+            }
+        }
     )
 }
 

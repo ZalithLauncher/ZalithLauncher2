@@ -61,7 +61,7 @@ abstract class AbstractHandler(
     abstract fun onDestroy()
     abstract fun onGraphicOutput()
     abstract fun shouldIgnoreKeyEvent(event: KeyEvent): Boolean
-    abstract fun sendMouseRight(isPressed: Boolean)
+    abstract fun sendMouseButton(button: Int, isPressed: Boolean)
 
     @Composable
     abstract fun ComposableLayout(

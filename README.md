@@ -18,7 +18,6 @@ Heads up: If you find a “Bedroom Launcher” site that isn’t linked here, it
 - **Java Edition**: Full Microsoft login, mods, resource packs, custom JVM flags
 - **Modern UI**: Jetpack Compose + Material You. Dark mode, smooth animations, no clutter
 - **Instances**: Separate profiles for each modpack/setup
-- **Dev Mode**: Disables EULA-related checks for local testing. Off by default.
 
 ## 🗺️ Roadmap for 1.0 Stable
 

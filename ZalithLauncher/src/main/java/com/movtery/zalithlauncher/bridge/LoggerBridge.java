@@ -48,6 +48,11 @@ public final class LoggerBridge {
         append(logText);
     }
 
+    public static void appendInfo(String info) {
+        String logText = "▷ " + info;
+        append(logText);
+    }
+
     static {
         NativeLibraryLoader.loadPojavLib();
     }

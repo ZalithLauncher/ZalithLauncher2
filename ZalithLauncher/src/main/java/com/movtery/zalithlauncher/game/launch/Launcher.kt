@@ -29,6 +29,8 @@ import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.bridge.LoggerBridge
 import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
+import com.movtery.zalithlauncher.components.Components
+import com.movtery.zalithlauncher.components.UnpackComponentsTask
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.game.multirt.Runtime
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
@@ -45,8 +47,11 @@ import com.movtery.zalithlauncher.utils.device.Architecture.ARCH_X86
 import com.movtery.zalithlauncher.utils.device.Architecture.is64BitsDevice
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.getSystemDnsServerAddresses
+import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 import com.oracle.dalvik.VMLauncher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.io.IOException
@@ -64,16 +69,55 @@ abstract class Launcher(
 
     /** 当前启动版本要求的 LWJGL 版本（见 [detectLwjglVersion]），0 = 未探测/默认 */
     protected var lwjglVersion: Int = 0
+        private set
 
-    /** LWJGL 组件目录名（3.3.3 / 3.4.1） */
-    protected fun getLwjglVersionDir(): String = lwjglVersionDir(lwjglVersion)
+    /**
+     * 当前启动版本的 LWJGL natives 目录
+     */
+    protected lateinit var lwjglNativesDir: String
+        private set
 
-    /** 当前启动版本的 LWJGL natives 目录 */
-    protected val lwjglNativesDir: String
-        get() = File(
+    /**
+     * 初始化 LWJGL 组件
+     */
+    protected suspend fun initLwjglComponent(context: Context, version: Int) {
+        check(!::lwjglNativesDir.isInitialized) { "LWJGL component has already been initialized" }
+        lwjglVersion = version
+        lwjglNativesDir = File(
             PathManager.DIR_COMPONENTS,
-            "lwjgl/${getLwjglVersionDir()}/natives/${Architecture.archAsStringAndroid(Architecture.getDeviceArchitecture())}"
+            "lwjgl/${lwjglVersionDir(version)}/natives/${Architecture.archAsStringAndroid(Architecture.getDeviceArchitecture())}"
         ).absolutePath
+        verifyLwjglNatives(context)
+    }
+
+    private suspend fun verifyLwjglNatives(context: Context) {
+        val versionDir = lwjglVersionDir(lwjglVersion)
+        val coreLib = File(lwjglNativesDir, "liblwjgl.so")
+
+        if (coreLib.isFile) {
+            LoggerBridge.appendInfo("LWJGL: LWJGL $versionDir natives check passed: path=$lwjglNativesDir (liblwjgl.so found)")
+            return
+        }
+
+        LoggerBridge.appendInfo("LWJGL: LWJGL natives check failed: liblwjgl.so not found in $lwjglNativesDir, re-unpacking the LWJGL component now")
+
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val component = Components.entries.firstOrNull {
+                    it.component == "lwjgl/$versionDir"
+                } ?: error("Unrecognized LWJGL component: lwjgl/$versionDir")
+                UnpackComponentsTask(context, component).run()
+            }.onFailure { e ->
+                LoggerBridge.appendInfo("LWJGL: Failed to re-unpack the LWJGL component: ${e.getMessageOrToString()}")
+            }
+        }
+
+        if (coreLib.isFile) {
+            LoggerBridge.appendInfo("LWJGL: LWJGL $versionDir natives check passed after re-unpack: path=$lwjglNativesDir (liblwjgl.so found)")
+        } else {
+            LoggerBridge.appendInfo("LWJGL: LWJGL natives are still missing after re-unpack: liblwjgl.so not found in $lwjglNativesDir, the game may fail to launch")
+        }
+    }
 
     private val runtimeHome: String by lazy {
         RuntimesManager.getRuntimeHome(runtime.name).absolutePath
@@ -142,11 +186,11 @@ abstract class Launcher(
             val arg = iterator.next()
             if (arg.startsWith("--accessToken") && iterator.hasNext()) {
                 iterator.next()
-                LoggerBridge.append("▷ $arg")
-                LoggerBridge.append("▷ ********************")
+                LoggerBridge.appendInfo(arg)
+                LoggerBridge.appendInfo("********************")
                 continue
             }
-            LoggerBridge.append("▷ $arg")
+            LoggerBridge.appendInfo(arg)
         }
 
         ZLBridge.setupExitMethod(context.applicationContext)
@@ -308,9 +352,8 @@ abstract class Launcher(
 
         // Force LWJGL to use the Freetype library intended for it, instead of using the one
         // that we ship with Java (since it may be older than what's needed).
-        // Prefer the per-version LWJGL natives component so 3.4.x games get the matching freetype.
-        val freetypeLib = File(lwjglNativesDir, "libfreetype.so")
-        args.add("-Dorg.lwjgl.freetype.libname=" + if (freetypeLib.exists()) freetypeLib.absolutePath else "${PathManager.DIR_NATIVE_LIB}/libfreetype.so")
+        // 始终指向 LWJGL 组件 natives 目录内的库，禁止回退到应用原生 libs 目录（其中不含 LWJGL 系库）
+        args.add("-Dorg.lwjgl.freetype.libname=${File(lwjglNativesDir, "libfreetype.so").absolutePath}")
 
         // Our spirv-cross is compiled shared, so it gets named shared.
         args.add("-Dorg.lwjgl.spvc.libname=spirv-cross-c-shared")
@@ -422,7 +465,7 @@ abstract class Launcher(
             LoggerBridge.append(it.stackTraceToString())
         }.getOrThrow()
         envMap.forEach { (key, value) ->
-            LoggerBridge.append("▷ $key = $value")
+            LoggerBridge.appendInfo("$key = $value")
             runCatching {
                 Os.setenv(key, value, true)
             }.onFailure {

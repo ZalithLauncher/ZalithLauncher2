@@ -63,6 +63,7 @@ open class JvmLauncher(
 
     override suspend fun launch(screenSize: IntSize): Int {
         generateLauncherProfiles(jvmLaunchInfo.userHome)
+        initLwjglComponent(context, 0)
         val (runtime, argList) = getStartupNeeded(screenSize)
 
         this.runtime = runtime
@@ -107,7 +108,7 @@ open class JvmLauncher(
         }
 
         LoggerBridge.appendTitle("Launch JVM")
-        LoggerBridge.append("▷ Java arguments: \r\n${argList.joinToString("\r\n")}")
+        LoggerBridge.appendInfo("Java arguments: \r\n${argList.joinToString("\r\n")}")
 
         return Pair(runtime, argList)
     }

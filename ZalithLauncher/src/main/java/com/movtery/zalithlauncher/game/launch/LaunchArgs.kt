@@ -60,6 +60,7 @@ class LaunchArgs(
     private val version: Version,
     private val clientJar: File,
     private val gameManifest: GameManifest,
+    private val lwjglVersion: Int,
     private val runtime: Runtime,
     private val readAssetsFile: (path: String) -> String,
     private val getCacioJavaArgs: (isJava8: Boolean) -> List<String>
@@ -157,7 +158,7 @@ class LaunchArgs(
      * LWJGL2 时代（版本 <= 299）额外加入 lwjgl-lwjglx.jar 桥接层。
      * lwjgl.jar 核心优先 -> merged-modules -> 其余模块。
      */
-    private fun getLWJGL3ClassPath(lwjglVersion: Int): String {
+    private fun getLWJGL3ClassPath(): String {
         val versionDir = lwjglVersionDir(lwjglVersion)
         val dir = File(PathManager.DIR_COMPONENTS, "lwjgl/$versionDir")
         val isLwjgl2 = lwjglVersion in 1..299
@@ -241,9 +242,7 @@ class LaunchArgs(
 //        }
 
         val varArgMap: MutableMap<String, String> = android.util.ArrayMap()
-        val lwjglVersion = detectLwjglVersion(gameManifest)
-        Logger.info(TAG, "Detected LWJGL requirement version=$lwjglVersion")
-        val launchClassPath = "${getLWJGL3ClassPath(lwjglVersion)}:${generateLaunchClassPath(gameManifest)}"
+        val launchClassPath = "${getLWJGL3ClassPath()}:${generateLaunchClassPath(gameManifest)}"
         var hasClasspath = false //是否已经在jvm参数中包含 ${classpath} 配置
 
         varArgMap["classpath_separator"] = ":"

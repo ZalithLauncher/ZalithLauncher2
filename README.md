@@ -64,7 +64,7 @@ Unofficial launcher. Not made by or endorsed by Mojang, Microsoft, Levi, LeviLau
 ---
 
 **License:** GPL-3.0  
-**Maintainer:** @voltageStudiosOfficial  
+**Maintainer:** voltage!studios
 
 ## Open Source Libraries and Licenses
 

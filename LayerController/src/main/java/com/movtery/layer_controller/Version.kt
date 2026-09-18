@@ -24,7 +24,7 @@ import com.movtery.layer_controller.layout.ControlLayout
 /**
  * 控件编辑器的版本号
  */
-internal const val EDITOR_VERSION = 11
+internal const val EDITOR_VERSION = 12
 
 /**
  * 自动处理并逐步更新控制布局到新版编辑器
@@ -38,6 +38,7 @@ internal fun updateLayoutToNew(
         3 -> updateLayoutToNew(update3To4(layout))
         4, 5, 6, 7, 8, 9 -> updateLayoutToNew(update4To10(layout))
         10 -> updateLayoutToNew(update10To11(layout))
+        11 -> updateLayoutToNew(update11To12(layout))
         else -> layout
     }
 }
@@ -152,4 +153,13 @@ private fun update10To11(
             commonStyle = false
         )
     }
+)
+
+/**
+ * 11 -> 12: 控件层支持摇杆控件
+ */
+private fun update11To12(
+    layout: ControlLayout
+): ControlLayout = layout.copy(
+    editorVersion = 12
 )

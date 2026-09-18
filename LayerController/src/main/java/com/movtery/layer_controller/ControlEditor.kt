@@ -64,19 +64,25 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.layer_controller.data.ButtonSize
+import com.movtery.layer_controller.data.JOYSTICK_MIN_SIZE_DP
+import com.movtery.layer_controller.data.JOYSTICK_MIN_SIZE_PERCENTAGE
 import com.movtery.layer_controller.data.MAX_SIZE_PERCENTAGE
 import com.movtery.layer_controller.data.MIN_SIZE_DP
 import com.movtery.layer_controller.data.MIN_SIZE_PERCENTAGE
+import com.movtery.layer_controller.layout.JoystickWidgetRenderer
 import com.movtery.layer_controller.layout.TextButton
 import com.movtery.layer_controller.observable.ObservableButtonStyle
 import com.movtery.layer_controller.observable.ObservableControlLayer
 import com.movtery.layer_controller.observable.ObservableControlLayout
+import com.movtery.layer_controller.observable.ObservableJoystickData
+import com.movtery.layer_controller.observable.ObservableJoystickStyle
 import com.movtery.layer_controller.observable.ObservableWidget
 import com.movtery.layer_controller.utils.getWidgetPosition
 import com.movtery.layer_controller.utils.snap.GuideLine
 import com.movtery.layer_controller.utils.snap.LineDirection
 import com.movtery.layer_controller.utils.snap.SnapMode
 import com.movtery.layer_controller.utils.toPercentagePosition
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -110,6 +116,7 @@ fun ControlEditorLayer(
 
         val layers by observedLayout.layers.collectAsStateWithLifecycle()
         val styles by observedLayout.styles.collectAsStateWithLifecycle()
+        val joystickStyles by observedLayout.joystickStyles.collectAsStateWithLifecycle()
 
         val guideLines = remember { mutableStateMapOf<ObservableWidget, List<GuideLine>>() }
 
@@ -178,6 +185,7 @@ fun ControlEditorLayer(
                 isDark = isDark,
                 renderingLayers = renderingLayers,
                 styles = styles,
+                joystickStyles = joystickStyles,
                 enableSnap = enableSnap,
                 snapInAllLayers = snapInAllLayers,
                 snapMode = snapMode,
@@ -225,7 +233,11 @@ fun ControlEditorLayer(
             }?.let { widget ->
                 selectedWidgetBounds?.let { (drawTL, drawBR) ->
                     //获取尺寸约束的像素值
-                    val minSizePx = with(density) { MIN_SIZE_DP.dp.toPx() }
+                    val isJoystick = widget is ObservableJoystickData
+                    val effectiveMinDp = if (isJoystick) JOYSTICK_MIN_SIZE_DP else MIN_SIZE_DP
+                    val minSizePx = with(density) { effectiveMinDp.dp.toPx() }
+                    val effectiveMinPercentage = if (isJoystick) JOYSTICK_MIN_SIZE_PERCENTAGE else MIN_SIZE_PERCENTAGE
+                    val minPercentageRatio = effectiveMinPercentage.toFloat() / MAX_SIZE_PERCENTAGE.toFloat()
                     val oldSize = widget.widgetSize
 
                     val (minWidth, maxWidth) = when (oldSize.type) {
@@ -236,7 +248,7 @@ fun ControlEditorLayer(
                             } else {
                                 screenSize.height
                             }
-                            (reference * 0.01f) to (reference * 1.0f)
+                            (reference * minPercentageRatio) to (reference * 1.0f)
                         }
                         else -> minSizePx to screenSize.width.toFloat()
                     }
@@ -249,7 +261,7 @@ fun ControlEditorLayer(
                             } else {
                                 screenSize.height
                             }
-                            (reference * 0.01f) to (reference * 1.0f)
+                            (reference * minPercentageRatio) to (reference * 1.0f)
                         }
                         else -> minSizePx to screenSize.height.toFloat()
                     }
@@ -265,8 +277,8 @@ fun ControlEditorLayer(
                         val newWidgetSize = when (oldSize.type) {
                             ButtonSize.Type.Dp -> {
                                 oldSize.copy(
-                                    widthDp = with(density) { newSize.width.toDp().value },
-                                    heightDp = with(density) { newSize.height.toDp().value }
+                                    widthDp = with(density) { newSize.width.toDp().value }.coerceAtLeast(effectiveMinDp),
+                                    heightDp = with(density) { newSize.height.toDp().value }.coerceAtLeast(effectiveMinDp)
                                 )
                             }
 
@@ -282,10 +294,10 @@ fun ControlEditorLayer(
                                 oldSize.copy(
                                     widthPercentage = (newSize.width.toFloat() / widthRef * MAX_SIZE_PERCENTAGE)
                                         .roundToInt()
-                                        .coerceIn(MIN_SIZE_PERCENTAGE, MAX_SIZE_PERCENTAGE),
+                                        .coerceIn(effectiveMinPercentage, MAX_SIZE_PERCENTAGE),
                                     heightPercentage = (newSize.height.toFloat() / heightRef * MAX_SIZE_PERCENTAGE)
                                         .roundToInt()
-                                        .coerceIn(MIN_SIZE_PERCENTAGE, MAX_SIZE_PERCENTAGE)
+                                        .coerceIn(effectiveMinPercentage, MAX_SIZE_PERCENTAGE)
                                 )
                             }
                             else -> oldSize
@@ -337,7 +349,17 @@ fun ControlEditorLayer(
                                         onDrag = { change, dragAmount ->
                                             change.consume()
                                             if (isTopLeft) {
-                                                val newTL = dragTL + dragAmount
+                                                var newTL = dragTL + dragAmount
+                                                if (widget is ObservableJoystickData) {
+                                                    val oldSide = dragBR.x - dragTL.x
+                                                    val distX = dragBR.x - newTL.x
+                                                    val distY = dragBR.y - newTL.y
+                                                    val deltaX = distX - oldSide
+                                                    val deltaY = distY - oldSide
+                                                    val side = (if (abs(deltaX) > abs(deltaY)) oldSide + deltaX else oldSide + deltaY)
+                                                        .coerceIn(minWidth, minOf(maxWidth, maxHeight, dragBR.x, dragBR.y))
+                                                    newTL = Offset(dragBR.x - side, dragBR.y - side)
+                                                }
                                                 val finalTL = Offset(
                                                     newTL.x.coerceIn(maxOf(0f, dragBR.x - maxWidth), dragBR.x - minWidth),
                                                     newTL.y.coerceIn(maxOf(0f, dragBR.y - maxHeight), dragBR.y - minHeight)
@@ -350,7 +372,17 @@ fun ControlEditorLayer(
                                                 )
                                                 updateSizeAndPos(finalTL, finalSize)
                                             } else {
-                                                val newBR = dragBR + dragAmount
+                                                var newBR = dragBR + dragAmount
+                                                if (widget is ObservableJoystickData) {
+                                                    val oldSide = dragBR.x - dragTL.x
+                                                    val distX = newBR.x - dragTL.x
+                                                    val distY = newBR.y - dragTL.y
+                                                    val deltaX = distX - oldSide
+                                                    val deltaY = distY - oldSide
+                                                    val side = (if (abs(deltaX) > abs(deltaY)) oldSide + deltaX else oldSide + deltaY)
+                                                        .coerceIn(minWidth, minOf(maxWidth, maxHeight, screenSize.width - dragTL.x, screenSize.height - dragTL.y))
+                                                    newBR = Offset(dragTL.x + side, dragTL.y + side)
+                                                }
                                                 val finalBR = Offset(
                                                     newBR.x.coerceIn(dragTL.x + minWidth, minOf(screenSize.width.toFloat(), dragTL.x + maxWidth)),
                                                     newBR.y.coerceIn(dragTL.y + minHeight, minOf(screenSize.height.toFloat(), dragTL.y + maxHeight))
@@ -464,6 +496,7 @@ private fun ControlWidgetRenderer(
     isDark: Boolean,
     renderingLayers: List<ObservableControlLayer>,
     styles: List<ObservableButtonStyle>,
+    joystickStyles: List<ObservableJoystickStyle>,
     enableSnap: Boolean,
     snapInAllLayers: Boolean,
     snapMode: SnapMode,
@@ -514,8 +547,9 @@ private fun ControlWidgetRenderer(
             renderingLayers.forEach { layer ->
                 val normalButtons by layer.normalButtons.collectAsStateWithLifecycle()
                 val textBoxes by layer.textBoxes.collectAsStateWithLifecycle()
+                val joystickButtons by layer.joystickButtons.collectAsStateWithLifecycle()
 
-                val widgetsInLayer = normalButtons + textBoxes
+                val widgetsInLayer = normalButtons + textBoxes + joystickButtons
                 allWidgetsMap[layer] = widgetsInLayer
 
                 textBoxes.forEach { data ->
@@ -524,6 +558,32 @@ private fun ControlWidgetRenderer(
 
                 normalButtons.forEach { data ->
                     RenderWidget(data, layer, data.isPressed)
+                }
+
+                joystickButtons.forEach { data ->
+                    JoystickWidgetRenderer(
+                        data = data,
+                        joystickStyles = joystickStyles,
+                        screenSize = screenSize,
+                        isDark = isDark,
+                        isEditMode = true,
+                        enableSnap = enableSnap,
+                        snapMode = snapMode,
+                        localSnapRange = localSnapRange,
+                        getOtherWidgets = {
+                            allWidgetsMap
+                                .filter { (layer1, _) ->
+                                    snapInAllLayers1 || layer1 == layer
+                                }
+                                .values.flatten().filter { it != data }
+                        },
+                        snapThresholdValue = snapThresholdValue,
+                        drawLine = drawLine,
+                        onLineCancel = onLineCancel,
+                        onTapInEditMode = {
+                            onButtonTap(data, layer)
+                        }
+                    )
                 }
             }
         }
@@ -544,6 +604,7 @@ private fun ControlWidgetRenderer(
         renderingLayers.fastForEach { layer ->
             layer.textBoxes.value.fastForEach { it.putSize() }
             layer.normalButtons.value.fastForEach { it.putSize() }
+            layer.joystickButtons.value.fastForEach { it.putSize() }
         }
 
         layout(constraints.maxWidth, constraints.maxHeight) {
@@ -564,6 +625,7 @@ private fun ControlWidgetRenderer(
             renderingLayers.fastForEach { layer ->
                 layer.textBoxes.value.fastForEach { it.place() }
                 layer.normalButtons.value.fastForEach { it.place() }
+                layer.joystickButtons.value.fastForEach { it.place() }
             }
         }
     }

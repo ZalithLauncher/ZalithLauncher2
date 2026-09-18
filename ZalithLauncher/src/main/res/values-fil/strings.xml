@@ -50,6 +50,7 @@
     <string name="generic_unspecified">Hindi natukoy</string>
     <string name="generic_save">I-save</string>
     <string name="generic_saved">Na-save</string>
+    <string name="generic_saving">Sine-save…</string>
     <string name="generic_share">Ibahagi</string>
     <string name="generic_copied">Kinopya</string>
     <string name="generic_no_matching_items">Walang tumutugma na mga aytem</string>
@@ -218,6 +219,8 @@
     <string name="download_assets_install_progress_downloading">Dina-download at ini-install ang mga asset\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">Ini-install ang mga asset\n%s</string>
     <string name="download_assets_install_failed">Nabigong ma-install ang mga asset!</string>
+    <string name="download_assets_dependency_no_compatible_version">Walang katugmang bersyon na nahanap para sa dependency %s</string>
+    <string name="download_assets_dependency_project_unavailable">Hindi available ang impormasyon ng proyekto</string>
     <string name="download_modpack_warning1">Bago ang pag-install, kailangan mong maunawaan na karamihan sa mga modpack ay ginawa para sa PC, at may mataas na posibilidad ng mga pag-crash o iba pang mga isyu kapag sinubukan mong ilunsad ang mga ito. Ang mga problemang ito ay kadalasang lampas sa kayang solusyunan ng launcher.</string>
     <string name="download_modpack_warning2">Kakailanganin mong matutunan ang mga kaugnay na kaalaman upang subukang lutasin ang mga isyu nang mag-isa, o humingi ng tulong sa iba.</string>
     <string name="download_modpack_warning3">Paalala: Karaniwang hindi inaayos ng mga developer ng launcher ang mga isyung dulot ng mga modpack.</string>
@@ -227,7 +230,6 @@
     <string name="download_modpack_install_overrides">Kunin ang mga file ng modpack</string>
     <string name="download_modpack_download">I-download ang kinakailangang nilalaman para sa modpack</string>
     <string name="download_modpack_download_mods">I-download ang lahat ng mod (%1$d/%2$d, %3$s)</string>
-    <string name="download_modpack_download_mods_retry">Subukang i-download muli ang lahat ng mod (%1$d/%2$d, %3$s)</string>
     <string name="download_modpack_get_loaders">Kunin ang impormasyon ng loader</string>
     <string name="download_modpack_final_move">Inililipat ang mga file ng modpack</string>
     <string name="download_assets_category_worldgen">Henerasyon ng Mundo</string>
@@ -246,4 +248,11 @@
     <string name="download_assets_category_decoration">Dekorasyon</string>
     <string name="download_assets_category_mobs">Mga Mob</string>
     <string name="download_assets_category_equipment">Kagamitan</string>
+
+    <string name="settings_renderer_resolution_rule_title">Rule ng Resolution</string>
+    <string name="settings_renderer_resolution_rule_summary">Piliin kung paano kinukwenta ang resolution ng game window</string>
+    <string name="settings_renderer_resolution_rule_percentage">Porsyento</string>
+    <string name="settings_renderer_resolution_custom_summary">I-render ang game gamit ang eksaktong lapad at taas; isescale ang larawan para umangkop sa screen</string>
+    <string name="settings_renderer_resolution_custom_width">Lapad</string>
+    <string name="settings_renderer_resolution_custom_height">Taas</string>
 </resources>

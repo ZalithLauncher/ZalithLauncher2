@@ -333,10 +333,7 @@
     <string name="minecraft_download_stat_verify_task">Подготовка проверок</string>
     <string name="minecraft_download_downloading_game_files">Загрузка файлов: \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_verifying_and_repairing_files">Проверка файлов \n(%1$d/%2$d, %3$s/%4$s)</string>
-    <string name="minecraft_download_progress_retry_downloading_files">Пробуем снова \n(%1$d/%2$d, %3$s/%4$s)</string>
-    <string name="minecraft_download_progress_retry_verifying_files">Повторная проверка\n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">Произошла ошибка при загрузке Minecraft</string>
-    <string name="minecraft_download_failed_retried">До этого лаунчер уже пытался выполнить повторную попытку, но некоторые задачи всё же не удалось загрузить</string>
     <string name="minecraft_download_failed_notfound">Некоторые зависимые файлы не удалось скачать. Если проблема сохраняется после нескольких попыток, возможно, в игре отсутствуют необходимые файлы библиотек. Попробуйте переустановить игру.</string>
     <!-- Settings -->
     <string name="settings_element_selected">Выбрано: %s</string>
@@ -354,6 +351,13 @@
     <string name="settings_renderer_from_plugins">Из плагина %s</string>
     <string name="settings_renderer_resolution_scale_title">Разрешение экрана</string>
     <string name="settings_renderer_resolution_scale_summary">Меньшее значение может увеличить FPS, но изображение станет мыльным, так же и в обратную сторону (ᵔ⩊ᵔ)</string>
+
+    <string name="settings_renderer_resolution_rule_title">Правило разрешения</string>
+    <string name="settings_renderer_resolution_rule_summary">Выберите способ расчёта разрешения игрового окна</string>
+    <string name="settings_renderer_resolution_rule_percentage">Процент</string>
+    <string name="settings_renderer_resolution_custom_summary">Запускайте игру с точной шириной и высотой; изображение масштабируется под экран</string>
+    <string name="settings_renderer_resolution_custom_width">Ширина</string>
+    <string name="settings_renderer_resolution_custom_height">Высота</string>
     <string name="settings_renderer_full_screen_title">Игнорирование выреза</string>
     <string name="settings_renderer_full_screen_summary">Игнорирует вырез под фронтальную камеру и даёт дополнительное место для изображение под ней</string>
     <string name="settings_renderer_sustained_performance_title">Режим стабильной производительности</string>
@@ -365,8 +369,6 @@
     <string name="settings_renderer_zink_driver_adreno">Лаунчер обнаружил, что ваше устройство имеет GPU Adreno. Включение этой опции может привести к сбоям в работе визуализатора Zink. Вы уверены, что хотите включить её?</string>
     <string name="settings_renderer_vsync_in_zink_title">Вертикальная синхронизация Zink</string>
     <string name="settings_renderer_vsync_in_zink_summary">Включить вертикальную синхронизацию для визуализатора Zink</string>
-    <string name="settings_renderer_force_big_core_title">Принудительное использование мощных ядер</string>
-    <string name="settings_renderer_force_big_core_summary">Заставляет использовать самые мощные ядра при работе процессора</string>
     <string name="settings_game_version_isolation_title">Изоляция версий</string>
     <string name="settings_game_version_isolation_summary">Изолировать все версии, чтобы их данные не пересекались друг с другом</string>
     <string name="settings_game_skip_game_integrity_check_title">Пропустить проверку целостности</string>
@@ -398,7 +400,7 @@
     <string name="settings_control_mouse_long_press_delay_title">Задержка жеста длительного касания</string>
     <string name="settings_control_mouse_long_press_delay_summary">Установить время задержки для распознавания жеста длительного нажатия на экране (Работает только если собственно включены жесты)</string>
     <string name="settings_control_gesture_control_title">Управление жестами</string>
-    <string name="settings_control_gesture_control_summary">Поддерживает взаимодействие в игре через жесты, такие как касание и длительное нажатие, аналогично Bedrock Edition</string>
+    <string name="settings_control_gesture_control_summary">Поддерживает взаимодействие в игре через жесты, такие как касание, длительное нажатие и прокрутка свайпом двумя пальцами, аналогично Bedrock Edition</string>
     <string name="settings_control_gesture_tap_action_title">Тип действия при касании</string>
     <string name="settings_control_gesture_tap_action_summary">Выберите действие кнопки мыши, которое будет вызвано при касании экрана</string>
     <string name="settings_control_gesture_long_press_action_title">Тип действия при длительном нажатии</string>
@@ -464,6 +466,8 @@
     <string name="download_assets_install_progress_downloading">Загрузка и установка ресурсов\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">Установка ресурсов\n%s</string>
     <string name="download_assets_install_failed">Не удалось установить ресурсы!</string>
+    <string name="download_assets_dependency_no_compatible_version">Не найдено совместимой версии для зависимости %s</string>
+    <string name="download_assets_dependency_project_unavailable">Информация о проекте недоступна</string>
     <string name="download_assets_category_worldgen">Генерация мира</string>
     <string name="download_assets_category_biomes">Биомы</string>
     <string name="download_assets_category_dimensions">Измерения</string>
@@ -498,7 +502,6 @@
     <string name="download_modpack_install_overrides">Распаковка файлов сборки</string>
     <string name="download_modpack_download">Скачать необходимые файлы для сборки</string>
     <string name="download_modpack_download_mods">Скачать все моды (%1$d/%2$d, %3$s)</string>
-    <string name="download_modpack_download_mods_retry">Повторить загрузку всех модов (%1$d/%2$d, %3$s)</string>
     <string name="download_modpack_get_loaders">Получение информации о мод-лоудере</string>
     <string name="download_modpack_final_move">Перемещение файлов сборки</string>
     <string name="download_assets_category_ores_resources">Руды и ресурсы</string>
@@ -701,8 +704,6 @@
     <string name="settings_launcher_log_share_title">Поделиться логами лаунчера</string>
     <string name="settings_launcher_log_share_summary">Нажмите, чтобы поделиться файлами логов лаунчера. Это поможет разработчикам выявить и исправить проблемы в его работе.</string>
     <string name="settings_launcher_log_share_packing">Упаковка файлов логов лаунчера</string>
-    <string name="settings_launcher_mirror_modloader_title">Источник версий мод-лоудера</string>
-    <string name="settings_launcher_mirror_file_download_title">Источник загрузки файлов</string>
     <string name="settings_launcher_mirror_official_first">Предпочитать официальный источник</string>
     <string name="settings_launcher_mirror_mirror_first">Предпочитать зеркало</string>
     <string name="control_keyboard_bind_title">Забиндить клавишу</string>
@@ -863,7 +864,6 @@
     <string name="mods_update_task_replace">Заменение файлов модов</string>
     <string name="mods_update_no_mods_update">Обновления не нужны, у вас стоят актуальные версии модов^-^</string>
     <string name="mods_update_updating">Обновление всех модов (%1$d/%2$d, %3$s)</string>
-    <string name="mods_update_updating_retry">Повторная попытка обновления всех модов (%1$d/%2$d, %3$s)</string>
     <string name="mods_update_success">Обновление завершено успешно</string>
     <string name="mods_update_success_text">Все выбранные моды были успешно обновлены до последней версии!</string>
     <string name="mods_update_failed">Неудачное обновление модов</string>
@@ -1014,24 +1014,10 @@
     <string name="control_editor_edit_text_size">Размер текста</string>
     <string name="control_editor_edit_text_size_custom">Пользовательский размер текста</string>
     <string name="generic_saved">Сохранено</string>
-    <string name="game_styles_joystick">Настройка джойстика</string>
-    <string name="game_styles_joystick_enable">Включить джойстик</string>
-    <string name="game_styles_joystick_x">Положение джойстика по оси X</string>
-    <string name="game_styles_joystick_y">Положение джойстика по оси Y</string>
-    <string name="game_styles_joystick_size">Размер джойстика</string>
-    <string name="game_styles_joystick_edit">Редактировать стиль джойстика</string>
-    <string name="game_styles_joystick_can_lock">Удержание направления (автоспринт)</string>
-    <string name="game_styles_joystick_lock_sprint">Постоянный спринт при фиксации направления</string>
-    <string name="game_styles_joystick_hide_when_mouse">Скрывать при использовании физической мыши</string>
-    <string name="game_styles_joystick_hide_when_gamepad">Скрывать при использовании геймпада</string>
-    <string name="game_styles_save_failed">Не удалось сохранить стиль</string>
+    <string name="generic_saving">Сохранение…</string>
     <string name="account_change_cape_cache_all">Кэширование всех плащей</string>
     <string name="cape_name_zombie_horse">Зомби-лошадь</string>
-    <string name="control_editor_special_joystick_style">Стиль джойстика</string>
-    <string name="control_editor_special_joystick_style_create_title">Создать стиль джойстика</string>
-    <string name="control_editor_special_joystick_style_create_summary">Создайте собственный стиль джойстика для этой раскладки. Если стиль не задан, лаунчер будет использовать стиль джойстика по умолчанию.</string>
     <string name="control_editor_special_joystick_style_delete_title">Удалить стиль джойстика</string>
-    <string name="control_editor_special_joystick_style_delete_summary">Удалить собственный стиль джойстика для этой раскладки. После этого будет использоваться стандартный стиль джойстика лаунчера.</string>
     <string name="control_editor_special_joystick_style_joystick_color">Цвет джойстика</string>
     <string name="control_editor_special_joystick_style_joystick_can_lock_color">Цвет джойстика (при фиксации)</string>
     <string name="control_editor_special_joystick_style_joystick_locked_color">Цвет джойстика (зафиксированный)</string>
@@ -1039,7 +1025,6 @@
     <string name="control_editor_special_joystick_style_background_rounded_corner">Радиус скругления фона</string>
     <string name="control_editor_special_joystick_style_joystick_rounded_corner">Радиус скругления джойстика</string>
     <string name="control_editor_special_joystick_style_joystick_size">Размер джойстика</string>
-    <string name="game_styles_joystick_edit_use_control_layout">Использовать стиль из раскладки управления</string>
     <string name="upgrade_title">Проверить обновления</string>
     <string name="upgrade_new">Найдена новая версия</string>
     <string name="upgrade_more">Подробнее</string>
@@ -1051,9 +1036,6 @@
     <string name="upgrade_get_remote_failed">Не удалось проверить обновления. Пожалуйста, попробуйте позже.</string>
     <string name="upgrade_is_latest">У вас уже установлена последняя версия</string>
     <string name="upgrade_cloud_drive">Облачное хранилище</string>
-    <string name="control_editor_special_joystick_style_tip_summary">Из-за сложности реализации система раскладки не поддерживает прямую интеграцию джойстика. Для его использования включите \"Универсальный джойстик\" в игровом меню. При этом внешний вид джойстика можно настроить через раскладку управления, чтобы сохранить единый стиль</string>
-    <string name="game_styles_joystick_deadzone">Диапазон мертвой зоны джойстика</string>
-    <string name="control_editor_special_joystick_style_tip_title">Не получается создать джойстик?</string>
     <string name="generic_copied">Скопировано</string>
     <string name="crash_link_share_button">Поделиться ссылкой</string>
     <string name="crash_link_share_tip">Лаунчер загрузит логи игры на публичную платформу и предоставит вам ссылку, которой можно удобно поделиться с другими для диагностики</string>
@@ -1062,8 +1044,6 @@
     <string name="crash_link_share_failed_link_not_found">Ссылка не найдена. Пожалуйста, попробуйте позже</string>
     <string name="download_game_addon_warning_api">не выбран. Без его установки большинство модов не будет работать!</string>
     <string name="settings_launcher_language">Язык</string>
-    <string name="settings_launcher_mirror_assets_search_title">Источник поиска платформы ресурсов</string>
-    <string name="settings_launcher_mirror_assets_download_title">Источник загрузки платформы ресурсов</string>
     <string name="about_acknowledgements_mcim_text">использует зеркальный источник MCIM</string>
     <string name="servers_list_add_server_name">Имя сервера</string>
     <string name="servers_list_add_server_default_name">Майнкрафт сервер</string>
@@ -1089,7 +1069,6 @@
     <string name="download_game_version_overwrite_select">Версия для перезаписи</string>
     <string name="download_game_version_overwrite_select_subtitle">Выберите версию для перезаписи. Эту функцию можно использовать для обновления или отката версии</string>
     <string name="version_summary_fools_herd_craft">Хватит наводить порядок в инвентаре — ваши предметы и блоки хотят бегать на свободе вместе с вами!</string>
-    <string name="game_styles_joystick_lock_threshold">Порог фиксации направления</string>
     <string name="plugin_unsupported_warning">Плагин %s не поддерживается для этой версии игры. Его использование может привести к крашу игры! Вы уверены, что хотите продолжить на свой страх и риск?</string>
     <string name="plugin_download_title">Скачать плагин</string>
     <string name="plugin_download_summary">Скачайте плагин и установите его как приложение. Просто перезапустите лаунчер, и он загрузится автоматически!</string>
@@ -1105,7 +1084,6 @@
     <string name="account_local_uuid_invalid">Неверный формат UUID</string>
     <string name="account_local_uuid_copy">Копировать UUID</string>
     <string name="account_local_uuid_copied">UUID аккаунта %s скопирован</string>
-    <string name="versions_overview_cant_share_folder_message">На этом устройстве нет подходящих приложений для открытия этой папки!</string>
     <string name="versions_config_vibrate_kind_title">Тип вибрации</string>
     <string name="versions_config_vibrate_kind_summary">Выберите тип вибрации при срабатывании TouchController</string>
     <string name="versions_install_loader">Установить загрузчик</string>
@@ -1207,7 +1185,6 @@
     <string name="control_editor_layers_delete">Вы уверены, что хотите удалить слой раскладки %s?</string>
     <string name="control_editor_layers_attribute_hide_when_mouse">Скрывать при использовании мыши</string>
     <string name="control_editor_layers_attribute_hide_when_gamepad">Скрывать при использовании геймпада</string>
-    <string name="control_editor_layers_attribute_hide_when_joystick">Скрывать при включённом джойстике</string>
     <string name="control_editor_edit_dialog_delete_widget">Вы уверены, что хотите удалить этот элемент?</string>
     <string name="control_editor_edit_style_config_common_style">Не разделять по тёмной теме</string>
     <string name="control_editor_edit_style_config_delete">Вы уверены, что хотите удалить вариант оформления %s?</string>
@@ -1223,10 +1200,30 @@
     <string name="game_vulkan_check_text">Проверьте, поддерживает ли ваше устройство запуск Minecraft 26.2+ с Vulkan. Результаты приведены только для справки.</string>
     <string name="game_vulkan_check_version">Vulkan версия: %s</string>
     <string name="game_vulkan_check_turnip">Использование Turnip: %s</string>
-    <string name="game_vulkan_check_extensions">Необходимые расширения:</string>
-    <string name="game_vulkan_check_missing_extensions">Отсутствующие расширения:</string>
-    <string name="game_vulkan_check_features">Необходимые функции:</string>
-    <string name="game_vulkan_check_missing_features">Отсутствующие функции:</string>
-    <string name="game_vulkan_check_unsupp">Ваше устройство не поддерживает запуск Minecraft 26.2+ с Vulkan.</string>
-    <string name="game_vulkan_check_supp">Ваше устройство поддерживает запуск Minecraft 26.2+ с Vulkan.</string>
+    <string name="game_vulkan_check_versions">Поддержка версий:</string>
+    <string name="game_vulkan_check_profile_supp">Поддерживается</string>
+    <string name="game_vulkan_check_profile_unsupp">Не поддерживается</string>
+    <string name="game_vulkan_check_dep_required">Обязательно:</string>
+    <string name="game_vulkan_check_dep_optional">Необязательно:</string>
+    <string name="game_vulkan_check_item_missing">" (отсутствует)"</string>
+    <string name="game_vulkan_check_failed">Не удалось получить сведения о поддержке Vulkan на этом устройстве</string>
+    <string name="game_vulkan_check_partial">Ваше устройство может запускать лишь некоторые версии Minecraft с Vulkan:</string>
+    <string name="game_vulkan_check_extensions">Зависимые расширения:</string>
+    <string name="game_vulkan_check_features">Зависимые функции:</string>
+    <string name="game_vulkan_check_unsupp">Ваше устройство не может запускать ни одну версию Minecraft с Vulkan</string>
+    <string name="game_vulkan_check_supp">Ваше устройство может запускать Minecraft %s и новее с Vulkan</string>
+    <string name="error_bad_request">(%s) Сервер не мог понять запрос</string>
+    <string name="error_forbidden">(%s) У вас нет прав на доступ к этому ресурсу</string>
+    <string name="error_not_acceptable">(%s) Неприемлемо</string>
+    <string name="error_gone">(%s) Запрошенный ресурс больше не доступен</string>
+    <string name="error_too_many_requests">(%s) Попробуйте позже</string>
+    <string name="download_category_by_id">Искать по ID</string>
+    <string name="download_assets_id_holder">ID проекта</string>
+    <string name="download_assets_id_not_found">Проект не найден!</string>
+    <string name="cape_name_builder">Строитель</string>
+    <string name="cape_name_crafter">Крафтер</string>
+    <string name="settings_title_blur">Эффект размытия</string>
+    <string name="settings_renderer_config_title">Конфигурация рендерера</string>
+    <string name="control_editor_menu_new_widget_joystick">Добавить джойстик</string>
+    <string name="control_editor_edit_category_joystick_config">Конфиг джойстика</string>
 </resources>

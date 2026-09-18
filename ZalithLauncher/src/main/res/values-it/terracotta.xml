@@ -20,6 +20,7 @@
     <string name="terracotta_menu">Menù Multigiocatore</string>
     <string name="terracotta_notification_title">Terracotta | Multigiocatore è in esecuzione</string>
     <string name="terracotta_notification_desc">Identità: %s, Stato: %s</string>
+    <string name="terracotta_notification_state_preparing">Preparazione della connessione…</string>
     <string name="terracotta_status_waiting_host_title">Voglio ospitare una sessione</string>
     <string name="terracotta_status_waiting_host_desc">Crea una stanza e genera un codice di invito per giocare con gli amici</string>
     <string name="terracotta_status_waiting_guest_title">Voglio partecipare a una sessione</string>

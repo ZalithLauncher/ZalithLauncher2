@@ -1,5 +1,6 @@
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 -dontwarn com.github.luben.zstd.**
+-dontwarn org.brotli.dec.**
 -dontwarn java.lang.management.**
 -dontwarn io.ktor.util.debug.**
 
@@ -11,6 +12,9 @@
     @androidx.room.* <fields>;
     @androidx.room.* <methods>;
 }
+
+# SDL
+-keep class org.libsdl.app.** { *; }
 
 # Launcher
 -keep class org.lwjgl.glfw.CallbackBridge {
@@ -36,19 +40,22 @@
 -keep,allowobfuscation @dagger.hilt.android.AndroidEntryPoint class *
 
 
--keep class tech.voltagestudios.dream.bridge.** { *; }
--keep class tech.voltagestudios.dream.utils.device.VulkanChecker {
+-keep class com.movtery.zalithlauncher.bridge.** { *; }
+-keep class com.movtery.zalithlauncher.utils.device.VulkanChecker {
     *;
 }
--keep class tech.voltagestudios.dream.utils.device.VulkanCapabilities {
+-keep class com.movtery.zalithlauncher.utils.device.VulkanCapabilities {
     *;
 }
--keep interface tech.voltagestudios.dream.utils.device.VulkanLogCallback {
+-keep interface com.movtery.zalithlauncher.utils.device.VulkanLogCallback {
     *;
 }
--keep class tech.voltagestudios.dream.game.input.CriticalNativeTest {
+-keep class com.movtery.zalithlauncher.game.input.CriticalNativeTest {
     *;
 }
 
 # Libraries
 -keep class com.github.steveice10.opennbt.** { *; }
+
+# SoraEditor language-textmate
+-keep class org.jcodings.** { *; }

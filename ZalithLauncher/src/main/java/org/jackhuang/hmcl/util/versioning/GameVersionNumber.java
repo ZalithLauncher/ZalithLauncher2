@@ -17,7 +17,7 @@
  */
 package org.jackhuang.hmcl.util.versioning;
 
-import tech.voltagestudios.dream.utils.logging.Logger;
+import com.movtery.zalithlauncher.utils.logging.Logger;
 
 import org.jackhuang.hmcl.util.ToStringBuilder;
 import org.jetbrains.annotations.NotNull;

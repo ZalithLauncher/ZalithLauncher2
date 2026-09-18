@@ -23,6 +23,7 @@ import com.movtery.layer_controller.data.ButtonStyle
 import com.movtery.layer_controller.data.JoystickStyle
 import com.movtery.layer_controller.data.lang.EmptyTranslatableString
 import com.movtery.layer_controller.data.lang.TranslatableString
+import com.movtery.layer_controller.data.legacy.LegacySpecial
 import com.movtery.layer_controller.layout.ControlLayout.Info
 import com.movtery.layer_controller.observable.Modifiable
 import com.movtery.layer_controller.observable.isModified
@@ -40,7 +41,6 @@ import java.io.File
  * 描述一个控制布局结构
  * @param info 控制布局基本信息
  * @param layers 控制层级列表
- * @param special 可以变更启动器层的部分组件的扩展设定
  * @param editorVersion 使用编辑器版本
  */
 @Serializable
@@ -51,8 +51,8 @@ data class ControlLayout(
     val layers: List<ControlLayer> = emptyList(),
     @SerialName("styles")
     val styles: List<ButtonStyle> = emptyList(),
-    @SerialName("special")
-    val special: Special = Special(),
+    @SerialName("joystickStyles")
+    val joystickStyles: List<JoystickStyle> = emptyList(),
     @SerialName("editorVersion")
     val editorVersion: Int
 ): Modifiable<ControlLayout> {
@@ -78,33 +78,11 @@ data class ControlLayout(
         }
     }
 
-    /**
-     * 特殊设定，比如由控制布局改变启动器的部分组件属性之类的
-     * @param joystickStyle 控制启动器层的摇杆的样式
-     */
-    @Serializable
-    data class Special(
-        val joystickStyle: JoystickStyle? = null
-        //将来可扩展更多设定
-    ): Modifiable<Special> {
-        override fun isModified(other: Special): Boolean {
-            val joystickStyle0 = this.joystickStyle
-            val joystickModified = if (joystickStyle0 == null) {
-                other.joystickStyle != null
-            } else {
-                if (other.joystickStyle == null) true
-                else joystickStyle0.isModified(other.joystickStyle)
-            }
-
-            return joystickModified
-        }
-    }
-
     override fun isModified(other: ControlLayout): Boolean {
         return this.info.isModified(other.info) ||
                 this.layers.isModified(other.layers) ||
                 this.styles.isModified(other.styles) ||
-                this.special.isModified(other.special) ||
+                this.joystickStyles.isModified(other.joystickStyles) ||
                 this.editorVersion != other.editorVersion
     }
 }
@@ -121,7 +99,8 @@ val EmptyControlLayout = ControlLayout(
     editorVersion = EDITOR_VERSION,
     info = EmptyLayoutInfo,
     layers = emptyList(),
-    styles = emptyList()
+    styles = emptyList(),
+    joystickStyles = emptyList(),
 )
 
 /**
@@ -137,8 +116,27 @@ fun loadLayoutFromString(jsonString: String): ControlLayout {
     if (jsonObject["editorVersion"] == null) throw SerializationException("The file does not contain the key \"editorVersion\".")
     val version = jsonObject["editorVersion"]!!.jsonPrimitive.int
     if (version <= EDITOR_VERSION) {
+        val legacyJoystickStyle = if (version < 12) {
+            jsonObject["special"]?.let { specialElement ->
+                //在反序列化前尝试提取旧版 special 字段
+                try {
+                    layoutJson.decodeFromJsonElement(LegacySpecial.serializer(), specialElement).joystickStyle?.toJoystickStyle()
+                } catch (_: Exception) {
+                    null
+                }
+            }
+        } else null
+
         var layout = layoutJson.decodeFromString<ControlLayout>(jsonString)
         if (version < EDITOR_VERSION) layout = updateLayoutToNew(layout)
+
+        if (legacyJoystickStyle != null) {
+            //迁移至新版摇杆样式列表
+            layout = layout.copy(
+                joystickStyles = layout.joystickStyles + legacyJoystickStyle
+            )
+        }
+
         return layout
     } else {
         throw IllegalArgumentException("Control layout versions are not supported!")

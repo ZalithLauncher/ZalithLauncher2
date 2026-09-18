@@ -45,8 +45,14 @@
 EGLConfig config;
 struct PotatoBridge potatoBridge;
 
+// MC 最近一次请求的交换间隔；-1 表示尚未请求
+static int lastSwapInterval = -1;
+
 void* loadTurnipVulkan(const char* driver_path, const char* native_dir, const char* cache_dir);
 void calculateFPS();
+
+extern void updateMonitorSize(int width, int height);
+extern jboolean ensureGlfwNativeBridgeInitialized(JNIEnv *env);
 
 EXTERNAL_API void pojavTerminate() {
     printf("EGLBridge: Terminating\n");
@@ -72,7 +78,14 @@ EXTERNAL_API void pojavTerminate() {
 }
 
 JNIEXPORT void JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_setupBridgeWindow(JNIEnv* env, ABI_COMPAT jclass clazz, jobject surface) {
+    // 首个窗口由 pojavInit 应用交换间隔；此处处理窗口重建（旋转、分屏等）：
+    // 生产者状态会随新窗口重置，若不重新应用，MC 不会再次发起交换间隔调用，帧率会退回锁定在屏幕刷新率
+    bool windowRecreated = pojav_environ->pojavWindow != NULL;
     pojav_environ->pojavWindow = ANativeWindow_fromSurface(env, surface);
+    if (windowRecreated && pojav_environ->config_renderer != RENDERER_VULKAN) {
+        if (lastSwapInterval >= 0) setNativeWindowSwapInterval(pojav_environ->pojavWindow, lastSwapInterval);
+        else if (!getenv("POJAV_VSYNC_IN_ZINK")) setNativeWindowSwapInterval(pojav_environ->pojavWindow, 0);
+    }
     if (br_setup_window) br_setup_window();
 }
 
@@ -183,12 +196,41 @@ int pojavInitOpenGL() {
     return 0;
 }
 
+// 获取当前线程的 JNIEnv（未附着则先 Attach，不 Detach，保留渲染线程的附着状态）
+static JNIEnv *get_attached_env_for_renderer(JavaVM *jvm) {
+    JNIEnv *jvm_env = NULL;
+    jint env_result = (*jvm)->GetEnv(jvm, (void **) &jvm_env, JNI_VERSION_1_4);
+    if (env_result == JNI_EDETACHED) {
+        env_result = (*jvm)->AttachCurrentThread(jvm, &jvm_env, NULL);
+    }
+    if (env_result != JNI_OK) {
+        printf("get_attached_env failed: %i\n", env_result);
+        return NULL;
+    }
+    return jvm_env;
+}
+
 EXTERNAL_API int pojavInit() {
+    pojav_environ->glfwThreadVmEnv = get_attached_env_for_renderer(pojav_environ->runtimeJavaVMPtr);
+    if (pojav_environ->glfwThreadVmEnv == NULL) {
+        printf("Failed to attach Java-side JNIEnv to GLFW thread\n");
+        return 0;
+    }
+    // 桥初始化可能在其它线程上先行失败，此处于渲染线程兜底重试
+    if (!ensureGlfwNativeBridgeInitialized(pojav_environ->glfwThreadVmEnv)) {
+        printf("pojavInit: GLFW bridge is not initialized\n");
+        return 0;
+    }
     ANativeWindow_acquire(pojav_environ->pojavWindow);
     pojav_environ->savedWidth = ANativeWindow_getWidth(pojav_environ->pojavWindow);
     pojav_environ->savedHeight = ANativeWindow_getHeight(pojav_environ->pojavWindow);
     ANativeWindow_setBuffersGeometry(pojav_environ->pojavWindow,pojav_environ->savedWidth,pojav_environ->savedHeight,AHARDWAREBUFFER_FORMAT_R8G8B8X8_UNORM);
+    updateMonitorSize(pojav_environ->savedWidth, pojav_environ->savedHeight);
     pojavInitOpenGL();
+    // 垂直同步开关关闭时主动切入异步模式，解除帧率对屏幕刷新率的锁定；开启时交由 MC 的交换间隔调用决定
+    if (pojav_environ->config_renderer != RENDERER_VULKAN && !getenv("POJAV_VSYNC_IN_ZINK")) {
+        setNativeWindowSwapInterval(pojav_environ->pojavWindow, 0);
+    }
     return 1;
 }
 
@@ -282,15 +324,22 @@ void calculateFPS() {
     if (!pojav_environ->hasGraphicOutput && pojav_environ->dalvikJavaVMPtr && pojav_environ->bridgeClazz && pojav_environ->method_onGraphicOutput) {
         pojav_environ->hasGraphicOutput = true;
 
-        JNIEnv *dalvikEnv;
-        (*pojav_environ->dalvikJavaVMPtr)->AttachCurrentThread(pojav_environ->dalvikJavaVMPtr, &dalvikEnv, NULL);
-        (*dalvikEnv)->CallStaticVoidMethod(dalvikEnv, pojav_environ->bridgeClazz, pojav_environ->method_onGraphicOutput);
-        (*pojav_environ->dalvikJavaVMPtr)->DetachCurrentThread(pojav_environ->dalvikJavaVMPtr);
+        JNIEnv *dalvikEnv = NULL;
+        jboolean detachedBefore = (*pojav_environ->dalvikJavaVMPtr)->GetEnv(pojav_environ->dalvikJavaVMPtr, (void **) &dalvikEnv, JNI_VERSION_1_4) == JNI_EDETACHED;
+        if (detachedBefore) {
+            (*pojav_environ->dalvikJavaVMPtr)->AttachCurrentThread(pojav_environ->dalvikJavaVMPtr, &dalvikEnv, NULL);
+        }
+        if (dalvikEnv != NULL) {
+            (*dalvikEnv)->CallStaticVoidMethod(dalvikEnv, pojav_environ->bridgeClazz, pojav_environ->method_onGraphicOutput);
+            if (detachedBefore) {
+                (*pojav_environ->dalvikJavaVMPtr)->DetachCurrentThread(pojav_environ->dalvikJavaVMPtr);
+            }
+        }
     }
 }
 
 EXTERNAL_API JNIEXPORT void JNICALL
-Java_org_lwjgl_vulkan_VK_onVKFrame(ABI_COMPAT JNIEnv *env, ABI_COMPAT jclass thiz) {
+Java_org_lwjgl_vulkan_VK_updateFps(ABI_COMPAT JNIEnv *env, ABI_COMPAT jclass thiz) {
     calculateFPS();
 }
 
@@ -306,6 +355,8 @@ Java_org_lwjgl_vulkan_VK_getVulkanDriverHandle(ABI_COMPAT JNIEnv *env, ABI_COMPA
 }
 
 EXTERNAL_API void pojavSwapInterval(int interval) {
+    lastSwapInterval = interval;
+
     if (pojav_environ->config_renderer == RENDERER_VK_ZINK
      || pojav_environ->config_renderer == RENDERER_GL4ES)
     {

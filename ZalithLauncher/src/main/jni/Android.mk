@@ -34,7 +34,7 @@ LOCAL_SRC_FILES := \
     utils.c \
     stdio_is.c \
     java_exec_hooks.c \
-    lwjgl_dlopen_hook.c
+    lwjgl_dlopen_hook.c \
 
 ifeq ($(TARGET_ARCH_ABI),arm64-v8a)
 LOCAL_CFLAGS += -DADRENO_POSSIBLE
@@ -59,7 +59,9 @@ include $(CLEAR_VARS)
 LOCAL_MODULE := exithook
 LOCAL_LDLIBS := -ldl -llog
 LOCAL_SHARED_LIBRARIES := bytehook pojavexec
-LOCAL_SRC_FILES := exit_hook.c
+LOCAL_SRC_FILES := exit_hook.c \
+    sdl_hook.c \
+    sdl_dlopen_hook.c
 include $(BUILD_SHARED_LIBRARY)
 
 
@@ -111,3 +113,25 @@ include $(BUILD_SHARED_LIBRARY)
 # delete fake libs after linked
 $(info $(shell (rm $(HERE_PATH)/../jniLibs/*/libawt_headless.so)))
 
+
+
+LOCAL_PATH := $(HERE_PATH)/flite
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := flite
+LOCAL_SRC_FILES := flite_bridge.c
+LOCAL_LDLIBS := -llog
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := fliteWrapper
+LOCAL_SRC_FILES := flite_wrapper.c
+LOCAL_SHARED_LIBRARIES := flite
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := flite_cmu_us_kal16
+LOCAL_SRC_FILES := flite_cmu_us_kal16.c
+include $(BUILD_SHARED_LIBRARY)
+
+LOCAL_PATH := $(HERE_PATH)

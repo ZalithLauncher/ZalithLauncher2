@@ -197,6 +197,8 @@
     <string name="download_assets_install_progress_downloading">Varlıklar indiriliyor ve yükleniyor\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">Varlıklar yükleniyor\n%s</string>
     <string name="download_assets_install_failed">Varlıklar yüklenemedi!</string>
+    <string name="download_assets_dependency_no_compatible_version">%s bağımlılığı için uyumlu sürüm bulunamadı</string>
+    <string name="download_assets_dependency_project_unavailable">Proje bilgileri alınamadı</string>
     <string name="download_modpack_warning1">Kurulumdan önce, çoğu mod paketinin PC için yapıldığını ve bunları başlatmaya çalıştığınızda çökme veya başka sorunlar yaşama olasılığının yüksek olduğunu anlamanız gerekir. Bu sorunlar genellikle tahmin edilemeyecek kadar büyüktür.</string>
     <string name="download_modpack_warning2">Sorunları kendi başınıza çözmeye çalışmak veya başkalarından yardım almak için ilgili bilgileri öğrenmeniz gerekecektir.</string>
     <string name="download_modpack_warning3">Not: Başlatıcı geliştiricileri genellikle mod paketlerinden kaynaklanan sorunları çözmez.</string>
@@ -206,7 +208,6 @@
     <string name="download_modpack_install_overrides">Mod paketi dosyaları çıkarılıyor</string>
     <string name="download_modpack_download">Mod paketinin içeriğini indirin</string>
     <string name="download_modpack_download_mods">Tüm modları indir (%1$d/%2$d, %3$s)</string>
-    <string name="download_modpack_download_mods_retry">Tüm modları yüklemeyi tekrar dene (%1$d/%2$d, %3$s)</string>
     <string name="download_modpack_get_loaders">Yükleyici bilgilerini al</string>
     <string name="download_modpack_final_move">Modpack dosyaları taşınıyor</string>
     <string name="download_assets_category_worldgen">Dünya Oluşumu</string>
@@ -466,10 +467,7 @@
     <string name="minecraft_download_stat_verify_task">Doğrulamalar hazırlanıyor</string>
     <string name="minecraft_download_downloading_game_files">Dosyalar indiriliyor \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_verifying_and_repairing_files">Dosyalar doğrulanıyor \n(%1$d/%2$d, %3$s/%4$s)</string>
-    <string name="minecraft_download_progress_retry_downloading_files">İndirme tekrar deneniyor \n(%1$d/%2$d, %3$s/%4$s)</string>
-    <string name="minecraft_download_progress_retry_verifying_files">Doğrulama tekrar deneniyor \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">Minecraft indirilirken bir hata oluştu</string>
-    <string name="minecraft_download_failed_retried">Başlatıcı bir kez daha deneme yaptı, ancak bazı görevler yine de indirilemedi</string>
     <string name="minecraft_download_failed_notfound">Bazı bağımlılık dosyaları indirilemedi. Birden fazla denemeden sonra sorun devam ederse, oyun gerekli kütüphanelerden yoksun olabilir. Oyunu yeniden yüklemenizi öneririz.</string>
     <string name="settings_element_selected">Seçili: %s</string>
     <string name="settings_label_ignore_if_blank">Boş bırakılırsa görmezden gelinir</string>
@@ -487,6 +485,13 @@
     <string name="settings_renderer_from_plugins">%s eklentisinden</string>
     <string name="settings_renderer_resolution_scale_title">Çözünürlük</string>
     <string name="settings_renderer_resolution_scale_summary">Değer düşük oldukça performans artar, değer yüksek oldukça görüntü kalitesi artar; ihtiyacınıza göre ayarlayın</string>
+
+    <string name="settings_renderer_resolution_rule_title">Çözünürlük Kuralı</string>
+    <string name="settings_renderer_resolution_rule_summary">Oyun penceresi çözünürlüğünün nasıl hesaplanacağını seçin</string>
+    <string name="settings_renderer_resolution_rule_percentage">Yüzde</string>
+    <string name="settings_renderer_resolution_custom_summary">Oyunu tam genişlik ve yükseklikle işleyin; görüntü ekrana sığacak şekilde ölçeklenir</string>
+    <string name="settings_renderer_resolution_custom_width">Genişlik</string>
+    <string name="settings_renderer_resolution_custom_height">Yükseklik</string>
     <string name="settings_renderer_full_screen_title">Oyun Tam Ekranı</string>
     <string name="settings_renderer_full_screen_summary">Oyun ekranını tam ekran yapar, çentikli ekranlar, delikli ekranlar gibi ekran güvenlik alanlarını görmezden gelir</string>
     <string name="settings_renderer_sustained_performance_title">Sürekli Performans Modu</string>
@@ -498,8 +503,6 @@
     <string name="settings_renderer_zink_driver_adreno">Başlatıcı cihazınızın Adreno GPU olduğunu tespit etti; bu seçeneği açmak Zink render cihazının düzgün çalışmamasına yol açabilir. Bu seçeneği açmak istediğinize emin misiniz?</string>
     <string name="settings_renderer_vsync_in_zink_title">Zink Vsync</string>
     <string name="settings_renderer_vsync_in_zink_summary">Zink işleyicisi için sistem arayüzünden dikey senkronizasyon aç</string>
-    <string name="settings_renderer_force_big_core_title">Yüksek Performans Çekirdeği Kullan</string>
-    <string name="settings_renderer_force_big_core_summary">Minecraft’ın render iş parçacığını CPU’nun yüksek performanslı çekirdeklerine (büyük çekirdek) bağlar; etkinleştirildiğinde güç tüketimi ve ısınmayı artırabilir</string>
     <string name="settings_game_version_isolation_title">Genel Sürüm Yalıtımı</string>
     <string name="settings_game_version_isolation_summary">Varsayılan olarak tüm sürümler izole edilir, sürümler arası veriler birbirine karışmaz</string>
     <string name="settings_game_skip_game_integrity_check_title">Bütünlük Kontrolünü Atla</string>
@@ -543,7 +546,7 @@
     <string name="settings_control_mouse_long_press_delay_title">Uzun Basma Gecikmesi</string>
     <string name="settings_control_mouse_long_press_delay_summary">Ekranda uzun basmayı tanıma gecikme süresini ayarlayın (gerçek fare uzun basması bu ayardan etkilenmez, gerçek fare kontrolü devre dışı bırakılmış olsa bile)</string>
     <string name="settings_control_gesture_control_title">Hareketlerle Kontrol</string>
-    <string name="settings_control_gesture_control_summary">Oyun içinde, tıklama ve uzun basma gibi jestlerle etkileşimde bulunmayı destekler; Bedrock sürümüne benzer şekilde</string>
+    <string name="settings_control_gesture_control_summary">Oyun içinde, tıklama, uzun basma ve iki parmakla kaydırarak içerik kaydırma gibi jestlerle etkileşimde bulunmayı destekler; Bedrock sürümüne benzer şekilde</string>
     <string name="settings_control_gesture_tap_action_title">Dokunma Eylemi</string>
     <string name="settings_control_gesture_tap_action_summary">Ekrana hafif dokunulduğunda tetiklenecek fare tuşu işlemini seçin</string>
     <string name="settings_control_gesture_long_press_action_title">Uzun Basma Eylemi</string>
@@ -679,6 +682,7 @@
     <string name="generic_enabled">Etkinleştirilmiş</string>
     <string name="generic_disabled">Devre dışı bırakmak</string>
     <string name="generic_saved">Kaydedildi</string>
+    <string name="generic_saving">Kaydediliyor…</string>
     <string name="generic_no_matching_items">Eşleşen ürün bulunamadı</string>
     <string name="sort_by">Sırala</string>
     <string name="sort_by_name">İsme Göre Sırala</string>
@@ -715,18 +719,6 @@
     <string name="game_menu_option_show_menu">Menü Yer Paylaşımını Etkinleştir</string>
     <string name="game_menu_option_show_menu_hided">Oyun menüsü yer paylaşımı devre dışı bırakıldı. Oyun menüsünü sistem geri düğmesini kullanarak açabilirsiniz</string>
     <string name="game_menu_option_controls_opacity">Kontrol Düzeni Şeffaflığı</string>
-    <string name="game_styles_joystick">Joystick\'i Yönetin</string>
-    <string name="game_styles_joystick_enable">Joystick\'i Etkinleştir</string>
-    <string name="game_styles_joystick_x">Joystick X Konumu</string>
-    <string name="game_styles_joystick_y">Joystick Y Konumu</string>
-    <string name="game_styles_joystick_size">Joystick Boyutu</string>
-    <string name="game_styles_joystick_edit">Joystick Stilini Düzenle</string>
-    <string name="game_styles_joystick_edit_use_control_layout">Kontrol Düzeni Tarafından Sağlanan Stili Kullanın</string>
-    <string name="game_styles_joystick_can_lock">İleri Kilit</string>
-    <string name="game_styles_joystick_lock_sprint">Kilitliyken Zorla Koşma</string>
-    <string name="game_styles_joystick_hide_when_mouse">Fiziksel Fare Kullanırken Gizle</string>
-    <string name="game_styles_joystick_hide_when_gamepad">Oyun Kumandası Kullanırken Gizle</string>
-    <string name="game_styles_save_failed">Stili Kurtarma Başarısız</string>
     <string name="renderer_version_storage_permissions">Mevcut render motoru %s, bir yapılandırma dosyası aracılığıyla yapılandırılabilir. Lütfen öncelikle başlatıcı için harici depolama iznini etkinleştirin, aksi takdirde render motorunun yapılandırmasını okuyamaz ve yükleyemez!</string>
     <string name="renderer_version_storage_permissions_sdk30">Mevcut render motoru %s, bir yapılandırma dosyası aracılığıyla yapılandırılabilir. Lütfen öncelikle başlatıcı için Tüm Dosyaları Yönet iznini etkinleştirin, aksi takdirde render motorunun yapılandırma dosyasını okuyup yükleyemez!</string>
     <string name="account_logging_xbox_banned">Hesabınız Xbox Topluluk Kurallarını ihlal ettiği için yasaklandı ve artık kullanılamaz!</string>
@@ -843,7 +835,6 @@
     <string name="mods_update_task_replace">Mod dosyaları değiştiriliyor</string>
     <string name="mods_update_no_mods_update">Güncellenecek mod yok</string>
     <string name="mods_update_updating">Tüm modlar güncelleniyor (%1$d/%2$d, %3$s)</string>
-    <string name="mods_update_updating_retry">Tüm modlar için güncelleme yeniden deneniyor (%1$d/%2$d, %3$s)</string>
     <string name="mods_update_success">Güncelleme başarılı</string>
     <string name="mods_update_success_text">Tüm modlar başarıyla güncellendi!</string>
     <string name="mods_update_failed">Güncelleme başarısız</string>
@@ -965,8 +956,6 @@
     <string name="settings_launcher_log_share_title">Hata Kaydını Paylaş</string>
     <string name="settings_launcher_log_share_summary">Log dosyalarını geliştiriciye gönder</string>
     <string name="settings_launcher_log_share_packing">Loglar paketleniyor</string>
-    <string name="settings_launcher_mirror_modloader_title">Mod Yükleyici Aynası</string>
-    <string name="settings_launcher_mirror_file_download_title">Dosya İndirme Kaynağı</string>
     <string name="settings_launcher_mirror_official_first">Önce Resmi Kaynak</string>
     <string name="settings_launcher_mirror_mirror_first">Önce Alternatif (Mirror)</string>
     <string name="settings_launcher_background_title">Arka Plan</string>
@@ -1007,11 +996,7 @@
     <string name="control_editor_menu_preview_mode">Önizleme Modu</string>
     <string name="control_editor_edit_text_size">Metin Boyutu</string>
     <string name="control_editor_edit_text_size_custom">Özel Boyut</string>
-    <string name="control_editor_special_joystick_style">Joystick Stili</string>
-    <string name="control_editor_special_joystick_style_create_title">Yeni Stil Oluştur</string>
-    <string name="control_editor_special_joystick_style_create_summary">Özel bir joystick görünümü tasarla.</string>
     <string name="control_editor_special_joystick_style_delete_title">Stili Sil</string>
-    <string name="control_editor_special_joystick_style_delete_summary">Bu stili kalıcı olarak siler.</string>
     <string name="control_editor_special_joystick_style_joystick_color">Joystick Rengi</string>
     <string name="control_editor_special_joystick_style_joystick_can_lock_color">Kilitleme Rengi</string>
     <string name="control_editor_special_joystick_style_joystick_locked_color">Kilitli Renk</string>
@@ -1031,11 +1016,6 @@
     <string name="upgrade_get_remote_failed">Sunucu bilgisi alınamadı.</string>
     <string name="upgrade_is_latest">Zaten en son sürümü kullanıyorsunuz</string>
     <string name="upgrade_cloud_drive">Bulut Sürücü</string>
-    <string name="game_styles_joystick_deadzone">Joystick Ölü Bölge Aralığı</string>
-    <string name="control_editor_special_joystick_style_tip_title">Joystick oluşturamıyor musunuz?</string>
-    <string name="control_editor_special_joystick_style_tip_summary">Uygulamasının zor olması nedeniyle, kontrol düzeni sistemi joystick bileşenlerini doğrudan entegre edemez. Joystick bileşenini kullanmak istiyorsanız, yalnızca oyun içi menüde evrensel joystick bileşenini etkinleştirebilirsiniz. Ancak, kontrol düzeni aracılığıyla joystick bileşeninin görünümünü sağlayarak stil birliğini koruyabilirsiniz.</string>
-    <string name="settings_launcher_mirror_assets_search_title">Varlık Platformu Arama Kaynağı</string>
-    <string name="settings_launcher_mirror_assets_download_title">Varlık Platformu İndirme Kaynağı</string>
     <string name="about_acknowledgements_mcim_text">%s, MCIM aynalama kaynağını kullanıyor</string>
     <string name="generic_copied">Kopyalandı</string>
     <string name="crash_link_share_button">Bağlantıyı Paylaş</string>
@@ -1045,7 +1025,6 @@
     <string name="crash_link_share_failed_link_not_found">Uygun bir bağlantı bulunamadı. Lütfen daha sonra deneyin.</string>
     <string name="download_game_addon_warning_api">%s seçili değil. Eğer indirmeden devam ederseniz, çoğu modlar çalışmayacak!</string>
     <string name="download_install_warning_mobile_data">Mobil Veri kullanıyorsunuz. İndirmeye devam etmek mobil verinizden alacaktır.</string>
-    <string name="game_styles_joystick_lock_threshold">Joystick İleri Kilitleme Eşiği</string>
     <string name="game_saponsorship_finished_game">Başlatıcı oyunu %s kez başarıyla başlattı! Eğer faydalı bulduysanız, lütfen geliştiriciyi desteklemeyi düşünün! :)</string>
     <string name="account_advanced">Gelişmiş Ayarlar</string>
     <string name="account_local_uuid_tip_1">UUID, bir Minecraft oyuncusunun benzersiz tanımlayıcısıdır.</string>
@@ -1116,7 +1095,6 @@
     <string name="files_importing">Dosyalar Aktarılıyor</string>
     <string name="files_delete_file">%s\'ı silmek istediğinizden emin misiniz?</string>
     <string name="version_summary_fools_2_0">Onları güncellemeyeceğiz! Eğer bir hata bulursanız, şansızsınız demektir! XD</string>
-    <string name="versions_overview_cant_share_folder_message">Bu cihazda bu klasörü açacak üçüncü taraf bir uygulama bulunmamaktadır!</string>
     <string name="versions_install_loader">Yükleyiciyi Yükle</string>
     <string name="versions_export_type_curseforge">CurseForge Mod Paketi</string>
     <string name="versions_export_tip_1">Mod paketini dışarıya aktarmadan önce, sürümünüzün düzgün bir şekilde başlatılabildiğinden emin olun.</string>
@@ -1158,7 +1136,6 @@
     <string name="control_editor_layers_delete">%s kontrol katmanını silmek istediğinizden emin misiniz?</string>
     <string name="control_editor_layers_attribute_hide_when_mouse">Fareyi Kullanırken Gizle</string>
     <string name="control_editor_layers_attribute_hide_when_gamepad">Kontrolcü Kullanırken Gizle</string>
-    <string name="control_editor_layers_attribute_hide_when_joystick">Joystick Aktifken Gizle</string>
     <string name="control_editor_edit_dialog_delete_widget">Bu widget\'ı silmek istediğinizden emin misiniz?</string>
     <string name="control_editor_edit_style_config_common_style">Koyu Temayı Ayırt Etmeyin</string>
     <string name="control_editor_edit_style_config_delete">%s kontrol görünümünü silmek istediğinizden emin misiniz?</string>
@@ -1203,12 +1180,18 @@
     <string name="game_vulkan_check_text">Cihazınızın Minecraft 26.2+ sürümünü Vulkan ile çalıştırmayı destekleyip desteklemediğini kontrol edin. Sonuçlar yalnızca referans amaçlıdır.</string>
     <string name="game_vulkan_check_version">Vulkan sürümü: %s</string>
     <string name="game_vulkan_check_turnip">Turnip Kullanımı: %s</string>
-    <string name="game_vulkan_check_extensions">Gerekli eklentiler:</string>
-    <string name="game_vulkan_check_missing_extensions">Eksik uzantılar:</string>
-    <string name="game_vulkan_check_features">Gerekli özellikler:</string>
-    <string name="game_vulkan_check_missing_features">Eksik özellikler:</string>
-    <string name="game_vulkan_check_unsupp">Cihazınız Minecraft 26.2+ sürümünü Vulkan ile çalıştırmayı desteklemiyor.</string>
-    <string name="game_vulkan_check_supp">Cihazınız Minecraft 26.2+ sürümünü Vulkan ile çalıştırmayı destekliyor.</string>
+    <string name="game_vulkan_check_versions">Sürüm desteği:</string>
+    <string name="game_vulkan_check_profile_supp">Destekleniyor</string>
+    <string name="game_vulkan_check_profile_unsupp">Desteklenmiyor</string>
+    <string name="game_vulkan_check_dep_required">Zorunlu:</string>
+    <string name="game_vulkan_check_dep_optional">İsteğe bağlı:</string>
+    <string name="game_vulkan_check_item_missing">" (eksik)"</string>
+    <string name="game_vulkan_check_failed">Cihazın Vulkan destek bilgileri alınamadı</string>
+    <string name="game_vulkan_check_partial">Cihazınız yalnızca bazı Minecraft sürümlerini Vulkan ile çalıştırabilir:</string>
+    <string name="game_vulkan_check_extensions">Uzantılar:</string>
+    <string name="game_vulkan_check_features">Özellikler:</string>
+    <string name="game_vulkan_check_unsupp">Cihazınız hiçbir Minecraft sürümünü Vulkan ile çalıştıramıyor</string>
+    <string name="game_vulkan_check_supp">Cihazınız Minecraft %s ve üzeri sürümleri Vulkan ile çalıştırabilir</string>
     <string name="error_bad_request">(%s) Sunucu isteği anlayamadı</string>
     <string name="error_forbidden">(%s) Bu kaynağa erişim izniniz yok.</string>
     <string name="error_not_acceptable">(%s) Kabul Edilemez</string>
@@ -1220,7 +1203,7 @@
     <string name="error_bad_gateway">(%s) Sunucu, yukarı akış sunucusundan geçersiz bir yanıt aldı</string>
     <string name="error_service_unavailable">(%s) Sunucu geçici olarak isteği işleyemiyor</string>
     <string name="error_gateway_timeout">(%s) Sunucu zamanında yanıt alamadı</string>
-    <string name="download_category_by_id">Kimlik numarasına göre ara</string>
+    <string name="download_category_by_id">ID\'ye Göre Ara</string>
     <string name="download_assets_id_holder">Proje Kimliği</string>
     <string name="download_assets_id_tip">Proje kimliğiyle ilgili projeye hızlıca ulaşın</string>
     <string name="download_assets_id_not_found">Proje bulunamadı!</string>

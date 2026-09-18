@@ -21,8 +21,9 @@ package com.movtery.layer_controller.observable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.unit.IntSize
 import com.movtery.layer_controller.data.ButtonPosition
 import com.movtery.layer_controller.data.ButtonSize
@@ -30,7 +31,7 @@ import com.movtery.layer_controller.data.VisibilityType
 import com.movtery.layer_controller.event.EventHandler
 
 /**
- * 可观察的BaseData包装类
+ * 可观察的控件包装基类
  */
 abstract class ObservableWidget {
     /**
@@ -84,6 +85,21 @@ abstract class ObservableWidget {
     open fun canTouch(): Boolean = true
 
     /**
+     * 为该控件提供触摸事件处理的 Modifier
+     * 每个控件通过自己的 pointerInput 独立处理触摸事件
+     * @param onOccupiedPointer 当占用一个指针时回调，用于隔离指针
+     * @param onReleasePointer 当释放一个指针时回调
+     */
+    open fun Modifier.touchModifier(
+        pointerEventBus: PointerEventBus,
+        eventHandler: EventHandler,
+        allLayers: List<ObservableControlLayer>,
+        screenSize: IntSize,
+        onOccupiedPointer: (PointerId) -> Unit = {},
+        onReleasePointer: (PointerId) -> Unit = {}
+    ): Modifier = this
+
+    /**
      * Compose 树开始布局时
      */
     abstract fun onCompositionStart(eventHandler: EventHandler?)
@@ -119,7 +135,6 @@ abstract class ObservableWidget {
     abstract fun onTouchEvent(
         eventHandler: EventHandler,
         allLayers: List<ObservableControlLayer>,
-        change: PointerInputChange,
         activeWidgets: List<ObservableWidget>,
         addThis: () -> Unit,
         consumeEvent: (Boolean) -> Unit

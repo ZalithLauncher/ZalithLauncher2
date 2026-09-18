@@ -50,7 +50,7 @@ class TouchProcessor(
      * @param markPointerAsMoveOnly 标记指针为仅移动的回调
      */
     fun processFrame(
-        session: TouchSession,
+        session: PointerEventBus,
         change: PointerInputChange,
         visibleWidgets: List<ObservableWidget>,
         allLayers: List<ObservableControlLayer>,
@@ -102,7 +102,7 @@ class TouchProcessor(
      * 处理活跃控件的越界释放
      */
     private fun handleOutOfBounds(
-        session: TouchSession,
+        session: PointerEventBus,
         pointerId: PointerId,
         position: Offset,
         allLayers: List<ObservableControlLayer>,
@@ -152,7 +152,7 @@ class TouchProcessor(
 
 
     private fun routeToTargets(
-        session: TouchSession,
+        session: PointerEventBus,
         change: PointerInputChange,
         pointerId: PointerId,
         targets: List<ObservableWidget>,
@@ -178,7 +178,6 @@ class TouchProcessor(
             target.onTouchEvent(
                 eventHandler = eventHandler,
                 allLayers = allLayers,
-                change = change,
                 activeWidgets = activeWidgets,
                 addThis = {
                     session.addActiveWidget(pointerId, target)

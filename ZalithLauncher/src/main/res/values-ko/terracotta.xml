@@ -25,6 +25,7 @@
     <string name="terracotta_menu">멀티플레이 메뉴</string>
     <string name="terracotta_notification_title">Terracotta | 멀티플레이 실행중</string>
     <string name="terracotta_notification_desc">사용자:%s, 상태:%s</string>
+    <string name="terracotta_notification_state_preparing">연결 준비 중…</string>
     <string name="terracotta_status_waiting_host_title">세션 만들기</string>
     <string name="terracotta_status_waiting_host_desc">방 만들기 및 초대 코드 생성으로 친구를 초대할 수 있습니다</string>
     <string name="terracotta_status_waiting_guest_title">세션 참가</string>

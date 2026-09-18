@@ -31,7 +31,7 @@
     <string name="generic_input_length">Longitud del texto: %1$d/%2$d</string>
     <string name="generic_unpacking">Descomprimiendo %s</string>
     <string name="generic_unknown">Desconocido</string>
-    <string name="generic_follow_global">Usar ajuste global</string>
+    <string name="generic_follow_global">Usar global</string>
     <string name="generic_custom">Personalizado</string>
     <string name="generic_search">Buscar</string>
     <string name="generic_loading">Cargando</string>
@@ -89,7 +89,7 @@
     <string name="error_network_unreachable">Red no disponible</string>
     <string name="error_connection_failed">Error al conectar con el servidor</string>
     <string name="error_parse_failed">Error al procesar los datos</string>
-    <string name="error_unauthorized">(%s) No autorizado</string>
+    <string name="error_unauthorized">(%s) Revise sus credenciales e inténtelo de nuevo</string>
     <string name="error_notfound">(%s) Recurso no encontrado</string>
     <string name="splash_screen_unpack_desc">El launcher necesita instalar algunos archivos para que Minecraft funcione correctamente. Están incluidos en la aplicación y deben ser extraídos. Pulse el botón de abajo para comenzar la extracción y actualización.</string>
     <string name="splash_screen_installing">El launcher está extrayendo los archivos. Cuando termine te llevará a la pantalla principal. Por favor, espera pacientemente.</string>
@@ -198,6 +198,8 @@
     <string name="download_assets_install_progress_downloading">Descargando e instalando recursos\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">Instalando recursos\n%s</string>
     <string name="download_assets_install_failed">¡Error al instalar recursos!</string>
+    <string name="download_assets_dependency_no_compatible_version">No se encontró una versión compatible para la dependencia %s</string>
+    <string name="download_assets_dependency_project_unavailable">Información del proyecto no disponible</string>
     <string name="download_modpack_warning1">Antes de la instalación, debes entender que muchos de los modpacks están diseñados para PC, y existe una alta probabilidad de cierres inesperados u otros problemas al intentar ejecutarlos. Estos problemas suelen estar fuera de lo que el launcher puede resolver.</string>
     <string name="download_modpack_warning2">Deberás aprender el conocimiento necesario para intentar resolver los problemas por tu cuenta, o buscar ayuda de otros.</string>
     <string name="download_modpack_warning3">Nota: Los desarrolladores del launcher normalmente no arreglan problemas causados por modpacks.</string>
@@ -209,7 +211,6 @@
     <string name="download_modpack_download_mods">Descargar todos los mods (%1$d/%2$d,%3$s)</string>
     <string name="download_assets_category_technology">Tecnología</string>
     <string name="download_assets_category_item_fluid_energy_transport">Canalizaciones y logística</string>
-    <string name="download_modpack_download_mods_retry">Reintentar descargar todos los mods (%1$d/%2$d,%3$s)</string>
     <string name="download_modpack_get_loaders">Obteniendo información del cargador</string>
     <string name="download_modpack_final_move">Moviendo archivos del modpack</string>
     <string name="download_assets_category_worldgen">Generación del mundo</string>
@@ -341,6 +342,7 @@
     <string name="notification_data_terracotta_message">Durante las sesiones multijugador, el launcher utiliza un servicio en primer plano para mostrar el estado de la conexión, por lo que se requiere permiso de notificación.</string>
     <string name="generic_no_matching_items">No se encontraron elementos</string>
     <string name="generic_saved">Guardado</string>
+    <string name="generic_saving">Guardando…</string>
     <string name="sort_by_last_played">Ordenar por última vez jugado</string>
     <string name="import_modpack">Importar modpack</string>
     <string name="import_modpack_tip">Puedes importar modpacks locales. El launcher actualmente soporta estos formatos:</string>
@@ -360,7 +362,6 @@
     <string name="import_modpack_failed_title">Error al importar</string>
     <string name="import_modpack_failed_text">Ocurrió un error al instalar el modpack:</string>
     <string name="game_menu_option_menu_ball_opacity">Opacidad del menú superpuesto</string>
-    <string name="game_styles_joystick_edit_use_control_layout">Usar estilo del diseño de controles</string>
     <string name="versions_config_control">Diseño de controles</string>
     <string name="control_manage_create_new_title">Nuevo diseño de controles</string>
     <string name="control_manage_create_new_name">Nombre del diseño</string>
@@ -376,21 +377,6 @@
     <string name="control_editor_menu_no_layers_message">No se han creado capas de control para este diseño de controles. Por favor, crea una capa de control primero.</string>
     <string name="control_editor_menu_preview_mode">Previsualizar diseño de controles</string>
     <string name="control_editor_edit_style_config_empty">No hay apariencias de control en este diseño de controles</string>
-    <string name="control_editor_special_joystick_style_tip_summary">Debido a la alta complejidad de implementación, el sistema de diseño de controles no puede integrar directamente componentes de joystick. Para usar el joystick, solo puedes habilitar el joystick universal en el menú del juego. Sin embargo, aún puedes definir su apariencia mediante el diseño de controles para mantener un estilo consistente.</string>
-    <string name="control_editor_special_joystick_style_create_summary">Crear una configuración de estilo de joystick proporcionada por el diseño de controles. Si este no proporciona un estilo de joystick, se utilizará el estilo de joystick del launcher.</string>
-    <string name="control_editor_special_joystick_style_delete_summary">Eliminar la configuración de estilo del joystick para este diseño de controles y usar la del launcher.</string>
-    <string name="game_styles_joystick">Gestionar joystick</string>
-    <string name="game_styles_joystick_enable">Habilitar joystick</string>
-    <string name="game_styles_joystick_x">Posición X del joystick</string>
-    <string name="game_styles_joystick_y">Posición Y del joystick</string>
-    <string name="game_styles_joystick_size">Tamaño del joystick</string>
-    <string name="game_styles_joystick_edit">Editar estilo del joystick</string>
-    <string name="game_styles_joystick_deadzone">Rango de zona muerta del joystick</string>
-    <string name="game_styles_joystick_can_lock">Bloqueo hacia adelante</string>
-    <string name="game_styles_joystick_lock_sprint">Forzar sprint al bloquear</string>
-    <string name="game_styles_joystick_hide_when_mouse">Ocultar al usar ratón físico</string>
-    <string name="game_styles_joystick_hide_when_gamepad">Ocultar al usar gamepad</string>
-    <string name="game_styles_save_failed">Error al guardar estilo</string>
     <string name="renderer_version_storage_permissions">El renderizador actual %s puede configurarse mediante un archivo de configuración. ¡Por favor, habilita primero el permiso de almacenamiento externo para el launcher, de lo contrario no podrá leer ni cargar la configuración del renderizador!</string>
     <string name="renderer_version_storage_permissions_sdk30">El renderizador actual %s puede configurar semediante un archivo de configuración. ¡Por favor, habilita primero el permiso “Administrar todos los archivos” para el launcher, de lo contrario no podrá leer ni cargar la configuración del renderizador!</string>
     <string name="account_no_account">No hay cuentas disponibles</string>
@@ -638,7 +624,6 @@
     <string name="mods_update_task_replace">Reemplazar archivos de mods</string>
     <string name="mods_update_no_mods_update">Todos los mods ya están actualizados, no se necesita actualización</string>
     <string name="mods_update_updating">Actualizando todos los mods (%1$d/%2$d, %3$s)</string>
-    <string name="mods_update_updating_retry">Reintentando actualizar todos los mods (%1$d/%2$d, %3$s)</string>
     <string name="mods_update_success">Actualización exitosa</string>
     <string name="mods_update_success_text">¡Todos los mods seleccionados se han actualizado a la última versión!</string>
     <string name="mods_update_failed">Actualización de mod fallida</string>
@@ -690,10 +675,7 @@
     <string name="minecraft_download_stat_verify_task">Preparando verificaciones</string>
     <string name="minecraft_download_downloading_game_files">Descargando archivos \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_verifying_and_repairing_files">Verificando archivos \n(%1$d/%2$d, %3$s/%4$s)</string>
-    <string name="minecraft_download_progress_retry_downloading_files">Reintentando descargas \n(%1$d/%2$d, %3$s/%4$s)</string>
-    <string name="minecraft_download_progress_retry_verifying_files">Reintentando verificaciones \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">Ocurrió un error al descargar Minecraft</string>
-    <string name="minecraft_download_failed_retried">Antes de esto, el launcher ya había intentado un reintento una vez, pero algunas tareas aún fallaron en la descarga</string>
     <string name="minecraft_download_failed_notfound">Algunos archivos de dependencia no se pudieron descargar. Si el problema persiste después de múltiples intentos, es posible que al juego le falten archivos de biblioteca requeridos. Se recomienda reinstalar el juego.</string>
     <string name="settings_element_selected">Seleccionado: %s</string>
     <string name="settings_label_ignore_if_blank">Dejar vacío para ignorar</string>
@@ -711,6 +693,13 @@
     <string name="settings_renderer_from_plugins">Del plugin %s</string>
     <string name="settings_renderer_resolution_scale_title">Escala de resolución</string>
     <string name="settings_renderer_resolution_scale_summary">Los valores más bajos mejoran el rendimiento; los valores más altos mejoran la calidad gráfica. Ajusta según tus necesidades</string>
+
+    <string name="settings_renderer_resolution_rule_title">Regla de resolución</string>
+    <string name="settings_renderer_resolution_rule_summary">Elige cómo se calcula la resolución de la ventana del juego</string>
+    <string name="settings_renderer_resolution_rule_percentage">Porcentaje</string>
+    <string name="settings_renderer_resolution_custom_summary">Renderiza el juego con un ancho y alto exactos; la imagen se escala para ajustarse a la pantalla</string>
+    <string name="settings_renderer_resolution_custom_width">Ancho</string>
+    <string name="settings_renderer_resolution_custom_height">Alto</string>
     <string name="settings_renderer_full_screen_title">Modo de juego a pantalla completa</string>
     <string name="settings_renderer_full_screen_summary">Habilitar modo de pantalla completa, ignorando áreas seguras como muescas y perforaciones</string>
     <string name="settings_renderer_sustained_performance_title">Modo de rendimiento sostenido</string>
@@ -722,8 +711,6 @@
     <string name="settings_renderer_zink_driver_adreno">El launcher detectó que tu dispositivo tiene una GPU Adreno. Habilitar esta opción puede causar que el renderizador Zink funcione incorrectamente. ¿Seguro que deseas habilitarlo?</string>
     <string name="settings_renderer_vsync_in_zink_title">Sincronización vertical Zink</string>
     <string name="settings_renderer_vsync_in_zink_summary">Habilitar sincronización vertical para el renderizador Zink a través de la interfaz del sistema</string>
-    <string name="settings_renderer_force_big_core_title">Forzar núcleos de alto rendimiento</string>
-    <string name="settings_renderer_force_big_core_summary">Vincular el hilo de renderizado de Minecraft a los núcleos de alto rendimiento de la CPU (núcleos grandes). Habilitar esto puede aumentar el consumo de energía y el calor</string>
     <string name="settings_game_version_isolation_title">Aislamiento de versión global</string>
     <string name="settings_game_version_isolation_summary">Aísla todas las versiones para que sus datos no interfieran entre sí</string>
     <string name="settings_game_skip_game_integrity_check_title">Omitir comprobación de integridad</string>
@@ -788,7 +775,7 @@
     <string name="settings_control_mouse_long_press_delay_title">Retardo de pulsación larga</string>
     <string name="settings_control_mouse_long_press_delay_summary">Establecer el tiempo de retardo para reconocer una pulsación larga en la pantalla (no afecta a las pulsaciones largas del ratón físico, incluso cuando el control del ratón físico está deshabilitado)</string>
     <string name="settings_control_gesture_control_title">Controles por gestos</string>
-    <string name="settings_control_gesture_control_summary">Soporta interacciones en el juego a través de gestos como tocar y mantener presionado, similar a la Edición Bedrock</string>
+    <string name="settings_control_gesture_control_summary">Soporta interacciones en el juego a través de gestos como tocar, mantener presionado y desplazar deslizando con dos dedos, similar a la Edición Bedrock</string>
     <string name="settings_control_gesture_tap_action_title">Tipo de acción de toque</string>
     <string name="settings_control_gesture_tap_action_summary">Seleccionar la acción del botón del ratón para activar al tocar la pantalla</string>
     <string name="settings_control_gesture_long_press_action_title">Tipo de acción de pulsación larga</string>
@@ -862,8 +849,6 @@
     <string name="settings_launcher_log_share_title">Compartir registros del launcher</string>
     <string name="settings_launcher_log_share_summary">Toca para compartir los archivos de registro del launcher, para que los desarrolladores puedan identificar y solucionar problemas con el launcher</string>
     <string name="settings_launcher_log_share_packing">Empaquetar archivos de registro del launcher</string>
-    <string name="settings_launcher_mirror_modloader_title">Fuente de versión del cargador de mods</string>
-    <string name="settings_launcher_mirror_file_download_title">Fuente de descarga de archivos</string>
     <string name="settings_launcher_mirror_official_first">Preferir fuente oficial</string>
     <string name="settings_launcher_mirror_mirror_first">Preferir fuente espejo</string>
     <string name="settings_launcher_background_title">Fondo del launcher</string>
@@ -983,9 +968,6 @@
     <string name="control_editor_edit_style_config_widget_radius_right_top">Esquina superior derecha</string>
     <string name="control_editor_edit_style_config_widget_radius_left_bottom">Esquina inferior izquierda</string>
     <string name="control_editor_edit_style_config_widget_radius_right_bottom">Esquina inferior derecha</string>
-    <string name="control_editor_special_joystick_style">Estilo de joystick</string>
-    <string name="control_editor_special_joystick_style_tip_title">¿No puedes crear joystick?</string>
-    <string name="control_editor_special_joystick_style_create_title">Crear estilo de joystick</string>
     <string name="control_editor_special_joystick_style_delete_title">Eliminar estilo de joystick</string>
     <string name="control_editor_special_joystick_style_joystick_color">Color del joystick</string>
     <string name="control_editor_special_joystick_style_joystick_can_lock_color">Color del joystick (Bloqueable)</string>
@@ -1023,4 +1005,13 @@
     <string name="upgrade_version_create_at">Actualizado en: %s</string>
     <string name="upgrade_get_remote_failed">Error al buscar actualizaciones. Por favor, inténtalo de nuevo más tarde.</string>
     <string name="upgrade_is_latest">Ya estás en la última versión</string>
+    <string name="generic_copied">Copiado</string>
+    <string name="generic_edit">Editar</string>
+    <string name="generic_view">Ver</string>
+    <string name="page_title_version_manage">Gestionar versiones</string>
+    <string name="files_importing">Importar Archivos</string>
+    <string name="crash_link_share_button">Compartir Enlace</string>
+    <string name="crash_link_share_failed_link_not_found">No se encontró un enlace disponible. Por favor, inténtelo de nuevo más tarde.</string>
+    <string name="error_bad_request">(%s) El servidor no pudo entender la petición</string>
+    <string name="error_forbidden">(%s) No tienes permisos para acceder a este recurso</string>
 </resources>

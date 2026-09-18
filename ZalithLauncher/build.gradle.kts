@@ -2,10 +2,6 @@ import com.android.build.api.variant.FilterConfiguration.FilterType.ABI
 import com.android.build.api.variant.impl.VariantOutputImpl
 import com.android.build.gradle.tasks.MergeSourceSetFolders
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.TimeZone
 
 plugins {
     alias(libs.plugins.android.application)
@@ -17,7 +13,7 @@ plugins {
     id("com.movtery.buildkeys")
 }
 
-val zalithPackageName = "tech.voltagestudios.dream"
+val zalithPackageName = "com.movtery.zalithlauncher"
 val launcherAPPName = project.findProperty("launcher_app_name") as? String ?: error("The \"launcher_app_name\" property is not set in gradle.properties.")
 val launcherName = project.findProperty("launcher_name") as? String ?: error("The \"launcher_name\" property is not set in gradle.properties.")
 val launcherShortName = project.findProperty("launcher_short_name") as? String ?: error("The \"launcher_short_name\" property is not set in gradle.properties.")
@@ -25,52 +21,6 @@ val launcherUrl = project.findProperty("url_home") as? String ?: error("The \"ur
 
 val launcherVersionCode = (project.findProperty("launcher_version_code") as? String)?.toIntOrNull() ?: error("The \"launcher_version_code\" property is not set as an integer in gradle.properties.")
 val launcherVersionName = project.findProperty("launcher_version_name") as? String ?: error("The \"launcher_version_name\" property is not set in gradle.properties.")
-
-// Get git commit hash for debug version naming
-fun getGitCommitHash(): String {
-    return try {
-        val process = ProcessBuilder("git", "rev-parse", "--short=8", "HEAD")
-            .directory(rootDir)
-            .redirectErrorStream(true)
-            .start()
-        process.inputStream.bufferedReader().readText().trim()
-    } catch (e: Exception) {
-        logger.warn("Could not get git commit hash: ${e.message}")
-        "unknown"
-    }
-}
-
-// Get current timestamp for build uniqueness
-fun getBuildTimestamp(): String {
-    val dateFormat = SimpleDateFormat("yyyyMMddHHmm")
-    dateFormat.timeZone = TimeZone.getTimeZone("UTC")
-    return dateFormat.format(Date())
-}
-
-// Get git commit count for auto-incrementing versionCode
-fun getCommitCount(): Int {
-    return try {
-        val process = ProcessBuilder("git", "rev-list", "--count", "HEAD")
-            .directory(rootDir)
-            .redirectErrorStream(true)
-            .start()
-        process.inputStream.bufferedReader().readText().trim().toInt()
-    } catch (e: Exception) {
-        logger.warn("Could not get commit count: ${e.message}")
-        0
-    }
-}
-
-// Generate snapshot tag name like 26w31a
-// Format: YYwWWx where YY = last 2 digits of year, WW = week number, x = sequential letter (a-x only, 24 builds max per week)
-fun generateSnapshotTag(): String {
-    val calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
-    val year = calendar.get(Calendar.YEAR) % 100
-    val week = calendar.get(Calendar.WEEK_OF_YEAR)
-    val weekIndex = week % 24
-    val weekChar = ('a' + weekIndex).toChar()
-    return "${year}w${week}${weekChar}"
-}
 
 val defaultOAuthClientID = project.findProperty("oauth_client_id") as? String
 val defaultStorePassword = project.findProperty("default_store_password") as? String ?: error("The \"default_store_password\" property is not set in gradle.properties.")
@@ -92,7 +42,11 @@ fun getKeyFromLocal(envKey: String, fileName: String? = null, default: String? =
 
 android {
     namespace = zalithPackageName
-    compileSdk = 37
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 2
+        }
+    }
 
     signingConfigs {
         create("releaseBuild") {
@@ -111,10 +65,11 @@ android {
 
     defaultConfig {
         applicationId = zalithPackageName
+        applicationIdSuffix = ".v2"
         minSdk = 26
         targetSdk = 34
-        versionCode = 2631
-        versionName = "26w31a"
+        versionCode = launcherVersionCode
+        versionName = launcherVersionName
         manifestPlaceholders["launcher_name"] = launcherAPPName
     }
 
@@ -131,10 +86,7 @@ android {
         debug {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
-            versionNameSuffix = "-${getGitCommitHash()}"
-            // Auto-increment versionCode: base code + commit count to ensure uniqueness
-            // This ensures each debug build has a unique versionCode that increases with each push
-            versionCode = 2631 + getCommitCount()
+            versionNameSuffix = "-debug"
             signingConfig = signingConfigs.getByName("debugBuild")
         }
     }
@@ -169,6 +121,8 @@ android {
     }
 
     compileOptions {
+        // sora-editor language-textmate
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
@@ -180,6 +134,8 @@ android {
     testOptions {
         unitTests {
             isIncludeAndroidResources = true
+            //让 android.util.Log 等框架方法在本地单测中返回默认值而非抛出异常
+            isReturnDefaultValues = true
         }
     }
 }
@@ -191,17 +147,43 @@ androidComponents {
                 val variantName = variant.name.replaceFirstChar { it.uppercaseChar() }
                 afterEvaluate {
                     val task = tasks.named("merge${variantName}Assets").get() as MergeSourceSetFolders
+                    task.inputs.property("lwjglArch", projectArch)
                     task.doLast {
                         val assetsDir = task.outputDir.get().asFile
-                        val jreList = listOf("jre-8", "jre-17", "jre-21", "jre-25")
                         val tag = "JREAssetsCleanup"
                         logger.lifecycle("[$tag] arch: $projectArch")
+                        val jreList = listOf("jre-8", "jre-17", "jre-21", "jre-25")
                         jreList.forEach { jreVersion ->
                             val runtimeDir = File("$assetsDir/runtimes/$jreVersion")
                             logger.lifecycle("[$tag] runtimeDir: ${runtimeDir.absolutePath}")
                             runtimeDir.listFiles()?.forEach {
                                 if (projectArch != "all" && it.name != "version" && !it.name.contains("universal") && it.name != "bin-$projectArch.tar.xz") {
                                     logger.lifecycle("[$tag] delete: $it : ${it.delete()}")
+                                }
+                            }
+                        }
+
+                        if (projectArch == "all") return@doLast
+                        val abi = when (projectArch) {
+                            "arm" -> "armeabi-v7a"
+                            "arm64" -> "arm64-v8a"
+                            "x86" -> "x86"
+                            "x86_64" -> "x86_64"
+                            else -> return@doLast
+                        }
+                        val lwjglVersions = file("libs").listFiles { f ->
+                            f.name.matches(Regex("lwjgl-\\d+\\.\\d+\\.\\d+-natives-release\\.aar"))
+                        }
+                            ?.map { Regex("lwjgl-(\\d+\\.\\d+\\.\\d+)-natives-release\\.aar").find(it.name)!!.groupValues[1] }
+                            ?: emptyList()
+                        lwjglVersions.forEach { version ->
+                            val nativesDir = File(assetsDir, "app_runtime/lwjgl/$version/natives")
+                            if (nativesDir.isDirectory) {
+                                nativesDir.listFiles()?.forEach { dir ->
+                                    if (dir.isDirectory && dir.name != abi) {
+                                        logger.lifecycle("Removing non-target-arch natives: $dir")
+                                        dir.deleteRecursively()
+                                    }
                                 }
                             }
                         }
@@ -258,6 +240,7 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.webkit)
+    implementation(libs.documentfile)
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
     implementation(libs.coil.svg)
@@ -272,12 +255,15 @@ dependencies {
     implementation(libs.richtext.ui.material3)
     implementation(platform(libs.editor.bom))
     implementation(libs.editor)
+    implementation(libs.editor.language.textmate)
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.dev.haze)
     implementation(libs.dev.haze.blur)
     //Project
     implementation(project(":LayerController"))
     implementation(project(":ColorPicker"))
     implementation(project(":Terracotta"))
+    implementation(project(":InputMap"))
     //Utils
     implementation(libs.bytehook)
     implementation(libs.gson)
@@ -285,11 +271,12 @@ dependencies {
     implementation(libs.commons.codec)
     implementation(libs.commons.compress)
     implementation(libs.xz)
+    implementation(libs.zip4j)
     implementation(libs.okio)
     implementation(libs.okhttp)
     implementation(libs.ktor.http)
     implementation(libs.ktor.client.core)
-    implementation(libs.ktor.client.cio)
+    implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.cio)
@@ -316,6 +303,7 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
     //Test
     testImplementation(libs.junit)
+    testImplementation(libs.mockwebserver3)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))

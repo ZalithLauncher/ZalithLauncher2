@@ -21,7 +21,6 @@ package com.movtery.layer_controller.observable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.input.pointer.PointerInputChange
 import com.movtery.layer_controller.data.ButtonPosition
 import com.movtery.layer_controller.data.ButtonSize
 import com.movtery.layer_controller.data.NormalData
@@ -141,7 +140,6 @@ class ObservableNormalData(data: NormalData) : ObservableWidget() {
     override fun onTouchEvent(
         eventHandler: EventHandler,
         allLayers: List<ObservableControlLayer>,
-        change: PointerInputChange,
         activeWidgets: List<ObservableWidget>,
         addThis: () -> Unit,
         consumeEvent: (Boolean) -> Unit

@@ -184,6 +184,8 @@
     <string name="download_assets_install_progress_downloading">アセットのダウンロードとインストール\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_assets_install_progress_installing">アセットをインストール\n%s</string>
     <string name="download_assets_install_failed">アセットのインストールに失敗しました！</string>
+    <string name="download_assets_dependency_no_compatible_version">依存関係 %s に互換性のあるバージョンが見つかりません</string>
+    <string name="download_assets_dependency_project_unavailable">プロジェクト情報を取得できません</string>
     <string name="download_modpack_warning1">インストール前に理解してください、ほとんどのモッドパックはPC向けに作られているため、起動時にクラッシュやその他の問題が発生する可能性が高いです。これらの問題は、ランチャーでは解決できない場合が多いです。</string>
     <string name="download_modpack_install_overrides">モッドパックファイルを抽出</string>
     <string name="download_modpack_download">モッドパックに必要なコンテンツをダウンロード</string>
@@ -333,8 +335,6 @@
     <string name="settings_control_mouse_hide_title">仮想マウスを非表示</string>
     <string name="settings_control_mouse_size_title">仮想マウスのサイズ</string>
     <string name="settings_control_mouse_sensitivity_title">仮想マウスの感度</string>
-    <string name="settings_renderer_force_big_core_title">高性能コアを強制</string>
-    <string name="settings_renderer_force_big_core_summary">MinecraftのレンダリングスレッドをCPUの高性能コア (ビッグコア) に割り当てます。有効にすると、消費電力や発熱が増える可能性があります</string>
     <string name="settings_renderer_resolution_scale_title">画面の解像度</string>
     <string name="about_launcher_title">ランチャーについて</string>
     <string name="about_launcher_version">ランチャーバージョン: %s</string>
@@ -369,8 +369,6 @@
     <string name="settings_element_selected">現在の選択: %s</string>
     <string name="minecraft_download_downloading_game_files">ファイルをダウンロード \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_verifying_and_repairing_files">ファイルを検証 \n(%1$d/%2$d, %3$s/%4$s)</string>
-    <string name="minecraft_download_progress_retry_downloading_files">ダウンロードを再実行 \n(%1$d/%2$d, %3$s/%4$s)</string>
-    <string name="minecraft_download_progress_retry_verifying_files">検証を再実行 \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="resource_pack_manage_formats">フォーマットのバージョン: %s</string>
     <string name="saves_manage_quick_play">クイックプレイ</string>
     <string name="saves_manage_quick_play_disabled">クイックプレイ (1.20+ のみ)</string>
@@ -394,7 +392,6 @@
     <string name="account_logging_xbox_not_accepted_service">あなたのアカウントはXboxの利用規約に同意していません。</string>
     <string name="game_menu_option_input_method">入力方法の切り替え</string>
     <string name="download_assets_features_environment">環境</string>
-    <string name="download_modpack_download_mods_retry">全てのモッドのダウンロードを再実行 (%1$d/%2$d, %3$s)</string>
     <string name="download_modpack_get_loaders">ローダー情報を取得</string>
     <string name="download_modpack_warning2">問題を自分で解決するには関連する知識を学ぶか、他の人に助けてもらう必要があります。</string>
     <string name="download_modpack_warning3">注意: ランチャー開発者は通常モッドパックによって引き起こされる問題を処理しません。</string>
@@ -413,7 +410,6 @@
     <string name="resource_pack_manage_delete_warning">リソースパック %s を削除しますか？この操作はもとに戻せません！</string>
     <string name="resource_pack_manage_no_packs">現在のバージョンで利用可能なリソースパックはありません</string>
     <string name="resource_pack_manage_type">リソースパックの種類: %s</string>
-    <string name="minecraft_download_failed_retried">これ以前にランチャーは一度再試行を行いましたが、いくつかのタスクのダウンロードは依然として失敗しました</string>
     <string name="error_unauthorized">(%s) 権限がありません</string>
     <string name="error_notfound">(%s) リソースが見つかりません</string>
     <string name="splash_screen_installing">ランチャーがこれらのファイルを解凍しています、解凍が完了すると自動的にメイン画面になります。しばらくお待ち下さい。</string>
@@ -438,10 +434,8 @@
     <string name="account_supporting_username_invalid_local_message_hint4">無効なユーザー名: Name@、N ame、name_name_name_name</string>
     <string name="account_change_skin">スキンを変更</string>
     <string name="account_label_password">パスワード</string>
-    <string name="settings_launcher_mirror_file_download_title">ファイルのダウンロードソース</string>
     <string name="settings_launcher_mirror_official_first">公式のソースを優先</string>
     <string name="settings_launcher_mirror_mirror_first">ミラーソースを優先</string>
-    <string name="settings_launcher_mirror_modloader_title">モッドローダーのバージョンソース</string>
     <string name="settings_game_java_runtime_title">Javaランタイム</string>
     <string name="settings_game_java_runtime_summary">使用するデフォルトのJava環境を指定してください</string>
     <string name="versions_overview_version_folder">バージョンフォルダ</string>
@@ -792,6 +786,13 @@
     <string name="settings_renderer_shader_dump_title">シェーダーのログ出力</string>
     <string name="settings_renderer_shader_dump_summary">ゲーム中に変換されたシェーダーコードをログファイルに出力してグラッフィクレンダリングのデバッグや分析を容易にします</string>
     <string name="settings_renderer_resolution_scale_summary">値を低くするとパフォーマンスが良くなり、値を高くするとグラフィックの品質が上がります。必要に応じて変更してください</string>
+
+    <string name="settings_renderer_resolution_rule_title">解像度ルール</string>
+    <string name="settings_renderer_resolution_rule_summary">ゲームウィンドウの解像度の計算方法を選択してください</string>
+    <string name="settings_renderer_resolution_rule_percentage">パーセント</string>
+    <string name="settings_renderer_resolution_custom_summary">指定した幅と高さでゲームをレンダリングします。画面は映像に合わせて拡大・縮小されます</string>
+    <string name="settings_renderer_resolution_custom_width">幅</string>
+    <string name="settings_renderer_resolution_custom_height">高さ</string>
     <string name="settings_label_ignore_if_blank">無視する場合は空白にしてください</string>
     <string name="settings_renderer_vulkan_driver_system_summary">有効にすると、ランチャーはデフォルトのTurnipドライバーではなくシステムの埋め込みVulkanドライバー (Adreno GPU用) を強制的に使用します。この設定は、Vulkanドライバーを使用するZinkバックエンドと関連するモッドにのみ影響します</string>
     <string name="settings_renderer_zink_driver_adreno">ランチャーはあなたのデバイスにAdreno GPUが使用されていることを確認しました。このオプション有効にするとZinkレンダラーが誤作動を起こす可能性があります。有効にしてもいいですか？</string>
@@ -826,7 +827,7 @@
     <string name="settings_control_mouse_capture_sensitivity_summary">ゲームの視界の移動感度などの、キャプチャ時のマウスの移動速度を調整します</string>
     <string name="settings_control_mouse_control_mode_summary">仮想マウスの操作方法を設定します: 画面をスワイプしてカーソルを動かすか、画面をタップしてカーソルの位置を指定します</string>
     <string name="settings_control_mouse_long_press_delay_summary">画面長押しを認識するための時間を設定します (物理マウスコントロールが無効になっていても、物理マウスの長押しには影響しません)</string>
-    <string name="settings_control_gesture_control_summary">統合版と同様に、タップや長押ジェスチャーよるゲーム内操作をサポートします</string>
+    <string name="settings_control_gesture_control_summary">統合版と同様に、タップや長押、2本指スワイプによるスクロールなどのジェスチャーによるゲーム内操作をサポートします</string>
     <string name="settings_control_gyroscope_sample_rate_summary">サンプリングレートはジャイロスコープデータの更新頻度を設定します。頻度が高くなるほど、リアルタイムのデータは多くなりますが、バッテリー使用量は高くなります</string>
     <string name="settings_control_gyroscope_smoothing_summary">検出されたジャイロスコープの値を滑らかにしてシッターを減らしますが、遅延が増加します</string>
     <string name="settings_control_gyroscope_smoothing_window_summary">スムージングのために平均化されるデータポイントの数を指定します。値が大きくなるほどスムーズな結果になりますが、応答が遅くなります</string>
@@ -849,7 +850,6 @@
     <string name="mods_update_task_replace">モッドファイルを置き換え</string>
     <string name="mods_update_no_mods_update">すべてのモッドは既に更新済みなので、更新は不要です</string>
     <string name="mods_update_updating">全てのモッドを更新 (%1$d/%2$d, %3$s)</string>
-    <string name="mods_update_updating_retry">全てのモッドの更新を再試行しています (%1$d/%2$d, %3$s)</string>
     <string name="mods_update_success">更新に成功</string>
     <string name="mods_update_success_text">選択したモッドが全て最新バージョンに更新されました！</string>
     <string name="mods_update_failed">モッドの更新に失敗</string>
@@ -994,24 +994,10 @@
     <string name="control_editor_edit_text_size">テキストサイズ</string>
     <string name="control_editor_edit_text_size_custom">カスタムテキストサイズ</string>
     <string name="generic_saved">保存済み</string>
-    <string name="game_styles_joystick">ジョイスティックを管理</string>
-    <string name="game_styles_joystick_enable">ジョイスティックを有効化</string>
-    <string name="game_styles_joystick_x">ジョイスティックのX座標</string>
-    <string name="game_styles_joystick_y">ジョイスティックのY座標</string>
-    <string name="game_styles_joystick_size">ジョイスティックの大きさ</string>
-    <string name="game_styles_joystick_edit">ジョイスティックのスタイルを編集</string>
-    <string name="game_styles_joystick_can_lock">前方に固定</string>
-    <string name="game_styles_joystick_lock_sprint">ロック時にダッシュを強制</string>
-    <string name="game_styles_joystick_hide_when_mouse">物理マウス使用時に非表示</string>
-    <string name="game_styles_joystick_hide_when_gamepad">ゲームパッド使用時に非表示</string>
-    <string name="game_styles_save_failed">スタイルの保存に失敗しました</string>
+    <string name="generic_saving">保存中…</string>
     <string name="account_change_cape_cache_all">すべてのマントをキャッシュ</string>
     <string name="cape_name_zombie_horse">Zombie Horseマント</string>
-    <string name="control_editor_special_joystick_style">ジョイスティックのスタイル</string>
-    <string name="control_editor_special_joystick_style_create_title">ジョイスティックのスタイルを作成</string>
-    <string name="control_editor_special_joystick_style_create_summary">コントロールレイアウトによって提供されるジョイスティックのスタイルを作成します。現在のコントロールがジョイスティックのスタイルを提供していない場合、ランチャーのジョイスティックのスタイルを使用します。</string>
     <string name="control_editor_special_joystick_style_delete_title">ジョイスティックのスタイルを削除</string>
-    <string name="control_editor_special_joystick_style_delete_summary">現在のコントロールレイアウトのジョイスティックのスタイルを削除してランチャーのジョイスティックのスタイルを使用します。</string>
     <string name="control_editor_special_joystick_style_joystick_color">ジョイスティックの色</string>
     <string name="control_editor_special_joystick_style_joystick_can_lock_color">ジョイスティックの色（ロック可能）</string>
     <string name="control_editor_special_joystick_style_joystick_locked_color">ジョイスティックの色（ロック済み）</string>
@@ -1019,7 +1005,6 @@
     <string name="control_editor_special_joystick_style_background_rounded_corner">背景の角の半径</string>
     <string name="control_editor_special_joystick_style_joystick_rounded_corner">ジョイスティックの角の半径</string>
     <string name="control_editor_special_joystick_style_joystick_size">ジョイスティックの大きさ</string>
-    <string name="game_styles_joystick_edit_use_control_layout">コントロールレイアウトが提供するスタイルを使用する</string>
     <string name="upgrade_title">アップデートを確認</string>
     <string name="upgrade_new">新しいバージョンが見つかりました</string>
     <string name="upgrade_more">表示</string>
@@ -1031,11 +1016,6 @@
     <string name="upgrade_get_remote_failed">アップデートの確認に失敗しました。後ほどもう一度お試しください。</string>
     <string name="upgrade_is_latest">すでに最新バージョンです</string>
     <string name="upgrade_cloud_drive">クラウドドライブ</string>
-    <string name="game_styles_joystick_deadzone">ジョイスティックのデッドゾーン範囲</string>
-    <string name="control_editor_special_joystick_style_tip_title">ジョイスティックが作れませんか？</string>
-    <string name="control_editor_special_joystick_style_tip_summary">実装がとても複雑なため、コントロールレイアウトシステムはジョイスティックコンポーネントを直接統合できません。ジョイスティックコンポーネントを使用するには、ゲーム内メニューでジョイスティックコンポーネントを有効にすることしかできません。ただし、コントロールレイアウトを通してジョイスティックコンポーネントの見た目をカスタマイズし、一貫したスタイルにすることは可能です。</string>
-    <string name="settings_launcher_mirror_assets_search_title">アセットプラットフォームの検索ソース</string>
-    <string name="settings_launcher_mirror_assets_download_title">アセットプラットフォームのダウンロードソース</string>
     <string name="about_acknowledgements_mcim_text">%s はMCIMミラーソースを使っています</string>
     <string name="settings_launcher_language">言語</string>
     <string name="generic_copied">コピー済み</string>
@@ -1067,7 +1047,6 @@
     <string name="servers_list_edit_server">サーバーを編集</string>
     <string name="servers_list_copy_server_address">サーバーアドレスをコピー</string>
     <string name="download_install_warning_mobile_data">モバイルデータ通信を利用しています。ダウンロードを続行するとデータが消費されます。</string>
-    <string name="game_styles_joystick_lock_threshold">ジョイスティックの前進ロックのしきい値</string>
     <string name="game_saponsorship_finished_game">ランチャーはゲームを %s 回正常に実行しました！役に立ったと思ったら、開発者へのサポートをお願いします！ :)</string>
     <string name="mods_update_task_loading">モッドデータを同期中: %s</string>
     <string name="versions_export">モッドパックのエクスポート</string>
@@ -1109,7 +1088,6 @@
     <string name="versions_export_task_error_message">モッドパックのエクスポート中にエラーが発生しました:</string>
     <string name="versions_export_task_finished">モッドパックが正常にエクスポートされました！</string>
     <string name="version_summary_fools_2_0">アップデートはしません！バグを見つけたら、運が悪いだけです！XD</string>
-    <string name="versions_overview_cant_share_folder_message">このデバイスではこのフォルダを開くためのサードパーティ製アプリは利用できません！</string>
     <string name="settings_gamepad_config_title">コントローラーのマッピング設定</string>
     <string name="settings_gamepad_config_summary">使用するコントローラーのマッピング設定を選択してください</string>
     <string name="settings_gamepad_config_delete">現在の設定を削除</string>
@@ -1172,7 +1150,6 @@
     <string name="control_editor_layers_delete">コントロールレイヤー %s を削除してもよろしいですか？</string>
     <string name="control_editor_layers_attribute_hide_when_mouse">物理マウス使用時は非表示にする</string>
     <string name="control_editor_layers_attribute_hide_when_gamepad">ゲームパッド使用時は非表示にする</string>
-    <string name="control_editor_layers_attribute_hide_when_joystick">ジョイスティック使用時は非表示にする</string>
     <string name="control_editor_edit_dialog_delete_widget">このコントロールを削除してもよろしいでしょうか？</string>
     <string name="control_editor_edit_style_config_common_style">ダークテーマを区別しない</string>
     <string name="control_editor_edit_style_config_delete">コントロールの外観 %s を削除してもよろしいですか？</string>
@@ -1184,4 +1161,5 @@
     <string name="festivals_new_year">あけましておめでとう！</string>
     <string name="festivals_april_fools">エイプリルフールおめでとう！</string>
     <string name="festivals_christmas">メリークリスマス！</string>
+    <string name="generic_edit">編集</string>
 </resources>

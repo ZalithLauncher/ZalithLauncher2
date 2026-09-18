@@ -24,14 +24,14 @@
     <uses-permission android:name="android.permission.HIGH_SAMPLING_RATE_SENSORS"/>
 
     <application
-        android:name=".BLApplication"
+        android:name=".ZLApplication"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:networkSecurityConfig="@xml/network_security_config"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
-        android:label="Bedroom Launcher"
+        android:label="${launcher_name}"
         android:roundIcon="@mipmap/ic_launcher_round"
-        android:theme="@style/AppTheme.BedroomLauncher"
+        android:theme="@style/AppTheme.ZalithLauncher"
         android:appCategory="game"
         android:supportsRtl="true"
         android:isGame="true"
@@ -46,6 +46,7 @@
         tools:ignore="DiscouragedApi">
         <activity
             android:name=".ui.activities.SplashActivity"
+            android:launchMode="singleTop"
             android:theme="@style/AppTheme.SplashScreen"
             android:exported="true"
             android:windowSoftInputMode="adjustResize"
@@ -60,7 +61,7 @@
 
         <activity-alias
             android:label="@string/import_modpack"
-            android:name="tech.voltagestudios.dream.activity.ImportModpackActivity"
+            android:name="com.movtery.activity.ImportModpackActivity"
             android:exported="true"
             android:targetActivity=".ui.activities.SplashActivity">
 
@@ -84,7 +85,7 @@
 
         <activity-alias
             android:label="@string/control_manage_import"
-            android:name="tech.voltagestudios.dream.activity.ImportControlsActivity"
+            android:name="com.movtery.activity.ImportControlsActivity"
             android:exported="true"
             android:targetActivity=".ui.activities.SplashActivity">
 
@@ -108,6 +109,7 @@
 
         <activity
             android:name=".ui.activities.MainActivity"
+            android:launchMode="singleTop"
             android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation"
             android:screenOrientation="sensorLandscape" />
         <activity
@@ -126,6 +128,35 @@
         <activity android:name=".ui.activities.FatalErrorActivity"
             android:configChanges="keyboardHidden|orientation|screenSize|keyboard|navigation"
             android:theme="@style/Theme.Material3.DayNight.Dialog.Alert" />
+
+        <activity
+            android:name=".filemanager.ui.FileManagerActivity"
+            android:process=":filemanager"
+            android:taskAffinity=":filemanager"
+            android:configChanges="keyboardHidden|orientation|screenSize|smallestScreenSize|screenLayout|keyboard|navigation|uiMode|locale|layoutDirection"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="sensorLandscape"
+            android:enableOnBackInvokedCallback="true"
+            android:exported="false" />
+
+        <service
+            android:name=".filemanager.events.FileManagerEventService"
+            android:process=":filemanager"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.movtery.zalithlauncher.filemanager.EVENT_SERVICE" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".keepalive.TaskKeepAliveService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_TYPE"
+                android:value="Keep the launcher process alive while background tasks such as downloads and installations are running" />
+        </service>
 
         <service
             android:name=".game.download.jvm_server.JvmService"
@@ -152,8 +183,11 @@
             android:permission="android.permission.BIND_VPN_SERVICE"
             android:exported="true"
             android:process=":game"
-            android:foregroundServiceType="connectedDevice"
+            android:foregroundServiceType="specialUse"
             tools:ignore="VpnServicePolicy">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_TYPE"
+                android:value="Establish VPN tunnel for the multiplayer feature" />
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
@@ -192,6 +226,9 @@
         <package android:name="net.kdt.pojavlaunch.ffmpeg"/>
         <intent>
             <action android:name="android.intent.action.MAIN" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
     </queries>
 </manifest>

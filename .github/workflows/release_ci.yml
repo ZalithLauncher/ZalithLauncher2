@@ -21,7 +21,7 @@ jobs:
 
   Upload-to-Release:
     needs: Build
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    runs-on: ubuntu-latest
     if: success()
 
     steps:
@@ -33,26 +33,10 @@ jobs:
       - name: Organize Artifacts
         run: |
           mkdir -p ./apks
-          mkdir -p ./mappings
           
           find ./artifacts -name "*.apk" -type f -exec cp {} ./apks/ \;
           
-          for dir in ./artifacts/*/; do
-            dir_name=$(basename "$dir")
-          
-            # 跳过 APK
-            if [[ "$dir_name" == *"release apk"* ]]; then
-              continue
-            fi
-          
-            if [[ "$dir_name" == mapping* ]]; then
-              (cd "$dir" && zip -r "../${dir_name}.zip" .)
-              mv "./artifacts/${dir_name}.zip" ./mappings/
-            fi
-          done
-          
           echo "Found $(ls ./apks/ | wc -l) APK file(s)"
-          echo "Found $(ls ./mappings/ | wc -l) Mapping file(s)"
 
       - name: Upload To Release
         uses: softprops/action-gh-release@v3
@@ -60,5 +44,4 @@ jobs:
           tag_name: ${{ github.event.release.tag_name }}
           files: |
             ./apks/*.apk
-            ./mappings/*.zip
           fail_on_unmatched_files: true

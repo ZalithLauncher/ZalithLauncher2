@@ -25,6 +25,7 @@
     <string name="terracotta_menu">Menu chơi mạng</string>
     <string name="terracotta_notification_title">Terracotta | Đang chạy ngầm</string>
     <string name="terracotta_notification_desc">Vai: %s, Trạng thái: %s</string>
+    <string name="terracotta_notification_state_preparing">Đang chuẩn bị kết nối…</string>
     <string name="terracotta_status_waiting_host_title">Tao làm chủ</string>
     <string name="terracotta_status_waiting_host_desc">Tạo phòng, phát mã mời, rủ bạn bè vào phá đảo</string>
     <string name="terracotta_status_waiting_guest_title">Tao làm khách</string>

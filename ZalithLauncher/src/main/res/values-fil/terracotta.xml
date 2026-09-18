@@ -21,6 +21,7 @@
     <string name="terracotta_menu">Multiplayer Menu</string>
     <string name="terracotta_notification_title">Gumagana na ang Terracotta</string>
     <string name="terracotta_notification_desc">Pagkakakilanlan: %s, Kalagayan: %s</string>
+    <string name="terracotta_notification_state_preparing">Naghahanda ng koneksyon…</string>
     <string name="terracotta_status_waiting_host_title">Nais kong mag host ng session</string>
     <string name="terracotta_status_waiting_host_desc">Gumawa ng room at mag generate ng invite code para maka laro kasama Ng kaibigan</string>
     <string name="terracotta_status_waiting_guest_title">Nais kong mag join sa session</string>

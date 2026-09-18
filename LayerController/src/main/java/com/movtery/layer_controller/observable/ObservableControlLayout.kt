@@ -20,6 +20,7 @@ package com.movtery.layer_controller.observable
 
 import com.movtery.layer_controller.EDITOR_VERSION
 import com.movtery.layer_controller.data.ButtonStyle
+import com.movtery.layer_controller.data.JoystickStyle
 import com.movtery.layer_controller.layout.ControlLayer
 import com.movtery.layer_controller.layout.ControlLayout
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,8 +41,8 @@ class ObservableControlLayout(
     private val _styles = MutableStateFlow(layout.styles.map { ObservableButtonStyle(it) })
     val styles = _styles.asStateFlow()
 
-    private val _special = MutableStateFlow(ObservableSpecial(layout.special))
-    val special = _special.asStateFlow()
+    private val _joystickStyles = MutableStateFlow(layout.joystickStyles.map { ObservableJoystickStyle(it) })
+    val joystickStyles = _joystickStyles.asStateFlow()
 
     /**
      * 添加控件层
@@ -86,6 +87,12 @@ class ObservableControlLayout(
                 it.isNotEmpty()
             }?.let {
                 downLayer.addAllTextBox(it)
+            }
+
+            layer.joystickButtons.value.takeIf {
+                it.isNotEmpty()
+            }?.let {
+                downLayer.addAllJoystickButton(it)
             }
 
             layers.removeAt(index)
@@ -140,6 +147,36 @@ class ObservableControlLayout(
     }
 
     /**
+     * 添加摇杆样式
+     */
+    fun addJoystickStyle(style: JoystickStyle) {
+        _joystickStyles.update { it + ObservableJoystickStyle(style) }
+    }
+
+    /**
+     * 复制摇杆样式
+     */
+    fun cloneJoystickStyle(style: ObservableJoystickStyle) {
+        _joystickStyles.update { it + style.cloneNew() }
+    }
+
+    /**
+     * 移除摇杆样式
+     */
+    fun removeJoystickStyle(uuid: String) {
+        _joystickStyles.update { oldStyles ->
+            oldStyles.filterNot { it.uuid == uuid }
+        }
+        layers.value.forEach { layer ->
+            layer.joystickButtons.value.forEach { joystick ->
+                if (joystick.joystickStyleId == uuid) {
+                    joystick.joystickStyleId = null
+                }
+            }
+        }
+    }
+
+    /**
      * 将编辑器内层级隐藏状态同步到实际隐藏状态
      * 供预览模式下使用正确的隐藏状态
      */
@@ -154,7 +191,7 @@ class ObservableControlLayout(
             info = info.pack(),
             layers = _layers.value.map { it.pack() },
             styles = _styles.value.map { it.pack() },
-            special = _special.value.pack(),
+            joystickStyles = _joystickStyles.value.map { it.pack() },
             editorVersion = EDITOR_VERSION
         )
     }

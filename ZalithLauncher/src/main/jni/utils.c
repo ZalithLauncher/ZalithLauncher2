@@ -112,10 +112,62 @@ JNIEXPORT jboolean JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_dlope
 	return handle != NULL;
 }
 
+JNIEXPORT jlong JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_getJavaVMPointer(JNIEnv *env, jclass clazz) {
+	if (pojav_environ->dalvikJavaVMPtr == NULL) return 0;
+	return (jlong) (intptr_t) pojav_environ->dalvikJavaVMPtr;
+}
+
+JNIEXPORT jstring JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_jObjectToString(JNIEnv *env, jclass clazz, jobject object) {
+	if (object == NULL) return NULL;
+	jobject global_ref = (*env)->NewGlobalRef(env, object);
+	if (global_ref == NULL) return NULL;
+
+	char buf[32];
+	snprintf(buf, sizeof(buf), "%llx", (unsigned long long) (uintptr_t) global_ref);
+	return (*env)->NewStringUTF(env, buf);
+}
+
 JNIEXPORT jint JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_chdir(JNIEnv *env, jclass clazz, jstring nameStr) {
 	const char *name = (*env)->GetStringUTFChars(env, nameStr, NULL);
 	int retval = chdir(name);
 	(*env)->ReleaseStringUTFChars(env, nameStr, name);
 	return retval;
+}
+
+
+JNIEnv* get_attached_env(JavaVM* jvm) {
+    if (jvm == NULL) return NULL;
+    JNIEnv *env = NULL;
+    jint status = (*jvm)->GetEnv(jvm, (void**)&env, JNI_VERSION_1_4);
+    if (status == JNI_OK) return env;
+    if (status == JNI_EDETACHED) {
+        if ((*jvm)->AttachCurrentThread(jvm, (void**)&env, NULL) == JNI_OK) {
+            return env;
+        }
+    }
+    return NULL;
+}
+
+bool notifyLauncher(JNIEnv *dvm_env, int type, int actions[], int len) {
+    jintArray actionArray = (*dvm_env)->NewIntArray(dvm_env, len);
+    (*dvm_env)->SetIntArrayRegion(dvm_env, actionArray, 0, len, actions);
+    return (*dvm_env)->CallStaticBooleanMethod(dvm_env, pojav_environ->bridgeClazz,
+            pojav_environ->method_notifyLauncher, type, actionArray);
+}
+
+jintArray convertIntArrayJVM(JNIEnv* srcEnv, JNIEnv* dstEnv, jintArray srcIntArray) {
+	if (srcIntArray == NULL) {
+		return NULL;
+	}
+
+	jsize len = (*srcEnv)->GetArrayLength(srcEnv, srcIntArray);
+	jint* srcPtr = (*srcEnv)->GetIntArrayElements(srcEnv, srcIntArray, NULL);
+
+	jintArray dstIntArray = (*dstEnv)->NewIntArray(dstEnv, len);
+	(*dstEnv)->SetIntArrayRegion(dstEnv, dstIntArray, 0, len, srcPtr);
+
+	(*srcEnv)->ReleaseIntArrayElements(srcEnv, srcIntArray, srcPtr, JNI_ABORT);
+
+	return dstIntArray;
 }
 

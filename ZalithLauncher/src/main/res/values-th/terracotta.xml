@@ -25,6 +25,7 @@
     <string name="terracotta_menu">เมนูผู้เล่นหลายคน</string>
     <string name="terracotta_notification_title">Terracotta | ระบบผู้เล่นหลายคนกำลังทำงาน</string>
     <string name="terracotta_notification_desc">ตัวตน: %s / สถานะ: %s</string>
+    <string name="terracotta_notification_state_preparing">กำลังเตรียมการเชื่อมต่อ…</string>
     <string name="terracotta_status_waiting_host_title">ฉันจะเป็นโฮสต์เซสชั่นนี้</string>
     <string name="terracotta_status_waiting_host_desc">สร้างห้องและสร้างรหัสเข้าร่วมเพื่อเล่นกับเพื่อน!!</string>
     <string name="terracotta_status_waiting_guest_title">ฉันจะเข้าร่วมเซสชั่นนี้</string>

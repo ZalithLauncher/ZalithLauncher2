@@ -157,6 +157,7 @@
     <string name="download_install_success_message">Il tuo gioco è stato installato correttamente!</string>
     <string name="festivals_christmas">Buon Natale!</string>
     <string name="generic_saved">Salvato</string>
+    <string name="generic_saving">Salvataggio in corso…</string>
     <string name="generic_copied">Copiato</string>
     <string name="page_title_version_list">Lista delle versioni</string>
     <string name="page_title_version_manage">Gestisci Versioni</string>
@@ -170,4 +171,11 @@
     <string name="sort_by_file_name">Ordina per Nome del file</string>
     <string name="sort_by_last_modified">Ordina per Ultimo Modificato</string>
     <string name="sort_by_last_played">Ordina per ultimo giocato</string>
+
+    <string name="settings_renderer_resolution_rule_title">Regola di risoluzione</string>
+    <string name="settings_renderer_resolution_rule_summary">Scegli come viene calcolata la risoluzione della finestra di gioco</string>
+    <string name="settings_renderer_resolution_rule_percentage">Percentuale</string>
+    <string name="settings_renderer_resolution_custom_summary">Renderizza il gioco a una larghezza e altezza esatte; l\'immagine viene ridimensionata per adattarsi allo schermo</string>
+    <string name="settings_renderer_resolution_custom_width">Larghezza</string>
+    <string name="settings_renderer_resolution_custom_height">Altezza</string>
 </resources>

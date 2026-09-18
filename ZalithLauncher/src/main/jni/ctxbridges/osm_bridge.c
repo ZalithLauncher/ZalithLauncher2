@@ -13,9 +13,6 @@ static __thread osm_render_window_t* currentBundle;
 static char no_render_buffer[4];
 static bool hasSetNoRendererBuffer = false;
 
-// Its not in a .h file because it is not supposed to be used outsife of this file.
-void setNativeWindowSwapInterval(struct ANativeWindow* nativeWindow, int swapInterval);
-
 bool osm_init() {
     dlsym_OSMesa();
     return true; // no more specific initialization required

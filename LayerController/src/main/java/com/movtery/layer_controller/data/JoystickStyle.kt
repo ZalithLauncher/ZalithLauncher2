@@ -21,12 +21,10 @@ package com.movtery.layer_controller.data
 import androidx.compose.ui.graphics.Color
 import com.movtery.layer_controller.observable.Modifiable
 import com.movtery.layer_controller.utils.checkInRange
-import com.movtery.layer_controller.utils.layoutJson
 import com.movtery.layer_controller.utils.randomUUID
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import java.io.File
 
 /**
  * 圆角比例取值范围
@@ -44,13 +42,19 @@ val SIZE_PERCENT_RANGE: ClosedFloatingPointRange<Float> = 0.0f..1.0f
 val BORDER_RADIO_RANGE: IntRange = 0..50
 
 /**
+ * @param name 样式显示名称
+ * @param commonStyle 共用亮色主题
  * @param lightStyle 亮色模式样式
  * @param darkStyle 暗色模式样式
  */
 @Serializable
 data class JoystickStyle(
+    @SerialName("name")
+    val name: String,
     @SerialName("uuid")
     val uuid: String,
+    @SerialName("commonStyle")
+    val commonStyle: Boolean = true,
     @SerialName("lightStyle")
     val lightStyle: StyleConfig,
     @SerialName("darkStyle")
@@ -139,21 +143,23 @@ val DefaultJoystickStyleConfig = JoystickStyle.StyleConfig(
 )
 
 val DefaultJoystickStyle = JoystickStyle(
+    name = "Default",
     uuid = randomUUID(),
     lightStyle = DefaultJoystickStyleConfig,
     darkStyle = DefaultJoystickStyleConfig
 )
 
-fun loadFromFile(jsonFile: File): JoystickStyle? {
-    if (jsonFile.exists()) {
-        val jsonString = jsonFile.readText()
-        return layoutJson.decodeFromString<JoystickStyle>(jsonString)
-    } else {
-        return null
-    }
+fun JoystickStyle.cloneNew(): JoystickStyle {
+    return JoystickStyle(
+        name = name,
+        uuid = randomUUID(),
+        lightStyle = lightStyle,
+        darkStyle = darkStyle,
+    )
 }
 
-fun saveToFile(style: JoystickStyle, jsonFile: File) {
-    val jsonString = layoutJson.encodeToString(style)
-    jsonFile.writeText(jsonString)
-}
+fun createNewJoystickStyle(name: String): JoystickStyle =
+    DefaultJoystickStyle.copy(
+        name = name,
+        uuid = randomUUID()
+    )

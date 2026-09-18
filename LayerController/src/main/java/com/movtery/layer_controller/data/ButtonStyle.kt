@@ -186,7 +186,7 @@ fun createNewButtonStyle(name: String): ButtonStyle = DefaultButtonStyle.copy(na
 /**
  * 克隆一个新的ButtonStyle对象（UUID不同）
  */
-fun ButtonStyle.cloneNew(): ButtonStyle = this.copy(
+fun ButtonStyle.cloneNew(): ButtonStyle = ButtonStyle(
     name = name,
     uuid = randomUUID(),
     animateSwap = animateSwap,

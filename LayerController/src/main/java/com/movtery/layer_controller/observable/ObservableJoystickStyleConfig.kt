@@ -27,7 +27,7 @@ import com.movtery.layer_controller.data.JoystickStyle
 
 class ObservableJoystickStyleConfig(
     private val config: JoystickStyle.StyleConfig
-): Packable<JoystickStyle.StyleConfig> {
+) : Packable<JoystickStyle.StyleConfig> {
     var alpha by mutableFloatStateOf(config.alpha)
     var backgroundColor by mutableStateOf(config.backgroundColor)
     var joystickColor by mutableStateOf(config.joystickColor)
@@ -51,7 +51,7 @@ class ObservableJoystickStyleConfig(
             borderWidthRatio = borderWidthRatio,
             borderColor = borderColor,
             backgroundShape = backgroundShape,
-            joystickShape =  joystickShape,
+            joystickShape = joystickShape,
             joystickSize = joystickSize
         )
     }

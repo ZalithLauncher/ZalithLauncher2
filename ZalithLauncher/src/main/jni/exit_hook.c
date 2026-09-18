@@ -13,6 +13,12 @@
 
 static _Atomic bool exit_tripped = false;
 
+// SDL3 launcher integration（native_hooks/sdl_hook.c）
+typedef bytehook_stub_t (*bytehook_hook_all_fn)(const char *callee_path_name, const char *sym_name, void *new_func,
+                                                bytehook_hooked_t hooked, void *hooked_arg);
+void create_sdl_hooks(bytehook_hook_all_fn bytehook_hook_all_p);
+void create_sdl_dlopen_hooks(bytehook_hook_all_fn bytehook_hook_all_p);
+
 typedef void (*exit_func)(int);
 
 static void custom_exit(int code) {
@@ -57,6 +63,10 @@ static bool init_exit_hook() {
     if(bhook_status == BYTEHOOK_STATUS_CODE_OK) {
         bytehook_stub_t stub = bytehook_hook_all_p(NULL, "exit", &custom_exit, NULL, NULL);
         __android_log_print(ANDROID_LOG_INFO, "exit_hook", "Successfully initialized exit hook, stub=%p", stub);
+        // SDL hook 与 exit hook 在同一进程内安装；游戏 JVM 内嵌于本进程，
+        // 因此游戏调用 SDL_InitSubSystem 时同样会被拦截
+        create_sdl_hooks(bytehook_hook_all_p);
+        create_sdl_dlopen_hooks(bytehook_hook_all_p);
         return true;
     } else {
         __android_log_print(ANDROID_LOG_INFO, "exit_hook", "bytehook_init failed (%i)", bhook_status);

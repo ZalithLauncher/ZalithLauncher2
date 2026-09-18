@@ -62,7 +62,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 private const val TAG = "LauncherUpgradeVM"
@@ -82,7 +81,6 @@ sealed interface LauncherUpgradeOperation {
  */
 private const val LATEST_VERSION = "latest_version_md.json"
 private const val LATEST_API_URL = "$URL_PROJECT_INFO/$LATEST_VERSION"
-private const val LATEST_API_CHINESE_URL = "https://repo.miawa.cn/zalith-info/v2/$LATEST_VERSION"
 
 /**
  * 用于记录启动器更新 ViewModel
@@ -200,21 +198,8 @@ class LauncherUpgradeViewModel: ViewModel() {
                     GLOBAL_JSON.decodeFromString(RemoteData.serializer(), contentString)
                 }
             }.getOrElse { e ->
-                if (Locale.getDefault().language == "zh") {
-                    runCatching {
-                        Logger.info(TAG, "Check for updates in the Chinese region.")
-                        //在中国地区，可能因为无法访问 Github API 导致获取更新信息失败
-                        withRetry(logTag = "LauncherUpgrade_Chinese", maxRetries = 2) {
-                            GLOBAL_CLIENT.get(LATEST_API_CHINESE_URL).safeBodyAsJson<RemoteData>()
-                        }
-                    }.getOrElse { e ->
-                        Logger.warning(TAG, "Failed to check for launcher upgrade!", e)
-                        null
-                    }
-                } else {
-                    Logger.warning(TAG, "Failed to check for launcher upgrade!", e)
-                    null
-                }
+                Logger.warning(TAG, "Failed to check for launcher upgrade!", e)
+                null
             }
         }
     }

@@ -1,15 +1,15 @@
-# Zalith Launcher 2
-![Downloads](https://img.shields.io/github/downloads/ZalithLauncher/ZalithLauncher2/total)
-[![Sponsor](https://img.shields.io/badge/sponsor-30363D?logo=GitHub-Sponsors)](https://afdian.com/a/MovTery)
+# Bedroom Launcher
+![Downloads](https://img.shields.io/github/downloads/voltageStudiosOfficial/BLMobile/total)
 
 [English](README_EN_US.md) | [繁體中文](README_ZH_TW.md)
 
 
 > [!IMPORTANT]
+> Bedroom Launcher is an unofficial modified version of [Zalith Launcher 2](https://github.com/ZalithLauncher/ZalithLauncher2) maintained by Voltage Studios. Upstream copyright notices and attribution are preserved.
 > 该项目与 [ZalithLauncher](https://github.com/ZalithLauncher/ZalithLauncher) 属于两个完全不同的项目  
 
-**Zalith Launcher 2** 是一个全新设计、面向 **Android 设备** 的 [Minecraft: Java Edition](https://www.minecraft.net/) 启动器。项目使用 [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) 作为启动核心，采用 **Jetpack Compose** 与 **Material Design 3** 构建现代化 UI 体验。  
-我们目前正在搭建自己的官方网站 [zalithlauncher.cn](https://zalithlauncher.cn)  
+**Bedroom Launcher** 是一个全新设计、面向 **Android 设备** 的 [Minecraft: Java Edition](https://www.minecraft.net/) 启动器。项目使用 [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) 作为启动核心，采用 **Jetpack Compose** 与 **Material Design 3** 构建现代化 UI 体验。
+项目主页：[github.com/voltageStudiosOfficial/BLMobile](https://github.com/voltageStudiosOfficial/BLMobile)
 此外，我们已注意到有第三方使用“Zalith Launcher”名称搭建了一个看似官方的网站。请注意：**该网站并非我们创建**，其通过冒用名义并植入广告牟利。我们对此类行为**不参与、不认可、不信任**。  
 请务必提高警惕，**谨防个人隐私信息泄露**！  
 
@@ -18,8 +18,8 @@
 
 ## 🌐 语言与翻译支持
 
-我们正在使用 Weblate 平台翻译 Zalith Launcher 2，欢迎您前往我们的 [Weblate 项目](https://hosted.weblate.org/projects/zalithlauncher2) 参与翻译！  
-感谢每一位语言贡献者的支持，让 Zalith Launcher 2 更加多语、更加全球化！
+我们正在使用 Weblate 平台翻译 Bedroom Launcher，欢迎您前往我们的 [Weblate 项目](https://hosted.weblate.org/projects/bedroomlauncher) 参与翻译！
+感谢每一位语言贡献者的支持，让 Bedroom Launcher 更加多语、更加全球化！
 
 
 
@@ -39,7 +39,7 @@
 ### 构建步骤
 
 ```bash
-git clone git@github.com:ZalithLauncher/ZalithLauncher2.git
+git clone git@github.com:voltageStudiosOfficial/BLMobile.git
 # 使用 Android Studio 打开项目并进行构建
 ```
 

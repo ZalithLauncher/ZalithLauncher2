@@ -89,7 +89,7 @@ private fun TopBar(
         ) {
             Text(
                 modifier = Modifier.align(Alignment.CenterVertically),
-                text = BuildKeys.LAUNCHER_NAME
+                text = "${BuildKeys.LAUNCHER_NAME} • Unofficial Modified Version"
             )
         }
     }

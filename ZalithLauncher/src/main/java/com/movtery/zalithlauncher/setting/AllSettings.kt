@@ -440,14 +440,22 @@ object AllSettings : SettingsRegistry() {
     val launcherLogRetentionDays = intSetting("launcherLogRetentionDays", 7, 1..14)
 
     /**
-     * 游戏内容镜像源
+     * 游戏内容下载源
      */
-    val gameDownloadSource = enumSetting("gameDownloadSource", MirrorSourceType.AUTO)
+    val gameDownloadSource = enumSetting(
+        "gameDownloadSource",
+        MirrorSourceType.AUTO,
+        MirrorSourceType.LEGACY_NAMES
+    )
 
     /**
-     * 资源平台镜像源
+     * 资源平台下载源
      */
-    val assetPlatformSource = enumSetting("assetPlatformSource", MirrorSourceType.AUTO)
+    val assetPlatformSource = enumSetting(
+        "assetPlatformSource",
+        MirrorSourceType.AUTO,
+        MirrorSourceType.LEGACY_NAMES
+    )
 
     //Control
     /**

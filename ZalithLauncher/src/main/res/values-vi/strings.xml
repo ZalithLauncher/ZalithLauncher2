@@ -590,8 +590,8 @@
     <string name="generic_all">Tất cả</string>
     <string name="versions_manage_category_vanilla">Bản gốc</string>
     <string name="versions_manage_category_modloader">Có thể cài mod</string>
-    <string name="settings_launcher_mirror_official_first">Ưu tiên nguồn chính</string>
-    <string name="settings_launcher_mirror_mirror_first">Ưu tiên gương</string>
+    <string name="settings_launcher_mirror_official">Cố gắng sử dụng nguồn chính thức</string>
+    <string name="settings_launcher_mirror_mirror">Cố gắng sử dụng nguồn mirror</string>
     <string name="about_acknowledgements_bangbang93_text">%s dùng gương BMCL API</string>
     <string name="mods_manage">Mod</string>
     <string name="mods_manage_info">Thông tin mod</string>

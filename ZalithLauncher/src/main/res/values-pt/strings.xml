@@ -624,8 +624,8 @@
     <string name="settings_launcher_log_retention_days_title">Tempo de retenção do registro</string>
     <string name="settings_launcher_log_share_title">Compartilhar registros do launcher</string>
     <string name="settings_launcher_log_share_packing">Arquivos de registro do inicializador de pacotes</string>
-    <string name="settings_launcher_mirror_official_first">Preferir fonte oficial</string>
-    <string name="settings_launcher_mirror_mirror_first">Preferir fonte mirror</string>
+    <string name="settings_launcher_mirror_official">De fontes oficiais</string>
+    <string name="settings_launcher_mirror_mirror">Do espelho</string>
     <string name="about_acknowledgements_pojav_text">%s utiliza o backend do PojavLauncher</string>
     <string name="about_acknowledgements_bangbang93_text">%s utiliza a API BMCL da fonte mirror</string>
     <string name="about_acknowledgements_title">Agradecimentos</string>

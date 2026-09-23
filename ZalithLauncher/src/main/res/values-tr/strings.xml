@@ -956,8 +956,8 @@
     <string name="settings_launcher_log_share_title">Hata Kaydını Paylaş</string>
     <string name="settings_launcher_log_share_summary">Log dosyalarını geliştiriciye gönder</string>
     <string name="settings_launcher_log_share_packing">Loglar paketleniyor</string>
-    <string name="settings_launcher_mirror_official_first">Önce Resmi Kaynak</string>
-    <string name="settings_launcher_mirror_mirror_first">Önce Alternatif (Mirror)</string>
+    <string name="settings_launcher_mirror_official">Mümkün olduğunca resmi kaynağı kullan</string>
+    <string name="settings_launcher_mirror_mirror">Mümkün olduğunca ayna kaynağı kullan</string>
     <string name="settings_launcher_background_title">Arka Plan</string>
     <string name="settings_launcher_background_summary">Başlatıcı arka planını değiştir</string>
     <string name="settings_launcher_background_importing">İçe aktarılıyor</string>

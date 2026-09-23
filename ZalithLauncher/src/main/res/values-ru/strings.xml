@@ -704,8 +704,8 @@
     <string name="settings_launcher_log_share_title">Поделиться логами лаунчера</string>
     <string name="settings_launcher_log_share_summary">Нажмите, чтобы поделиться файлами логов лаунчера. Это поможет разработчикам выявить и исправить проблемы в его работе.</string>
     <string name="settings_launcher_log_share_packing">Упаковка файлов логов лаунчера</string>
-    <string name="settings_launcher_mirror_official_first">Предпочитать официальный источник</string>
-    <string name="settings_launcher_mirror_mirror_first">Предпочитать зеркало</string>
+    <string name="settings_launcher_mirror_official">Из официальных источников</string>
+    <string name="settings_launcher_mirror_mirror">Из зеркала</string>
     <string name="control_keyboard_bind_title">Забиндить клавишу</string>
     <string name="control_keyboard_bind_summary">Нажмите на клавишу, которую хотите забиндить</string>
     <string name="control_manage_create_new">Создать</string>

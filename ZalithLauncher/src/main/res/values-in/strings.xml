@@ -632,8 +632,8 @@
     <string name="settings_launcher_animate_speed_summary">Atur kecepatan animasi launcher</string>
     <string name="settings_launcher_animate_extent_title">Intensitas Animasi</string>
     <string name="settings_launcher_animate_extent_summary">Atur intensitas animasi launcher</string>
-    <string name="settings_launcher_mirror_official_first">Prioritaskan sumber resmi</string>
-    <string name="settings_launcher_mirror_mirror_first">Prioritaskan Sumber Mirror</string>
+    <string name="settings_launcher_mirror_official">Gunakan sumber resmi sedapat mungkin</string>
+    <string name="settings_launcher_mirror_mirror">Gunakan sumber mirror sedapat mungkin</string>
     <string name="control_keyboard_bind_title">Ikat Tombol</string>
     <string name="control_keyboard_bind_summary">Tekan tombol yang ingin diikat pada keyboardmu</string>
     <string name="control_manage_create_new">Buat Baru</string>

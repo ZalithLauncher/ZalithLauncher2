@@ -849,8 +849,8 @@
     <string name="settings_launcher_log_share_title">Compartir registros del launcher</string>
     <string name="settings_launcher_log_share_summary">Toca para compartir los archivos de registro del launcher, para que los desarrolladores puedan identificar y solucionar problemas con el launcher</string>
     <string name="settings_launcher_log_share_packing">Empaquetar archivos de registro del launcher</string>
-    <string name="settings_launcher_mirror_official_first">Preferir fuente oficial</string>
-    <string name="settings_launcher_mirror_mirror_first">Preferir fuente espejo</string>
+    <string name="settings_launcher_mirror_official">De fuentes oficiales</string>
+    <string name="settings_launcher_mirror_mirror">Desde espejo</string>
     <string name="settings_launcher_background_title">Fondo del launcher</string>
     <string name="settings_launcher_background_summary">Elegir una imagen o video como fondo del launcher</string>
     <string name="settings_launcher_background_importing">Importando archivo de fondo del launcher</string>

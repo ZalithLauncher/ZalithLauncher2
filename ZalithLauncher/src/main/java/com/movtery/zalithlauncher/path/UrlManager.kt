@@ -42,9 +42,6 @@ import java.util.concurrent.TimeUnit
 val URL_USER_AGENT: String = "${BuildKeys.LAUNCHER_SHORT_NAME}/Android_${BuildConfig.VERSION_NAME}"
 val TIME_OUT = TimeUnit.SECONDS.toMillis(30L)
 
-/** 海量小文件多路复用客户端的读超时：比大文件更短，尽快触发换源 */
-const val SMALL_FILE_READ_TIMEOUT_MS = 5_000L
-
 const val HOST_CURSEFORGE_API = "api.curseforge.com"
 const val CURSEFORGE_CDN_SUFFIX = "forgecdn.net"
 
@@ -167,9 +164,9 @@ fun createOkHttpClientBuilder(action: (OkHttpClient.Builder) -> Unit = { }): OkH
 }
 
 /**
- * 创建用于文件下载的 OkHttpClient。
- * 与普通 API 调用不同，文件下载需要更长的超时配置，且不设 callTimeout
- * （因为文件大小差异很大，不能用一个固定值限制整体下载时间）。
+ * 创建用于网络请求的 OkHttpClient。
+ * 与普通 API 调用不同，该客户端不设 callTimeout
+ * （因为请求目标的大小差异很大，不能用一个固定值限制整体时间）。
  *
  * 使用 OkHttp 替代 HttpURLConnection 的主要原因是：
  * OkHttp 使用自实现的 AsyncTimeout 机制，比依赖操作系统 socket 超时的
@@ -177,18 +174,6 @@ fun createOkHttpClientBuilder(action: (OkHttpClient.Builder) -> Unit = { }): OkH
  */
 val DOWNLOAD_OKHTTP_CLIENT: OkHttpClient by lazy {
     buildDownloadClient(listOf(Protocol.HTTP_1_1))
-}
-
-/**
- * 支持 HTTP/2 多路复用的孪生客户端：用于海量小文件场景，
- * 数千次请求共享少数几条连接，消除逐文件 TCP+TLS 握手风暴。
- * 大文件的分段并发仍走强制 HTTP/1.1 的 [DOWNLOAD_OKHTTP_CLIENT]。
- *
- * 读超时较大文件客户端更短
- * 小文件的读停摆几乎必然意味着源/链路出问题，尽早超时才能尽快轮转到镜像源，而不是整批停在 0B/s
- */
-val DOWNLOAD_OKHTTP_CLIENT_MULTIPLEX: OkHttpClient by lazy {
-    buildDownloadClient(null, readTimeoutMillis = SMALL_FILE_READ_TIMEOUT_MS)
 }
 
 private fun buildDownloadClient(

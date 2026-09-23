@@ -110,8 +110,6 @@ class DownloadStats {
     private var currentSpeed: Long = 0L
 
     companion object {
-        /** 引擎判定"速度偏低需要补连接"的水位线 */
-        const val LOW_SPEED_THRESHOLD_BPS: Long = 256L * 1024L
         /** 速率采样周期 */
         private const val SAMPLE_INTERVAL_NANOS = 1_000_000_000L
         private const val NANOS_PER_SEC = 1_000_000_000L

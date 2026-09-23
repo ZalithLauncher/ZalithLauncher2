@@ -67,7 +67,7 @@ fun Array<String>.mapMCIMMirrorUrls(): List<String> {
     if (sources.isEmpty()) return toList()
 
     return when (assetPlatformPriority()) {
-        MirrorPriority.OFFICIAL_FIRST -> this.toList() + sources
+        MirrorPriority.OFFICIAL -> this.toList()
         MirrorPriority.MIRROR_FIRST -> sources + this.toList()
     }
 }

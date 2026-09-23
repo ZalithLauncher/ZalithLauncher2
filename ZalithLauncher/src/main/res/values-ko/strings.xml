@@ -977,8 +977,8 @@
     <string name="control_manage_create_new_name">레이아웃 이름</string>
     <string name="control_manage_create_new">만들기</string>
     <string name="settings_launcher_background_title">런처 배경</string>
-    <string name="settings_launcher_mirror_mirror_first">미러 소스 선호</string>
-    <string name="settings_launcher_mirror_official_first">공식 소스 선호</string>
+    <string name="settings_launcher_mirror_mirror">가능한 한 미러 소스 사용</string>
+    <string name="settings_launcher_mirror_official">가능한 한 공식 소스 사용</string>
     <string name="settings_launcher_log_share_packing">패키지 런처 로그 파일</string>
     <string name="settings_launcher_log_share_title">런처 로그 공유</string>
     <string name="settings_launcher_log_retention_days_title">로그 보관일</string>

@@ -1072,8 +1072,8 @@
     <string name="settings_launcher_mirror_game_source_title">遊戲內容下載源</string>
     <string name="settings_launcher_mirror_asset_platform_source_title">資源平台下載源</string>
     <string name="settings_launcher_mirror_auto">自動</string>
-    <string name="settings_launcher_mirror_official_first">優先使用官方來源</string>
-    <string name="settings_launcher_mirror_mirror_first">優先使用鏡像來源</string>
+    <string name="settings_launcher_mirror_official">盡量使用官方來源</string>
+    <string name="settings_launcher_mirror_mirror">盡量使用鏡像源</string>
     <string name="settings_launcher_background_title">啟動器背景</string>
     <string name="settings_launcher_background_summary">選擇一張圖片或影片作為啟動器背景</string>
     <string name="settings_launcher_background_importing">正在導入啟動器背景文件</string>

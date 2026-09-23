@@ -434,8 +434,8 @@
     <string name="account_supporting_username_invalid_local_message_hint4">無効なユーザー名: Name@、N ame、name_name_name_name</string>
     <string name="account_change_skin">スキンを変更</string>
     <string name="account_label_password">パスワード</string>
-    <string name="settings_launcher_mirror_official_first">公式のソースを優先</string>
-    <string name="settings_launcher_mirror_mirror_first">ミラーソースを優先</string>
+    <string name="settings_launcher_mirror_official">可能な限り公式ソースを使用</string>
+    <string name="settings_launcher_mirror_mirror">可能な限りミラーソースを使用</string>
     <string name="settings_game_java_runtime_title">Javaランタイム</string>
     <string name="settings_game_java_runtime_summary">使用するデフォルトのJava環境を指定してください</string>
     <string name="versions_overview_version_folder">バージョンフォルダ</string>

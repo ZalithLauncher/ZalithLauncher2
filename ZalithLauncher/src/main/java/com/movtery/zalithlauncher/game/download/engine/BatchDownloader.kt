@@ -18,11 +18,12 @@
 
 package com.movtery.zalithlauncher.game.download.engine
 
-import com.movtery.zalithlauncher.path.DOWNLOAD_OKHTTP_CLIENT
-import com.movtery.zalithlauncher.path.DOWNLOAD_OKHTTP_CLIENT_MULTIPLEX
+import com.movtery.zalithlauncher.game.download.engine.BatchDownloader.Companion.PROGRESS_INTERVAL_MS
+import com.movtery.zalithlauncher.game.download.engine.BatchDownloader.Companion.SYSTEMIC_FAILURE_LIMIT
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -31,35 +32,31 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-import okhttp3.OkHttpClient
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.time.Duration.Companion.milliseconds
 
 /** 整批下载结束后仍有未成功（且未被 [BatchDownloader.onFailureFilter] 接受）的文件 */
-class BatchDownloadException(summary: String) : IOException(summary)
+class BatchDownloadException(summary: String, cause: Throwable? = null) : IOException(summary, cause)
 
 /**
- * 批量下载编排器：
- * 所有文件共享一个全局连接信号量；大文件的分块决策基于整批聚合速度，
- * 低速时才追加分块连接，避免对下载源的请求风暴。
- * 每个失败文件在所有候选源耗尽后还会参与下一轮整批重试。
+ * 批量下载编排器：文件级并发由信号量控制，同一时刻至多 [maxConnections] 个文件在传输；
+ * 每个文件在单个候选源内的重试与换源由引擎消化，全部候选源耗尽的文件还会参与下一轮整批重试。
+ * 系统性故障熔断：整批零成功时，连续 [SYSTEMIC_FAILURE_LIMIT] 个文件永久失败即取消剩余文件并立即失败，
+ * 避免在确定性故障（如引擎或源配置错误）上空转数万次重试。
  * 文件维度的统计在 run() 之前登记（调用方可先把本地已复用文件计入），
  * 因此 [run] 对同一实例至多调用一次。
  */
 class BatchDownloader(
     private val requests: List<DownloadRequest>,
     private val maxConnections: Int = DEFAULT_MAX_CONNECTIONS,
-    private val retryRounds: Int = 1,
-    /** 显式注入用于测试；生产环境下按文件大小自动选择传输客户端 */
-    private val clientOverride: OkHttpClient? = null
+    private val retryRounds: Int = 1
 ) {
     val stats = DownloadStats()
 
-    /** 整批共享的主机级健康登记 */
-    private val sourceHealth = HostHealth()
-
-    /** 每 100ms 收到一次进度快照；回调运行在调度线程上，只应做轻量转发 */
+    /** 每 [PROGRESS_INTERVAL_MS] 收到一次进度快照；回调运行在调度线程上，只应做轻量转发 */
     var onUpdate: (suspend (BatchProgress) -> Unit)? = null
 
     var onFileSuccess: (suspend (DownloadRequest) -> Unit)? = null
@@ -70,7 +67,16 @@ class BatchDownloader(
      */
     var onFailureFilter: ((DownloadRequest, Throwable) -> Boolean)? = null
 
-    private val connections = Semaphore(maxConnections)
+    private val files = Semaphore(maxConnections)
+
+    /** 连续永久失败计数，任何文件成功即清零；与零成功条件共同判定系统性故障 */
+    private val systemicFailureCount = AtomicInteger(0)
+
+    /** 系统性故障的熔断原因，null 表示未触发 */
+    private val systemicAbortCause = AtomicReference<Throwable?>(null)
+
+    /** 当前整批在途文件作业，熔断时逐个直接取消（遍历子任务列表在高速完成-脱离下有漏节点的竞态） */
+    private val activeFileJobs = AtomicReference<List<Job>?>(null)
 
     /** 最近一次 run 结束后的失败清单（目标文件路径 → 异常），供调用方诊断 */
     var lastRunFailures: Map<String, Throwable> = emptyMap()
@@ -80,6 +86,8 @@ class BatchDownloader(
         // 不做任何清零
         // 调用方可能在 run() 之前已把本地复用文件登记进 stats
         requests.forEach { stats.registerFile(it.expectedSize) }
+        systemicFailureCount.set(0)
+        systemicAbortCause.set(null)
 
         val failures = ConcurrentHashMap<String, Throwable>()
         coroutineScope {
@@ -91,17 +99,30 @@ class BatchDownloader(
             }
 
             try {
-                requests.map { request ->
+                val fileJobs = requests.map { request ->
                     launch(Dispatchers.IO) {
-                        //先取得一个连接许可再打开 .part 文件：
+                        //先取得一个文件许可再打开临时文件：
                         //否则全部作业同时持着打开的句柄排队，海量句柄会拖垮存储层
-                        connections.withPermit { }
-                        runOne(request, failures, fileClientFor(request))
+                        files.withPermit {
+                            runOne(request, failures)
+                        }
                     }
-                }.joinAll()
+                }
+                activeFileJobs.set(fileJobs)
+                fileJobs.joinAll()
             } finally {
+                activeFileJobs.set(null)
                 reporter.cancelAndJoin()
             }
+        }
+
+        systemicAbortCause.get()?.let { cause ->
+            lastRunFailures = failures.toMap()
+            throw BatchDownloadException(
+                "Batch aborted after $SYSTEMIC_FAILURE_LIMIT consecutive permanent failures " +
+                        "with no successful download; the failure looks systemic rather than per-file",
+                cause
+            )
         }
 
         val finished = stats.downloadedFiles
@@ -129,32 +150,17 @@ class BatchDownloader(
         }
     }
 
-    /** 小文件走可多路复用的 h2 客户端，大文件保持 HTTP/1.1 的分段并发；测试注入的客户端优先生效 */
-    private fun fileClientFor(request: DownloadRequest): OkHttpClient =
-        clientOverride ?: if (request.expectedSize in 1 until SMALL_TRANSFER_MAX_BYTES) {
-            DOWNLOAD_OKHTTP_CLIENT_MULTIPLEX
-        } else {
-            DOWNLOAD_OKHTTP_CLIENT
-        }
-
     private suspend fun runOne(
         request: DownloadRequest,
-        failures: MutableMap<String, Throwable>,
-        transferClient: OkHttpClient
+        failures: MutableMap<String, Throwable>
     ) {
         var lastError: Throwable? = null
         repeat(retryRounds + 1) {
             try {
-                FileDownloader(
-                    request = request,
-                    connections = connections,
-                    stats = stats,
-                    allowExtraConnection = ::speedGate,
-                    client = transferClient,
-                    sourceHealth = sourceHealth
-                ).download()
+                FileDownloader(request, stats).download()
                 onFileSuccess?.invoke(request)
                 stats.markFileFinished()
+                systemicFailureCount.set(0)
                 return
             } catch (e: CancellationException) {
                 throw e
@@ -166,14 +172,22 @@ class BatchDownloader(
             Logger.error(TAG, "Download failed permanently: ${request.targetFile.absolutePath}", error)
             if (onFailureFilter?.invoke(request, error) == true) {
                 stats.markFileFinished()
-            } else {
-                failures[request.targetFile.absolutePath] = error
+                systemicFailureCount.set(0)
+                return
+            }
+            failures[request.targetFile.absolutePath] = error
+
+            //整批零成功且连续多个文件永久失败：判定为系统性故障，
+            //继续磨完剩余文件只会产生海量无效重试，立即取消整批
+            if (stats.downloadedFiles == 0) {
+                val count = systemicFailureCount.incrementAndGet()
+                if (count >= SYSTEMIC_FAILURE_LIMIT && systemicAbortCause.compareAndSet(null, error)) {
+                    Logger.warning(TAG, "Aborting batch: $count consecutive permanent failures with zero successful downloads", error)
+                    activeFileJobs.get()?.forEach { it.cancel() }
+                }
             }
         }
     }
-
-    /** 分块扩张的闸门：只有整批速度偏低时才允许新开连接拆段 */
-    private fun speedGate(): Boolean = stats.refreshSpeed() < DownloadStats.LOW_SPEED_THRESHOLD_BPS
 
     companion object {
         private const val TAG = "BatchDownloader"
@@ -183,12 +197,7 @@ class BatchDownloader(
         /** 异常详情中最多列出的失败条数 */
         private const val MAX_FAILURE_DETAIL_LINES = 20
 
-        /** 小于该阈值的文件走 h2 多路复用客户端；更大的文件保持 1.1 分段并发 */
-        const val SMALL_TRANSFER_MAX_BYTES: Long = 4L * 1024L * 1024L
-
-        fun resolveTransferClient(sample: DownloadRequest?): OkHttpClient =
-            sample?.takeIf { it.expectedSize in 1 until SMALL_TRANSFER_MAX_BYTES }
-                ?.let { DOWNLOAD_OKHTTP_CLIENT_MULTIPLEX }
-                ?: DOWNLOAD_OKHTTP_CLIENT
+        /** 整批零成功时，连续永久失败达到该数量即判定系统性故障并中止整批 */
+        const val SYSTEMIC_FAILURE_LIMIT = 5
     }
 }

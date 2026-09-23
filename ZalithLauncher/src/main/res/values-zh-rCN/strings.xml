@@ -1076,8 +1076,8 @@
     <string name="settings_launcher_mirror_game_source_title">游戏内容下载源</string>
     <string name="settings_launcher_mirror_asset_platform_source_title">资源平台下载源</string>
     <string name="settings_launcher_mirror_auto">自动</string>
-    <string name="settings_launcher_mirror_official_first">优先使用官方源</string>
-    <string name="settings_launcher_mirror_mirror_first">优先使用镜像源</string>
+    <string name="settings_launcher_mirror_official">尽量使用官方源</string>
+    <string name="settings_launcher_mirror_mirror">尽量使用镜像源</string>
     <string name="settings_launcher_background_title">启动器背景</string>
     <string name="settings_launcher_background_summary">选择一张图片或者一则视频作为启动器的背景</string>
     <string name="settings_launcher_background_importing">导入启动器背景文件中</string>

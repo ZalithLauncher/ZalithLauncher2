@@ -1077,8 +1077,8 @@
     <string name="settings_launcher_mirror_game_source_title">Game Download Source</string>
     <string name="settings_launcher_mirror_asset_platform_source_title">Mod Download Source</string>
     <string name="settings_launcher_mirror_auto">Auto</string>
-    <string name="settings_launcher_mirror_official_first">Prefer Official Source</string>
-    <string name="settings_launcher_mirror_mirror_first">Prefer Mirror Source</string>
+    <string name="settings_launcher_mirror_official">From Official Sources</string>
+    <string name="settings_launcher_mirror_mirror">From Mirror</string>
     <string name="settings_launcher_background_title">Launcher Background</string>
     <string name="settings_launcher_background_summary">Choose an image or video as the launcher background</string>
     <string name="settings_launcher_background_importing">Importing launcher background file</string>

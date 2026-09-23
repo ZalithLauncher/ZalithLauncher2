@@ -99,7 +99,7 @@ class MCBBSPackExporter: AbstractExporter(
             val launchInfo = MCBBSManifest.LaunchInfo(
                 minMemory = info.minMemory.takeIf { it > 0 } ?: version.getRamAllocation(context),
                 supportJava = null,
-                launchArguments = tokenize(info.jvmArgs),
+                launchArguments = tokenize(info.gameArgs),
                 javaArguments = tokenize(info.javaArgs)
             )
 

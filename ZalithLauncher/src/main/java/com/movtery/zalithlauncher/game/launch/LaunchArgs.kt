@@ -47,6 +47,7 @@ import com.movtery.zalithlauncher.utils.string.insertJSONValueList
 import com.movtery.zalithlauncher.utils.string.isEmptyOrBlank
 import com.movtery.zalithlauncher.utils.string.isLowerTo
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
+import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 import com.movtery.zalithlauncher.utils.string.toUnicodeEscaped
 import java.io.File
 
@@ -117,6 +118,9 @@ class LaunchArgs(
                 }
             }
         }
+
+        //追加版本配置的游戏参数，置于参数列表末尾
+        argsList.addAll(version.getGameArgs().splitPreservingQuotes())
 
         return argsList
     }
@@ -246,7 +250,7 @@ class LaunchArgs(
         var hasClasspath = false //是否已经在jvm参数中包含 ${classpath} 配置
 
         varArgMap["classpath_separator"] = ":"
-        varArgMap["library_directory"] = getLibrariesHome()
+        varArgMap["library_directory"] = getLibrariesHome(version.getGameHome())
         varArgMap["version_name"] = gameManifest1.id
         varArgMap["natives_directory"] = runtimeLibraryPath
         setLauncherInfo(varArgMap)
@@ -321,7 +325,7 @@ class LaunchArgs(
             if (!(GameManifest.Rule.checkRules(libItem.rules) && !libItem.isNative)) continue
             val path = libItem.progressLibrary() ?: continue
             with(libSortFix) {
-                libs.insertLib(libItem, getLibrariesHome() + "/" + path)
+                libs.insertLib(libItem, getLibrariesHome(version.getGameHome()) + "/" + path)
             }
         }
 
@@ -355,9 +359,9 @@ class LaunchArgs(
         varArgMap["auth_player_name"] = account.username
         varArgMap["auth_uuid"] = account.profileId.replace("-", "")
         varArgMap["auth_xuid"] = account.xUid ?: ""
-        varArgMap["assets_root"] = getAssetsHome()
+        varArgMap["assets_root"] = getAssetsHome(version.getGameHome())
         varArgMap["assets_index_name"] = gameManifest.assetIndex.id
-        varArgMap["game_assets"] = getAssetsHome()
+        varArgMap["game_assets"] = getAssetsHome(version.getGameHome())
         varArgMap["game_directory"] = gameDirPath.absolutePath
         varArgMap["user_properties"] = "{}"
         varArgMap["user_type"] = "msa"

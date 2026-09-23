@@ -36,6 +36,7 @@ import androidx.compose.material3.SliderColors
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -214,14 +215,20 @@ fun IndicatorSlider(
     Layout(
         modifier = modifier,
         content = {
-            Slider(
+            val state = rememberSliderState(
                 value = value,
-                onValueChange = onValueChange,
-                valueRange = valueRange,
+                steps = steps,
+                trackRange = valueRange,
+            )
+            Slider(
+                state = state,
+                onValueChange = { value ->
+                    onValueChange(value)
+                    state.value = value
+                },
                 enabled = enabled,
                 onValueChangeFinished = onValueChangeFinished,
                 interactionSource = interactionSource,
-                steps = steps,
                 colors = colors,
                 thumb = {
                     SliderDefaults.Thumb(

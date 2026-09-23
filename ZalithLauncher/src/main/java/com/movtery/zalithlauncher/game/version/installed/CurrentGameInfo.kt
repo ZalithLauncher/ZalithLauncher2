@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.game.version.installed
 
 import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
-import com.movtery.zalithlauncher.game.path.getGameHome
 import com.movtery.zalithlauncher.utils.GSON
 import com.movtery.zalithlauncher.utils.logging.Logger
 import org.apache.commons.io.FileUtils
@@ -43,9 +42,10 @@ data class CurrentGameInfo(
 ) {
     /**
      * 原子化保存当前状态到文件
+     * @param gameHome 信息所属的游戏目录
      */
-    fun saveCurrentInfo() {
-        val infoFile = getInfoFile()
+    fun saveCurrentInfo(gameHome: String) {
+        val infoFile = getInfoFile(gameHome)
         runCatching {
             FileUtils.writeByteArrayToFile(infoFile, GSON.toJson(this).toByteArray(Charsets.UTF_8))
             Logger.debug(TAG, "Current version $version has been saved to the config file.")
@@ -55,22 +55,23 @@ data class CurrentGameInfo(
     }
 }
 
-private fun getInfoFile() = File(getGameHome(), "zalith-game.cfg")
+private fun getInfoFile(gameHome: String) = File(gameHome, "zalith-game.cfg")
 
 /**
  * 刷新并返回最新的游戏信息（自动处理旧配置迁移）
+ * @param gameHome 信息所属的游戏目录
  */
-fun refreshCurrentInfo(): CurrentGameInfo {
-    val infoFile = getInfoFile()
+fun refreshCurrentInfo(gameHome: String): CurrentGameInfo {
+    val infoFile = getInfoFile(gameHome)
 
     return runCatching {
         when {
             infoFile.exists() -> loadFromJsonFile(infoFile)
-            else -> createNewConfig()
+            else -> createNewConfig(gameHome)
         }
     }.getOrElse { e ->
         Logger.error(TAG, "Refresh failed", e)
-        createNewConfig()
+        createNewConfig(gameHome)
     }
 }
 
@@ -80,9 +81,9 @@ private fun loadFromJsonFile(infoFile: File): CurrentGameInfo {
     }
 }
 
-private fun createNewConfig() = CurrentGameInfo().applyPostActions()
+private fun createNewConfig(gameHome: String) = CurrentGameInfo().applyPostActions(gameHome)
 
-private fun CurrentGameInfo.applyPostActions(): CurrentGameInfo {
-    saveCurrentInfo()
+private fun CurrentGameInfo.applyPostActions(gameHome: String): CurrentGameInfo {
+    saveCurrentInfo(gameHome)
     return this
 }

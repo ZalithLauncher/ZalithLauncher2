@@ -32,7 +32,7 @@ import com.movtery.zalithlauncher.game.download.game.GameDownloadInfo
 import com.movtery.zalithlauncher.game.download.game.GameInstaller
 import com.movtery.zalithlauncher.game.version.installed.VersionConfig
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
-import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.game.version.installed.getVersionIconFile
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.file.copyDirectoryContents
@@ -321,7 +321,7 @@ class ModPackInstaller(
 
             //复制整合包icon
             if (tempIconFile.exists() && tempIconFile.isFile) {
-                val iconFile = VersionsManager.getVersionIconFile(targetClientDir)
+                val iconFile = getVersionIconFile(targetClientDir)
                 if (iconFile.exists()) FileUtils.deleteQuietly(iconFile)
                 tempIconFile.copyTo(iconFile)
             }

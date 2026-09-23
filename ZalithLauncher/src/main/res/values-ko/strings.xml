@@ -643,7 +643,9 @@
     <string name="versions_export_pack_author">모드팩 제작자</string>
     <string name="versions_export_pack_summary">모드팩 설명</string>
     <string name="versions_export_pack_summary_hint">모드팩 설명을 작성하거나 변경 사항(Changelog)을 기록해 주세요 (Markdown 지원)</string>
-    <string name="versions_export_pack_jvm_args">게임 실행 옵션</string>
+    <string name="versions_export_pack_game_args">게임 실행 옵션</string>
+    <string name="versions_config_game_args_title">게임 실행 옵션</string>
+    <string name="versions_config_game_args_summary">게임 실행 시 게임에 전달되는 추가 인수로, 버전의 게임 인수 뒤에 추가됩니다</string>
     <string name="versions_export_pack_java_args">자바 가상 머신 매개변수</string>
     <string name="versions_export_pack_website">모드팩 웹사이트</string>
     <string name="versions_export_pack_min_memory">최소 할당 메모리</string>
@@ -721,7 +723,6 @@
     <string name="saves_manage_save_name">월드 이름</string>
     <string name="saves_manage_backup">월드 백업</string>
     <string name="generic_edit">편집</string>
-    <string name="page_title_home_page_editor">홈페이지 에디터</string>
     <string name="error_bad_request">(%s) 서버가 요청을 이해하지 못했습니다</string>
     <string name="error_forbidden">(%s) 이 리소스에 접근할 수 있는 권한이 없습니다</string>
     <string name="error_too_many_requests">(%s) 나중에 다시 시도해 주세요</string>
@@ -975,9 +976,6 @@
     <string name="control_manage_create_new_author">레이아웃 저자</string>
     <string name="control_manage_create_new_name">레이아웃 이름</string>
     <string name="control_manage_create_new">만들기</string>
-    <string name="settings_launcher_home_page_url">홈페이지 다운로드 링크:</string>
-    <string name="settings_launcher_home_page_type_local_gen_doc">문서 생성</string>
-    <string name="settings_launcher_home_page_title">홈페이지</string>
     <string name="settings_launcher_background_title">런처 배경</string>
     <string name="settings_launcher_mirror_mirror_first">미러 소스 선호</string>
     <string name="settings_launcher_mirror_official_first">공식 소스 선호</string>

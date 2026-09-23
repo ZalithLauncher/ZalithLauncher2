@@ -62,7 +62,6 @@
     <string name="page_title_version_manage">管理版本</string>
     <string name="page_title_account_list">账号列表</string>
     <string name="page_title_select_files">选择路径</string>
-    <string name="page_title_home_page_editor">主页编辑器</string>
     <!--  文件  -->
     <string name="files_browse_folder">浏览目录</string>
     <string name="files_importing">导入文件中</string>
@@ -648,6 +647,9 @@
     <string name="versions_manage_pin">置顶</string>
     <string name="versions_manage_install_exists">此名称的版本已经存在！</string>
     <string name="versions_manage_invalid">该版本无效</string>
+    <string name="home_add_version_card">添加卡片到主界面</string>
+    <string name="home_version_card_deleted">版本已删除</string>
+    <string name="home_version_card_inaccessible">无法访问游戏目录</string>
     <string name="versions_manage_rename_version">重命名版本</string>
     <string name="versions_manage_copy_version">复制版本</string>
     <string name="versions_manage_copy_version_tip">将当前版本复制为一个新的版本，且默认开启版本隔离，若开启下方的“复制所有文件”，那么将同时复制当前版本产生的所有文件（资源包、存档、游戏设置等）。</string>
@@ -741,7 +743,7 @@
     <string name="versions_export_pack_author">整合包作者</string>
     <string name="versions_export_pack_summary">整合包描述</string>
     <string name="versions_export_pack_summary_hint">描述您的整合包，或者写写更新日志（支持使用 Markdown）</string>
-    <string name="versions_export_pack_jvm_args">游戏参数</string>
+    <string name="versions_export_pack_game_args">游戏参数</string>
     <string name="versions_export_pack_java_args">Java 虚拟机参数</string>
     <string name="versions_export_pack_website">整合包官方网站</string>
     <string name="versions_export_pack_min_memory">最小分配内存</string>
@@ -930,6 +932,8 @@
     <string name="settings_game_graphics_api_default_opengl">仅首次启动时设置为 OpenGL</string>
     <string name="settings_game_jvm_args_title">JVM 启动参数</string>
     <string name="settings_game_jvm_args_summary">启动 JVM 时，额外添加的 JVM 参数，不建议在没有把握的情况下进行修改，因为这很有可能导致崩溃</string>
+    <string name="versions_config_game_args_title">游戏参数</string>
+    <string name="versions_config_game_args_summary">启动游戏时，额外传递给游戏的参数，将追加在版本自带的游戏参数之后</string>
     <string name="settings_game_show_log_automatic_title">自动显示日志</string>
     <string name="settings_game_show_log_automatic_summary">在游戏还未正式渲染画面前，自动显示日志</string>
     <string name="settings_game_log_text_size_title">日志字体大小</string>
@@ -1085,17 +1089,6 @@
     <string name="settings_launcher_background_blur_summary">调整背景的模糊效果，此选项较为消耗性能</string>
     <string name="settings_launcher_festivals_effects_title">持续型节日彩蛋效果</string>
     <string name="settings_launcher_festivals_effects_summary">在特定时间段显示持续型彩蛋效果</string>
-    <string name="settings_launcher_home_page_title">主页</string>
-    <string name="settings_launcher_home_page_type_blank">空白</string>
-    <string name="settings_launcher_home_page_type_local">从本地加载</string>
-    <string name="settings_launcher_home_page_type_url">从网络加载</string>
-    <string name="settings_launcher_home_page_type_local_tip">编辑启动器本地的主页文件，启动器使用经过扩展的 Markdown 语法描述主页，编辑完成后，点击刷新重载主页</string>
-    <string name="settings_launcher_home_page_type_local_gen_doc">生成官方主页文档</string>
-    <string name="settings_launcher_home_page_type_local_gen_doc_exists">当前已存在主页文件，你确定要将已有的主页覆盖掉，并重新生成官方文档主页吗？</string>
-    <string name="settings_launcher_home_page_type_url_tip">从指定的链接获取启动器主页文件并缓存，定时刷新重载主页</string>
-    <string name="settings_launcher_home_page_type_warning">自定义主页属于第三方内容，启动器不对其内容做任何担保，请谨慎接收陌生的主页！</string>
-    <string name="settings_launcher_home_page_url">主页下载链接：</string>
-    <string name="settings_launcher_home_page_loading">加载主页中</string>
     <!--  控制  -->
     <string name="control_keyboard_bind_title">绑定按键</string>
     <string name="control_keyboard_bind_summary">请在您的键盘上按下想要绑定的按键</string>

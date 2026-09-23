@@ -32,7 +32,7 @@ import java.io.File
  * @param selectedFiles 用户选定的要导出的文件
  * @param minMemory 用户指定的整合包最小内存大小
  * @param maxMemory 用户指定的整合包最大内存大小
- * @param jvmArgs 游戏参数
+ * @param gameArgs 游戏参数
  * @param javaArgs Java虚拟机参数
  * @param fileApi 整合包下载链接前缀
  * @param url 整合包官方网站
@@ -52,7 +52,7 @@ data class ExportInfo(
     val selectedFiles: List<File> = emptyList(),
     val minMemory: Int = 0,
     val maxMemory: Int = 0,
-    val jvmArgs: String = "",
+    val gameArgs: String = "",
     val javaArgs: String = "",
     val fileApi: String? = null,
     val url: String = "",

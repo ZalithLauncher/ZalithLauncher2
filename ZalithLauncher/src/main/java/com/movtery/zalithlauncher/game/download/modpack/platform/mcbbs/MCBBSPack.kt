@@ -180,8 +180,12 @@ class MCBBSPack(
 
             //创建版本信息
             VersionConfig.createIsolation(targetClientDir).apply {
-                //Jvm 参数
+                //游戏参数
                 manifest.launchInfo.launchArguments?.joinToString(" ")?.let { arg ->
+                    this.gameArgs = arg
+                }
+                //Jvm 参数
+                manifest.launchInfo.javaArguments?.joinToString(" ")?.let { arg ->
                     this.jvmArgs = arg
                 }
                 //内存配置

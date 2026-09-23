@@ -11,10 +11,7 @@
 **Zalith Launcher 2** 是一個全新設計、面向 **Android 裝置** 的 [Minecraft: Java Edition](https://www.minecraft.net/) 啟動器。專案使用 [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) 作為啟動核心，採用 **Jetpack Compose** 與 **Material Design 3** 構建現代化 UI 體驗。  
 我們目前正在搭建自己的官方網站 [zalithlauncher.cn](https://zalithlauncher.cn)  
 此外，我們已注意到有第三方使用「Zalith Launcher」名稱搭建了一個看似官方的網站。請注意：**該網站並非我們創建**，其透過冒用名義並植入廣告牟利。我們對此類行為**不參與、不認可、不信任**。  
-請務必提高警覺，**謹防個人隱私資訊洩露**！  
-
-[Discord 伺服器停止營運公告](.github/notice/DiscordStatus_ZH_TW.md)  
-
+請務必提高警覺，**謹防個人隱私資訊洩露**！
 
 
 

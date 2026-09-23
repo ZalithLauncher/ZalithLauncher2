@@ -820,7 +820,6 @@
     <string name="page_title_version_manage">­Gerir versões</string>
     <string name="page_title_account_list">Lista de contas</string>
     <string name="page_title_select_files">Selecionar Caminho</string>
-    <string name="page_title_home_page_editor">Editor da Página Inicial</string>
     <string name="files_browse_folder">Procurar Pasta</string>
     <string name="files_importing">A importar Ficheiros</string>
     <string name="files_delete_file">Tem certeza que deseja apagar %s?</string>
@@ -970,7 +969,9 @@
     <string name="versions_export_pack_author">Criador do Modpack</string>
     <string name="versions_export_pack_summary">Descrição do Modpack</string>
     <string name="versions_export_pack_summary_hint">Descreva o seu ModPack ou escreva registos de alterações (Markdown suportado)</string>
-    <string name="versions_export_pack_jvm_args">Argumentos do jogo</string>
+    <string name="versions_export_pack_game_args">Argumentos do jogo</string>
+    <string name="versions_config_game_args_title">Argumentos do jogo</string>
+    <string name="versions_config_game_args_summary">Argumentos adicionais passados ao jogo, anexados após os argumentos de jogo da versão</string>
     <string name="versions_export_pack_java_args">Argumentos da Máquina Virtual Java</string>
     <string name="versions_export_pack_website">Site do Modpack</string>
     <string name="versions_export_pack_pack_remote">Descarregar recursos principais do %s</string>
@@ -1102,17 +1103,6 @@
     <string name="settings_launcher_background_blur_summary">Ajuste o efeito de desfoque de fundo. Esta opção consome muito desempenho.</string>
     <string name="settings_launcher_festivals_effects_title">Ovos de Páscoa em festivais</string>
     <string name="settings_launcher_festivals_effects_summary">Exibir efeitos persistentes de easter egg durante períodos específicos</string>
-    <string name="settings_launcher_home_page_title">Página Inicial</string>
-    <string name="settings_launcher_home_page_type_blank">Em branco</string>
-    <string name="settings_launcher_home_page_type_local">Carregar do Local</string>
-    <string name="settings_launcher_home_page_type_url">Carregar da URL</string>
-    <string name="settings_launcher_home_page_type_local_tip">Edite o ficheiro da página inicial local do launcher. O launcher usa uma sintaxe Markdown estendida para descrever a página inicial. Após a edição, clique em atualizar para recarregar a página inicial.</string>
-    <string name="settings_launcher_home_page_type_local_gen_doc">Gerar Documento</string>
-    <string name="settings_launcher_home_page_type_local_gen_doc_exists">Já existe um ficheiro de página inicial. Tem certeza que deseja sobrescrever a página inicial existente e regenerar a página inicial da documentação oficial?</string>
-    <string name="settings_launcher_home_page_type_url_tip">Busca o ficheiro da página inicial do launcher a partir da ligação especificada e armazena-o no cache. Depois atualiza e recarrega a página inicial periodicamente</string>
-    <string name="settings_launcher_home_page_type_warning">Páginas iniciais personalizadas são conteúdo de terceiros. O iniciador não oferece nenhuma garantia quanto ao conteúdo delas. Tenha cuidado ao aceitar páginas iniciais desconhecidas!</string>
-    <string name="settings_launcher_home_page_url">URL de descarga da página inicial:</string>
-    <string name="settings_launcher_home_page_loading">A carregar a página inicial</string>
     <string name="control_editor_menu_new_widget_text">Adicionar texto</string>
     <string name="control_editor_menu_no_layers_title">Sem camadas de controlo</string>
     <string name="control_editor_menu_no_layers_message">Nenhuma camada de controlo foi criada para o layout de controlo atual. Crie uma camada de controlo primeiro.</string>

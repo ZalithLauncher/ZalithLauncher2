@@ -24,7 +24,6 @@ import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.support.touch_controller.VibrationHandler
-import com.movtery.zalithlauncher.game.version.installed.VersionsManager.getZalithVersionPath
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.utils.GSON
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -72,6 +71,9 @@ class VersionConfig(
     @SerializedName("jvmArgs")
     var jvmArgs: String = ""
         get() = getStringNotNull(field)
+    @SerializedName("gameArgs")
+    var gameArgs: String = ""
+        get() = getStringNotNull(field)
     @SerializedName("renderer")
     var renderer: String = ""
         get() = getStringNotNull(field)
@@ -108,6 +110,7 @@ class VersionConfig(
         skipGameIntegrityCheck: SettingState = SettingState.FOLLOW_GLOBAL,
         javaRuntime: String = "",
         jvmArgs: String = "",
+        gameArgs: String = "",
         renderer: String = "",
         driver: String = "",
         graphicsApi: GraphicsApi? = null,
@@ -124,6 +127,7 @@ class VersionConfig(
         this.skipGameIntegrityCheck = skipGameIntegrityCheck
         this.javaRuntime = javaRuntime
         this.jvmArgs = jvmArgs
+        this.gameArgs = gameArgs
         this.renderer = renderer
         this.driver = driver
         this.graphicsApi = graphicsApi
@@ -143,6 +147,7 @@ class VersionConfig(
         getSettingStateNotNull(skipGameIntegrityCheck),
         getStringNotNull(javaRuntime),
         getStringNotNull(jvmArgs),
+        getStringNotNull(gameArgs),
         getStringNotNull(renderer),
         getStringNotNull(driver),
         graphicsApi,
@@ -202,6 +207,7 @@ class VersionConfig(
             writeInt(getSettingStateNotNull(skipGameIntegrityCheck).ordinal)
             writeString(getStringNotNull(javaRuntime))
             writeString(getStringNotNull(jvmArgs))
+            writeString(getStringNotNull(gameArgs))
             writeString(getStringNotNull(renderer))
             writeString(getStringNotNull(driver))
             writeInt(graphicsApi?.ordinal ?: -1)
@@ -223,6 +229,7 @@ class VersionConfig(
             val skipGameIntegrityCheck = SettingState.entries.getOrNull(parcel.readInt()) ?: SettingState.FOLLOW_GLOBAL
             val javaRuntime = parcel.readString().orEmpty()
             val jvmArgs = parcel.readString().orEmpty()
+            val gameArgs = parcel.readString().orEmpty()
             val renderer = parcel.readString().orEmpty()
             val driver = parcel.readString().orEmpty()
             val graphicsApi = GraphicsApi.entries.getOrNull(parcel.readInt())
@@ -241,6 +248,7 @@ class VersionConfig(
                 skipGameIntegrityCheck,
                 javaRuntime,
                 jvmArgs,
+                gameArgs,
                 renderer,
                 driver,
                 graphicsApi,

@@ -33,7 +33,6 @@ import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.setting.enums.DarkMode
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
-import com.movtery.zalithlauncher.setting.enums.HomePageType
 import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
@@ -429,16 +428,6 @@ object AllSettings : SettingsRegistry() {
      * 启动器背景模糊效果类型
      */
     val backgroundBlurType = enumSetting("backgroundBlurType", BackgroundBlur.Background)
-
-    /**
-     * 启动器主页类型
-     */
-    val homePageType = enumSetting("homePageType", HomePageType.Blank)
-
-    /**
-     * 启动器网络主页下载地址
-     */
-    val homePageURL = stringSetting("homePageURL", "")
 
     /**
      * 启动器上次检查更新时，用户选择忽略的版本号

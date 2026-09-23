@@ -373,7 +373,6 @@
     <string name="game_menu_option_replacement_control">แทนที่ชุดปุ่มควบคุม</string>
     <string name="generic_edit">แก้ไข</string>
     <string name="generic_view">ดู</string>
-    <string name="page_title_home_page_editor">แก้ไขหน้าแรก</string>
     <string name="error_bad_request">[%s เซิร์ฟเวอร์ไม่สามารถเข้าใจคําขอน้ได้</string>
     <string name="error_forbidden">(%s) คุณไม่มีสิทธิในการเข้าถึงทรัพยากรนี้</string>
     <string name="error_not_acceptable">(%s) ไม่ยอมรับ</string>

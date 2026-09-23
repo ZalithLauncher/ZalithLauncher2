@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,7 +49,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.nonInteractiveScrollbar
@@ -84,7 +82,6 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.AppLanguage
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.setting.enums.DarkMode
-import com.movtery.zalithlauncher.setting.enums.HomePageType
 import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.setting.enums.applyLanguage
 import com.movtery.zalithlauncher.setting.unit.floatRange
@@ -93,12 +90,10 @@ import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedColumn
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.MarqueeText
-import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.components.RadioCard
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleEditDialog
 import com.movtery.zalithlauncher.ui.components.TitleAndSummary
-import com.movtery.zalithlauncher.ui.components.WarningCard
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.toColorOrNull
@@ -125,9 +120,7 @@ import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.viewmodel.BackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
-import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
-import com.movtery.zalithlauncher.viewmodel.LocalHomePageViewModel
 import kotlinx.coroutines.Dispatchers
 import java.io.File
 
@@ -145,8 +138,6 @@ fun LauncherSettingsScreen(
     key: NestedNavKey.Settings,
     settingsScreenKey: TitledNavKey?,
     mainScreenKey: TitledNavKey?,
-    eventViewModel: EventViewModel,
-    toHomePageEditor: () -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
 ) {
     val context = LocalContext.current
@@ -328,181 +319,6 @@ fun LauncherSettingsScreen(
                                 }
                             }
                         )
-                    }
-                }
-            }
-
-            //启动器主页
-            AnimatedItem(scope) { yOffset ->
-                SettingsCardColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
-                ) {
-                    val typeUnit = AllSettings.homePageType
-                    val urlUnit = AllSettings.homePageURL
-
-                    SettingsCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Single,
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(all = 16.dp),
-                        ) {
-                            Text(
-                                text = stringResource(R.string.settings_launcher_home_page_title),
-                                style = MaterialTheme.typography.titleSmall
-                            )
-                            //类型选择
-                            FlowRow(
-                                modifier = Modifier
-                                    .padding(top = 4.dp)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                HomePageType.entries.forEach { type ->
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        RadioButton(
-                                            selected = type == typeUnit.state,
-                                            onClick = {
-                                                typeUnit.save(type)
-                                                eventViewModel.sendEvent(
-                                                    EventViewModel.Event.HomePage.Reload
-                                                )
-                                            }
-                                        )
-                                        Text(
-                                            text = stringResource(type.textRes),
-                                            style = MaterialTheme.typography.labelMedium,
-                                        )
-                                    }
-                                }
-                            }
-                            //从本地加载
-                            AnimatedVisibility(
-                                visible = typeUnit.state == HomePageType.FromLocal
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    WarningCard(
-                                        title = stringResource(R.string.generic_tip),
-                                        icon = { innerModifier ->
-                                            Icon(
-                                                modifier = innerModifier,
-                                                painter = painterResource(R.drawable.ic_lightbulb),
-                                                contentDescription = null
-                                            )
-                                        },
-                                        text = {
-                                            Text(
-                                                text = stringResource(R.string.settings_launcher_home_page_type_local_tip),
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                            Text(
-                                                text = stringResource(R.string.settings_launcher_home_page_type_warning),
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                        }
-                                    )
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                    ) {
-                                        FilledTonalButton(
-                                            onClick = {
-                                                eventViewModel.sendEvent(
-                                                    EventViewModel.Event.HomePage.Reload
-                                                )
-                                            }
-                                        ) {
-                                            Text(text = stringResource(R.string.generic_refresh))
-                                        }
-                                        //生成官方主页文档
-                                        FilledTonalButton(
-                                            onClick = {
-                                                eventViewModel.sendEvent(
-                                                    EventViewModel.Event.HomePage.GenDocPage
-                                                )
-                                            }
-                                        ) {
-                                            Text(text = stringResource(R.string.settings_launcher_home_page_type_local_gen_doc))
-                                        }
-                                        val viewModel = LocalHomePageViewModel.current
-                                        //编辑主页文件
-                                        FilledTonalButton(
-                                            onClick = {
-                                                viewModel.loadLocalEditor()
-                                                toHomePageEditor()
-                                            }
-                                        ) {
-                                            Text(text = stringResource(R.string.generic_edit))
-                                        }
-                                    }
-                                }
-                            }
-
-                            //从网络加载
-                            AnimatedVisibility(
-                                visible = typeUnit.state == HomePageType.FromURL
-                            ) {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    WarningCard(
-                                        title = stringResource(R.string.generic_tip),
-                                        icon = { innerModifier ->
-                                            Icon(
-                                                modifier = innerModifier,
-                                                painter = painterResource(R.drawable.ic_lightbulb),
-                                                contentDescription = null
-                                            )
-                                        },
-                                        text = {
-                                            Text(
-                                                text = stringResource(R.string.settings_launcher_home_page_type_url_tip),
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                            Text(
-                                                text = stringResource(R.string.settings_launcher_home_page_type_warning),
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
-                                        }
-                                    )
-                                    //主页下载链接
-                                    OwnOutlinedTextField(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        value = urlUnit.state,
-                                        onValueChange = { urlUnit.save(it) },
-                                        singleLine = true,
-                                        label = {
-                                            Text(text = stringResource(R.string.settings_launcher_home_page_url))
-                                        },
-                                        trailingIcon = {
-                                            IconButton(
-                                                onClick = {
-                                                    eventViewModel.sendEvent(
-                                                        EventViewModel.Event.HomePage.Reload
-                                                    )
-                                                }
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.ic_refresh),
-                                                    contentDescription = stringResource(R.string.generic_refresh)
-                                                )
-                                            }
-                                        },
-                                        shape = MaterialTheme.shapes.large
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
             }

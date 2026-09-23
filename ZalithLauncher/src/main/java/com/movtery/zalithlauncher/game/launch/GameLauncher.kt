@@ -38,7 +38,6 @@ import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.download.game.parseLibraryComponents
 import com.movtery.zalithlauncher.game.multirt.Runtime
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
-import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
@@ -48,7 +47,6 @@ import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
 import com.movtery.zalithlauncher.game.support.touch_controller.ControllerProxy
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
-import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.path.PathManager
@@ -108,7 +106,7 @@ class GameLauncher(
         val manifest = GSON.fromJson(File(version.getVersionPath(), "${version.getVersionName()}.json").readText(), GameManifest::class.java)
         val clientJar = manifest.inheritsFrom?.let { inheritsFrom ->
             //FIXME: 依赖的是一个原版ID的版本，但这个版本可能是用户自行安装的，只是版本名称与ID一致，不保证客户端真的是对应版本
-            VersionsManager.getVersion(inheritsFrom)?.getClientJar()
+            version.getInheritedClientJar(inheritsFrom)
         } ?: version.getClientJar()
 
         gameManifest = VersionInfoParser(version)
@@ -165,7 +163,9 @@ class GameLauncher(
         return version.getGameDir().absolutePath
     }
 
-    override fun getLogFile(): File = VersionsManager.getLatestLog(version)
+    override fun getMinecraftPath(): String = version.getGameHome()
+
+    override fun getLogFile(): File = version.getLatestLog()
 
     override fun initEnv(screenSize: IntSize): MutableMap<String, String> {
         val envMap = super.initEnv(screenSize)
@@ -243,7 +243,7 @@ class GameLauncher(
         return launchJvm(
             context = activity,
             jvmArgs = launchArgs,
-            userHome = GamePathManager.getCurrentPath(),
+            userHome = version.getGameHome(),
             userArgs = customArgs,
             screenSize = screenSize
         )

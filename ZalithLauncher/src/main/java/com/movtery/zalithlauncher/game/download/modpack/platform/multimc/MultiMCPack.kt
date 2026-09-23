@@ -32,7 +32,7 @@ import com.movtery.zalithlauncher.game.download.modpack.install.retrieveLoader
 import com.movtery.zalithlauncher.game.download.modpack.platform.AbstractPack
 import com.movtery.zalithlauncher.game.download.modpack.platform.PackPlatform
 import com.movtery.zalithlauncher.game.version.installed.VersionConfig
-import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.game.version.installed.getVersionIconFile
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.file.copyDirectoryContents
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -110,7 +110,7 @@ open class MultiMCPack(
                         } ?: File(minecraftDir, "icon.png")
                         
                         if (iconFile.exists() && iconFile.isFile) {
-                            iconFile.copyTo(VersionsManager.getVersionIconFile(versionFolder))
+                            iconFile.copyTo(getVersionIconFile(versionFolder))
                             //成功复制后，原本有的图标应该被删除
                             iconFile.delete()
                         }

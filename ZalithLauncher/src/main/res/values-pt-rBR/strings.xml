@@ -1068,7 +1068,9 @@
     <string name="versions_export_pack_author">Criador do Modpack</string>
     <string name="versions_export_pack_summary">Descrição do Modpack</string>
     <string name="versions_export_pack_summary_hint">Descreva seu ModPack ou escreva registros de alterações (Markdown suportado)</string>
-    <string name="versions_export_pack_jvm_args">Argumentos do jogo</string>
+    <string name="versions_export_pack_game_args">Argumentos do jogo</string>
+    <string name="versions_config_game_args_title">Argumentos do jogo</string>
+    <string name="versions_config_game_args_summary">Argumentos adicionais passados ao jogo, anexados após os argumentos de jogo da versão</string>
     <string name="versions_export_pack_java_args">Argumentos da Máquina Virtual Java</string>
     <string name="versions_export_pack_website">Site do Modpack</string>
     <string name="versions_export_pack_min_memory">Quantidade de RAM mínima para rodar o Modpack:</string>
@@ -1162,19 +1164,7 @@
     <string name="notification_jvm_running_name">Serviço Keep-Alive da JVM</string>
     <string name="generic_edit">Editar</string>
     <string name="generic_view">Visualizar</string>
-    <string name="page_title_home_page_editor">Editor da Página Inicial</string>
     <string name="versions_overview_log">Executando a Log</string>
-    <string name="settings_launcher_home_page_title">Página Inicial</string>
-    <string name="settings_launcher_home_page_type_blank">Em branco</string>
-    <string name="settings_launcher_home_page_type_local">Carregar do Local</string>
-    <string name="settings_launcher_home_page_type_url">Carregar da URL</string>
-    <string name="settings_launcher_home_page_type_local_tip">Edite o arquivo da página inicial local do launcher. O launcher usa uma sintaxe Markdown estendida para descrever a página inicial. Após a edição, clique em atualizar para recarregar a página inicial.</string>
-    <string name="settings_launcher_home_page_type_local_gen_doc">Gerar Documento</string>
-    <string name="settings_launcher_home_page_type_local_gen_doc_exists">Já existe um arquivo de página inicial. Tem certeza de que deseja sobrescrever a página inicial existente e regenerar a página inicial da documentação oficial?</string>
-    <string name="settings_launcher_home_page_type_url_tip">Busca o arquivo da página inicial do launcher a partir do link especificado e o armazena em cache. Em seguida, atualiza e recarrega a página inicial periodicamente</string>
-    <string name="settings_launcher_home_page_type_warning">Páginas iniciais personalizadas são conteúdo de terceiros. O iniciador não oferece nenhuma garantia quanto ao conteúdo delas. Tenha cuidado ao aceitar páginas iniciais desconhecidas!</string>
-    <string name="settings_launcher_home_page_url">URL de download da página inicial:</string>
-    <string name="settings_launcher_home_page_loading">Carregando a página inicial</string>
     <string name="game_vulkan_check_title">Verificar Vulkan</string>
     <string name="game_vulkan_check_text">Verifique se seu dispositivo é compatível com a execução do Minecraft 26.2 ou superior com Vulkan. Os resultados são apenas para referência.</string>
     <string name="game_vulkan_check_version">Versão do Vulkan: %s</string>
@@ -1408,4 +1398,12 @@
     <string name="download_install_error_process_start">O sistema recusou-se a criar o processo de instalação. Isso geralmente é causado por memória insuficiente ou restrições em segundo plano no dispositivo. Feche os aplicativos em segundo plano e tente novamente ou force a parada do launcher e abra-o novamente.</string>
     <string name="notification_task_service_name">Serviço Keep-Alive de Tarefas</string>
     <string name="notification_task_service_running">As tarefas estão sendo executadas em segundo plano. Mantenha o launcher em execução.</string>
+    <string name="download_category_favorites">Favoritos</string>
+    <string name="favorite_add">Favorito</string>
+    <string name="favorite_added">Favoritado</string>
+    <string name="favorites_empty">Ainda não há favoritos. Vá pesquisar e adicione aos favoritos os recursos que você gosta!</string>
+    <string name="favorites_empty_filtered">Nenhum favorito corresponde aos filtros atuais</string>
+    <string name="favorites_item_unavailable">Indisponível</string>
+    <string name="favorites_sort_follow_time">Tempo de acompanhamento</string>
+    <string name="favorites_sort_title">Nome do Projeto</string>
 </resources>

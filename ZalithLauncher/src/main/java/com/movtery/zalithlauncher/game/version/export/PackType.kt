@@ -29,7 +29,7 @@ enum class PackType(val options: PackEditOptions) {
         PackEditOptions.Builder()
             .requireAuthor()
             .requireSummary()
-            .requireJvmArgs()
+            .requireGameArgs()
             .requireJavaArgs()
             .requireWebsiteUrl()
             .requireMinMemory()
@@ -71,7 +71,7 @@ enum class PackType(val options: PackEditOptions) {
 class PackEditOptions private constructor(
     val requireAuthor: Boolean = false,
     val requireSummary: Boolean = false,
-    val requireJvmArgs: Boolean = false,
+    val requireGameArgs: Boolean = false,
     val requireJavaArgs: Boolean = false,
     val requireWebsiteUrl: Boolean = false,
     val requireMinMemory: Boolean = false,
@@ -82,7 +82,7 @@ class PackEditOptions private constructor(
     class Builder {
         private var requireAuthor: Boolean = false
         private var requireSummary: Boolean = false
-        private var requireJvmArgs: Boolean = false
+        private var requireGameArgs: Boolean = false
         private var requireJavaArgs: Boolean = false
         private var requireWebsiteUrl: Boolean = false
         private var requireMinMemory: Boolean = false
@@ -92,7 +92,7 @@ class PackEditOptions private constructor(
 
         fun requireAuthor() = this.also { requireAuthor = true }
         fun requireSummary() = this.also { requireSummary = true }
-        fun requireJvmArgs() = this.also { requireJvmArgs = true }
+        fun requireGameArgs() = this.also { requireGameArgs = true }
         fun requireJavaArgs() = this.also { requireJavaArgs = true }
         fun requireWebsiteUrl() = this.also { requireWebsiteUrl = true }
         fun requireMinMemory() = this.also { requireMinMemory = true }
@@ -103,7 +103,7 @@ class PackEditOptions private constructor(
         fun build() = PackEditOptions(
             requireAuthor = requireAuthor,
             requireSummary = requireSummary,
-            requireJvmArgs = requireJvmArgs,
+            requireGameArgs = requireGameArgs,
             requireJavaArgs = requireJavaArgs,
             requireWebsiteUrl = requireWebsiteUrl,
             requireMinMemory = requireMinMemory,

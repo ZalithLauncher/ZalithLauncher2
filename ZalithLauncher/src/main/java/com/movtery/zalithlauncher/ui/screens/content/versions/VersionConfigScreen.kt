@@ -384,6 +384,25 @@ private fun GameConfigs(
             }
         )
 
+        var gameArgs by remember { mutableStateOf(config.gameArgs) }
+        TextInputSettingsCard(
+            modifier = Modifier.fillMaxWidth(),
+            position = CardPosition.Middle,
+            value = gameArgs,
+            title = stringResource(R.string.versions_config_game_args_title),
+            summary = stringResource(R.string.versions_config_game_args_summary),
+            onValueChange = { value ->
+                gameArgs = value
+                if (config.gameArgs != value) {
+                    config.gameArgs = value
+                    config.saveOrShowError(submitError)
+                }
+            },
+            label = {
+                Text(text = stringResource(R.string.versions_config_disable_if_blank))
+            }
+        )
+
         var jvmArgs by remember { mutableStateOf(config.jvmArgs) }
         TextInputSettingsCard(
             modifier = Modifier.fillMaxWidth(),

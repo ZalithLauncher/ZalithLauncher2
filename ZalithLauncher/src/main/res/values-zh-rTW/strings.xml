@@ -59,7 +59,6 @@
     <string name="page_title_version_manage">管理版本</string>
     <string name="page_title_account_list">帳號列表</string>
     <string name="page_title_select_files">選擇路徑</string>
-    <string name="page_title_home_page_editor">主頁編輯器</string>
     <!--  資料  -->
     <string name="files_browse_folder">瀏覽資料夾</string>
     <string name="files_importing">正在匯入檔案</string>
@@ -594,6 +593,9 @@
     <string name="versions_manage_pin">置頂</string>
     <string name="versions_manage_install_exists">此名稱的版本已存在！</string>
     <string name="versions_manage_invalid">此版本無效</string>
+    <string name="home_add_version_card">新增卡片至主畫面</string>
+    <string name="home_version_card_deleted">版本已刪除</string>
+    <string name="home_version_card_inaccessible">無法存取遊戲目錄</string>
     <string name="versions_manage_rename_version">重新命名版本</string>
     <string name="versions_manage_copy_version">複製版本</string>
     <string name="versions_manage_copy_version_tip">將目前版本複製為一個新版本，且預設開啟版本隔離。若勾選下方的「複製所有檔案」，則會同時複製目前版本產生的所有檔案（資源包、存檔、遊戲設定等）。</string>
@@ -687,7 +689,9 @@
     <string name="versions_export_pack_author">模組包作者</string>
     <string name="versions_export_pack_summary">模組包描述</string>
     <string name="versions_export_pack_summary_hint">描述您的模組包，或撰寫更新日誌（支援 Markdown）</string>
-    <string name="versions_export_pack_jvm_args">遊戲參數</string>
+    <string name="versions_export_pack_game_args">遊戲參數</string>
+    <string name="versions_config_game_args_title">遊戲參數</string>
+    <string name="versions_config_game_args_summary">啟動遊戲時，額外傳遞給遊戲的參數，將追加在版本自帶的遊戲參數之後</string>
     <string name="versions_export_pack_java_args">Java 虛擬機參數</string>
     <string name="versions_export_pack_website">模組包官方網站</string>
     <string name="versions_export_pack_min_memory">最小分配記憶體</string>
@@ -1081,17 +1085,6 @@
     <string name="settings_launcher_background_blur_summary">調整背景的模糊效果，此選項較為耗費效能</string>
     <string name="settings_launcher_festivals_effects_title">持續型節日彩蛋效果</string>
     <string name="settings_launcher_festivals_effects_summary">在特定時間期間顯示持續型彩蛋效果</string>
-    <string name="settings_launcher_home_page_title">主頁</string>
-    <string name="settings_launcher_home_page_type_blank">空白</string>
-    <string name="settings_launcher_home_page_type_local">從本機載入</string>
-    <string name="settings_launcher_home_page_type_url">從網路載入</string>
-    <string name="settings_launcher_home_page_type_local_tip">編輯啟動器本機的主頁檔案，啟動器使用經過擴充的 Markdown 語法描述主頁，編輯完成後，點擊重新整理以重新載入主頁</string>
-    <string name="settings_launcher_home_page_type_local_gen_doc">生成官方主頁文件</string>
-    <string name="settings_launcher_home_page_type_local_gen_doc_exists">目前已存在主頁檔案，你確定要將已有的主頁覆蓋掉，並重新生成官方文件主頁嗎？</string>
-    <string name="settings_launcher_home_page_type_url_tip">從指定的連結獲取啟動器主頁檔案並快取，定時重新整理以重新載入主頁</string>
-    <string name="settings_launcher_home_page_type_warning">自訂主頁屬於第三方內容，啟動器不對其內容做任何擔保，請謹慎接收不熟悉的主頁！</string>
-    <string name="settings_launcher_home_page_url">主頁下載連結：</string>
-    <string name="settings_launcher_home_page_loading">載入主頁中</string>
     <string name="just_now">現在</string>
     <string name="minutes_ago">%d 分鐘前</string>
     <string name="hours_ago">%d 小時前</string>

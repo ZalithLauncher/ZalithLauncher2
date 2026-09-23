@@ -16,33 +16,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.txt>.
  */
 
-package com.movtery.zalithlauncher.ui.screens.main.custom_home
+package com.movtery.cardgrid.model
 
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
-import coil3.compose.AsyncImage
+import androidx.compose.ui.unit.IntOffset
+
+/** 卡片内容的 composable 类型，参数为卡片自身 id */
+typealias CardContent = @Composable CardState.(cardId: String) -> Unit
 
 /**
- * 自定义主页内的高级图片组件，Markdown自身的图片语法太过简陋
- * 可能不满足部分场景需求
+ * 用户卡片的类型声明，未声明形状时使用主题默认形状。
+ * @param defaultSpan 默认跨度
+ * @param limits 尺寸边界限制
+ * @param shape 形状
+ * @param content 该卡片的 UI 内容
  */
-@Composable
-fun CustomHomeImage(
-    url: String,
-    modifier: Modifier = Modifier,
-    shape: Shape? = null,
-) {
-    AsyncImage(
-        modifier = modifier.clip(shape ?: RoundedCornerShape(0.dp)),
-        model = url,
-        alignment = Alignment.Center,
-        contentScale = ContentScale.FillWidth,
-        contentDescription = null,
-    )
-}
+class CardType(
+    val typeId: String,
+    val defaultSpan: IntOffset,
+    val limits: CardLimits = CardLimits.DEFAULT,
+    val shape: Shape? = null,
+    val content: CardContent
+)

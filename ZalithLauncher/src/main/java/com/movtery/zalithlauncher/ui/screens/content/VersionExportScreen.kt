@@ -143,7 +143,11 @@ private class ExportModpackViewModel(
     val mcVersion: String,
     val versionName: String,
     val gamePath: File,
-    val loader: ExportInfo.LoaderVersion?
+    val loader: ExportInfo.LoaderVersion?,
+    /** 当前版本配置的游戏参数，导出时预填 */
+    val gameArgs: String,
+    /** 当前版本配置的 JVM 参数，导出时预填 */
+    val javaArgs: String
 ): ViewModel() {
     private val _allFiles = MutableStateFlow<List<FileSelectionData>>(emptyList())
     /** 当前可供选择的全部文件/目录 */
@@ -186,6 +190,8 @@ private class ExportModpackViewModel(
             version = "1.0",
             mcVersion = mcVersion,
             loader = loader,
+            gameArgs = gameArgs,
+            javaArgs = javaArgs,
             packType = packType,
             packModrinth = packModrinth,
             packCurseForge = packCurseForge
@@ -417,7 +423,9 @@ private fun rememberExportModpackViewModel(
         gamePath = version.getGameDir(),
         loader = info.loaderInfo?.let { loader ->
             ExportInfo.LoaderVersion(loader.loader, loader.version)
-        }
+        },
+        gameArgs = version.getGameArgs(),
+        javaArgs = version.getJvmArgs()
     )
 }
 

@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.ui.screens.content
 
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -34,7 +33,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -53,7 +51,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
@@ -69,8 +66,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.movtery.zalithlauncher.BuildConfig
-import com.movtery.zalithlauncher.BuildKeys
+import com.movtery.cardgrid.state.rememberCardGridState
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.version.installed.Version
@@ -79,17 +75,15 @@ import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
-import com.movtery.zalithlauncher.ui.components.defaultRichTextStyle
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.AccountAvatar
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
-import com.movtery.zalithlauncher.ui.screens.main.custom_home.MarkdownBlock
-import com.movtery.zalithlauncher.ui.screens.main.custom_home.customHomePage
+import com.movtery.zalithlauncher.ui.screens.content.home.HomeGrid
+import com.movtery.zalithlauncher.ui.screens.content.home.version.LocalHomeCardLauncher
+import com.movtery.zalithlauncher.ui.screens.content.home.version.LocalHomeCardVersionSettings
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
-import com.movtery.zalithlauncher.viewmodel.HomePageState
-import com.movtery.zalithlauncher.viewmodel.LocalHomePageViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 
 @Composable
@@ -98,7 +92,6 @@ fun LauncherScreen(
     navigateToVersions: (Version) -> Unit,
     onLaunchGame: (Version?) -> Unit,
     onOpenLink: (String) -> Unit,
-    onHomePageEvent: (MarkdownBlock.Button.Event) -> Unit,
 ) {
     BaseScreen(
         screenKey = NormalNavKey.LauncherMain,
@@ -117,7 +110,10 @@ fun LauncherScreen(
                 ContentMenu(
                     modifier = Modifier.weight(7f),
                     isVisible = isVisible,
-                    onHomePageEvent = onHomePageEvent
+                    onLaunchGame = { version ->
+                        onLaunchGame(version)
+                    },
+                    onOpenVersionSettings = navigateToVersions
                 )
             }
 
@@ -153,90 +149,29 @@ fun LauncherScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ContentMenu(
     isVisible: Boolean,
-    onHomePageEvent: (MarkdownBlock.Button.Event) -> Unit,
+    onLaunchGame: (Version) -> Unit,
+    onOpenVersionSettings: (Version) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val yOffset by swapAnimateDpAsState(
         targetValue = (-40).dp,
         swapIn = isVisible
     )
+    val gridState = rememberCardGridState()
 
-    val homePageViewModel = LocalHomePageViewModel.current
-    val pageState by homePageViewModel.pageState.collectAsStateWithLifecycle()
-    val richTextStyle = defaultRichTextStyle()
-
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-        contentPadding = PaddingValues(all = 12.dp)
+    CompositionLocalProvider(
+        LocalHomeCardLauncher provides onLaunchGame,
+        LocalHomeCardVersionSettings provides onOpenVersionSettings
     ) {
-        if (BuildConfig.DEBUG) {
-            item {
-                //debug版本关不掉的警告，防止有人把测试版当正式版用 XD
-                BackgroundCard(
-                    shape = MaterialTheme.shapes.extraLarge,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.generic_warning),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = stringResource(R.string.launcher_version_debug_warning, BuildKeys.LAUNCHER_NAME),
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-                        Text(
-                            modifier = Modifier
-                                .alpha(0.8f)
-                                .align(Alignment.End),
-                            text = stringResource(R.string.launcher_version_debug_warning_cant_close),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
-            }
-        }
-
-        when (val state = pageState) {
-            is HomePageState.Blank -> {}
-            is HomePageState.Loading -> {
-                item(key = "homepage_loading_box") {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(all = 24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            LoadingIndicator()
-                            Text(
-                                text = stringResource(R.string.settings_launcher_home_page_loading),
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                        }
-                    }
-                }
-            }
-            is HomePageState.None -> {
-                customHomePage(
-                    blocks = state.page,
-                    richTextStyle = richTextStyle,
-                    onEvent = onHomePageEvent
-                )
-            }
-        }
+        HomeGrid(
+            state = gridState,
+            modifier = modifier
+                .fillMaxSize()
+                .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+        )
     }
 }
 

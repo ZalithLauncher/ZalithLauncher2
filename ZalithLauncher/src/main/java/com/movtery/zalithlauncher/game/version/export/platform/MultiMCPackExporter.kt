@@ -135,7 +135,7 @@ class MultiMCPackExporter: AbstractExporter(
                 postExitCommand = null,
                 notes = info.summary,
                 javaPath = null,
-                jvmArgs = info.jvmArgs,
+                jvmArgs = version.getJvmArgs(),
                 isFullscreen = false,
                 width = null,
                 height = null,

@@ -31,6 +31,11 @@ import java.util.concurrent.ConcurrentHashMap
 /** CurseForge 指纹计算时需要剔除的空白字节：\t、\n、\r、空格 */
 val CURSEFORGE_FINGERPRINT_SKIP_BYTES = listOf(0x9, 0xa, 0xd, 0x20)
 
+/** 空白字节的剔除查找表，逐字节判断时避免装箱与线性查找 */
+private val CURSEFORGE_FINGERPRINT_SKIP_TABLE = BooleanArray(256).also { table ->
+    CURSEFORGE_FINGERPRINT_SKIP_BYTES.forEach { table[it] = true }
+}
+
 /**
  * 本地模组文件的指纹
  * @param sha1 文件的 SHA-1 值（Modrinth）
@@ -75,6 +80,7 @@ private object ModFingerprintMemoryCache {
 suspend fun computeModFingerprints(file: File): ModFingerprints = withContext(Dispatchers.IO) {
     ModFingerprintMemoryCache.get(file)?.let { return@withContext it }
 
+    val context = currentCoroutineContext()
     val digest = MessageDigest.getInstance("SHA-1")
     var filteredLength = 0
 
@@ -82,10 +88,10 @@ suspend fun computeModFingerprints(file: File): ModFingerprints = withContext(Di
         val buffer = ByteArray(8192)
         var bytesRead: Int
         while (stream.read(buffer).also { bytesRead = it } != -1) {
-            currentCoroutineContext().ensureActive()
+            context.ensureActive()
             digest.update(buffer, 0, bytesRead)
             for (i in 0 until bytesRead) {
-                if ((buffer[i].toInt() and 0xFF) !in CURSEFORGE_FINGERPRINT_SKIP_BYTES) filteredLength++
+                if (!CURSEFORGE_FINGERPRINT_SKIP_TABLE[buffer[i].toInt() and 0xFF]) filteredLength++
             }
         }
     }

@@ -52,11 +52,11 @@ import com.movtery.zalithlauncher.game.download.game.optifine.targetTempOptiFine
 import com.movtery.zalithlauncher.game.download.jvm_server.JVMSocketServer
 import com.movtery.zalithlauncher.game.download.jvm_server.JvmService
 import com.movtery.zalithlauncher.game.path.getGameHome
+import com.movtery.zalithlauncher.game.path.getVersionsHome
 import com.movtery.zalithlauncher.game.version.download.BaseMinecraftDownloader
 import com.movtery.zalithlauncher.game.version.download.MinecraftDownloader
 import com.movtery.zalithlauncher.game.version.installed.VersionConfig
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
-import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
@@ -92,7 +92,8 @@ class GameInstaller(
     private val context: Context,
     private val info: GameDownloadInfo,
     private val scope: CoroutineScope,
-    private val logOutputHolder: MutableStateFlow<TaskLogOutput?> = MutableStateFlow(null)
+    private val logOutputHolder: MutableStateFlow<TaskLogOutput?> = MutableStateFlow(null),
+    private val targetGameFolder: File = File(getGameHome())
 ) {
     private val taskExecutor = TaskFlowExecutor(scope)
     val tasksFlow: StateFlow<List<TitledTask>> = taskExecutor.tasksFlow
@@ -105,7 +106,7 @@ class GameInstaller(
     /**
      * 基础下载器
      */
-    private val downloader = BaseMinecraftDownloader()
+    private val downloader = BaseMinecraftDownloader(targetGameFolder.absolutePath)
 
     /**
      * 目标游戏客户端目录（缓存）
@@ -114,11 +115,6 @@ class GameInstaller(
     private var targetClientDir: File? = null
     private val overrideClientJar: File get() = File(PathManager.DIR_CACHE, "override_${info.customVersionName}_jar")
     private val overrideClientJson: File get() = File(PathManager.DIR_CACHE, "override_${info.customVersionName}_json")
-
-    /**
-     * 目标游戏目录
-     */
-    private val targetGameFolder: File = File(getGameHome())
 
     /**
      * 安装 Minecraft 游戏
@@ -225,7 +221,7 @@ class GameInstaller(
      */
     private fun createPathConfig(checkTargetVersion: Boolean): InstallationPathConfig {
         //目标版本目录
-        val targetClientDir1 = VersionsManager.getVersionPath(info.customVersionName)
+        val targetClientDir1 = File(getVersionsHome(targetGameFolder.absolutePath), info.customVersionName)
         targetClientDir = targetClientDir1
         val targetVersionJson = File(targetClientDir1, "${info.customVersionName}.json")
         val targetVersionJar = File(targetClientDir1, "${info.customVersionName}.jar")

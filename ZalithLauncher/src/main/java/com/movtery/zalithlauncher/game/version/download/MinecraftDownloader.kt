@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.game.version.download
 import android.content.Context
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
+import com.movtery.zalithlauncher.game.path.getGameHome
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.game.versioninfo.models.VersionManifest
 import com.movtery.zalithlauncher.ui.androidText
@@ -47,7 +48,8 @@ class MinecraftDownloader(
     private val context: Context,
     private val version: String,
     private val customName: String = version,
-    private val downloader: BaseMinecraftDownloader = BaseMinecraftDownloader(),
+    private val gameHome: String = getGameHome(),
+    private val downloader: BaseMinecraftDownloader = BaseMinecraftDownloader(gameHome),
     private val mode: DownloadMode = DownloadMode.DOWNLOAD,
     private val onCompletion: suspend (Task) -> Unit = {},
     private val onError: (message: String) -> Unit = {},

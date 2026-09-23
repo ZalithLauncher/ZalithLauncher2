@@ -130,6 +130,11 @@ abstract class Launcher(
     abstract fun getLogFile(): File
     abstract fun exit()
 
+    /**
+     * 游戏目录（.minecraft），默认为当前选择的游戏目录
+     */
+    protected open fun getMinecraftPath(): String = getGameHome()
+
     protected suspend fun launchJvm(
         context: Context,
         jvmArgs: List<String>,
@@ -228,7 +233,7 @@ abstract class Launcher(
             put("user.timezone", TimeZone.getDefault().id)
             put("os.name", "Linux")
             put("os.version", "Android-${Build.VERSION.RELEASE}")
-            put("pojav.path.minecraft", getGameHome())
+            put("pojav.path.minecraft", getMinecraftPath())
             put("pojav.path.private.account", PathManager.DIR_DATA_BASES.absolutePath)
             put("org.lwjgl.vulkan.libname", "libvulkan.so")
             // LWJGL 3.4 的 Library.loadSystem 通过该属性定位 native 库。

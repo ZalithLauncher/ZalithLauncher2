@@ -54,7 +54,18 @@ object LWJGLCharSender : CharacterSenderStrategy {
     }
 
     override fun sendChar(character: Char) {
-        CallbackBridge.sendChar(character, 0)
+        // 按键与字符成对发送：lwjglx 系 LWJGL2 兼容层将字母等 keydown 暂存，
+        // 待 charMods 事件合并后才投给游戏，只发字符无法驱动按键绑定
+        val index = EfficientAndroidLWJGLKeycode.getIndexByKey(
+            EfficientAndroidLWJGLKeycode.getAndroidKeycode(character)
+        )
+        if (index < 0) {
+            CallbackBridge.sendChar(character, 0)
+            return
+        }
+        val keycode = EfficientAndroidLWJGLKeycode.getValueByIndex(index).toInt()
+        CallbackBridge.sendKeycode(keycode, character, 0, CallbackBridge.getCurrentMods(), true)
+        CallbackBridge.sendKeycode(keycode, character, 0, CallbackBridge.getCurrentMods(), false)
     }
 
     override fun sendOther(key: KeyEvent) {

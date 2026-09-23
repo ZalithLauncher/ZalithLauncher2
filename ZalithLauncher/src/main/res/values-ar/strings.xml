@@ -79,14 +79,14 @@
     <string name="crash_exit">خروج</string>
     <string name="crash_launch_crash_title">فشل تشغيل التطبيق</string>
     <string name="crash_launch_crash_message">واجه المشغل مشكلة خطيرة وتعطل أثناء بدء التشغيل</string>
-    <string name="error_import_image">فشل استيراد الصورة</string>
+    <string name="error_import_image">حدث خطأ أثناء استيراد الصورة</string>
     <string name="error_import_file">حدث خطأ أثناء استيراد الملف</string>
     <string name="error_create_dir">فشل إنشاء الدليل: %s</string>
     <string name="error_timeout">انتهت مهلة الطلب</string>
     <string name="error_network_unreachable">الشبكة غير متاحة</string>
     <string name="error_connection_failed">فشل في الاتصال بالخادم</string>
     <string name="error_parse_failed">فشل في تحليل البيانات</string>
-    <string name="error_notfound">(%s) لم يتم العثور على الموارد</string>
+    <string name="error_notfound">(%s) تعذّر العثور على العنصر المطلوب</string>
     <string name="splash_screen_unpack_desc">يحتاج مُشغِّل اللعبة إلى تثبيت هذه الملفات لضمان عمل ماين كرافت بشكل صحيح. هذه الملفات مُضمنة في التطبيق، ويجب استخراجها أولًا. انقر على الزر أدناه لبدء الاستخراج والتحديث.</string>
     <string name="splash_screen_installing">يقوم المُشغِّل باستخراج هذه الملفات. بعد الانتهاء، سيظهر تلقائيًا على الشاشة الرئيسية. يُرجى الانتظار بصبر.</string>
     <string name="splash_screen_agree">تثبيت</string>
@@ -201,7 +201,7 @@
     <string name="download_modpack_install_parse">تحليل المودباك</string>
     <string name="download_modpack_install_get_mod_url">احصل على رابط تنزيل المود (%1$d/%2$d)</string>
     <string name="download_modpack_install_overrides">استخراج ملفات المودباكات</string>
-    <string name="download_modpack_download">تنزيل المحتوى المطلوب للمودباك</string>
+    <string name="download_modpack_download">تحميل حزمة المودات (المودباك)</string>
     <string name="download_modpack_download_mods">تنزيل جميع المودات (%1$d/%2$d, %3$s)</string>
     <string name="animate_type_bounce">إهتزاز قوي</string>
     <string name="animate_type_jelly_bounce">إهتزاز</string>
@@ -320,7 +320,7 @@
     <string name="generic_saved">محفوض</string>
     <string name="generic_saving">جارٍ الحفظ…</string>
     <string name="generic_follow_system">أتباع اعدادات الهاتف</string>
-    <string name="error_unauthorized">ليس لديك صلاحيات</string>
+    <string name="error_unauthorized"> تأكد من صحة بيانات الدخول وحاول مجدداً</string>
     <string name="notification_data_terracotta_message">أثناء جلسات اللعب الجماعي، يستخدم المشغل خدمة في المقدمة لعرض حالة الاتصال الحالية، لذا يلزم الحصول على إذن الإشعار.</string>
     <string name="version_summary_fools_trendy_update">المستقبل هنا! لقد أضفنا التكنولوجيا الحديثة إلى Minecraft!</string>
     <string name="version_summary_fools_3d_shareware">لقد عثرنا على نسخة DOS من لعبة Minecraft لعام 1994 في القبو!</string>
@@ -508,9 +508,8 @@
     <string name="page_title_version_manage">إدارة الإصدارات</string>
     <string name="page_title_account_list">قائمة الحسابات</string>
     <string name="page_title_select_files">اختر المسار</string>
-    <string name="unpack_screen_jre25">بيئة Java 25 (مطلوبة لـ Minecraft 26.1+)</string>
-    <string name="unpack_screen_jna">يسمح لماينكرافت الوصول المباشر لوظائف نظام التشغيل منخفضة المستوى</string>
-    <string name="page_title_home_page_editor">محرر الصفحة الرئيسية</string>
+    <string name="unpack_screen_jre25">بيئة جافا 25 (مطلوبة لتشغيل ماين كرافت +26.1)</string>
+    <string name="unpack_screen_jna">تمكين ماين كرافت من الوصول المباشر لنظام التشغيل</string>
     <string name="files_browse_folder">تصفح المجلد</string>
     <string name="files_importing">استيراد الملفات</string>
     <string name="files_delete_file">…هل أنت متأكد من رغبتك في حذف %s؟</string>
@@ -521,4 +520,13 @@
     <string name="settings_renderer_resolution_custom_summary">اعرض اللعبة بعرض وارتفاع محددين؛ سيتم تكبير الصورة لتناسب الشاشة</string>
     <string name="settings_renderer_resolution_custom_width">العرض</string>
     <string name="settings_renderer_resolution_custom_height">الارتفاع</string>
+    <string name="duration_format">%s أيام %s ساعات %s دقائق</string>
+    <string name="error_bad_request">(%s) لم يتمكن الخادم من فهم الطلب</string>
+    <string name="error_forbidden">(%s) ليس لديك إذن للوصول إلى هذا المحتوى</string>
+    <string name="error_request_timeout">(%s) استغرق الخادم وقتاً طويلاً للاستجابة</string>
+    <string name="notification_jvm_running_name">خدمة ضمان بقاء اللعبة نشطة ومستمرة في الخلفية (JVM)</string>
+    <string name="notification_task_service_running">هناك عمليات قيد التشغيل، يُرجى عدم إغلاق المشغّل.</string>
+    <string name="download_category_favorites">المُفَضَّلَات</string>
+    <string name="download_game_version_overwrite">سيتم استبدال الإصدار الحالي: %s</string>
+    <string name="account_advanced">الإعدادات المتقدمة</string>
 </resources>

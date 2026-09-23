@@ -62,9 +62,9 @@ object GamePathManager {
     val currentPath = _currentPath.asStateFlow()
 
     /**
-     * 当前游戏路径
+     * 启动器默认游戏目录
      */
-    fun getCurrentPath(): String = File(_currentPath.value).absolutePath
+    fun getDefaultPath(): String = defaultGamePath
 
     /**
      * 当前用户路径

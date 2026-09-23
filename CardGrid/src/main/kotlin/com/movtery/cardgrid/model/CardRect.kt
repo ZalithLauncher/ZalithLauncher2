@@ -16,30 +16,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.txt>.
  */
 
-package com.movtery.zalithlauncher.setting.enums
+package com.movtery.cardgrid.model
 
-import androidx.annotation.StringRes
-import com.movtery.zalithlauncher.R
+import androidx.compose.ui.unit.IntOffset
 
 /**
- * 启动器主页类型
+ * 网格卡片的布局矩形。
+ * 坐标与尺寸均以网格单元格为单位，锚点为卡片左上角，
+ * y 轴向下为正，纵向（行数）不设上限。
  */
-enum class HomePageType(
-    @field:StringRes
-    val textRes: Int
+data class CardRect(
+    val id: String,
+    val x: Int,
+    val y: Int,
+    val width: Int,
+    val height: Int
 ) {
-    /**
-     * 空白主页
-     */
-    Blank(R.string.settings_launcher_home_page_type_blank),
+    val right: Int get() = x + width
+    val bottom: Int get() = y + height
 
-    /**
-     * 从本地加载
-     */
-    FromLocal(R.string.settings_launcher_home_page_type_local),
+    fun positionAt(position: IntOffset): CardRect = copy(x = position.x, y = position.y)
 
-    /**
-     * 从网络加载
-     */
-    FromURL(R.string.settings_launcher_home_page_type_url)
+    fun intersects(other: CardRect): Boolean =
+        x < other.right && other.x < right && y < other.bottom && other.y < bottom
 }

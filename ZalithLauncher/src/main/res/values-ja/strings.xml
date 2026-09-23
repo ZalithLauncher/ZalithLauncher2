@@ -1068,7 +1068,9 @@
     <string name="versions_export_pack_author">モッドパックの作者</string>
     <string name="versions_export_pack_summary">モッドパックの説明</string>
     <string name="versions_export_pack_summary_hint">モッドパックの設定または変更履歴を入力してください（マークダウンがサポートされています）</string>
-    <string name="versions_export_pack_jvm_args">ゲーム引数</string>
+    <string name="versions_export_pack_game_args">ゲーム引数</string>
+    <string name="versions_config_game_args_title">ゲーム引数</string>
+    <string name="versions_config_game_args_summary">ゲームの起動時にゲームへ追加で渡される引数。バージョン固有のゲーム引数の後に追加されます</string>
     <string name="versions_export_pack_java_args">Java 仮想マシンの引数</string>
     <string name="versions_export_pack_website">モッドパックの公式サイト</string>
     <string name="versions_export_pack_min_memory">最小割り当てメモリ</string>

@@ -18,8 +18,7 @@
 
 package com.movtery.zalithlauncher.game.version.installed
 
-import com.movtery.zalithlauncher.BuildKeys
-import com.movtery.zalithlauncher.game.launch.LogName
+import com.movtery.zalithlauncher.game.path.getGameHome
 import com.movtery.zalithlauncher.game.path.getVersionsHome
 import com.movtery.zalithlauncher.game.version.installed.utils.parseJsonToVersionInfo
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -97,6 +96,9 @@ object VersionsManager {
                 _isRefreshing.update { true }
                 Logger.debug(TAG, "Initiated by $tag: starting to refresh the version list.")
 
+                //本次刷新绑定的游戏目录，避免刷新过程中目录切换导致数据串目录
+                val gameHome = getGameHome()
+
                 if (trySetVersion != null) {
                     saveCurrentVersion(trySetVersion, refresh = false)
                     Logger.debug(TAG, "Has attempted to save the current version: $trySetVersion")
@@ -105,9 +107,9 @@ object VersionsManager {
                 _versions.update { emptyList() }
 
                 val newVersions = mutableListOf<Version>()
-                File(getVersionsHome()).listFiles()?.forEach { versionFile ->
+                File(getVersionsHome(gameHome)).listFiles()?.forEach { versionFile ->
                     runCatching {
-                        processVersionFile(versionFile)
+                        processVersionFile(gameHome, versionFile)
                     }.getOrNull()?.let {
                         newVersions.add(it)
                     }
@@ -115,7 +117,7 @@ object VersionsManager {
 
                 _versions.update { newVersions.sortedWith(VersionComparator) }
 
-                gameInfo = refreshCurrentInfo()
+                gameInfo = refreshCurrentInfo(gameHome)
                 Logger.debug(TAG, "Version list refreshed, refreshing the current version now.")
                 refreshCurrentVersion()
 
@@ -133,41 +135,48 @@ object VersionsManager {
         mutex.withLock {}
     }
 
-    private fun processVersionFile(versionFile: File): Version? {
-        if (versionFile.exists() && versionFile.isDirectory) {
-            var isVersion = false
+    private fun processVersionFile(gameHome: String, versionFile: File): Version? {
+        val version = loadVersion(gameHome, versionFile.name) ?: return null
+        Logger.info(TAG,
+            "Identified and added version: ${version.getVersionName()}, " +
+                    "Path: (${version.getVersionPath()}), " +
+                    "Info: ${version.getVersionInfo()?.getInfoString()}"
+        )
+        return version
+    }
 
-            //通过判断是否存在版本的.json文件，来确定其是否为一个版本
-            val jsonFile = File(versionFile, "${versionFile.name}.json")
-            val versionInfo = if (jsonFile.exists() && jsonFile.isFile) {
-                parseJsonToVersionInfo(jsonFile)?.also {
-                    //如果解析失败了，可能不是标准版本
-                    //保险起见，只有解析成功了的版本，才会被判定为有效版本
-                    isVersion = true
-                }
-            } else {
-                null
+    /**
+     * 加载指定游戏目录下的单个版本
+     * @return 版本不存在或不是有效版本文件夹时返回 null
+     */
+    fun loadVersion(gameHome: String, versionName: String): Version? {
+        val versionFile = File(getVersionsHome(gameHome), versionName)
+        if (!versionFile.exists() || !versionFile.isDirectory) return null
+
+        var isVersion = false
+
+        //通过判断是否存在版本的.json文件，来确定其是否为一个版本
+        val jsonFile = File(versionFile, "${versionFile.name}.json")
+        val versionInfo = if (jsonFile.exists() && jsonFile.isFile) {
+            parseJsonToVersionInfo(jsonFile)?.also {
+                //如果解析失败了，可能不是标准版本
+                //保险起见，只有解析成功了的版本，才会被判定为有效版本
+                isVersion = true
             }
-
-            val versionConfig = VersionConfig.parseConfig(versionFile)
-
-            val version = Version(
-                versionFile.name,
-                versionConfig,
-                versionInfo,
-                isVersion,
-                versionInfo.getVersionType()
-            )
-
-            Logger.info(TAG, 
-                "Identified and added version: ${version.getVersionName()}, " +
-                        "Path: (${version.getVersionPath()}), " +
-                        "Info: ${version.getVersionInfo()?.getInfoString()}"
-            )
-
-            return version
+        } else {
+            null
         }
-        return null
+
+        val versionConfig = VersionConfig.parseConfig(versionFile)
+
+        return Version(
+            versionFile.name,
+            gameHome,
+            versionConfig,
+            versionInfo,
+            isVersion,
+            versionInfo.getVersionType()
+        )
     }
 
     private fun refreshCurrentVersion() {
@@ -207,56 +216,6 @@ object VersionsManager {
         return null
     }
 
-    fun getVersion(name: String?): Version? {
-        return _versions.value.getVersion(name)
-    }
-
-    /**
-     * @return 通过版本名，判断其版本是否存在
-     */
-    fun checkVersionExistsByName(versionName: String?) =
-        versionName?.let { name -> _versions.value.any { it.getVersionName() == name } } ?: false
-
-    /**
-     * @return 获取 Zalith 启动器版本标识文件夹
-     */
-    fun getZalithVersionPath(version: Version) = File(version.getVersionPath(), BuildKeys.LAUNCHER_IDENTIFIER)
-
-    /**
-     * @return 通过目录获取 Zalith 启动器版本标识文件夹
-     */
-    fun getZalithVersionPath(folder: File) = File(folder, BuildKeys.LAUNCHER_IDENTIFIER)
-
-    /**
-     * @return 通过名称获取 Zalith 启动器版本标识文件夹
-     */
-    fun getZalithVersionPath(name: String) = File(getVersionPath(name), BuildKeys.LAUNCHER_IDENTIFIER)
-
-    /**
-     * @return 游戏的上一次运行日志
-     */
-    fun getLatestLog(version: Version) = File(getZalithVersionPath(version), LogName.GAME.fileName)
-
-    /**
-     * @return 获取当前版本设置的图标
-     */
-    fun getVersionIconFile(version: Version) = File(getZalithVersionPath(version), "VersionIcon.png")
-
-    /**
-     * @return 通过目录获取 Zalith 启动器版本标识文件夹
-     */
-    fun getVersionIconFile(folder: File) = File(getZalithVersionPath(folder), "VersionIcon.png")
-
-    /**
-     * @return 通过名称获取当前版本设置的图标
-     */
-    fun getVersionIconFile(name: String) = File(getZalithVersionPath(name), "VersionIcon.png")
-
-    /**
-     * @return 通过名称获取版本的文件夹路径
-     */
-    fun getVersionPath(name: String) = File(getVersionsHome(), name)
-
     /**
      * 保存当前选择的版本
      * @return 是否执行保存
@@ -274,7 +233,7 @@ object VersionsManager {
         runCatching {
             gameInfo!!.apply {
                 version = versionName
-                saveCurrentInfo()
+                saveCurrentInfo(getGameHome())
             }
             if (refresh) {
                 Logger.debug(TAG, "Current game info file saved, refreshing the current version now.")
@@ -294,7 +253,7 @@ object VersionsManager {
         val saveToCurrent = version.getVersionName() == currentVersionName
 
         val versionFolder = version.getVersionPath()
-        val renameFolder = File(getVersionsHome(), name)
+        val renameFolder = File(version.getVersionsFolder(), name)
 
         //不管重命名之后的文件夹是什么，只要这个文件夹存在，那么就必须删除
         //否则将出现问题

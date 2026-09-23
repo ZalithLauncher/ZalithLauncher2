@@ -227,6 +227,7 @@ class GameLaunchFlow(scope: CoroutineScope) {
             context = context,
             version = version.getVersionInfo()?.minecraftVersion ?: version.getVersionName(),
             customName = version.getVersionName(),
+            gameHome = version.getGameHome(),
             mode = DownloadMode.VERIFY_AND_REPAIR,
             onError = { message ->
                 submitError(

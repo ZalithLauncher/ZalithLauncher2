@@ -62,7 +62,6 @@
     <string name="page_title_version_manage">Manage Versions</string>
     <string name="page_title_account_list">Account List</string>
     <string name="page_title_select_files">Select Path</string>
-    <string name="page_title_home_page_editor">Home Page Editor</string>
     <!-- Files -->
     <string name="files_browse_folder">Browse Folder</string>
     <string name="files_importing">Importing Files</string>
@@ -649,6 +648,9 @@
     <string name="versions_manage_pin">Pin</string>
     <string name="versions_manage_install_exists">Version name already exists!</string>
     <string name="versions_manage_invalid">Invalid version</string>
+    <string name="home_add_version_card">Add card to Home screen</string>
+    <string name="home_version_card_deleted">Version deleted</string>
+    <string name="home_version_card_inaccessible">Game directory inaccessible</string>
     <string name="versions_manage_rename_version">Rename Version</string>
     <string name="versions_manage_copy_version">Copy Version</string>
     <string name="versions_manage_copy_version_tip">Copy the current version as a new version, with version isolation enabled by default. Check "Copy All Files" below to also include all generated files (resource packs, saves, game settings, etc.).</string>
@@ -742,7 +744,7 @@
     <string name="versions_export_pack_author">Modpack Author</string>
     <string name="versions_export_pack_summary">Modpack Description</string>
     <string name="versions_export_pack_summary_hint">Describe your modpack or write changelogs (Markdown supported)</string>
-    <string name="versions_export_pack_jvm_args">Game Arguments</string>
+    <string name="versions_export_pack_game_args">Game Arguments</string>
     <string name="versions_export_pack_java_args">Java Virtual Machine Arguments</string>
     <string name="versions_export_pack_website">Modpack Website</string>
     <string name="versions_export_pack_min_memory">Minimum Allocated Memory</string>
@@ -931,6 +933,8 @@
     <string name="settings_game_graphics_api_default_opengl">Only set to OpenGL on first launch</string>
     <string name="settings_game_jvm_args_title">JVM Arguments</string>
     <string name="settings_game_jvm_args_summary">Additional JVM arguments added when starting the JVM. Modifying these without proper knowledge is not recommended, as it may cause crashes</string>
+    <string name="versions_config_game_args_title">Game Arguments</string>
+    <string name="versions_config_game_args_summary">Additional arguments passed to the game, appended after the version game arguments</string>
     <string name="settings_game_show_log_automatic_title">Automatically Show Logs</string>
     <string name="settings_game_show_log_automatic_summary">Automatically show logs before the game officially renders the screen</string>
     <string name="settings_game_log_text_size_title">Log Font Size</string>
@@ -1086,17 +1090,6 @@
     <string name="settings_launcher_background_blur_summary">Adjust the background blur effect. This option consumes significant performance.</string>
     <string name="settings_launcher_festivals_effects_title">Festival Easter Eggs</string>
     <string name="settings_launcher_festivals_effects_summary">Display persistent easter egg effects during specific time periods</string>
-    <string name="settings_launcher_home_page_title">Home Page</string>
-    <string name="settings_launcher_home_page_type_blank">Blank</string>
-    <string name="settings_launcher_home_page_type_local">Load from Local</string>
-    <string name="settings_launcher_home_page_type_url">Load from URL</string>
-    <string name="settings_launcher_home_page_type_local_tip">Edit the launcher\'s local home page file. The launcher uses an extended Markdown syntax to describe the home page. After editing, click Refresh to reload the home page.</string>
-    <string name="settings_launcher_home_page_type_local_gen_doc">Generate Document</string>
-    <string name="settings_launcher_home_page_type_local_gen_doc_exists">A home page file already exists. Are you sure you want to overwrite the existing home page and regenerate the official documentation home page?</string>
-    <string name="settings_launcher_home_page_type_url_tip">Fetch the launcher home page file from the specified link and cache it, then periodically refresh and reload the home page</string>
-    <string name="settings_launcher_home_page_type_warning">Custom home pages are third-party content. The launcher does not provide any guarantee for their content. Please be cautious when accepting unfamiliar home pages!</string>
-    <string name="settings_launcher_home_page_url">Home Page Download URL:</string>
-    <string name="settings_launcher_home_page_loading">Loading Home Page</string>
     <!--  Control  -->
     <string name="control_keyboard_bind_title">Bind Key</string>
     <string name="control_keyboard_bind_summary">Press the key you want to bind on your keyboard</string>

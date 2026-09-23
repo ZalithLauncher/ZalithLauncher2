@@ -30,6 +30,7 @@ import com.movtery.zalithlauncher.ui.vulkan_checker.VCOperation
 import com.movtery.zalithlauncher.utils.GSON
 import com.movtery.zalithlauncher.utils.device.VulkanCapabilities
 import com.movtery.zalithlauncher.utils.device.VulkanChecker
+import com.movtery.zalithlauncher.utils.device.VulkanRequirements
 import com.movtery.zalithlauncher.utils.device.normalizeMcVersion
 import com.movtery.zalithlauncher.utils.device.profileSupport
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -53,7 +54,8 @@ data class VulkanCheckRecord(
     val useTurnip: Boolean,
     val driverPath: String,
     /** 设备可支持的 Minecraft 版本范围，[Range.until] 为排他上界，null 表示无上界 */
-    val supportedRanges: List<Range> = emptyList()
+    val supportedRanges: List<Range> = emptyList(),
+    val version: Int = 0,
 ) {
     @Keep
     data class Range(
@@ -111,7 +113,8 @@ class VulkanCheckerViewModel: ViewModel() {
                     supportedRanges = capabilities?.profileSupport()
                         ?.filter { it.supported }
                         ?.map { VulkanCheckRecord.Range(since = it.since, until = it.until) }
-                        ?: emptyList()
+                        ?: emptyList(),
+                    version = VulkanRequirements.VULKAN_REQUIREMENTS_VERSION
                 )
             )
             capabilities to useTurnip
@@ -125,6 +128,9 @@ class VulkanCheckerViewModel: ViewModel() {
         val path = driverPath(useTurnip, driver)
 
         loadRecord()?.takeIf { last ->
+            //判断是否使用当前版本的检查器进行检测，版本不一致则数据失效重新检查
+            last.version == VulkanRequirements.VULKAN_REQUIREMENTS_VERSION &&
+            //判断Turnip环境是否不一致，不一致则数据失效重新检查
             last.useTurnip == useTurnip && last.driverPath == path
         }?.let {
             //同一驱动状态下设备能力不变，直接按已支持的版本范围判定

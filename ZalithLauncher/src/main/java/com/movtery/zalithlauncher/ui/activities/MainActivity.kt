@@ -30,7 +30,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -92,12 +91,9 @@ import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.viewmodel.BackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
-import com.movtery.zalithlauncher.viewmodel.HomePageOperation
-import com.movtery.zalithlauncher.viewmodel.HomePageViewModel
 import com.movtery.zalithlauncher.viewmodel.LaunchGameViewModel
 import com.movtery.zalithlauncher.viewmodel.LauncherUpgradeOperation
 import com.movtery.zalithlauncher.viewmodel.LauncherUpgradeViewModel
-import com.movtery.zalithlauncher.viewmodel.LocalHomePageViewModel
 import com.movtery.zalithlauncher.viewmodel.LogShareViewModel
 import com.movtery.zalithlauncher.viewmodel.LogsUploadViewModel
 import com.movtery.zalithlauncher.viewmodel.ModpackConfirmUseMobileDataOperation
@@ -153,11 +149,6 @@ class MainActivity : BaseAppCompatActivity() {
      * 启动器更新状态 ViewModel
      */
     val launcherUpgradeViewModel: LauncherUpgradeViewModel by viewModels()
-
-    /**
-     * 启动器自定义主页 ViewModel
-     */
-    val homePageViewModel: HomePageViewModel by viewModels()
 
     /**
      * 游戏日志分享菜单 ViewModel
@@ -266,23 +257,6 @@ class MainActivity : BaseAppCompatActivity() {
                             logShareViewModel.openMenu(file)
                         }
                     }
-                    is EventViewModel.Event.HomePage.Reload -> {
-                        homePageViewModel.reloadPage(true)
-                    }
-                    is EventViewModel.Event.HomePage.GenDocPage -> {
-                        if (homePageViewModel.isLocalExists()) {
-                            //如果本地主页文件已存在，则警告用户是否进行覆盖
-                            homePageViewModel.updateOperation(
-                                HomePageOperation.WarningOverwrite
-                            )
-                        } else {
-                            homePageViewModel.genDocPage(this@MainActivity)
-                        }
-                    }
-                    is EventViewModel.Event.HomePage.Event -> {
-                        val event0 = event.event
-                        handleHomePageEvent(event0.key, event0.data)
-                    }
                     is EventViewModel.Event.VulkanCheck -> {
                         checkVulkan(event.version)
                     }
@@ -327,18 +301,14 @@ class MainActivity : BaseAppCompatActivity() {
                         viewModel = backgroundViewModel
                     )
 
-                    CompositionLocalProvider(
-                        LocalHomePageViewModel provides homePageViewModel
-                    ) {
-                        MainScreen(
-                            screenBackStackModel = screenBackStackModel,
-                            eventViewModel = eventViewModel,
-                            modpackImportViewModel = modpackImportViewModel,
-                            submitError = {
-                                errorViewModel.showError(it)
-                            }
-                        )
-                    }
+                    MainScreen(
+                        screenBackStackModel = screenBackStackModel,
+                        eventViewModel = eventViewModel,
+                        modpackImportViewModel = modpackImportViewModel,
+                        submitError = {
+                            errorViewModel.showError(it)
+                        }
+                    )
 
                     //节日彩蛋效果层
                     FestivalEffects(
@@ -441,18 +411,6 @@ class MainActivity : BaseAppCompatActivity() {
                     operation = modpackImportViewModel.confirmMobileDataOperation,
                     onConfirmUse = { use ->
                         modpackImportViewModel.confirmUseMobileData(use)
-                    }
-                )
-
-                //启动器主页操作流程
-                val homePageOp by homePageViewModel.pageOp.collectAsStateWithLifecycle()
-                HomePageOperation(
-                    operation = homePageOp,
-                    onChange = {
-                        homePageViewModel.updateOperation(it)
-                    },
-                    onGenDocPage = {
-                        homePageViewModel.genDocPage(this@MainActivity)
                     }
                 )
 
@@ -594,92 +552,6 @@ class MainActivity : BaseAppCompatActivity() {
                 }
                 return@launch
             }
-        }
-    }
-
-    /**
-     * 处理自定义主页的事件
-     */
-    private suspend fun handleHomePageEvent(
-        key: String,
-        data: String?
-    ) {
-        runCatching {
-            when (key) {
-                //浏览器内打开指定链接
-                "url" -> {
-                    data?.let { url ->
-                        val trimmed = url.trim()
-                        //防止 file://、intent:// 等危险 scheme
-                        if (trimmed.startsWith("http://", ignoreCase = true) ||
-                            trimmed.startsWith("https://", ignoreCase = true)
-                        ) {
-                            withContext(Dispatchers.Main) {
-                                this@MainActivity.openLink(trimmed)
-                            }
-                        } else {
-                            Logger.warning("HomePage", "Blocked unsafe URL from homepage event: $trimmed")
-                        }
-                    }
-                }
-                //检查启动器更新
-                "check_update" -> checkUpdate()
-                //启动当前选中的游戏版本
-                "launch_game" -> {
-                    val serverIp = data?.let { raw ->
-                        runCatching {
-                            val parms = raw.split("=", limit = 2)
-                            if (parms.size == 2 && parms[0] == "server") {
-                                parms[1].trim()
-                            } else null
-                        }.onFailure { e ->
-                            Logger.warning("HomePage", "Failed to parse quick join server parameters: $raw", e)
-                        }.getOrNull()
-                    }
-                    if (!serverIp.isNullOrEmpty()) {
-                        //禁止控制字符与换行，防止注入命令行参数或配置文件
-                        if (serverIp.none { it.code < 32 }) {
-                            launchGameViewModel.tryPlayServer(serverIp)
-                        } else {
-                            Logger.warning("HomePage", "Invalid server address from homepage event: $serverIp")
-                        }
-                    } else {
-                        launchGameViewModel.tryLaunch()
-                    }
-                }
-                //复制指定文本
-                "copy" -> {
-                    data?.let { text ->
-                        val trimmed = text.trim()
-                        withContext(Dispatchers.Main) {
-                            copyText(
-                                null,
-                                trimmed.take(10_000), //限制复制内容长度
-                                this@MainActivity,
-                                showToast = true
-                            )
-                        }
-                    }
-                }
-                //刷新主页
-                "refresh_page" -> homePageViewModel.reloadPage(true)
-                //分享游戏日志
-                "share_game_log" -> {
-                    VersionsManager.currentVersion.value?.let { version ->
-                        VersionsManager.getLatestLog(version).takeIf { it.exists() }
-                    }?.let { logFile ->
-                        withContext(Dispatchers.Main) {
-                            logsUploadViewModel.check(logFile)
-                            logShareViewModel.openMenu(logFile)
-                        }
-                    }
-                }
-                else -> {
-                    Logger.warning("HomePage", "Unknown homepage event: key=$key, data=$data")
-                }
-            }
-        }.onFailure { e ->
-            Logger.warning("HomePage", "Failed to handle homepage event: key=$key, data=$data", e)
         }
     }
 

@@ -460,6 +460,7 @@
     <string name="renderer_version_storage_permissions_sdk30">当前渲染器 %s 可通过配置文件修改设置，请先为启动器开启“管理设备所有文件”的权限，否则启动器无法读取并加载该渲染器的配置！</string>
     <!--  插件  -->
     <string name="plugin_unsupported_warning">当前插件 %s 不支持该游戏版本，继续使用可能导致游戏崩溃！您确定要无视风险坚持访问吗？</string>
+    <string name="lwjgl3ify_java_version_warning">该实例启用了 lwjgl3ify，需要 Java %1$d 或更高版本的运行时，当前选择的 Java 版本为 %2$d，可能无法启动游戏。</string>
     <string name="plugin_download_title">下载插件</string>
     <string name="plugin_download_summary">下载插件，以应用的形式进行安装，重新打开启动器即可自动加载！</string>
     <!--  账号  -->
@@ -867,6 +868,7 @@
     <!--  游戏  -->
     <string name="minecraft_download_stat_download_task">统计下载任务</string>
     <string name="minecraft_download_stat_verify_task">统计验证任务</string>
+    <string name="launch_task_lwjgl3ify">正在准备 lwjgl3ify</string>
     <string name="minecraft_download_downloading_game_files">下载游戏文件中 \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_verifying_and_repairing_files">验证并补全游戏文件中 \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">下载 Minecraft 过程中出现异常</string>

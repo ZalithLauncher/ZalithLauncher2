@@ -166,6 +166,16 @@ class GameLaunchFlow(scope: CoroutineScope) {
                 }
             }
 
+            //lwjgl3ify 兼容：合并内嵌 version.json 并解出 forgePatches，
+            //需在文件校验下载之前执行，让合并出的库闭包被本次启动的校验下载流程补齐
+            addTask(
+                icon = R.drawable.ic_build_filled,
+                title = androidText(R.string.launch_task_lwjgl3ify),
+                dispatcher = Dispatchers.IO
+            ) {
+                Lwjgl3ifyPatcher.patchIfNeeded(version)
+            }
+
             if (!version.skipGameIntegrityCheck()) {
                 //校验并修复游戏文件
                 addTask(

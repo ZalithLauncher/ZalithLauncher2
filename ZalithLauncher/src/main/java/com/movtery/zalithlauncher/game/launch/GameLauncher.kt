@@ -176,6 +176,14 @@ class GameLauncher(
         version.getVersionInfo()?.loaderInfo?.getLoaderEnvKey()?.let { loaderKey ->
             envMap[loaderKey] = "1"
         }
+        if (gameManifest.mainClass?.startsWith(Lwjgl3ifyPatcher.RFB_MAIN_CLASS_PREFIX) == true) {
+            //lwjgl3ify 初始化会向 XDG_DATA_HOME 写入桌面文件，目录缺失会导致 RFB 主线程异常退出
+            val xdgDataHome = version.getGameDir().child(".local", "share")
+            if (!xdgDataHome.isDirectory && !xdgDataHome.mkdirs()) {
+                Logger.warning(TAG, "Failed to create the XDG_DATA_HOME directory: ${xdgDataHome.absolutePath}")
+            }
+            envMap["XDG_DATA_HOME"] = xdgDataHome.absolutePath
+        }
         if (Renderers.isCurrentRendererValid()) {
             setRendererEnv(envMap)
         }

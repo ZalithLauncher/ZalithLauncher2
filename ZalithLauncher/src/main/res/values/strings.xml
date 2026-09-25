@@ -460,6 +460,7 @@
     <string name="renderer_version_storage_permissions_sdk30">The current renderer %s can be configured via a config file. Please enable the "Manage All Files" permission for the launcher first, otherwise it will not be able to read and load the renderer\'s configuration!</string>
     <!-- Plugins -->
     <string name="plugin_unsupported_warning">The plugin %s is not supported for this game version. Continuing to use it may cause the game to crash! Are you sure you want to ignore the risk and proceed?</string>
+    <string name="lwjgl3ify_java_version_warning">This instance uses lwjgl3ify, which requires a Java runtime of version %1$d or higher. The currently selected runtime is Java %2$d, which may fail to launch the game.</string>
     <string name="plugin_download_title">Download Plugin</string>
     <string name="plugin_download_summary">Download the plugin and install it as an app. Just reopen the launcher and it will load automatically!</string>
     <!-- Accounts -->
@@ -868,6 +869,7 @@
     <!-- Game -->
     <string name="minecraft_download_stat_download_task">Preparing downloads</string>
     <string name="minecraft_download_stat_verify_task">Preparing verifications</string>
+    <string name="launch_task_lwjgl3ify">Prepare lwjgl3ify</string>
     <string name="minecraft_download_downloading_game_files">Downloading files \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_verifying_and_repairing_files">Verifying files \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">An error occurred while downloading Minecraft</string>

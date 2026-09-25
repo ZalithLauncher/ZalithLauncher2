@@ -67,6 +67,7 @@ import com.movtery.zalithlauncher.game.account.accountErrorText
 import com.movtery.zalithlauncher.game.account.auth_server.AuthServerHelper
 import com.movtery.zalithlauncher.game.account.isMicrosoftAccount
 import com.movtery.zalithlauncher.game.account.microsoftLogin
+import com.movtery.zalithlauncher.game.launch.Lwjgl3ifyPatcher
 import com.movtery.zalithlauncher.game.plugin.ApkPlugin
 import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
@@ -113,6 +114,9 @@ import kotlinx.parcelize.Parcelize
 import java.io.File
 import kotlin.math.sqrt
 
+/** lwjgl3ify 要求的最低 Java 大版本 */
+private const val LWJGL3IFY_REQUIRED_JAVA_MAJOR = 21
+
 @Parcelize
 sealed interface QuickPlay : Parcelable {
     /** 快速启动游玩存档  仅支持 1.20+ 23w14a+ */
@@ -153,6 +157,14 @@ sealed interface LaunchGameOperation {
         val version: Version,
         val quickPlay: QuickPlay?
     ): LaunchGameOperation
+
+    /** 该实例使用 lwjgl3ify，但当前 Java 运行时版本低于其要求 */
+    data class UnsupportedJavaVersion(
+        val required: Int,
+        val current: Int,
+        val version: Version,
+        val quickPlay: QuickPlay?
+    ) : LaunchGameOperation
 
     /** 尝试启动：启动前检查一些东西 */
     data class TryLaunch(
@@ -283,6 +295,23 @@ fun LaunchGameOperation(
                 }
             )
         }
+        is LaunchGameOperation.UnsupportedJavaVersion -> {
+            val version = operation.version
+            val quickPlay = operation.quickPlay
+            SimpleAlertDialog(
+                title = stringResource(R.string.generic_warning),
+                text = stringResource(
+                    R.string.lwjgl3ify_java_version_warning, operation.required, operation.current
+                ),
+                confirmText = stringResource(R.string.generic_anyway),
+                onConfirm = {
+                    launchGameViewModel.updateOperation(LaunchGameOperation.RealLaunch(version, quickPlay))
+                },
+                onDismiss = {
+                    launchGameViewModel.updateOperation(LaunchGameOperation.None)
+                }
+            )
+        }
         is LaunchGameOperation.TryLaunch -> {
             LaunchedEffect(Unit) {
                 val version = operation.version ?: run {
@@ -328,6 +357,22 @@ fun LaunchGameOperation(
                 if (unsupportedPlugins.isNotEmpty()) {
                     launchGameViewModel.updateOperation(LaunchGameOperation.UnsupportedPlugins(unsupportedPlugins, version, quickPlay))
                     return@LaunchedEffect
+                }
+
+                //lwjgl3ify 实例需要 Java 21+ 运行时，当前运行时版本不足时弹窗警告
+                if (withContext(Dispatchers.IO) { Lwjgl3ifyPatcher.isLwjgl3ifyVersion(version) }) {
+                    val currentJava = withContext(Dispatchers.IO) { Lwjgl3ifyPatcher.resolveEffectiveJavaMajor(version) }
+                    if (currentJava < LWJGL3IFY_REQUIRED_JAVA_MAJOR) {
+                        launchGameViewModel.updateOperation(
+                            LaunchGameOperation.UnsupportedJavaVersion(
+                                required = LWJGL3IFY_REQUIRED_JAVA_MAJOR,
+                                current = currentJava,
+                                version = version,
+                                quickPlay = quickPlay
+                            )
+                        )
+                        return@LaunchedEffect
+                    }
                 }
 
                 //为可配置的渲染器检查文件管理权限

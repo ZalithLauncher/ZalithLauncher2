@@ -80,6 +80,9 @@ object Lwjgl3ifyPatcher {
     private const val CFG_ENTRY = "$CFG_KEY=false"
     private const val DEFAULT_TARGET_JAVA_MAJOR = 21
 
+    private const val MCMOD_INFO = "mcmod.info"
+    private const val ANGELICA_MOD_ID = "angelica"
+
     /**
      * 启动前检测 mods 目录中的 lwjgl3ify：将其内嵌的 version.json 合并进实例版本 JSON，
      * 离线解出 forgePatches 并补写 config/lwjgl3ify.cfg。
@@ -137,6 +140,60 @@ object Lwjgl3ifyPatcher {
         }
     }
 
+    /** 扫描 mods 目录检测是否存在启用的 lwjgl3ify（首次合并前版本 JSON 未被改写，以此兜底） */
+    fun isLwjgl3ifyModPresent(version: Version): Boolean {
+        return try {
+            findLwjgl3ifyJar(VersionFolders.MOD.getDir(version.getGameDir())) != null
+        } catch (e: Exception) {
+            Logger.debug(TAG, "Failed to scan the mods of ${version.getVersionName()}", e)
+            false
+        }
+    }
+
+    /** 实例当前是否受 lwjgl3ify 影响（版本 JSON 已合并，或 mods 中存在启用的 lwjgl3ify） */
+    fun isLwjgl3ifyActive(version: Version): Boolean =
+        isLwjgl3ifyVersion(version) || isLwjgl3ifyModPresent(version)
+
+    /**
+     * Angelica 与 lwjgl3ify 同时启用时，实例渲染走 LWJGL3 路径，渲染器版本范围检查不再适用；
+     * 检测口径与 FCL 的 shouldSkipRendererCheck 一致：两个 modid 同时存在
+     */
+    fun shouldSkipRendererCheck(version: Version): Boolean {
+        val modsDir = VersionFolders.MOD.getDir(version.getGameDir())
+        val jars = modsDir.takeIf { it.isDirectory }?.listFiles()
+            ?.filter { it.isFile && it.isEnabled() && it.name.endsWith(".jar", ignoreCase = true) }
+            ?: return false
+        var hasAngelica = false
+        var hasLwjgl3ify = false
+        for (jar in jars) {
+            //单个损坏的 mod jar 不应中断整个检测
+            try {
+                ZipFile(jar).use { zip ->
+                    if (!hasLwjgl3ify && zip.getEntry(EMBEDDED_VERSION_JSON) != null) hasLwjgl3ify = true
+                    if (!hasAngelica && hasMcmodId(zip, ANGELICA_MOD_ID)) hasAngelica = true
+                }
+            } catch (e: Exception) {
+                Logger.debug(TAG, "Skip unreadable mod jar ${jar.name}", e)
+            }
+            if (hasAngelica && hasLwjgl3ify) return true
+        }
+        return false
+    }
+
+    /** 判断 jar 内 mcmod.info（1.7.10 时代 mod 元数据）是否声明了指定 modid */
+    private fun hasMcmodId(zip: ZipFile, modId: String): Boolean {
+        if (zip.getEntry(MCMOD_INFO) == null) return false
+        val root = runCatching { zip.readText(MCMOD_INFO).parseToJson() }.getOrNull() ?: return false
+        val modList = when {
+            root.isJsonArray -> root.asJsonArray
+            root.isJsonObject -> root.asJsonObject.get("modList") as? JsonArray ?: return false
+            else -> return false
+        }
+        return modList.any { element ->
+            (element as? JsonObject)?.safeGetMember("modid") == modId
+        }
+    }
+
     /**
      * 计算实际生效的 Java 大版本（只做数值计算，不加载运行时文件），
      * 选择逻辑与 GameLauncher.getRuntime() 保持一致；无法确定时返回 0
@@ -174,7 +231,15 @@ object Lwjgl3ifyPatcher {
         if (!modsDir.isDirectory) return null
         return modsDir.listFiles()
             ?.filter { it.isFile && it.isEnabled() && it.name.endsWith(".jar", ignoreCase = true) }
-            ?.firstOrNull { jar -> ZipFile(jar).use { zip -> zip.getEntry(EMBEDDED_VERSION_JSON) != null } }
+            ?.firstOrNull { jar ->
+                //单个损坏的 mod jar 不应中断整个检测
+                try {
+                    ZipFile(jar).use { zip -> zip.getEntry(EMBEDDED_VERSION_JSON) != null }
+                } catch (e: Exception) {
+                    Logger.debug(TAG, "Skip unreadable mod jar ${jar.name}", e)
+                    false
+                }
+            }
     }
 
     private fun readEmbeddedVersionJson(zip: ZipFile): JsonObject? {

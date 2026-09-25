@@ -344,7 +344,10 @@ fun LaunchGameOperation(
                         (currentRenderer.getMinMCVersion()?.let { mcVer.isLowerVer(it) } ?: false) ||
                                 (currentRenderer.getMaxMCVersion()?.let { mcVer.isBiggerVer(it) } ?: false)
 
-                    if (isRendererUnsupported) {
+                    //Angelica + lwjgl3ify 同时启用时旧版本走 LWJGL3 渲染路径，跳过渲染器版本范围检查（同 FCL）
+                    if (isRendererUnsupported &&
+                        withContext(Dispatchers.IO) { !Lwjgl3ifyPatcher.shouldSkipRendererCheck(version) }
+                    ) {
                         launchGameViewModel.updateOperation(LaunchGameOperation.UnsupportedRenderer(currentRenderer, version, quickPlay))
                         return@LaunchedEffect
                     }
@@ -360,7 +363,7 @@ fun LaunchGameOperation(
                 }
 
                 //lwjgl3ify 实例需要 Java 21+ 运行时，当前运行时版本不足时弹窗警告
-                if (withContext(Dispatchers.IO) { Lwjgl3ifyPatcher.isLwjgl3ifyVersion(version) }) {
+                if (withContext(Dispatchers.IO) { Lwjgl3ifyPatcher.isLwjgl3ifyActive(version) }) {
                     val currentJava = withContext(Dispatchers.IO) { Lwjgl3ifyPatcher.resolveEffectiveJavaMajor(version) }
                     if (currentJava < LWJGL3IFY_REQUIRED_JAVA_MAJOR) {
                         launchGameViewModel.updateOperation(

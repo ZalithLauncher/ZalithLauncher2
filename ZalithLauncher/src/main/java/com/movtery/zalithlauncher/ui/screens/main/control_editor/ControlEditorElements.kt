@@ -351,9 +351,9 @@ private fun EditorMenuContent(
             .guideLazyList(listState) { key ->
                 when (key) {
                     GuideKeys.Editor.Step.CreateLayer -> "add_button"
-                    GuideKeys.Editor.Step.AddStyles -> "control_appearance_list"
-                    GuideKeys.Editor.Step.Preview -> "preview_control_layout"
-                    GuideKeys.Editor.Step.Save -> "save"
+                    GuideKeys.Editor.Step.AddStyles -> "joystick_style_list"
+                    GuideKeys.Editor.Step.Preview -> "using_gamepad"
+                    GuideKeys.Editor.Step.Save -> "save_and_exit"
                     else -> null
                 }
             }

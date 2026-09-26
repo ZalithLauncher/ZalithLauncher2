@@ -79,6 +79,10 @@ class LaunchArgs(
             argsList.add("$pkg/$pkg=ALL-UNNAMED")
         }
 
+        if (Lwjgl3ifyPatcher.isLwjgl3ifyManifest(gameManifest)) {
+            //经 MioLaunchWrapper 包装 RFB 入口启动，实际主类作为其首个参数传入
+            argsList.add("mio.Wrapper")
+        }
         argsList.add(gameManifest.mainClass)
         argsList.addAll(getMinecraftClientArgs())
 
@@ -251,7 +255,11 @@ class LaunchArgs(
 //        }
 
         val varArgMap: MutableMap<String, String> = android.util.ArrayMap()
-        val launchClassPath = "${getLWJGL3ClassPath()}:${generateLaunchClassPath(gameManifest)}"
+        val launchClassPath = buildList {
+            add(getLWJGL3ClassPath())
+            add(LibPath.MIO_LAUNCH_WRAPPER.absolutePath)
+            putLaunchClassPath(gameManifest)
+        }.joinToString(":")
         var hasClasspath = false //是否已经在jvm参数中包含 ${classpath} 配置
 
         varArgMap["classpath_separator"] = ":"
@@ -300,8 +308,7 @@ class LaunchArgs(
     /**
      * [Modified from PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/blob/a6f3fc0/app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/Tools.java#L572-L592)
      */
-    private fun generateLaunchClassPath(gameManifest: GameManifest): String {
-        val classpathList = mutableListOf<String>()
+    private fun MutableList<String>.putLaunchClassPath(gameManifest: GameManifest) {
         val classpath: Array<String> = generateLibClasspath(gameManifest)
 
         for (jarFile in classpath) {
@@ -310,13 +317,11 @@ class LaunchArgs(
                 Logger.debug(TAG, "Ignored non-exists file: $jarFile")
                 continue
             }
-            classpathList.add(jarFile)
+            add(jarFile)
         }
         if (clientJar.exists()) {
-            classpathList.add(clientJar.absolutePath)
+            add(clientJar.absolutePath)
         }
-
-        return classpathList.joinToString(":")
     }
 
     /**

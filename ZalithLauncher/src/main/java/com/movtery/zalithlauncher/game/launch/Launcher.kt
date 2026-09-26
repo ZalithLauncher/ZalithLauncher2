@@ -183,6 +183,8 @@ abstract class Launcher(
         progressFinalUserArgs(args)
 
         args.addAll(jvmArgs)
+        //对齐 FCL：cacio 的 -javaagent 先于 Mio 注册
+        moveMioAgentAfterCacio(args)
         args.add(0, "$runtimeHome/bin/java")
 
         LoggerBridge.appendTitle("JVM Args")
@@ -368,6 +370,22 @@ abstract class Launcher(
 
         // Some phones are not using the right number of cores, fix that
         args.add("-XX:ActiveProcessorCount=${java.lang.Runtime.getRuntime().availableProcessors()}")
+    }
+
+    /**
+     * 将 Mio 的 -javaagent 移动到 cacio 之后：JPLIS 按参数顺序执行各 agent 的 premain，
+     * 后注册的 agent 的类加载会经过先注册者的 ClassFileTransformer。cacio premain 会
+     * 加载大量 AWT 类，需避免其穿过 Mio 的转换器（与 FCL 的注入顺序一致）。
+     */
+    private fun moveMioAgentAfterCacio(args: MutableList<String>) {
+        val mioAgent = "-javaagent:${LibPath.MIO_LIB_PATCHER.absolutePath}"
+        val mioIndex = args.indexOf(mioAgent)
+        //Java 8 的 cacio 无 agent，无需调整
+        val cacioIndex = args.indexOfFirst { it.startsWith("-javaagent:${LibPath.CACIO_17_AGENT.absolutePath}") }
+        if (mioIndex < 0 || cacioIndex < 0 || mioIndex > cacioIndex) return
+        args.removeAt(mioIndex)
+        args.add(cacioIndex, mioAgent)
+        Logger.info(TAG, "Reordered the Mio agent after cacio to match the FCL premain order")
     }
 
     protected fun MutableList<String>.purgeArg(argStart: String) {

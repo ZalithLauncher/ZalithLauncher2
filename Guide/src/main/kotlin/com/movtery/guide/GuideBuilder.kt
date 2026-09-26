@@ -14,26 +14,30 @@ class GuideBuilder internal constructor() {
 
     /**
      * 声明一个引导步骤，声明顺序即步骤顺序
+     * @param showNextTip 是否显示下一步提示
      */
     fun entry(
         key: GuideKey,
         nodeClick: NodeClickMode = NodeClickMode.Intercept,
         advanceOnScrimClick: Boolean = true,
         placement: GuidePlacement = GuidePlacement.Auto,
+        showNextTip: Boolean = true,
         content: @Composable (GuideScope) -> Unit
     ) {
-        entries += GuideEntry(key, nodeClick, advanceOnScrimClick, placement, content)
+        entries += GuideEntry(key, nodeClick, advanceOnScrimClick, placement, showNextTip, content)
     }
 
     /**
      * 声明一个介绍步骤
+     * @param showNextTip 是否显示下一步提示
      */
-    fun intro(content: @Composable (GuideScope) -> Unit) {
+    fun intro(showNextTip: Boolean = true, content: @Composable (GuideScope) -> Unit) {
         entries += GuideEntry(
             key = object : GuideKey {},
             nodeClick = NodeClickMode.Intercept,
             advanceOnScrimClick = true,
             placement = GuidePlacement.Fixed(Alignment.Center),
+            showNextTip = showNextTip,
             content = content,
             isIntro = true
         )

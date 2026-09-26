@@ -1187,4 +1187,6 @@
     <string name="guide_editor_styles_text">コントロールの外観を作成しておけば、簡単に再利用や切り替えができます</string>
     <string name="guide_editor_preview">プレビュー機能を使ってコントロールレイアウトを試してみましょう。</string>
     <string name="guide_editor_save">編集が終わったら、コントロールレイアウトの保存を忘れずに！</string>
+    <string name="guide_tip_blank">空いている場所をタップして次に進みましょう</string>
+    <string name="guide_tip_finish">空いている場所をタップしてガイドを終了しましょう</string>
 </resources>

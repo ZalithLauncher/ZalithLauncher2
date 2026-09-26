@@ -23,6 +23,14 @@ object GuideDefaults {
      */
     val holeBorder: Color = Color.White
     /**
+     * 下一步提示与屏幕边缘的留白
+     */
+    val nextTipPadding: Dp = 24.dp
+    /**
+     * 下一步提示与障碍物的判定边距
+     */
+    val nextTipMargin: Dp = 16.dp
+    /**
      * 引导内容与锚点的间距
      */
     val contentGap: Dp = 12.dp

@@ -201,4 +201,6 @@
     <string name="guide_editor_styles_text">Puoi creare aspetti per i tuoi controlli, da riutilizzare e cambiare rapidamente</string>
     <string name="guide_editor_preview">Usa la modalità di anteprima per provare il tuo layout di controlli</string>
     <string name="guide_editor_save">Quando hai finito di modificare, non dimenticare di salvare il layout di controlli!</string>
+    <string name="guide_tip_blank">Tocca un punto vuoto per passare al passaggio successivo</string>
+    <string name="guide_tip_finish">Tocca un punto vuoto per terminare la guida</string>
 </resources>

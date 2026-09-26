@@ -1431,4 +1431,6 @@
     <string name="guide_editor_styles_text">Kamu bisa membuat tampilan untuk kontrol agar cepat digunakan kembali dan ditukar</string>
     <string name="guide_editor_preview">Gunakan mode pratinjau untuk menguji tata letak kontrolmu</string>
     <string name="guide_editor_save">Setelah selesai mengedit, jangan lupa menyimpan tata letak kontrol!</string>
+    <string name="guide_tip_blank">Ketuk area kosong mana pun untuk lanjut ke langkah berikutnya</string>
+    <string name="guide_tip_finish">Ketuk area kosong mana pun untuk mengakhiri panduan</string>
 </resources>

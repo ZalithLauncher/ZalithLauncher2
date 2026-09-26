@@ -27,6 +27,7 @@ class GuideControllerTest {
                     nodeClick = NodeClickMode.Intercept,
                     advanceOnScrimClick = true,
                     placement = GuidePlacement.Auto,
+                    showNextTip = true,
                     content = { }
                 )
             },
@@ -144,6 +145,7 @@ class GuideControllerTest {
             nodeClick = NodeClickMode.Intercept,
             advanceOnScrimClick = true,
             placement = GuidePlacement.Fixed(Alignment.Center),
+            showNextTip = true,
             content = { },
             isIntro = true
         )
@@ -155,6 +157,7 @@ class GuideControllerTest {
                     nodeClick = NodeClickMode.Intercept,
                     advanceOnScrimClick = true,
                     placement = GuidePlacement.Auto,
+                    showNextTip = true,
                     content = { }
                 )
             ),

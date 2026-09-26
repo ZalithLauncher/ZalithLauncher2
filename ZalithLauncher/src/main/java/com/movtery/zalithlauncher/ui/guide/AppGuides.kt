@@ -33,11 +33,13 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.movtery.guide.GuideController
+import com.movtery.guide.NextTip
 import com.movtery.guide.NodeClickMode
 import com.movtery.guide.rememberGuide
 import com.movtery.zalithlauncher.BuildKeys
@@ -211,8 +213,28 @@ fun EventViewModel.sendStartGuideOnce(group: GuideKeys.Keys) {
     sendEvent(EventViewModel.Event.Guide.StartGuideOnce(group))
 }
 
+@Composable
+fun NextTipLabel(tip: NextTip) {
+    Box(
+        modifier = Modifier
+            .widthIn(max = 360.dp)
+            .clip(MaterialTheme.shapes.large)
+            .background(Color.Black.copy(alpha = 0.4f))
+            .alpha(0.8f)
+    ) {
+        Text(
+            modifier = Modifier.padding(all = 8.dp),
+            text = when (tip) {
+                NextTip.TapBlank -> stringResource(R.string.guide_tip_blank)
+                NextTip.Finish -> stringResource(R.string.guide_tip_finish)
+            },
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
+}
+
 /**
- * 主界面引导的文本卡片
+ * 引导的文本卡片
  */
 @Composable
 private fun GuideCard(

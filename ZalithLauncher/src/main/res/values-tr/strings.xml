@@ -1229,4 +1229,6 @@
     <string name="guide_editor_styles_text">Kontroller için görünümler oluşturabilir; bunları hızlıca yeniden kullanıp aralarında geçiş yapabilirsiniz</string>
     <string name="guide_editor_preview">Kontrol düzenini test etmek için önizleme modunu kullanabilirsin</string>
     <string name="guide_editor_save">Düzenlemeyi bitirdiğinde kontrol düzenini kaydetmeyi unutma!</string>
+    <string name="guide_tip_blank">Sonraki adıma geçmek için boş bir yere dokunun</string>
+    <string name="guide_tip_finish">Rehberi tamamlamak için boş bir yere dokunun</string>
 </resources>

@@ -62,6 +62,7 @@ internal fun GuideOverlay(
     state: GuideState.Active,
     registry: GuideRegistry,
     fadeAlpha: Float,
+    nextTip: @Composable (NextTip) -> Unit,
     animations: GuideAnimations
 ) {
     val entry = state.entry
@@ -158,6 +159,24 @@ internal fun GuideOverlay(
                 gapPx = gapPx,
                 paddingPx = paddingPx,
                 onPlaced = { rect -> if (contentRect != rect) contentRect = rect }
+            )
+
+            // 下一步提示
+            val tip: NextTip? = when {
+                !entry.showNextTip -> null
+                entry.nodeClick == NodeClickMode.PassThrough -> null // 用户点击元素推进，无提示
+                state.index == controller.entries.lastIndex -> NextTip.Finish
+                entry.advanceOnScrimClick -> NextTip.TapBlank
+                else -> null
+            }
+            NextTipSlot(
+                tip = tip,
+                anchors = anchors,
+                contentRect = contentRect,
+                containerSize = containerSize,
+                fadeAlpha = fadeAlpha,
+                animations = animations,
+                content = nextTip
             )
         }
     }
@@ -388,6 +407,91 @@ private fun Rect.scaleAroundCenter(scale: Float): Rect {
         lerp(c.x, right, s),
         lerp(c.y, bottom, s)
     )
+}
+
+/**
+ * 下一步提示槽位：组合宿主提供的提示布局并负责定位。
+ * 位置默认在左下角，被锚点或引导内容占用时求解新位置并弹性随动；
+ * 提示出现与隐藏时整体淡入淡出，隐藏动画结束后移除内容
+ */
+@Composable
+private fun NextTipSlot(
+    tip: NextTip?,
+    anchors: List<Rect>,
+    contentRect: Rect?,
+    containerSize: IntSize,
+    fadeAlpha: Float,
+    animations: GuideAnimations,
+    content: @Composable (NextTip) -> Unit
+) {
+    var displayedTip by remember { mutableStateOf<NextTip?>(null) }
+    if (tip != null && displayedTip != tip) displayedTip = tip
+
+    val density = LocalDensity.current
+    val paddingPx = with(density) { GuideDefaults.nextTipPadding.toPx() }
+    val marginPx = with(density) { GuideDefaults.nextTipMargin.toPx() }
+
+    val alphaAnim = remember { Animatable(0f) }
+    LaunchedEffect(tip != null) {
+        alphaAnim.animateTo(
+            targetValue = if (tip != null) 1f else 0f,
+            animationSpec = if (animations.enabled) {
+                spring(
+                    dampingRatio = animations.fadeSpring.dampingRatio,
+                    stiffness = animations.fadeSpring.stiffness
+                )
+            } else {
+                snap()
+            }
+        )
+        if (tip == null) displayedTip = null
+    }
+
+    // 首次求解前为 null，此时直接摆放求解结果，避免提示从原点飞入
+    val targetState = remember { mutableStateOf<IntOffset?>(null) }
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .graphicsLayer { alpha = alphaAnim.value * fadeAlpha }
+    ) {
+        val animatedOffset = targetState.value?.let { target ->
+            animateIntOffsetAsState(
+                targetValue = target,
+                animationSpec = if (animations.enabled) {
+                    spring(
+                        dampingRatio = animations.spatialSpring.dampingRatio,
+                        stiffness = animations.spatialSpring.stiffness
+                    )
+                } else {
+                    snap()
+                },
+                label = "nextTipOffset"
+            )
+        }
+
+        Layout(
+            content = { displayedTip?.let { content(it) } }
+        ) { measurables, constraints ->
+            val loose = Constraints(maxWidth = constraints.maxWidth, maxHeight = constraints.maxHeight)
+            val placeable = measurables.firstOrNull()?.measure(loose)
+            val tipSize = IntSize(placeable?.width ?: 0, placeable?.height ?: 0)
+            val solved = displayedTip?.let {
+                solveNextTip(
+                    tipSize = tipSize,
+                    containerSize = containerSize,
+                    paddingPx = paddingPx,
+                    marginPx = marginPx,
+                    obstacles = anchors + listOfNotNull(contentRect)
+                )
+            }
+            if (solved != null && targetState.value != solved) targetState.value = solved
+            val offset = animatedOffset?.value ?: solved ?: IntOffset.Zero
+            layout(constraints.maxWidth, constraints.maxHeight) {
+                placeable?.place(offset.x, offset.y)
+            }
+        }
+    }
 }
 
 /**

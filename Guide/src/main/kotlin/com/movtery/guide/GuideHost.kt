@@ -19,12 +19,14 @@ import androidx.compose.ui.Modifier
  * 引导画布
  * 任一引导流激活时渲染遮罩、镂空与该流的引导内容
  * @param guides 画布观察的全部引导流
+ * @param nextTip 下一步提示的布局，引导层推导 [NextTip] 状态并负责定位
  * @param animations 引导层动画配置
  */
 @Composable
 fun GuideHost(
     vararg guides: GuideController,
     modifier: Modifier = Modifier,
+    nextTip: @Composable (NextTip) -> Unit = {},
     animations: GuideAnimations = GuideAnimations.Default,
     content: @Composable () -> Unit
 ) {
@@ -81,6 +83,7 @@ fun GuideHost(
                 state = state,
                 registry = registry,
                 fadeAlpha = fadeAlpha,
+                nextTip = nextTip,
                 animations = animations
             )
         }

@@ -1515,4 +1515,8 @@
     <string name="guide_editor_preview">Use the preview mode to test out your control layout</string>
     <!-- Final guide card reminding the user to save the control layout -->
     <string name="guide_editor_save">Once you\'re done editing, remember to save your control layout!</string>
+    <!-- Next-step hint shown near a screen corner during non-final guide steps; tapping any blank area advances to the next step -->
+    <string name="guide_tip_blank">Tap any blank area to continue to the next step</string>
+    <!-- Next-step hint shown near a screen corner during the final guide step; tapping any blank area finishes the whole guide -->
+    <string name="guide_tip_finish">Tap any blank area to finish the guide</string>
 </resources>

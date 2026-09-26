@@ -30,13 +30,11 @@ import com.movtery.zalithlauncher.game.multirt.Runtime
 import com.movtery.zalithlauncher.game.path.getAssetsHome
 import com.movtery.zalithlauncher.game.path.getLibrariesHome
 import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
-import com.movtery.zalithlauncher.game.support.lwjgl3ify.Lwjgl3ifyPatcher
 import com.movtery.zalithlauncher.game.version.download.artifactToPath
 import com.movtery.zalithlauncher.game.version.download.filterLibrary
 import com.movtery.zalithlauncher.game.version.download.getLibraryReplacement
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfo
-import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.path.PathManager
@@ -80,10 +78,7 @@ class LaunchArgs(
             argsList.add("$pkg/$pkg=ALL-UNNAMED")
         }
 
-        if (Lwjgl3ifyPatcher.isLwjgl3ifyManifest(gameManifest)) {
-            //经 MioLaunchWrapper 包装 RFB 入口启动，实际主类作为其首个参数传入
-            argsList.add("mio.Wrapper")
-        }
+        argsList.add("mio.Wrapper")
         argsList.add(gameManifest.mainClass)
         argsList.addAll(getMinecraftClientArgs())
 
@@ -243,13 +238,6 @@ class LaunchArgs(
     }
 
     private fun getMinecraftJVMArgs(): Array<String> {
-        val gameManifest1 = if (Lwjgl3ifyPatcher.isLwjgl3ifyManifest(gameManifest)) {
-            //lwjgl3ify 补丁过的清单直接使用
-            gameManifest
-        } else {
-            VersionInfoParser(version).build()
-        }
-
 //        // Parse Forge 1.17+ additional JVM Arguments
 //        if (versionInfo.inheritsFrom == null || versionInfo.arguments == null || versionInfo.arguments.jvm == null) {
 //            return emptyArray()
@@ -265,7 +253,7 @@ class LaunchArgs(
 
         varArgMap["classpath_separator"] = ":"
         varArgMap["library_directory"] = getLibrariesHome(version.getGameHome())
-        varArgMap["version_name"] = gameManifest1.id
+        varArgMap["version_name"] = gameManifest.id
         varArgMap["natives_directory"] = runtimeLibraryPath
         setLauncherInfo(varArgMap)
 
@@ -292,7 +280,7 @@ class LaunchArgs(
             }
         }
 
-        val jvmArgs = gameManifest1.arguments?.jvm
+        val jvmArgs = gameManifest.arguments?.jvm
             ?.mapNotNull { it.processJvmArg() }
             ?.toTypedArray()
             ?: emptyArray()

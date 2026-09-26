@@ -34,7 +34,7 @@ import com.movtery.zalithlauncher.game.account.isReloginRequired
 import com.movtery.zalithlauncher.game.account.microsoft.validateAccessToken
 import com.movtery.zalithlauncher.game.account.refreshMicrosoft
 import com.movtery.zalithlauncher.game.download.game.GameLibDownloader
-import com.movtery.zalithlauncher.game.support.lwjgl3ify.Lwjgl3ifyPatcher
+import com.movtery.zalithlauncher.game.support.lwjgl3ify.patchLwjgl3ifyIfNeeded
 import com.movtery.zalithlauncher.game.version.download.BaseMinecraftDownloader
 import com.movtery.zalithlauncher.game.version.download.DownloadMode
 import com.movtery.zalithlauncher.game.version.download.MinecraftDownloader
@@ -280,7 +280,7 @@ class GameLaunchFlow(scope: CoroutineScope) {
             version.enableTouchProxy = true
         }
 
-        val patched = Lwjgl3ifyPatcher.patchIfNeeded(version, mods)
+        val patched = patchLwjgl3ifyIfNeeded(version, mods)
         return patched
     }
 }

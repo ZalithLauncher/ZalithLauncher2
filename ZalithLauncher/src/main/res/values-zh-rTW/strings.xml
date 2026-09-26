@@ -1146,6 +1146,13 @@
     <string name="control_manage_import">匯入控制配置</string>
     <string name="control_manage_import_failed">匯入控制佈局檔案失敗</string>
     <string name="control_manage_import_failed_to_parse">控制佈局格式錯誤，啟動器無法識別它！</string>
+    <string name="control_share_method_title">選擇分享方式</string>
+    <string name="control_share_as_zl2">分享為 ZL2 控制佈局</string>
+    <string name="control_share_as_fcl">分享為 FCL 控制佈局</string>
+    <string name="control_share_fcl_confirm_message1">在匯出前，您需要理解，ZL2 與 FCL 的控制佈局系統實作邏輯存在較大差異，因此在匯出後，部分控制佈局中的控制項可能會出現樣式錯位、顯示異常或其他問題。</string>
+    <string name="control_share_fcl_confirm_message2">這些問題通常並非匯出器本身能夠解決的問題，您需要自行檢查並根據實際情況進行調整或修復。</string>
+    <string name="control_share_fcl_confirm_message3">您要繼續此操作嗎？</string>
+    <string name="control_share_fcl_confirm_export">匯出</string>
     <string name="control_editor_menu_new_widget_button">新增按鈕</string>
     <string name="control_editor_menu_new_widget_text">新增文字框</string>
     <string name="control_editor_menu_no_layers_title">沒有控制項圖層</string>

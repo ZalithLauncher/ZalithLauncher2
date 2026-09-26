@@ -1112,6 +1112,13 @@
     <string name="control_manage_import">Import control layout</string>
     <string name="control_manage_import_failed">Failed to import control layout file</string>
     <string name="control_manage_import_failed_to_parse">Control layout format error, the launcher cannot recognize it!</string>
+    <string name="control_share_method_title">Choose Share Method</string>
+    <string name="control_share_as_zl2">Share as ZL2 Layout</string>
+    <string name="control_share_as_fcl">Share as FCL Layout</string>
+    <string name="control_share_fcl_confirm_message1">Before exporting, please be aware that the control layout systems of ZL2 and FCL differ significantly in their implementation, so after exporting, some widgets in the control layout may have misaligned styles, display anomalies or other issues.</string>
+    <string name="control_share_fcl_confirm_message2">These problems usually cannot be resolved by the exporter itself; you will need to inspect and adjust or fix them according to the actual situation.</string>
+    <string name="control_share_fcl_confirm_message3">Do you want to continue?</string>
+    <string name="control_share_fcl_confirm_export">Export</string>
     <string name="control_editor_menu_title">Editor Menu</string>
     <string name="control_editor_menu_new_widget_button">Add Button</string>
     <string name="control_editor_menu_new_widget_text">Add Text Box</string>

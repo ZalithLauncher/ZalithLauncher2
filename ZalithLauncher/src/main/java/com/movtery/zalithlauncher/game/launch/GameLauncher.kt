@@ -109,10 +109,12 @@ class GameLauncher(
             version.getInheritedClientJar(inheritsFrom)
         } ?: version.getClientJar()
 
-        gameManifest = VersionInfoParser(version)
-            .setManifest(manifest)
-            .setInheriting()
-            .build()
+        //启动流程检测到 lwjgl3ify 时，使用内存中的补丁清单
+        gameManifest = Lwjgl3ifyPatcher.getStoredManifest(version.getVersionName())
+            ?: VersionInfoParser(version)
+                .setManifest(manifest)
+                .setInheriting()
+                .build()
 
         //jna
         jnaDir = gameManifest.libraries?.find { library ->
@@ -180,6 +182,14 @@ class GameLauncher(
             setRendererEnv(envMap)
         }
         envMap["ZALITH_VERSION_CODE"] = BuildConfig.VERSION_CODE.toString()
+
+        //lwjgl3ify 实例：注入 XDG 数据目录兜底，避免其向不存在的 ~/.local/share
+        //写桌面快捷方式时抛出异常杀死 RFB 主线程，导致游戏静默退出
+        if (File(version.getGameDir(), "config/lwjgl3ify.cfg").isFile()) {
+            val xdgDataHome = File(version.getGameDir(), ".local/share")
+            if (!xdgDataHome.isDirectory) xdgDataHome.mkdirs()
+            envMap["XDG_DATA_HOME"] = xdgDataHome.absolutePath
+        }
         return envMap
     }
 

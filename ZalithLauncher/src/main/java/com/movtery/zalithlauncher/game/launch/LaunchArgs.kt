@@ -238,7 +238,12 @@ class LaunchArgs(
     }
 
     private fun getMinecraftJVMArgs(): Array<String> {
-        val gameManifest1 = VersionInfoParser(version).build()
+        val gameManifest1 = if (Lwjgl3ifyPatcher.isLwjgl3ifyManifest(gameManifest)) {
+            //lwjgl3ify 补丁过的清单直接使用
+            gameManifest
+        } else {
+            VersionInfoParser(version).build()
+        }
 
 //        // Parse Forge 1.17+ additional JVM Arguments
 //        if (versionInfo.inheritsFrom == null || versionInfo.arguments == null || versionInfo.arguments.jvm == null) {

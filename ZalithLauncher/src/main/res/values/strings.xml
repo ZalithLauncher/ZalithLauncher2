@@ -171,6 +171,7 @@
     <string name="unpack_screen_jna">Enables Minecraft to directly call low-level OS functions</string>
     <!-- Main Menu -->
     <string name="main_launch_game">Launch</string>
+    <string name="launch_check_mods">Checking mods</string>
     <string name="main_task_menu">Task Menu</string>
     <!--  Download  -->
     <string name="download_category_game">Game</string>

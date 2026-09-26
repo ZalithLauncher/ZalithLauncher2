@@ -171,6 +171,7 @@
     <string name="unpack_screen_jna">让 Minecraft 能直接调用操作系统的底层功能</string>
     <!--  主菜单  -->
     <string name="main_launch_game">启动游戏</string>
+    <string name="launch_check_mods">检查模组</string>
     <string name="main_task_menu">任务菜单</string>
     <!--  下载  -->
     <string name="download_category_game">游戏</string>

@@ -33,13 +33,17 @@ import com.movtery.zalithlauncher.game.account.isMicrosoftAccount
 import com.movtery.zalithlauncher.game.account.isReloginRequired
 import com.movtery.zalithlauncher.game.account.microsoft.validateAccessToken
 import com.movtery.zalithlauncher.game.account.refreshMicrosoft
+import com.movtery.zalithlauncher.game.download.game.GameLibDownloader
+import com.movtery.zalithlauncher.game.version.download.BaseMinecraftDownloader
 import com.movtery.zalithlauncher.game.version.download.DownloadMode
 import com.movtery.zalithlauncher.game.version.download.MinecraftDownloader
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
 import com.movtery.zalithlauncher.game.version.mod.AllModReader
+import com.movtery.zalithlauncher.game.version.mod.isEnabled
 import com.movtery.zalithlauncher.ui.activities.runGame
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.utils.GSON
 import com.movtery.zalithlauncher.utils.network.isNetworkAvailable
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import kotlinx.coroutines.CancellationException
@@ -166,6 +170,15 @@ class GameLaunchFlow(scope: CoroutineScope) {
                 }
             }
 
+            //扫描模组列表，开启对应功能
+            addTask(
+                icon = R.drawable.ic_extension_outlined,
+                title = androidText(R.string.launch_check_mods),
+                dispatcher = Dispatchers.IO
+            ) { task ->
+                checkMods(version, task)
+            }
+
             if (!version.skipGameIntegrityCheck()) {
                 //校验并修复游戏文件
                 addTask(
@@ -183,9 +196,7 @@ class GameLaunchFlow(scope: CoroutineScope) {
             addTask(
                 icon = R.drawable.ic_rocket_launch_filled,
                 title = androidText(R.string.main_launch_game)
-            ) { task ->
-                checkEnableTouchProxy(version)
-
+            ) { _ ->
                 runGame(context, version, account)
                 exitActivity()
             }
@@ -241,16 +252,23 @@ class GameLaunchFlow(scope: CoroutineScope) {
     }
 
     /**
-     * 检查是否安装了 TouchController，安装后开启控制代理
+     * 扫描模组列表并开启对应功能
      */
-    private suspend fun checkEnableTouchProxy(version: Version) {
+    private suspend fun checkMods(version: Version, task: Task) {
         val modsDir = VersionFolders.MOD.getDir(version.getGameDir())
-        val reader = AllModReader(modsDir)
-        for (mod in reader.readAllLocals()) {
-            if (mod.id == "touchcontroller") {
-                version.enableTouchProxy = true
-                break
-            }
+        val mods = AllModReader(modsDir).readAllLocals()
+
+        if (mods.any { it.id == "touchcontroller" && it.file.isEnabled() }) {
+            version.enableTouchProxy = true
+        }
+
+        Lwjgl3ifyPatcher.patchIfNeeded(version, mods)?.let { patched ->
+            val libDownloader = GameLibDownloader(
+                downloader = BaseMinecraftDownloader(version.getGameHome()),
+                gameJson = GSON.toJson(patched)
+            )
+            libDownloader.schedule(task)
+            libDownloader.download(task)
         }
     }
 }

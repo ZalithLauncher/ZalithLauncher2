@@ -84,13 +84,6 @@ object Lwjgl3ifyPatcher {
     private const val ANGELICA_MOD_ID = "angelica"
 
     /**
-     * log4j 2.0-beta9（1.7.10 Forge 自带）启动期无条件注册 JMX MBean，
-     * 与 -javaagent 的字节码转换器在同进程 JVM 下存在类加载竞态
-     * （ClassCircularityError: java/lang/WeakPairMap），关闭 JMX 可整条跳过
-     */
-    private const val DISABLE_JMX_ARG = "-Dlog4j2.disable.jmx=true"
-
-    /**
      * 启动前检测 mods 目录中的 lwjgl3ify：将其内嵌的 version.json 合并进实例版本 JSON，
      * 离线解出 forgePatches 并补写 config/lwjgl3ify.cfg。
      * 任何失败都只记录日志，不阻断启动流程。
@@ -118,11 +111,7 @@ object Lwjgl3ifyPatcher {
 
                 val current = versionJson.readText().parseToJson()
                 //已合并过同一版本的 lwjgl3ify，无需重复合并
-                if (isPatchedWith(current, embedded)) {
-                    //为历史补丁产物补充 JMX 规避参数
-                    if (appendDisableJmxArg(current)) versionJson.writeText(GSON.toJson(current))
-                    return
-                }
+                if (isPatchedWith(current, embedded)) return
                 if (!isMergeable(embedded)) {
                     Logger.warning(TAG, "The embedded version.json of ${lwjgl3ifyJar.name} is not a valid RFB version, skipping")
                     return
@@ -302,17 +291,6 @@ object Lwjgl3ifyPatcher {
 
         //内嵌声明缺失 javaVersion 时保留实例原有的 Java 版本声明
         embedded.get(PROP_JAVA_VERSION)?.let { current.add(PROP_JAVA_VERSION, it.deepCopy()) }
-
-        appendDisableJmxArg(current)
-    }
-
-    /** 向 arguments.jvm 追加 JMX 规避参数，已存在时返回 false */
-    private fun appendDisableJmxArg(current: JsonObject): Boolean {
-        val arguments = current.getAsJsonObject(PROP_ARGUMENTS) ?: return false
-        val jvmArgs = arguments.get(PROP_JVM) as? JsonArray ?: return false
-        if (jvmArgs.any { (it as? String) == DISABLE_JMX_ARG }) return false
-        jvmArgs.add(DISABLE_JMX_ARG)
-        return true
     }
 
     /** 为缺少下载地址的库按 groupId 补默认 Maven 源（新版内嵌 JSON 已自带地址，此步为保底） */

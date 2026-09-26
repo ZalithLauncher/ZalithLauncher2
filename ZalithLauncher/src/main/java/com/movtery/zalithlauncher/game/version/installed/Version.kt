@@ -69,6 +69,10 @@ class Version(
     private val isValid: Boolean,
     val versionType: VersionType,
     /**
+     * 预先构建的启动清单 JSON
+     */
+    var launchManifest: String? = null,
+    /**
      * 控制是否将当前账号视为离线账号启动游戏
      */
     var offlineAccountLogin: Boolean = false,
@@ -79,7 +83,7 @@ class Version(
     /**
      * 启用控制代理
      */
-    var enableTouchProxy: Boolean = false
+    var enableTouchProxy: Boolean = false,
 ): Parcelable {
     /**
      * 当前版本是否被置顶

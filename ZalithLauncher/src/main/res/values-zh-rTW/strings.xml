@@ -1461,4 +1461,6 @@
     <string name="guide_editor_styles_text">你可以為控制項建立一些外觀，以便快速複用與切換不同的外觀</string>
     <string name="guide_editor_preview">可以透過預覽功能來測試你的控制佈局</string>
     <string name="guide_editor_save">編輯完成後，記得儲存控制佈局！</string>
+    <string name="guide_tip_blank">點擊空白處以進入下一步</string>
+    <string name="guide_tip_finish">點擊空白處以完成引導</string>
 </resources>

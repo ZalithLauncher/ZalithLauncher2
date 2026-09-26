@@ -278,4 +278,6 @@
     <string name="guide_editor_styles_text">Maaari kang gumawa ng mga itsura para sa mga control para madaling magamit muli at mapalitan</string>
     <string name="guide_editor_preview">Gamitin ang preview mode para subukan ang control layout mo</string>
     <string name="guide_editor_save">Kapag tapos nang mag-edit, huwag kalimutang i-save ang control layout!</string>
+    <string name="guide_tip_blank">I-tap ang anumang walang lamang bahagi para tumuloy sa susunod na hakbang</string>
+    <string name="guide_tip_finish">I-tap ang anumang walang lamang bahagi para matapos ang gabay</string>
 </resources>

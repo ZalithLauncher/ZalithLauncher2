@@ -1239,4 +1239,6 @@
     <string name="guide_editor_styles_text">Вы можете создавать варианты оформления для элементов управления, чтобы быстро использовать их повторно и переключаться между ними</string>
     <string name="guide_editor_preview">Проверить раскладку можно в режиме предпросмотра.</string>
     <string name="guide_editor_save">Закончив редактирование, не забудьте сохранить раскладку!</string>
+    <string name="guide_tip_blank">Коснитесь пустого места, чтобы перейти к следующему шагу</string>
+    <string name="guide_tip_finish">Коснитесь пустого места, чтобы завершить руководство</string>
 </resources>

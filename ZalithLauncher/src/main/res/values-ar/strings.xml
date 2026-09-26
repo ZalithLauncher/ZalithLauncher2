@@ -552,4 +552,6 @@
     <string name="guide_editor_styles_text">يمكنك إنشاء مظاهر لعناصر التحكم لإعادة استخدامها والتبديل بينها بسرعة</string>
     <string name="guide_editor_preview">استخدم وضع المعاينة لتجربة تخطيط التحكم الخاص بك</string>
     <string name="guide_editor_save">بعد الانتهاء من التحرير، لا تنسَ حفظ تخطيط التحكم!</string>
+    <string name="guide_tip_blank">انقر على أي منطقة فارغة للانتقال إلى الخطوة التالية</string>
+    <string name="guide_tip_finish">انقر على أي منطقة فارغة لإنهاء الإرشاد</string>
 </resources>

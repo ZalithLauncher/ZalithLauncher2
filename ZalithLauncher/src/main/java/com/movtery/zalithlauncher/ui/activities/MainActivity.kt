@@ -62,6 +62,7 @@ import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.base.ObserveFullScreenSetting
 import com.movtery.zalithlauncher.ui.buildAppendedText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
+import com.movtery.zalithlauncher.ui.guide.NextTipLabel
 import com.movtery.zalithlauncher.ui.guide.rememberAppGuides
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -305,7 +306,10 @@ class MainActivity : BaseAppCompatActivity() {
                 ObserveFullScreenSetting(AllSettings.launcherFullScreen.state)
 
                 val guides = rememberAppGuides(eventViewModel)
-                GuideHost(guides.mainScreen) {
+                GuideHost(
+                    guides.mainScreen,
+                    nextTip = { NextTipLabel(it) }
+                ) {
                     Background(
                         modifier = Modifier.fillMaxSize(),
                         viewModel = backgroundViewModel

@@ -17,6 +17,20 @@ enum class NodeClickMode {
 }
 
 /**
+ * 下一步提示的状态
+ */
+enum class NextTip {
+    /**
+     * 点击空白区域进入下一步
+     */
+    TapBlank,
+    /**
+     * 点击空白区域完成整条引导
+     */
+    Finish
+}
+
+/**
  * 一个引导步骤：锚点 [key]、推进配置与内容布局
  * @param isIntro 介绍步骤
  */
@@ -25,6 +39,7 @@ class GuideEntry internal constructor(
     val nodeClick: NodeClickMode,
     val advanceOnScrimClick: Boolean,
     val placement: GuidePlacement,
+    val showNextTip: Boolean,
     val content: @Composable (GuideScope) -> Unit,
     internal val isIntro: Boolean = false
 )

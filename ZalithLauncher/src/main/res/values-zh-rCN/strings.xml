@@ -1470,4 +1470,6 @@
     <string name="guide_editor_styles_text">你可以为控件们创建一些外观，以便于快速复用、切换不同的外观</string>
     <string name="guide_editor_preview">可通过预览功能来测试你的控制布局哦~</string>
     <string name="guide_editor_save">完成编辑后，记得保存控制布局！</string>
+    <string name="guide_tip_blank">点击空白处进入下一步</string>
+    <string name="guide_tip_finish">点击空白处完成引导</string>
 </resources>

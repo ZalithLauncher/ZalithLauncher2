@@ -154,3 +154,80 @@ private fun Rect.overlapArea(other: Rect): Float {
     if (right <= left || bottom <= top) return 0f
     return (right - left) * (bottom - top)
 }
+
+private enum class Corner { BottomStart, BottomEnd, TopEnd, TopStart }
+
+/**
+ * 求解下一步提示的位置
+ */
+internal fun solveNextTip(
+    tipSize: IntSize,
+    containerSize: IntSize,
+    paddingPx: Float,
+    marginPx: Float,
+    obstacles: List<Rect>
+): IntOffset {
+    if (tipSize.width <= 0 || tipSize.height <= 0) return IntOffset.Zero
+    if (containerSize.width <= 0 || containerSize.height <= 0) return IntOffset.Zero
+
+    fun cornerOffset(corner: Corner): IntOffset {
+        val x = when (corner) {
+            Corner.BottomStart, Corner.TopStart -> paddingPx
+            Corner.BottomEnd, Corner.TopEnd -> containerSize.width - paddingPx - tipSize.width
+        }
+        val y = when (corner) {
+            Corner.BottomStart, Corner.BottomEnd -> containerSize.height - paddingPx - tipSize.height
+            Corner.TopEnd, Corner.TopStart -> paddingPx
+        }
+        return IntOffset(
+            x.coerceIn(paddingPx, (containerSize.width - tipSize.width).toFloat().coerceAtLeast(paddingPx)).roundToInt(),
+            y.coerceIn(paddingPx, (containerSize.height - tipSize.height).toFloat().coerceAtLeast(paddingPx)).roundToInt()
+        )
+    }
+
+    fun occupied(offset: IntOffset): Boolean {
+        val tipRect = Rect(
+            offset.x.toFloat(),
+            offset.y.toFloat(),
+            (offset.x + tipSize.width).toFloat(),
+            (offset.y + tipSize.height).toFloat()
+        ).inflate(marginPx)
+        return obstacles.any { obstacle -> tipRect.overlapArea(obstacle) > 0f }
+    }
+
+    val ordered = listOf(Corner.BottomStart, Corner.BottomEnd, Corner.TopEnd, Corner.TopStart)
+    ordered.firstOrNull { !occupied(cornerOffset(it)) }?.let { return cornerOffset(it) }
+
+    // 网格采样：步长为提示尺寸的一半，取中心离屏幕中心最远的空白位置
+    val minX = paddingPx.roundToInt()
+    val minY = paddingPx.roundToInt()
+    val maxX = cornerOffset(Corner.BottomEnd).x
+    val maxY = cornerOffset(Corner.BottomStart).y
+    val stepX = (tipSize.width / 2).coerceAtLeast(1)
+    val stepY = (tipSize.height / 2).coerceAtLeast(1)
+    val centerX = containerSize.width / 2f
+    val centerY = containerSize.height / 2f
+
+    var best: IntOffset? = null
+    var bestDistance = -1.0f
+    var y = minY
+    while (y <= maxY) {
+        var x = minX
+        while (x <= maxX) {
+            val offset = IntOffset(x, y)
+            if (!occupied(offset)) {
+                val distance = hypot(
+                    x + tipSize.width / 2f - centerX,
+                    y + tipSize.height / 2f - centerY
+                )
+                if (distance > bestDistance) {
+                    bestDistance = distance
+                    best = offset
+                }
+            }
+            x += stepX
+        }
+        y += stepY
+    }
+    return best ?: cornerOffset(Corner.BottomStart)
+}

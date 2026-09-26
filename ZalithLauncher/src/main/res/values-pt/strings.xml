@@ -1220,4 +1220,6 @@
     <string name="guide_editor_styles_text">Pode criar aspetos para os seus controlos, para os reutilizar e alternar entre eles rapidamente</string>
     <string name="guide_editor_preview">Utilize o modo de pré-visualização para testar o seu layout de controlos</string>
     <string name="guide_editor_save">Quando terminar de editar, não se esqueça de guardar o layout de controlo!</string>
+    <string name="guide_tip_blank">Toque em qualquer zona em branco para avançar para o passo seguinte</string>
+    <string name="guide_tip_finish">Toque em qualquer zona em branco para terminar o guia</string>
 </resources>

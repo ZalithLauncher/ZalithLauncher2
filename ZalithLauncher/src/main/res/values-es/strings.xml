@@ -1037,4 +1037,6 @@
     <string name="guide_editor_styles_text">Puedes crear aspectos para tus controles y reutilizarlos o cambiar entre ellos rápidamente</string>
     <string name="guide_editor_preview">Usa el modo de vista previa para probar tu diseño de controles</string>
     <string name="guide_editor_save">Cuando termines de editar, ¡no olvides guardar el diseño de control!</string>
+    <string name="guide_tip_blank">Toca cualquier zona en blanco para continuar con el siguiente paso</string>
+    <string name="guide_tip_finish">Toca cualquier zona en blanco para finalizar la guía</string>
 </resources>

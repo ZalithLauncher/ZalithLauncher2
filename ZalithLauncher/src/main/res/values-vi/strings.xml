@@ -1242,4 +1242,6 @@
     <string name="guide_editor_styles_text">Bạn có thể tạo các giao diện cho nút điều khiển để tái sử dụng và chuyển đổi nhanh chóng</string>
     <string name="guide_editor_preview">Bạn có thể dùng chế độ xem trước để thử bố cục điều khiển</string>
     <string name="guide_editor_save">Sau khi chỉnh sửa xong, đừng quên lưu bố cục điều khiển!</string>
+    <string name="guide_tip_blank">Chạm vào vùng trống để chuyển sang bước tiếp theo</string>
+    <string name="guide_tip_finish">Chạm vào vùng trống để kết thúc hướng dẫn</string>
 </resources>

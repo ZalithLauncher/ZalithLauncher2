@@ -406,4 +406,6 @@
     <string name="guide_editor_styles_text">คุณสามารถสร้างรูปลักษณ์สำหรับปุ่มควบคุมเพื่อนำกลับมาใช้ใหม่และสลับไปมาได้อย่างรวดเร็ว</string>
     <string name="guide_editor_preview">ทดสอบเลย์เอาต์ปุ่มควบคุมด้วยโหมดดูตัวอย่างได้เลย</string>
     <string name="guide_editor_save">แก้ไขเสร็จแล้วอย่าลืมบันทึกเลย์เอาต์ปุ่มควบคุม!</string>
+    <string name="guide_tip_blank">แตะบริเวณว่างเพื่อไปยังขั้นตอนถัดไป</string>
+    <string name="guide_tip_finish">แตะบริเวณว่างเพื่อจบคำแนะนำ</string>
 </resources>

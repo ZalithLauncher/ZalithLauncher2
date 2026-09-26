@@ -116,4 +116,6 @@
     <string name="guide_editor_styles_text">كونتروللارغا سىرتقى كۆرۈنۈشلەرنى قۇرالايسىز، بۇ ئارقىلىق تېزلا قايتا ئىشلەتكىلى ۋە ئالماشتۇرغىلى بولىدۇ</string>
     <string name="guide_editor_preview">كونترول ئورۇنلاشتۇرۇشىڭىزنى سىناش ئۈچۈن ئالدىن كۆرۈش ئىقتىدارىدىن پايدىلىنىڭ</string>
     <string name="guide_editor_save">تەھرىرلەش تاماملانغاندىن كېيىن، كونترول ئورۇنلاشتۇرۇشىنى ساقلاشنى ئۇنتۇڭ!</string>
+    <string name="guide_tip_blank">بوش ئورۇننى چېكىپ كېيىنكى قەدەمگە ئۆتۈڭ</string>
+    <string name="guide_tip_finish">بوش ئورۇننى چېكىپ يېتەكچىلىكنى تاماملاڭ</string>
 </resources>

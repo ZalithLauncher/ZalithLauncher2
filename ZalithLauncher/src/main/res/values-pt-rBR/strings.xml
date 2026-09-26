@@ -1431,4 +1431,6 @@
     <string name="guide_editor_styles_text">Você pode criar aparências para seus controles para reutilizá-los e alternar entre eles rapidamente</string>
     <string name="guide_editor_preview">Use o modo de pré-visualização para testar seu layout de controle</string>
     <string name="guide_editor_save">Ao terminar de editar, não se esqueça de salvar o layout de controle!</string>
+    <string name="guide_tip_blank">Toque em qualquer área em branco para ir para o próximo passo</string>
+    <string name="guide_tip_finish">Toque em qualquer área em branco para finalizar o guia</string>
 </resources>

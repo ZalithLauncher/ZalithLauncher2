@@ -22,4 +22,6 @@
     <string name="guide_editor_styles_text">Saad luua juhtimiselementidele välimusi, et neid kiiresti taaskasutada ja vahetada</string>
     <string name="guide_editor_preview">Testi oma juhtimispaigutust eelvaate režiimis</string>
     <string name="guide_editor_save">Kui redigeerimine on lõpetatud, ära unusta juhtimispaigutust salvestada!</string>
+    <string name="guide_tip_blank">Puuduta mõnda tühja kohta, et liikuda järgmisele sammule</string>
+    <string name="guide_tip_finish">Puuduta mõnda tühja kohta, et lõpetada juhend</string>
 </resources>

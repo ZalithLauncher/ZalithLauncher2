@@ -36,6 +36,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.guide.GuideKeys
+import com.movtery.zalithlauncher.ui.guide.NextTipLabel
 import com.movtery.zalithlauncher.ui.guide.rememberAppGuides
 import com.movtery.zalithlauncher.ui.screens.content.elements.Background
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
@@ -92,7 +93,10 @@ class ControlEditorActivity : BaseAppCompatActivity() {
                 backgroundViewModel = backgroundViewModel
             ) {
                 val guides = rememberAppGuides()
-                GuideHost(guides.editorScreen) {
+                GuideHost(
+                    guides.editorScreen,
+                    nextTip = { NextTipLabel(it) }
+                ) {
                     LaunchedEffect(Unit) {
                         guides.startOnce(GuideKeys.Editor)
                     }

@@ -30,6 +30,7 @@ import com.movtery.zalithlauncher.game.multirt.Runtime
 import com.movtery.zalithlauncher.game.path.getAssetsHome
 import com.movtery.zalithlauncher.game.path.getLibrariesHome
 import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
+import com.movtery.zalithlauncher.game.support.lwjgl3ify.Lwjgl3ifyPatcher
 import com.movtery.zalithlauncher.game.version.download.artifactToPath
 import com.movtery.zalithlauncher.game.version.download.filterLibrary
 import com.movtery.zalithlauncher.game.version.download.getLibraryReplacement

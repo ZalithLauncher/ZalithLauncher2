@@ -34,6 +34,7 @@ class LibPath {
         @JvmField val JNA = File(DIR_JNA, "jna")
 
         @JvmField val MIO_LIB_PATCHER = File(LAUNCHER_COMPONENTS, "MioLibPatcher.jar")
+        @JvmField val MIO_LAUNCH_WRAPPER = File(LAUNCHER_COMPONENTS, "MioLaunchWrapper.jar")
         /**
          * [Github](https://github.com/bangbang93/forge-install-bootstrapper)
          */

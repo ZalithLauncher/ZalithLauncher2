@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.txt>.
  */
 
-package com.movtery.zalithlauncher.game.launch
+package com.movtery.zalithlauncher.game.support.lwjgl3ify
 
 import com.movtery.zalithlauncher.game.path.getLibrariesHome
 import com.movtery.zalithlauncher.game.version.download.artifactToPath
@@ -42,12 +42,6 @@ private const val TAG = "Lwjgl3ifyPatcher"
  *
  * lwjgl3ify 3.x 的 mod jar 内嵌一份完整的启动清单（RetroFuturaBootstrap 主类、
  * Java 17+ 的 --add-opens JVM 参数以及 Forge 1.7.10 全量依赖库）。
- * 启动前检测实例 mods 目录中的 lwjgl3ify，将这份清单合并进当前版本（仅内存，
- * 不改动版本 JSON 文件），使其以 RFB 入口 + Java 17+ 启动。
- *
- * 内嵌清单的库基本都自带正确的下载地址；仅旧版 lwjgl3ify 的个别库缺地址，
- * 此时按 groupId 重写 Maven 源兜底。RFB 主类本身不在库列表里，而是位于内嵌
- * forgePatches.zip 中，因此优先从 jar 内离线还原该构件（GTNH Maven 无国内镜像）。
  *
  * 参考 FCL 的 Lwjgl3ifyPatcher（https://github.com/FCL-Team/FoldCraftLauncher/blob/main/FCL/src/main/java/com/tungsten/fcl/game/Lwjgl3ifyPatcher.java）
  */
@@ -58,12 +52,8 @@ object Lwjgl3ifyPatcher {
     private const val EMBEDDED_FORGE_PATCHES = "me/eigenraven/lwjgl3ify/relauncher/forgePatches.zip"
     private const val LWJGL3IFY_MOD_ID = "lwjgl3ify"
 
-    @Volatile
-    private var storedManifest: Pair<String, GameManifest>? = null
-
     /**
-     * 检测 mods 中已启用的 lwjgl3ify，把内嵌启动清单合并进当前版本并存入内存，
-     * 供本次启动的启动链读取；版本 JSON 不会被改动，补丁失败不阻断正常启动。
+     * 检测 mods 中已启用的 lwjgl3ify，把内嵌启动清单合并进当前版本后返回
      * @return 补丁后的版本清单；未检测到 lwjgl3ify 或清单不可用时为 null
      */
     fun patchIfNeeded(version: Version, mods: List<LocalMod>): GameManifest? {
@@ -84,7 +74,6 @@ object Lwjgl3ifyPatcher {
                 findForgePatchesLibrary(current)?.name == findForgePatchesLibrary(embedded)?.name
             ) {
                 //磁盘清单已是同版本的补丁产物（可能由其他启动器写入），直接可用
-                storeManifest(version.getVersionName(), current)
                 return current
             }
 
@@ -92,7 +81,6 @@ object Lwjgl3ifyPatcher {
                 Logger.warning(TAG, "${lwjgl3ify.file.name} does not contain a usable lwjgl3ify relauncher manifest, skipped")
                 return null
             }
-            storeManifest(version.getVersionName(), patched)
             Logger.info(
                 TAG, "Patched version ${version.getVersionName()} with lwjgl3ify from ${lwjgl3ify.file.name}, " +
                         "mainClass=${patched.mainClass}, java=${patched.javaVersion?.majorVersion}"
@@ -106,15 +94,6 @@ object Lwjgl3ifyPatcher {
     /** 清单是否已经以 RetroFuturaBootstrap 为入口 */
     fun isLwjgl3ifyManifest(manifest: GameManifest): Boolean =
         manifest.mainClass?.startsWith(RFB_MAIN_CLASS_PREFIX) == true
-
-    /** 存放补丁清单，供本次启动的 [GameLauncher] 与 [LaunchArgs] 读取 */
-    fun storeManifest(versionName: String, manifest: GameManifest) {
-        storedManifest = versionName to manifest
-    }
-
-    /** 取出对应版本的补丁清单，版本名不匹配时为 null */
-    fun getStoredManifest(versionName: String): GameManifest? =
-        storedManifest?.takeIf { (name, _) -> name == versionName }?.second
 
     private const val RFB_MAIN_CLASS_PREFIX = "com.gtnewhorizons.retrofuturabootstrap"
 

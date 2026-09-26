@@ -109,12 +109,16 @@ class GameLauncher(
             version.getInheritedClientJar(inheritsFrom)
         } ?: version.getClientJar()
 
-        //启动流程检测到 lwjgl3ify 时，使用内存中的补丁清单
-        gameManifest = Lwjgl3ifyPatcher.getStoredManifest(version.getVersionName())
-            ?: VersionInfoParser(version)
-                .setManifest(manifest)
-                .setInheriting()
-                .build()
+        gameManifest = version.launchManifest?.let { json ->
+            runCatching {
+                GSON.fromJson(json, GameManifest::class.java)
+            }.onFailure {
+                Logger.warning(TAG, "Failed to parse the carried launch manifest", it)
+            }.getOrNull()
+        } ?: VersionInfoParser(version)
+            .setManifest(manifest)
+            .setInheriting()
+            .build()
 
         //jna
         jnaDir = gameManifest.libraries?.find { library ->

@@ -34,13 +34,16 @@ import com.movtery.zalithlauncher.game.account.isReloginRequired
 import com.movtery.zalithlauncher.game.account.microsoft.validateAccessToken
 import com.movtery.zalithlauncher.game.account.refreshMicrosoft
 import com.movtery.zalithlauncher.game.download.game.GameLibDownloader
+import com.movtery.zalithlauncher.game.support.lwjgl3ify.Lwjgl3ifyPatcher
 import com.movtery.zalithlauncher.game.version.download.BaseMinecraftDownloader
 import com.movtery.zalithlauncher.game.version.download.DownloadMode
 import com.movtery.zalithlauncher.game.version.download.MinecraftDownloader
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
+import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
 import com.movtery.zalithlauncher.game.version.mod.AllModReader
 import com.movtery.zalithlauncher.game.version.mod.isEnabled
+import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.ui.activities.runGame
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.GSON
@@ -176,7 +179,21 @@ class GameLaunchFlow(scope: CoroutineScope) {
                 title = androidText(R.string.launch_check_mods),
                 dispatcher = Dispatchers.IO
             ) { task ->
-                checkMods(version, task)
+                val patchedManifest = checkMods(version)
+                val manifest = patchedManifest ?: VersionInfoParser(version).setInheriting().build()
+                val manifestString = GSON.toJson(manifest)
+
+                version.launchManifest = manifestString
+
+                // 如果打了补丁，此处需要重新检索一下依赖库并下载
+                patchedManifest?.let {
+                    val libDownloader = GameLibDownloader(
+                        downloader = BaseMinecraftDownloader(version.getGameHome()),
+                        gameJson = manifestString
+                    )
+                    libDownloader.schedule(task)
+                    libDownloader.download(task)
+                }
             }
 
             if (!version.skipGameIntegrityCheck()) {
@@ -253,8 +270,9 @@ class GameLaunchFlow(scope: CoroutineScope) {
 
     /**
      * 扫描模组列表并开启对应功能
+     * @return 经过补丁的游戏清单，为 null 则表示没什么补丁
      */
-    private suspend fun checkMods(version: Version, task: Task) {
+    private suspend fun checkMods(version: Version): GameManifest? {
         val modsDir = VersionFolders.MOD.getDir(version.getGameDir())
         val mods = AllModReader(modsDir).readAllLocals()
 
@@ -262,13 +280,7 @@ class GameLaunchFlow(scope: CoroutineScope) {
             version.enableTouchProxy = true
         }
 
-        Lwjgl3ifyPatcher.patchIfNeeded(version, mods)?.let { patched ->
-            val libDownloader = GameLibDownloader(
-                downloader = BaseMinecraftDownloader(version.getGameHome()),
-                gameJson = GSON.toJson(patched)
-            )
-            libDownloader.schedule(task)
-            libDownloader.download(task)
-        }
+        val patched = Lwjgl3ifyPatcher.patchIfNeeded(version, mods)
+        return patched
     }
 }

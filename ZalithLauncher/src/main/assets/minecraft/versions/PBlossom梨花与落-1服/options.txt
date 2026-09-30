@@ -12,7 +12,7 @@ darknessEffectScale:1.0
 glintSpeed:0.5
 glintStrength:0.75
 prioritizeChunkUpdates:0
-fullscreen:true
+fullscreen:false
 gamma:1.0
 graphicsMode:1
 guiScale:0
@@ -60,8 +60,8 @@ backgroundForChatOnly:true
 hideServerAddress:false
 advancedItemTooltips:false
 pauseOnLostFocus:true
-overrideWidth:0
-overrideHeight:0
+overrideWidth:2400
+overrideHeight:1080
 chatHeightFocused:1.0
 chatDelay:0.0
 chatHeightUnfocused:0.4375
@@ -98,7 +98,7 @@ key_key.sneak:key.keyboard.left.shift
 key_key.sprint:key.keyboard.left.control
 key_key.drop:key.keyboard.q
 key_key.inventory:key.keyboard.e
-key_key.chat:key.keyboard.enter
+key_key.chat:key.keyboard.t
 key_key.playerlist:key.keyboard.tab
 key_key.pickItem:key.mouse.middle
 key_key.command:key.keyboard.slash

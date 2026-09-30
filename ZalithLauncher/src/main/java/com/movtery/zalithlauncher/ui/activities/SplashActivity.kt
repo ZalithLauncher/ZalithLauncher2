@@ -20,11 +20,13 @@ package com.movtery.zalithlauncher.ui.activities
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.activity.compose.setContent
@@ -95,8 +97,11 @@ class SplashActivity : BaseAppCompatActivity() {
     /** 广告请求超时任务 */
     private var mReqTimeout: Runnable? = null
 
-    /** 广告展示容器 */
+    /** 广告展示容器（我们将使用一个全屏父容器 + 居中子容器来承载竖屏广告） */
     private var adContainer: FrameLayout? = null
+
+    /** 原来请求的方向，展示广告时临时切换为竖屏，展示结束后恢复 */
+    private var originalRequestedOrientation: Int? = null
 
     private val mHandler = Handler(Looper.getMainLooper())
 
@@ -117,6 +122,11 @@ class SplashActivity : BaseAppCompatActivity() {
                     // 移除广告容器
                     (adContainer?.parent as? ViewGroup)?.removeView(adContainer)
                     adContainer = null
+                    // 恢复方向
+                    originalRequestedOrientation?.let {
+                        requestedOrientation = it
+                        originalRequestedOrientation = null
+                    }
                     goToContentOrHome()
                 }
 
@@ -130,22 +140,45 @@ class SplashActivity : BaseAppCompatActivity() {
 
                 override fun onError(code: Int, message: String) {
                     Logger.warning(TAG, "Splash ad display error: code=$code, msg=$message")
+                    // 移除广告容器（如果已添加）
+                    (adContainer?.parent as? ViewGroup)?.removeView(adContainer)
+                    adContainer = null
+                    // 恢复方向
+                    originalRequestedOrientation?.let {
+                        requestedOrientation = it
+                        originalRequestedOrientation = null
+                    }
                     goToContentOrHome()
                 }
             })
 
-            // 创建居中容器，竖屏广告在横屏下保持原始比例不拉伸
-            val container = FrameLayout(this@SplashActivity).apply {
+            // 在展示广告前临时切换为竖屏，以便竖屏广告能以原始比例展示
+            try {
+                originalRequestedOrientation = requestedOrientation
+                requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
+            } catch (e: Exception) {
+                Logger.warning(TAG, "Failed to change orientation for splash ad: ${e.message}")
+            }
+
+            // 创建全屏父容器 + 居中子容器，竖屏广告在横屏下保持原始比例不拉伸
+            val full = FrameLayout(this@SplashActivity).apply {
                 layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
             }
-            adContainer = container
+            val inner = FrameLayout(this@SplashActivity).apply {
+                layoutParams = FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                ).apply { gravity = Gravity.CENTER }
+            }
+            full.addView(inner)
+            adContainer = full
             // 将容器添加到根视图
-            (window.decorView as ViewGroup).addView(container)
-            // 展示广告到容器中
-            display.show(container)
+            (window.decorView as ViewGroup).addView(full)
+            // 展示广告到居中子容器中
+            display.show(inner)
         }
 
         override fun onFailure(type: UMUnionApi.AdType, message: String) {
@@ -153,6 +186,11 @@ class SplashActivity : BaseAppCompatActivity() {
             mReqTimeout?.let { mHandler.removeCallbacks(it) }
             mReqTimeout = null
             if (isFinishing) return
+            // 若提前切换了方向（理论上不会在加载失败前切换），也尝试恢复
+            originalRequestedOrientation?.let {
+                requestedOrientation = it
+                originalRequestedOrientation = null
+            }
             goToContentOrHome()
         }
     }
@@ -210,6 +248,13 @@ class SplashActivity : BaseAppCompatActivity() {
         canJump = false
         mReqTimeout?.let { mHandler.removeCallbacks(it) }
         mReqTimeout = null
+        // 恢复方向（防止意外）
+        originalRequestedOrientation?.let {
+            try {
+                requestedOrientation = it
+            } catch (_: Exception) {}
+            originalRequestedOrientation = null
+        }
     }
 
     /** 禁用返回键：开屏期间不允许退出 */
@@ -249,6 +294,13 @@ class SplashActivity : BaseAppCompatActivity() {
             // 设置超时保护
             val timeoutRunnable = Runnable {
                 mReqTimeout = null
+                // 若我们临时切换了方向，尝试恢复
+                originalRequestedOrientation?.let {
+                    try {
+                        requestedOrientation = it
+                    } catch (_: Exception) {}
+                    originalRequestedOrientation = null
+                }
                 if (!hasNavigatedToMain) {
                     goToContentOrHome()
                 }

@@ -220,6 +220,9 @@ buildKeys {
 }
 
 dependencies {
+    implementation("androidx.compose.material3.adaptive:adaptive:1.3.0-rc01")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.3.0-rc01")
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.3.0-rc01")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)

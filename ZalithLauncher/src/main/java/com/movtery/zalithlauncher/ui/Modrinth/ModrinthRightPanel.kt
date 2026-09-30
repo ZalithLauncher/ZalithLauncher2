@@ -40,7 +40,7 @@ fun ModrinthRightPanel(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .background(MaterialTheme.colorScheme.primary, shape = MaterialTheme.shapes.circle)
+                            .background(MaterialTheme.colorScheme.primary, shape = CircleShape)
                     )
                     Spacer(Modifier.width(12.dp))
                     Column {

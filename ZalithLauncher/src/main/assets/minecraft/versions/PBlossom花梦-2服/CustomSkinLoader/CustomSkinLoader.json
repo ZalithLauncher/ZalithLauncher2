@@ -1,6 +1,6 @@
 {
-  "version": "14.28",
-  "buildNumber": 38,
+  "version": "15.0.1",
+  "buildNumber": 40,
   "loadlist": [
     {
       "name": "LittleSkin",
@@ -39,7 +39,7 @@
     },
     {
       "name": "GlitchlessGames",
-      "type": "GlitchlessAPI",
+      "type": "ElyByAPI",
       "root": "https://games.glitchless.ru/api/minecraft/users/profiles/textures/?nickname\u003d"
     },
     {
@@ -83,7 +83,6 @@
       "cape": "https://api.cosmetica.cc/get/cloak?username\u003d{USERNAME}\u0026uuid\u003d{STANDARD_UUID}\u0026nothirdparty"
     }
   ],
-  "enableDynamicSkull": true,
   "enableTransparentSkin": true,
   "forceLoadAllTextures": true,
   "enableCape": true,

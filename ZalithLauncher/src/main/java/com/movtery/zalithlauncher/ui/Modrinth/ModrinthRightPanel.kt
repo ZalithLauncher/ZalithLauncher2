@@ -92,8 +92,7 @@ fun FriendRow(friend: Friend) {
         Box(
             modifier = Modifier
                 .size(32.dp)
-                .background(MaterialTheme.colorScheme.secondaryContainer, shape = MaterialTheme.shapes.circle)
-        )
+                .background(MaterialTheme.colorScheme.secondaryContainer, shape = CircleShape)
         Spacer(Modifier.width(12.dp))
         Column {
             Text(friend.name, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)

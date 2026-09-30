@@ -48,7 +48,8 @@ const val URL_MINECRAFT_VERSION_REPOS: String = "https://piston-meta.mojang.com/
 const val URL_MINECRAFT_ASSETS_INDEX: String = "https://launchermeta.mojang.com/v1/packages"
 const val URL_MINECRAFT_PURCHASE = "https://www.xbox.com/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj"
 const val URL_PROJECT: String = "https://github.com/xiaoniao427/ZalithLauncher2"
-const val URL_PROJECT_INFO: String = "https://api.github.com/repos/ZalithLauncher/Zalith-Info/contents/v2"
+// 将更新信息的 API 指向当前仓库（xiaoniao427/ZalithLauncher2）
+const val URL_PROJECT_INFO: String = "https://api.github.com/repos/xiaoniao427/ZalithLauncher2/contents/v2"
 const val URL_COMMUNITY: String = "https://github.com/xiaoniao427/ZalithLauncher2/graphs/contributors"
 const val URL_WEBLATE: String = "https://hosted.weblate.org/projects/zalithlauncher2"
 const val URL_SUPPORT: String = "https://ifdian.net/a/tzhd427"

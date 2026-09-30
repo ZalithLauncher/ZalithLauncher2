@@ -467,4 +467,328 @@ class MainActivity : BaseAppCompatActivity() {
                 )
 
                 //游戏日志分享菜单
-                val lo
+                                val logFile = logShareViewModel.currentLogFile
+                if (logShareViewModel.showMenu && logFile != null) {
+                    LogShareMenu(
+                        operation = LogShareMenuOperation.ShowMenu,
+                        onChange = { operation ->
+                            if (operation == LogShareMenuOperation.None) {
+                                logShareViewModel.closeMenu()
+                            }
+                        },
+                        onView = {
+                            screenBackStackModel.mainScreen.backStack.navigateToLogView(
+                                logPath = logFile.absolutePath
+                            )
+                            logShareViewModel.closeMenu()
+                        },
+                        onShare = {
+                            shareFile(this@MainActivity, logFile)
+                            logShareViewModel.closeMenu()
+                        },
+                        canUpload = logsUploadViewModel.canUpload,
+                        onUpload = {
+                            logsUploadViewModel.operation = ShareLinkOperation.Tip
+                            logShareViewModel.closeMenu()
+                        }
+                    )
+                }
+
+                ShareLinkOperation(
+                    operation = logsUploadViewModel.operation,
+                    onChange = { logsUploadViewModel.operation = it },
+                    onUploadChancel = { logsUploadViewModel.cancel() },
+                    onUpload = {
+                        logFile?.let { file ->
+                            logsUploadViewModel.upload(file) { link ->
+                                openLink(link)
+                                copyText(COPY_LABEL_LINK, link, this@MainActivity)
+                            }
+                        }
+                    }
+                )
+
+                //检查更新操作流程
+                LauncherUpgradeOperation(
+                    operation = launcherUpgradeViewModel.operation,
+                    onChanged = { launcherUpgradeViewModel.operation = it },
+                    onIgnoredClick = { ver ->
+                        AllSettings.lastIgnoredVersion.save(ver)
+                    },
+                    onLinkClick = { eventViewModel.sendEvent(EventViewModel.Event.OpenLink(it)) }
+                )
+
+                val vcOperation by vulkanCheckerViewModel.vcOperation.collectAsStateWithLifecycle()
+                VulkanChecker(
+                    operation = vcOperation,
+                    onChange = {
+                        vulkanCheckerViewModel.changeOperation(it)
+                    },
+                    startCheck = { version ->
+                        eventViewModel.sendEvent(
+                            EventViewModel.Event.VulkanCheck(version)
+                        )
+                    },
+                    confirmResult = {
+                        vulkanCheckerViewModel.resumeCont()
+                    }
+                )
+            }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handleImportIfNeeded(intent)
+        // 重载渲染器
+        Renderers.init(true)
+        // 重载插件
+        PluginLoader.loadAllPlugins(this, true)
+    }
+
+    override fun onDestroy() {
+        fmEventRegistrar?.stop()
+        fmEventRegistrar = null
+        super.onDestroy()
+    }
+
+    /**
+     * 文件管理器文件变更事件处理
+     */
+    private fun onFileManagerEvent(event: FileManagerEvent) {
+        val versionsHome = File(getVersionsHome()).absolutePath
+        val touchesVersions = event.changedDirs.any { dir ->
+            val normalized = File(dir).absolutePath
+            normalized == versionsHome || normalized.startsWith("$versionsHome${File.separator}")
+        }
+        if (touchesVersions) {
+            VersionsManager.refresh("[FileManager] ${event.type.name}")
+        }
+    }
+
+    /**
+     * 检查设备 Vulkan 支持情况
+     */
+    private suspend fun checkVulkan(version: Version) {
+        withContext(Dispatchers.Main) {
+            val (result, useTurnip) = vulkanCheckerViewModel.check(version)
+            vulkanCheckerViewModel.changeOperation(VCOperation.Result(result, useTurnip))
+        }
+    }
+
+    /**
+     * 检查启动器更新
+     */
+    private fun checkUpdate() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val success = launcherUpgradeViewModel.checkManually(
+                    onInProgress = {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity, getString(R.string.generic_in_progress), Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    onIsLatest = {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity, getString(R.string.upgrade_is_latest), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                )
+                if (!success) throw RuntimeException()
+            } catch (_: TooFrequentOperationException) {
+                //太频繁了
+                return@launch
+            } catch (_: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, getString(R.string.upgrade_get_remote_failed), Toast.LENGTH_SHORT).show()
+                }
+                return@launch
+            }
+        }
+    }
+
+    /**
+     * 是否保持屏幕不熄屏
+     */
+    private suspend fun keepScreen(on: Boolean) {
+        withContext(Dispatchers.Main) {
+            window?.apply {
+                if (on) {
+                    addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+            }
+        }
+    }
+
+    /**
+     * 弹出下载插件的链接提示对话框
+     */
+    private suspend fun showDownloadPlugins(link: EventViewModel.Event.DownloadPlugins.Links) {
+        //匹配当前系统语言可见的网盘链接
+        val locale = Locale.getDefault()
+        val cloudDrive = link.cloudDrives.sortedByDescending {
+            it.language.contains("_")
+        }.find { drive ->
+            locale.compareLangTag(drive.language)
+        }
+
+        withContext(Dispatchers.Main) {
+            val builder = MaterialAlertDialogBuilder(this@MainActivity)
+                .setTitle(R.string.plugin_download_title)
+                .setMessage(R.string.plugin_download_summary)
+                .setPositiveButton("Github") { dialog, _ ->
+                    openLinkInternal(link.github)
+                    dialog.dismiss()
+                }
+
+            cloudDrive?.link?.let { link ->
+                builder.setNegativeButton(R.string.upgrade_cloud_drive) { dialog, _ ->
+                    openLinkInternal(link)
+                    dialog.dismiss()
+                }
+            }
+
+            builder.showThemed()
+        }
+    }
+
+    /**
+     * 导入控制布局
+     */
+    private fun importControlFiles(uris: List<Uri>) {
+        fun showError(
+            title: AndroidStringText = androidText(R.string.control_manage_import_failed),
+            message: AndroidStringText
+        ) {
+            errorViewModel.showError(
+                ErrorViewModel.ThrowableMessage(
+                    title = title,
+                    message = message
+                )
+            )
+        }
+        TaskSystem.submitTask(
+            Task.runTask(
+                dispatcher = Dispatchers.IO,
+                task = {
+                    var done = false
+                    uris.forEach { uri ->
+                        val inputStream = contentResolver.openInputStream(uri) ?: run {
+                            showError(message = androidText(R.string.multirt_runtime_import_failed_input_stream))
+                            return@forEach
+                        }
+                        ControlManager.importControl(
+                            inputStream = inputStream,
+                            onSerializationError = {
+                                showError(
+                                    message = buildAppendedText {
+                                        append(R.string.control_manage_import_failed_to_parse)
+                                        append("\n")
+                                        append(it.getMessageOrToString())
+                                    }
+                                )
+                            },
+                            catchedError =  {
+                                showError(message = androidText(it.getMessageOrToString()))
+                            },
+                            onFinished = {
+                                done = true
+                            }
+                        )
+                    }
+                    ControlManager.refresh()
+                    if (done) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                getString(R.string.generic_done),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            )
+        )
+    }
+
+    /**
+     * 处理外部导入
+     * @return 是否有导入任务正在进行中
+     */
+    private fun handleImportIfNeeded(intent: Intent?): Boolean {
+        if (intent == null) return false
+
+        val type = intent.getStringExtra(EXTRA_IMPORT_TYPE) ?: return false
+
+        val importing = when (type) {
+            IMPORT_TYPE_MODPACK -> handleModpackImport(intent)
+            IMPORT_TYPE_CONTROLS -> handleControlsImport(intent)
+            else -> false
+        }
+
+        intent.removeExtra(EXTRA_IMPORT_TYPE)
+        return importing
+    }
+
+    /**
+     * @return 是否已经触发了整合包导入程序
+     */
+    private fun handleModpackImport(intent: Intent): Boolean {
+        val uri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(EXTRA_IMPORT_URI, Uri::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(EXTRA_IMPORT_URI)
+        }
+        if (uri != null) {
+            modpackImportViewModel.import(
+                context = this@MainActivity,
+                uri = uri,
+                onStart = {
+                    lifecycleScope.launch {
+                        keepScreen(true)
+                    }
+                },
+                onStop = {
+                    lifecycleScope.launch {
+                        keepScreen(false)
+                    }
+                }
+            )
+        }
+        return uri != null
+    }
+
+    /**
+     * @return 是否已经触发了控制布局导入程序
+     */
+    private fun handleControlsImport(intent: Intent): Boolean {
+        val uri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(EXTRA_IMPORT_URI, Uri::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(EXTRA_IMPORT_URI)
+        }
+        if (uri != null) {
+            importControlFiles(listOf(uri))
+        }
+        return uri != null
+    }
+
+    override fun onResume() {
+        super.onResume()
+        ControlManager.checkDefaultAndRefresh(this@MainActivity)
+    }
+
+    @SuppressLint("RestrictedApi")
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (isCaptureKey) {
+            Logger.info(TAG, "Capture key event: $event")
+            eventViewModel.sendEvent(EventViewModel.Event.Key.OnKeyDown(event))
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+}

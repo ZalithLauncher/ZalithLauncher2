@@ -98,12 +98,43 @@ jobs:
           import sys
 
           log_path, arch, summary_path = sys.argv[1:]
+          import re
+
           lines = pathlib.Path(log_path).read_text(errors="replace").splitlines()
           marker = "FAILURE: Build failed with an exception."
-          failure_start = max((i for i, line in enumerate(lines) if marker in line), default=max(0, len(lines) - 120))
-          excerpt = "\n".join(lines[failure_start:])[-12000:]
+          failure_index = max((i for i, line in enumerate(lines) if marker in line), default=-1)
+
+          def section(title, selected, limit):
+              body = "\n".join(line[:1000] for line in selected)
+              if len(body) > limit:
+                  body = body[:limit - 32] + "\n...[section truncated]..."
+              return f"{title}\n{body}" if body else ""
+
+          if failure_index >= 0:
+              summary_end = next(
+                  (i for i in range(failure_index + 1, len(lines))
+                   if lines[i].lstrip().startswith(("* Try:", "* Exception is:"))),
+                  min(len(lines), failure_index + 80),
+              )
+              summary = section("Gradle failure summary:", lines[failure_index:summary_end], 1700)
+              diagnostic_pattern = re.compile(
+                  r"(^\s*(?:e:|w:)\s|error:|fatal error:|CMake Error|"
+                  r"Execution failed for task|Could not (?:resolve|find)|"
+                  r"No space left|UnknownHostException|OutOfMemoryError|"
+                  r"FAILED|failed to run|undefined reference|ninja:)",
+                  re.IGNORECASE,
+              )
+              diagnostics = [line for line in lines[:failure_index] if diagnostic_pattern.search(line)][-60:]
+              diagnostic_text = section("Relevant compiler/build output:", diagnostics, 1350)
+              stack = section("Stack trace ending:", lines[-12:], 350)
+              excerpt = "\n\n".join(part for part in (summary, diagnostic_text, stack) if part)
+          else:
+              excerpt = "\n".join(lines[-120:])[-3200:]
+
           if not excerpt:
               excerpt = "Gradle exited unsuccessfully without writing diagnostic output."
+          if len(excerpt) > 3500:
+              excerpt = excerpt[:3460] + "\n...[output truncated]..."
 
           pathlib.Path(summary_path).write_text(
               f"## Gradle build failure ({arch})\n\n```text\n{excerpt}\n```\n",

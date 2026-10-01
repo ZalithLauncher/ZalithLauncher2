@@ -53,7 +53,10 @@ import com.movtery.zalithlauncher.upgrade.TooFrequentOperationException
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.safeBodyAsJson
 import com.movtery.zalithlauncher.utils.network.withRetry
+import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
+import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -78,6 +81,12 @@ sealed interface LauncherUpgradeOperation {
  * This keeps the updater pointed at Mirai builds rather than incompatible upstream APKs.
  */
 private const val LATEST_API_URL = URL_LATEST_RELEASE_INFO
+
+private sealed interface RemoteDataFetchResult {
+    data class Available(val data: RemoteData) : RemoteDataFetchResult
+    data object ManifestUnavailable : RemoteDataFetchResult
+    data class Failed(val error: Exception) : RemoteDataFetchResult
+}
 
 /**
  * 用于记录启动器更新 ViewModel
@@ -129,10 +138,9 @@ class LauncherUpgradeViewModel: ViewModel() {
                 return@launch
             }
 
-            val data = fetchRemoteData()
-            if (data != null) {
-                checkForUpgrade(
-                    data = data,
+            when (val result = fetchRemoteData()) {
+                is RemoteDataFetchResult.Available -> checkForUpgrade(
+                    data = result.data,
                     lastIgnored = AllSettings.lastIgnoredVersion.getValue(),
                     ignoreDismissedVersions = true, //启动时检查忽略用户已忽略的版本
                     onUpgrade = { data ->
@@ -140,6 +148,11 @@ class LauncherUpgradeViewModel: ViewModel() {
                     },
                     onIsLatest = onIsLatest
                 )
+                RemoteDataFetchResult.ManifestUnavailable -> Logger.info(
+                    TAG,
+                    "No Mirai update manifest is published yet."
+                )
+                is RemoteDataFetchResult.Failed -> Unit
             }
             updateLastCheckTime()
         }
@@ -152,7 +165,9 @@ class LauncherUpgradeViewModel: ViewModel() {
      */
     suspend fun checkManually(
         onInProgress: suspend () -> Unit = {},
-        onIsLatest: suspend () -> Unit = {}
+        onIsLatest: suspend () -> Unit = {},
+        onManifestUnavailable: suspend () -> Unit = {},
+        onRemoteFailure: suspend () -> Unit = {}
     ): Boolean {
         return checkMutex.withLock {
             if (
@@ -164,36 +179,55 @@ class LauncherUpgradeViewModel: ViewModel() {
 
             onInProgress()
 
-            val data = fetchRemoteData()
-            if (data != null) {
-                checkForUpgrade(
-                    data = data,
-                    lastIgnored = AllSettings.lastIgnoredVersion.getValue(),
-                    ignoreDismissedVersions = false,
-                    onUpgrade = { data ->
-                        operation = LauncherUpgradeOperation.Upgrade(data)
-                    },
-                    onIsLatest = onIsLatest
-                )
-            }
+            val result = fetchRemoteData()
             updateLastCheckTime()
-            data != null
+            when (result) {
+                is RemoteDataFetchResult.Available -> {
+                    checkForUpgrade(
+                        data = result.data,
+                        lastIgnored = AllSettings.lastIgnoredVersion.getValue(),
+                        ignoreDismissedVersions = false,
+                        onUpgrade = { data ->
+                            operation = LauncherUpgradeOperation.Upgrade(data)
+                        },
+                        onIsLatest = onIsLatest
+                    )
+                    true
+                }
+                RemoteDataFetchResult.ManifestUnavailable -> {
+                    onManifestUnavailable()
+                    false
+                }
+                is RemoteDataFetchResult.Failed -> {
+                    onRemoteFailure()
+                    false
+                }
+            }
         }
     }
 
     /**
      * 从远端获取最新的启动器信息
      */
-    private suspend fun fetchRemoteData(): RemoteData? {
-        return withContext(Dispatchers.IO) {
-            runCatching {
+    private suspend fun fetchRemoteData(): RemoteDataFetchResult = withContext(Dispatchers.IO) {
+        try {
+            RemoteDataFetchResult.Available(
                 withRetry(logTag = "LauncherUpgrade", maxRetries = 2) {
                     GLOBAL_CLIENT.get(LATEST_API_URL).safeBodyAsJson<RemoteData>()
                 }
-            }.getOrElse { error ->
+            )
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (error: ClientRequestException) {
+            if (error.response.status == HttpStatusCode.NotFound) {
+                RemoteDataFetchResult.ManifestUnavailable
+            } else {
                 Logger.warning(TAG, "Failed to check for Mirai Launcher updates!", error)
-                null
+                RemoteDataFetchResult.Failed(error)
             }
+        } catch (error: Exception) {
+            Logger.warning(TAG, "Failed to check for Mirai Launcher updates!", error)
+            RemoteDataFetchResult.Failed(error)
         }
     }
 

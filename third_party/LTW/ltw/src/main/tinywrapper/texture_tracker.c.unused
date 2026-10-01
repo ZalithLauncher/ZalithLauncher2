@@ -1,0 +1,91 @@
+//
+// Created by maks on 09.03.2024.
+//
+#include "egl.h"
+#include "proc.h"
+#include "glformats.h"
+#include "GL/gl.h"
+
+static int isProxyTexture(GLenum target) {
+    switch (target) {
+        case GL_PROXY_TEXTURE_1D:
+        case GL_PROXY_TEXTURE_2D:
+        case GL_PROXY_TEXTURE_3D:
+        case GL_PROXY_TEXTURE_RECTANGLE_ARB:
+            return 1;
+    }
+    return 0;
+}
+
+static int inline nlevel(int size, int level) {
+    if(size) {
+        size>>=level;
+        if(!size) size=1;
+    }
+    return size;
+}
+
+void glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint *params) {
+    if(!current_context) return;
+    // NSLog("glGetTexLevelParameteriv(%x, %d, %x, %p)", target, level, pname, params);
+    if (isProxyTexture(target)) {
+        switch (pname) {
+            case GL_TEXTURE_WIDTH:
+                (*params) = nlevel(current_context->proxy_width, level);
+                break;
+            case GL_TEXTURE_HEIGHT:
+                (*params) = nlevel(current_context->proxy_height, level);
+                break;
+            case GL_TEXTURE_INTERNAL_FORMAT:
+                (*params) = current_context->proxy_intformat;
+                break;
+        }
+    } else {
+        GLint texture;
+        es3_functions.glGetIntegerv(GL_TEXTURE_BINDING_2D, &texture);
+        texture_t* tracked_texture = unordered_map_get(current_context->texture_map, (void*) texture);
+    }
+}
+
+void glTexImage2D(GLenum target, GLint level, GLint internalformat, GLsizei width, GLsizei height, GLint border, GLenum format, GLenum type, const GLvoid *data) {
+    if(!current_context) return;
+    if (isProxyTexture(target)) {
+        current_context->proxy_width = ((width<<level)>current_context->maxTextureSize)?0:width;
+        current_context->proxy_height = ((height<<level)>current_context->maxTextureSize)?0:height;
+        current_context->proxy_intformat = internalformat;
+    } else {
+        pick_internalformat(&internalformat, &type, &format, &data);
+        GLint texture;
+        es3_functions.glGetIntegerv(GL_TEXTURE_BINDING_2D, &texture);
+        texture_t* tracked_texture = unordered_map_get(current_context->texture_map, (void*) texture);
+        if(tracked_texture != NULL && level == 0)  {
+            tracked_texture->internalformat = internalformat;
+            tracked_texture->format = format;
+            tracked_texture->type = type;
+            tracked_texture->width = width;
+            tracked_texture->height = height;
+        }
+        es3_functions.glTexImage2D(target, level, internalformat, width, height, border, format, type, data);
+    }
+}
+
+void glGenTextures(GLsizei n, GLuint* textures) {
+    if(!current_context) return;
+    es3_functions.glGenTextures(n, textures);
+    texture_t* texture;
+    for(GLsizei i = 0; i < n; i++) {
+        texture = calloc(1, sizeof(texture_t));
+        unordered_map_put(current_context->texture_map, (void*)textures[i], texture);
+    }
+}
+
+void glDeleteTextures(GLsizei n, const GLuint* textures) {
+    if(!current_context) return;
+    es3_functions.glDeleteTextures(n, textures);
+    texture_t * texture;
+    for(GLsizei i = 0; i < n; i++) {
+        texture = unordered_map_remove(current_context->texture_map, (void*)textures[i]);
+        if(texture == NULL) continue;
+        free(texture);
+    }
+}

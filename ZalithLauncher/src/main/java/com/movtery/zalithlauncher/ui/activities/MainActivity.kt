@@ -54,6 +54,7 @@ import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.notification.NotificationManager
 import com.movtery.zalithlauncher.path.PathManager
+import com.movtery.zalithlauncher.path.URL_RELEASES
 import com.movtery.zalithlauncher.path.URL_SUPPORT
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
@@ -546,7 +547,7 @@ class MainActivity : BaseAppCompatActivity() {
     private fun checkUpdate() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val success = launcherUpgradeViewModel.checkManually(
+                launcherUpgradeViewModel.checkManually(
                     onInProgress = {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@MainActivity, getString(R.string.generic_in_progress), Toast.LENGTH_SHORT).show()
@@ -556,11 +557,32 @@ class MainActivity : BaseAppCompatActivity() {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@MainActivity, getString(R.string.upgrade_is_latest), Toast.LENGTH_SHORT).show()
                         }
+                    },
+                    onManifestUnavailable = {
+                        withContext(Dispatchers.Main) {
+                            MaterialAlertDialogBuilder(this@MainActivity)
+                                .setTitle(R.string.upgrade_title)
+                                .setMessage(R.string.upgrade_manifest_unavailable)
+                                .setPositiveButton(R.string.upgrade_open_releases) { dialog, _ ->
+                                    openLink(URL_RELEASES)
+                                    dialog.dismiss()
+                                }
+                                .setNegativeButton(R.string.generic_cancel) { dialog, _ ->
+                                    dialog.dismiss()
+                                }
+                                .showThemed()
+                        }
+                    },
+                    onRemoteFailure = {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity, getString(R.string.upgrade_get_remote_failed), Toast.LENGTH_SHORT).show()
+                        }
                     }
                 )
-                if (!success) throw RuntimeException()
             } catch (_: TooFrequentOperationException) {
-                //太频繁了
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, getString(R.string.upgrade_rate_limited), Toast.LENGTH_SHORT).show()
+                }
                 return@launch
             } catch (_: Exception) {
                 withContext(Dispatchers.Main) {

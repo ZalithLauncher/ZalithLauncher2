@@ -30,6 +30,9 @@ private const val CONTAIN_CHINESE_WEIGHT = 10
  * 平台的搜索结果实现
  */
 interface PlatformSearchResult {
+    /** Whether this result contains at least one displayable project. */
+    fun hasResults(): Boolean
+
     /**
      * 将平台项目搜索结果与 mcmod 信息打包在一起，作为一页
      */

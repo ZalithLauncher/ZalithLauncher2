@@ -40,6 +40,16 @@ jobs:
           set -euo pipefail
           mkdir -p ./apks
           find ./artifacts -type f -name "*.apk" -exec cp {} ./apks/ \;
+          for apk in ./apks/*.apk; do
+            case "$apk" in
+              *-armeabi-v7a.apk) arch=arm ;;
+              *-arm64-v8a.apk) arch=arm64 ;;
+              *-x86_64.apk) arch=x86_64 ;;
+              *-x86.apk) arch=x86 ;;
+              *.apk) arch=all ;;
+            esac
+            python3 .github/scripts/verify_ltw_apk.py "$arch" "$apk"
+          done
           python3 .github/scripts/mirai_release.py verify ./apks
 
       - name: Read Mirai version metadata

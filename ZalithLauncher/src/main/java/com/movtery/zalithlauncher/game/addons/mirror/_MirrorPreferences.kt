@@ -43,6 +43,22 @@ fun resolveMirrorPriority(source: MirrorSourceType, mainland: Boolean): MirrorPr
 /** 按生效策略产出候选列表；官方档不注入镜像，镜像链接不存在时仅保留官方源 */
 fun orderCandidates(official: String, mirror: String?, priority: MirrorPriority): List<String> =
     when (priority) {
-        MirrorPriority.OFFICIAL -> listOfNotNull(official)
+        MirrorPriority.OFFICIAL -> listOf(official)
         MirrorPriority.MIRROR_FIRST -> listOfNotNull(mirror, official)
     }
+
+/**
+ * Order an official API source and its optional MCIM counterpart.
+ * AUTO is official-first with mirror fallback outside mainland China, while
+ * explicit MIRROR and mainland AUTO are mirror-first. OFFICIAL never adds a mirror.
+ */
+fun <T> orderSourceCandidates(
+    official: T,
+    mirror: T?,
+    preference: MirrorSourceType,
+    mainland: Boolean
+): List<T> = when {
+    preference == MirrorSourceType.OFFICIAL -> listOf(official)
+    preference == MirrorSourceType.MIRROR || mainland -> listOfNotNull(mirror, official)
+    else -> listOfNotNull(official, mirror)
+}

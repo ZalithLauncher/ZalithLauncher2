@@ -718,23 +718,12 @@ fun LocalLoginDialog(
                     )
 
                     Spacer(modifier = Modifier.size(16.dp))
-                    Row(
+                    Button(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        enabled = isUsernameValid,
+                        onClick = { onConfirm(userName) }
                     ) {
-                        FilledTonalButton(
-                            modifier = Modifier.weight(1f),
-                            onClick = onDismissRequest
-                        ) {
-                            MarqueeText(text = stringResource(R.string.generic_cancel))
-                        }
-                        Button(
-                            modifier = Modifier.weight(1f),
-                            enabled = isUsernameValid,
-                            onClick = { onConfirm(userName) }
-                        ) {
-                            MarqueeText(text = stringResource(R.string.account_local_create_button))
-                        }
+                        MarqueeText(text = stringResource(R.string.account_local_create_button))
                     }
                 }
             }

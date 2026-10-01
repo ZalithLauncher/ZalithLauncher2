@@ -64,6 +64,7 @@ import com.movtery.zalithlauncher.library.LibraryInfo
 import com.movtery.zalithlauncher.library.libraryData
 import com.movtery.zalithlauncher.path.URL_COMMUNITY
 import com.movtery.zalithlauncher.path.URL_MCMOD
+import com.movtery.zalithlauncher.path.URL_OWNER
 import com.movtery.zalithlauncher.path.URL_PROJECT
 import com.movtery.zalithlauncher.path.URL_SUPPORT
 import com.movtery.zalithlauncher.path.URL_WEBLATE
@@ -116,6 +117,19 @@ fun AboutInfoScreen(
                                     onClick = { openLink(URL_PROJECT) }
                                 ) {
                                     Text(text = stringResource(R.string.about_launcher_project_link))
+                                }
+                            }
+                        )
+
+                        ButtonIconItem(
+                            icon = painterResource(R.drawable.ic_github),
+                            title = "entitybrian",
+                            text = stringResource(R.string.about_launcher_owner_text),
+                            button = {
+                                Button(
+                                    onClick = { openLink(URL_OWNER) }
+                                ) {
+                                    Text(text = stringResource(R.string.about_launcher_owner_link))
                                 }
                             }
                         )

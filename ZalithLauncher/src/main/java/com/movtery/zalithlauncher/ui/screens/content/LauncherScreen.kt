@@ -18,9 +18,13 @@
 
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -30,6 +34,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -53,7 +58,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -81,6 +88,7 @@ import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.account.getAccountTypeName
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.path.URL_RELEASES
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.ActionMenuSide
 import com.movtery.zalithlauncher.ui.base.BaseScreen
@@ -95,8 +103,7 @@ import com.movtery.zalithlauncher.ui.screens.content.navigateToDownload
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
-import com.movtery.zalithlauncher.ui.screens.content.home.HomeGrid
-import com.movtery.zalithlauncher.ui.screens.content.home.MiraiHeroCard
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiHomeDashboard
 import com.movtery.zalithlauncher.ui.screens.content.home.LocalActionMenuDrag
 import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragAnchor
 import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragExclusion
@@ -107,8 +114,8 @@ import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 import kotlin.math.roundToInt
 
-private const val ContentWeight = 7f
-private const val ActionMenuWeight = 3f
+private const val ContentWeight = 7.4f
+private const val ActionMenuWeight = 2.6f
 
 /**
  * 操作菜单停泊槽位与屏幕边缘的间距
@@ -153,15 +160,24 @@ fun LauncherScreen(
                 }
         ) {
             val parentWidthPx = constraints.maxWidth.toFloat()
+            val showActionMenu = maxWidth >= 680.dp
+            LaunchedEffect(showActionMenu) {
+                if (!showActionMenu) dragState.onDragCancel()
+            }
+            val contentWeight = if (showActionMenu) ContentWeight else 1f
             dragState.parentWidthPx = parentWidthPx
             dragState.outerPaddingPx = with(LocalDensity.current) { ActionMenuOuterPadding.toPx() }
-            dragState.menuSpanPx = parentWidthPx * (ActionMenuWeight / (ActionMenuWeight + ContentWeight))
+            dragState.menuSpanPx = if (showActionMenu) {
+                parentWidthPx * (ActionMenuWeight / (ActionMenuWeight + ContentWeight))
+            } else 0f
 
             //拖拽期间以预览侧为准
             val effectiveSide = dragState.previewSide ?: dockedSide
 
-            //卡片尺寸与停泊槽内容区保持一致
-            val cardWidth = maxWidth * (ActionMenuWeight / (ActionMenuWeight + ContentWeight)) - ActionMenuOuterPadding
+            //卡片尺寸与停泊槽内容区保持一致；compact layouts use the account/library routes instead.
+            val cardWidth = if (showActionMenu) {
+                maxWidth * (ActionMenuWeight / (ActionMenuWeight + ContentWeight)) - ActionMenuOuterPadding
+            } else 0.dp
             val cardHeight = maxHeight - ActionMenuOuterPadding * 2
 
             val toAccountManageScreen: () -> Unit = {
@@ -183,8 +199,9 @@ fun LauncherScreen(
 
             // 内容区域
             Row(modifier = Modifier.fillMaxSize()) {
-                // ActionMenu 对接到了 Start，留出空位
-                if (dockedSide == ActionMenuSide.START) {
+                // On narrow screens, account, skin, and version routes remain available
+                // from the primary rail and the dashboard; keep the canvas usable.
+                if (showActionMenu && dockedSide == ActionMenuSide.START) {
                     Spacer(modifier = Modifier.weight(ActionMenuWeight))
                 }
 
@@ -201,7 +218,7 @@ fun LauncherScreen(
                                 key = GuideKeys.Main.Step.CardTip,
                                 holeRadius = 0.dp
                             )
-                            .weight(ContentWeight)
+                            .weight(contentWeight)
                             .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
                         isVisible = isVisible,
                         onLaunchGame = onLaunchGame,
@@ -209,43 +226,49 @@ fun LauncherScreen(
                         onExploreContent = {
                             backStackViewModel.navigateToDownload(backStackViewModel.downloadModScreen)
                         },
+                        onCreateInstance = {
+                            backStackViewModel.navigateToDownload(backStackViewModel.downloadGameScreen)
+                        },
                         onManageVersions = toVersionManageScreen
                     )
                 }
 
                 // ActionMenu 对接到了 End，留出空位
-                if (dockedSide == ActionMenuSide.END) {
+                if (showActionMenu && dockedSide == ActionMenuSide.END) {
                     Spacer(modifier = Modifier.weight(ActionMenuWeight))
                 }
             }
 
             val isActionMenuTaller = maxHeight >= 600.dp
-            CompositionLocalProvider(LocalActionMenuDrag provides dragState) {
-                Box(
-                    modifier = Modifier
-                        .offset {
-                            val translation = if (dragState.floating) {
-                                dragState.cardPosition
-                            } else {
-                                dragState.landingOf(effectiveSide) + dragState.settleOffset.value
+            if (showActionMenu) {
+                CompositionLocalProvider(LocalActionMenuDrag provides dragState) {
+                    Box(
+                        modifier = Modifier
+                            .offset {
+                                val translation = if (dragState.floating) {
+                                    dragState.cardPosition
+                                } else {
+                                    dragState.landingOf(effectiveSide) + dragState.settleOffset.value
+                                }
+                                val x = if (isRtl) parentWidthPx - cardWidth.toPx() - translation.x else translation.x
+                                IntOffset(x.roundToInt(), translation.y.roundToInt())
                             }
-                            val x = if (isRtl) parentWidthPx - cardWidth.toPx() - translation.x else translation.x
-                            IntOffset(x.roundToInt(), translation.y.roundToInt())
-                        }
-                        .size(cardWidth, cardHeight)
-                ) {
-                    ActionMenu(
-                        modifier = Modifier.fillMaxSize(),
-                        isVisible = isVisible,
-                        isTaller = isActionMenuTaller,
-                        dockedSide = dockedSide,
-                        onLaunchGame = onLaunchGame,
-                        swapTargetValue = if (dockedSide == ActionMenuSide.END) 40.dp else (-40).dp,
-                        pickUpScale = { dragState.scale },
-                        toAccountManageScreen = toAccountManageScreen,
-                        toVersionManageScreen = toVersionManageScreen,
-                        toVersionSettingsScreen = toVersionSettingsScreen
-                    )
+                            .size(cardWidth, cardHeight)
+                    ) {
+                        ActionMenu(
+                            modifier = Modifier.fillMaxSize(),
+                            isVisible = isVisible,
+                            isTaller = isActionMenuTaller,
+                            dockedSide = dockedSide,
+                            onLaunchGame = onLaunchGame,
+                            swapTargetValue = if (dockedSide == ActionMenuSide.END) 40.dp else (-40).dp,
+                            pickUpScale = { dragState.scale },
+                            toAccountManageScreen = toAccountManageScreen,
+                            toVersionManageScreen = toVersionManageScreen,
+                            toVersionSettingsScreen = toVersionSettingsScreen,
+                            onOpenLink = onOpenLink
+                        )
+                    }
                 }
             }
         }
@@ -258,6 +281,7 @@ private fun ContentMenu(
     onLaunchGame: (Version?) -> Unit,
     onOpenVersionSettings: (Version) -> Unit,
     onExploreContent: () -> Unit,
+    onCreateInstance: () -> Unit,
     onManageVersions: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -277,19 +301,14 @@ private fun ContentMenu(
                 .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            MiraiHeroCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 6.dp),
+            MiraiHomeDashboard(
+                modifier = Modifier.fillMaxSize(),
+                gridState = gridState,
                 onLaunch = onLaunchGame,
-                onExplore = onExploreContent,
-                onManageVersions = onManageVersions
-            )
-            HomeGrid(
-                state = gridState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+                onExploreContent = onExploreContent,
+                onCreateInstance = onCreateInstance,
+                onManageVersions = onManageVersions,
+                onOpenVersionSettings = onOpenVersionSettings
             )
         }
     }
@@ -370,6 +389,7 @@ private fun AccountAvatarRow(
         }
 
         Column(
+            modifier = Modifier.weight(1f),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -385,6 +405,12 @@ private fun AccountAvatarRow(
                 )
             }
         }
+        Icon(
+            painter = painterResource(R.drawable.ic_arrow_right_rounded),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(18.dp)
+        )
     }
 }
 
@@ -565,6 +591,7 @@ private fun ActionMenuTallerContent(
     toAccountManageScreen: () -> Unit,
     toVersionManageScreen: () -> Unit,
     toVersionSettingsScreen: () -> Unit,
+    onOpenLink: (String) -> Unit
 ) {
     val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
     val skinFile = remember(account, refreshWardrobe) {
@@ -581,22 +608,12 @@ private fun ActionMenuTallerContent(
                 key = GuideKeys.Main.Step.CardDrag,
                 holeRadius = 0.dp,
             )
-            .then(modifier),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+            .then(modifier)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
         val azimuth = (if (dockedSide == ActionMenuSide.START) -35 else 35) * (if (isRtl) -1 else 1)
-
-        SkinPreview3D(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            skinFile = skinFile,
-            capeFile = capeFile,
-            modelType = account?.skinModelType,
-            interactionEnabled = false,
-            azimuth = azimuth,
-        )
 
         BackgroundCard(
             modifier = Modifier
@@ -609,22 +626,135 @@ private fun ActionMenuTallerContent(
             shape = MaterialTheme.shapes.extraLarge,
             onClick = toAccountManageScreen
         ) {
-            AccountAvatarRow(
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                account = account,
-            )
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.home_playing_as),
+                    modifier = Modifier.padding(start = 12.dp, top = 10.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                AccountAvatarRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    account = account,
+                )
+            }
+        }
+
+        BackgroundCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 9.dp),
+                verticalArrangement = Arrangement.spacedBy(7.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.home_skin_preview),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                SkinPreview3D(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(112.dp),
+                    skinFile = skinFile,
+                    capeFile = capeFile,
+                    modelType = account?.skinModelType,
+                    interactionEnabled = false,
+                    azimuth = azimuth,
+                )
+            }
+        }
+
+        BackgroundCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.home_selected_installation),
+                    modifier = Modifier.padding(start = 12.dp, top = 10.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                VersionsContent(
+                    modifier = Modifier.fillMaxWidth(),
+                    onLaunchGame = onLaunchGame,
+                    toVersionManageScreen = toVersionManageScreen,
+                    toVersionSettingsScreen = toVersionSettingsScreen,
+                )
+            }
         }
 
         BackgroundCard(
             modifier = Modifier.fillMaxWidth(),
             shape = MaterialTheme.shapes.extraLarge,
+            onClick = { onOpenLink(URL_RELEASES) }
         ) {
-            VersionsContent(
-                modifier = Modifier.fillMaxWidth(),
-                onLaunchGame = onLaunchGame,
-                toVersionManageScreen = toVersionManageScreen,
-                toVersionSettingsScreen = toVersionSettingsScreen,
-            )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(7.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(90.dp)
+                        .clip(MaterialTheme.shapes.large)
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.mirai_hero_bg),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.38f))
+                    )
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(11.dp),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.launcher_brand_short),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White.copy(alpha = 0.82f)
+                        )
+                        Text(
+                            text = stringResource(R.string.home_news_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                Text(
+                    text = stringResource(R.string.home_news_summary),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                TextButton(
+                    onClick = { onOpenLink(URL_RELEASES) },
+                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 2.dp)
+                ) {
+                    Text(stringResource(R.string.home_news_open))
+                }
+            }
         }
     }
 }
@@ -640,7 +770,8 @@ private fun ActionMenu(
     modifier: Modifier = Modifier,
     toAccountManageScreen: () -> Unit = {},
     toVersionManageScreen: () -> Unit = {},
-    toVersionSettingsScreen: () -> Unit = {}
+    toVersionSettingsScreen: () -> Unit = {},
+    onOpenLink: (String) -> Unit = {}
 ) {
     val xOffset by swapAnimateDpAsState(
         targetValue = swapTargetValue,
@@ -665,6 +796,7 @@ private fun ActionMenu(
             toAccountManageScreen = toAccountManageScreen,
             toVersionManageScreen = toVersionManageScreen,
             toVersionSettingsScreen = toVersionSettingsScreen,
+            onOpenLink = onOpenLink
         )
     } else {
         ActionMenuCardContent(

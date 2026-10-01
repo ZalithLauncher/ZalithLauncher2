@@ -249,6 +249,8 @@ class ModrinthSearchResult(
         }
     }
 
+    override fun hasResults(): Boolean = hits.isNotEmpty()
+
     override fun getAssetsPage(classes: PlatformClasses): AssetsPage {
         val mcmodData = hits.map {
             it to classes.getTranslations().getModBySlugId(it.slug)

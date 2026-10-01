@@ -60,10 +60,11 @@ import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.Re
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.SearchAssetsState
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.SearchFilter
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
+import com.movtery.zalithlauncher.utils.string.containsChinese
 import com.movtery.zalithlauncher.utils.logging.Logger
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -105,12 +106,18 @@ private class SearchScreenViewModel(
         searchFilter = searchFilter.copy(searchName = searchName)
         currentSearchMCMODSJob?.cancel()
         currentSearchMCMODSJob = viewModelScope.launch {
-            val result = try {
-                searchName.searchMcMods(classes = platformClasses) ?: emptyList()
-            } catch (_: CancellationException) {
-                emptyList()
-            }.take(20) //仅展示20个搜索结果
-            withContext(Dispatchers.Main) {
+            if (!searchName.containsChinese()) {
+                _searchedMcMods.update { emptyList() }
+                currentSearchMCMODSJob = null
+                return@launch
+            }
+            // Chinese mod-name matching runs an LCS search over the local translation index.
+            // Wait for a brief pause in typing so rapid edits don't repeat that work per keystroke.
+            delay(180)
+            val result = searchName.searchMcMods(classes = platformClasses)
+                .orEmpty()
+                .take(20) //仅展示20个搜索结果
+            if (searchFilter.searchName == searchName) {
                 _searchedMcMods.update { result }
             }
             currentSearchMCMODSJob = null
@@ -130,19 +137,23 @@ private class SearchScreenViewModel(
     ) {
         currentSearchVersionJob?.cancel()
         currentSearchVersionJob = viewModelScope.launch {
+            if (version.isNotEmpty()) delay(120)
             val allVersions = MinecraftVersions.allVersions.value
-            val result: List<String> = when {
-                version.isEmpty() -> popularVersions
-                allVersions.isEmpty() -> popularVersions.filter { ver ->
-                    ver.contains(version)
-                }.take(20) //仅展示20个搜索结果
-                else -> allVersions.filter {
-                    it.version.id.contains(version) &&
-                            //CurseForge只能使用正式版进行过滤
-                            (searchPlatform != Platform.CURSEFORGE || it.type == MinecraftVersion.Type.Release)
-                }.map { it.version.id }.take(20) //仅展示20个搜索结果
+            val platform = searchPlatform
+            val result: List<String> = withContext(Dispatchers.Default) {
+                when {
+                    version.isEmpty() -> popularVersions
+                    allVersions.isEmpty() -> popularVersions.filter { ver ->
+                        ver.contains(version)
+                    }.take(20) //仅展示20个搜索结果
+                    else -> allVersions.filter {
+                        it.version.id.contains(version) &&
+                                //CurseForge只能使用正式版进行过滤
+                                (platform != Platform.CURSEFORGE || it.type == MinecraftVersion.Type.Release)
+                    }.map { it.version.id }.take(20) //仅展示20个搜索结果
+                }
             }
-            withContext(Dispatchers.Main) {
+            if (searchFilter.gameVersion == version) {
                 _searchedVersions.update { result }
             }
             currentSearchVersionJob = null
@@ -167,27 +178,29 @@ private class SearchScreenViewModel(
         search()
     }
 
-    private fun putResult(result: PlatformSearchResult) {
-        result.getAssetsPage(platformClasses).also { page ->
-            Logger.info(TAG, "Searched page info: {pageNumber: ${page.pageNumber}, pageIndex: ${page.pageIndex}, totalPage: ${page.totalPage}, isLastPage: ${page.isLastPage}}")
-
-            val targetIndex = page.pageNumber - 1
-
-            if (pages.size > targetIndex) {
-                pages[targetIndex] = page //替换已有页
-            } else {
-                while (pages.size < targetIndex) {
-                    pages += null
-                }
-                pages += page
-            }
-
-            searchResult = SearchAssetsState.Success(page)
+    private suspend fun putResult(result: PlatformSearchResult) {
+        val page = withContext(Dispatchers.Default) {
+            result.getAssetsPage(platformClasses)
         }
+        Logger.info(TAG, "Searched page info: {pageNumber: ${page.pageNumber}, pageIndex: ${page.pageIndex}, totalPage: ${page.totalPage}, isLastPage: ${page.isLastPage}}")
+
+        val targetIndex = page.pageNumber - 1
+        if (pages.size > targetIndex) {
+            pages[targetIndex] = page //替换已有页
+        } else {
+            while (pages.size < targetIndex) {
+                pages += null
+            }
+            pages += page
+        }
+
+        searchResult = SearchAssetsState.Success(page)
     }
 
     fun search() {
         currentSearchJob?.cancel() //取消上一个搜索
+        currentSearchMCMODSJob?.cancel()
+        currentSearchVersionJob?.cancel()
 
         currentSearchJob = viewModelScope.launch {
             searchResult = SearchAssetsState.Searching

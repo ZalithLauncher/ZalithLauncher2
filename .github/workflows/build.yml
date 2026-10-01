@@ -65,11 +65,50 @@ jobs:
             echo "::error::Release builds require the STORE_PASSWORD and KEY_PASSWORD repository secrets."
             exit 1
           fi
+          if [[ ! -s "ZalithLauncher/zalith_launcher.jks" ]]; then
+            echo "::error::The tracked Release signing keystore is missing."
+            exit 1
+          fi
 
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew
           ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
+
+      - name: Verify Release APK signatures
+        if: inputs.variant == 'Release'
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          if [[ -z "$sdk_root" || ! -d "$sdk_root/build-tools" ]]; then
+            echo "::error::Android SDK build-tools were not found."
+            exit 1
+          fi
+          apksigner="$(find "$sdk_root/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          if [[ -z "$apksigner" ]]; then
+            echo "::error::apksigner was not found in Android SDK build-tools."
+            exit 1
+          fi
+          for apk in ZalithLauncher/build/outputs/apk/release/*.apk; do
+            "$apksigner" verify --verbose "$apk"
+          done
+
+      - name: Verify LTW native libraries in the APK
+        run: |
+          if [[ "${{ inputs.variant }}" == "Release" ]]; then
+            apk_dir="ZalithLauncher/build/outputs/apk/release"
+          else
+            apk_dir="ZalithLauncher/build/outputs/apk/debug"
+          fi
+          python3 .github/scripts/verify_ltw_apk.py "${{ matrix.arch }}" "$apk_dir"
+
+      - name: Test renderer wiring and source policy
+        if: inputs.variant == 'Debug' && matrix.arch == 'all'
+        run: |
+          ./gradlew ZalithLauncher:testDebugUnitTest \
+            --tests "com.movtery.zalithlauncher.game.renderer.LTWRendererTest" \
+            --tests "com.movtery.zalithlauncher.game.addons.mirror.MirrorPreferencesTest" \
+            -Darch=all
 
       - name: Upload Mirai Release APK for ${{ matrix.arch }}
         if: inputs.variant == 'Release'

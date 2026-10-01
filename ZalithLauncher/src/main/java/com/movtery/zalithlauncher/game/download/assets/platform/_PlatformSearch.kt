@@ -19,8 +19,7 @@
 package com.movtery.zalithlauncher.game.download.assets.platform
 
 import android.util.Log
-import com.movtery.zalithlauncher.game.addons.mirror.MirrorPriority
-import com.movtery.zalithlauncher.game.addons.mirror.resolveMirrorPriority
+import com.movtery.zalithlauncher.game.addons.mirror.orderSourceCandidates
 import com.movtery.zalithlauncher.game.download.assets.mapExceptionToMessage
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.CurseForgeSearcher
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.MCIM_CURSEFORGE_API
@@ -79,6 +78,8 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
                 Logger.debug(TAG, "Starting to attempt to perform the operation on source: {${searcher.source}}")
             }
             return block(searcher)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Log.w("PlatformSearcher", "Failed to perform the operation on source: {${searcher.source}}", e)
             lastException = e
@@ -115,29 +116,33 @@ fun mirroredCurseForgeSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<CurseForgeSearcher> {
     val preference = AllSettings.assetPlatformSource.getValue()
-    val priority = resolveMirrorPriority(preference, mainland = enabledMirror)
     val mirrorSource = mirrorCurseForgeSearcher.takeIf {
         preference != MirrorSourceType.OFFICIAL
     }
-    return when (priority) {
-        MirrorPriority.OFFICIAL -> listOfNotNull(curseForgeSearcher, mirrorSource)
-        MirrorPriority.MIRROR_FIRST -> listOfNotNull(mirrorSource, curseForgeSearcher)
-    }
+    return orderSourceCandidates(
+        official = curseForgeSearcher,
+        mirror = mirrorSource,
+        preference = preference,
+        mainland = enabledMirror
+    )
 }
 
 /**
- * 镜像源只能在中国地区使用
+ * 自动模式按地区调整 Modrinth 与 MCIM 的尝试顺序；显式源偏好始终生效。
  */
 fun mirroredModrinthSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<ModrinthSearcher> {
-    val source = resolveMirrorPriority(AllSettings.assetPlatformSource.getValue(), mainland = enabledMirror)
-    val mirrorSource = mirrorModrinthSearcher.takeIf { enabledMirror }
-    return when (source) {
-        MirrorPriority.OFFICIAL -> listOf(modrinthSearcher)
-        MirrorPriority.MIRROR_FIRST ->
-            listOfNotNull(mirrorSource, modrinthSearcher)
+    val preference = AllSettings.assetPlatformSource.getValue()
+    val mirrorSource = mirrorModrinthSearcher.takeIf {
+        preference != MirrorSourceType.OFFICIAL
     }
+    return orderSourceCandidates(
+        official = modrinthSearcher,
+        mirror = mirrorSource,
+        preference = preference,
+        mainland = enabledMirror
+    )
 }
 
 suspend fun searchAssets(
@@ -186,7 +191,9 @@ suspend fun searchAssets(
                     }
                 }
                 lastResult = r
-                if (r.getAssetsPage(platformClasses).data.isNotEmpty()) break
+                if (r.hasResults()) break
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (e: Exception) {
                 //当前关键词搜索失败，记录异常并继续尝试下一个
                 lastException = e
@@ -195,10 +202,14 @@ suspend fun searchAssets(
 
         val result = lastResult ?: throw lastException ?: IOException("Failed to search for all queries")
 
-        onSuccess(
-            if (containsChinese) result.processChineseSearchResults(searchFilter.searchName, platformClasses)
-            else result
-        )
+        val displayResult = if (containsChinese) {
+            withContext(Dispatchers.Default) {
+                result.processChineseSearchResults(searchFilter.searchName, platformClasses)
+            }
+        } else {
+            result
+        }
+        onSuccess(displayResult)
     }.onFailure { e ->
         if (e !is CancellationException) {
             Logger.error(TAG, "An exception occurred while searching for assets.", e)

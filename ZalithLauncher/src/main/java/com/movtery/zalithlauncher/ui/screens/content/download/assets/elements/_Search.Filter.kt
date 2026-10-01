@@ -162,7 +162,6 @@ fun SearchFilter(
                         item.subname.ifEmpty { item.abbr }
                     )
                     onSearch()
-                    onSearch()
                 }
             )
         }

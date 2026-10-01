@@ -753,7 +753,6 @@ private fun CustomBackground(
                         backgroundViewModel.import(context, result[0] /* 取决于上面的allowMultiple，此处一定会是单个元素的列表 */)
                     },
                     onError = { th ->
-                        backgroundViewModel.delete()
                         submitError(
                             ErrorViewModel.ThrowableMessage(
                                 title = androidText(importErrorText),

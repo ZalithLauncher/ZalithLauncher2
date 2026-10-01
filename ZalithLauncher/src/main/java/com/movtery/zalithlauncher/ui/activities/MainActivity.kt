@@ -64,7 +64,7 @@ import com.movtery.zalithlauncher.ui.buildAppendedText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.guide.NextTipLabel
 import com.movtery.zalithlauncher.ui.guide.rememberAppGuides
-import com.movtery.zalithlauncher.ui.modrinth.*
+import com.movtery.zalithlauncher.ui.screens.main.MainScreen
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.Background
@@ -195,6 +195,10 @@ class MainActivity : BaseAppCompatActivity() {
         PluginLoader.loadAllPlugins(this, false)
         refreshData()
 
+        lifecycleScope.launch(Dispatchers.IO) {
+            backgroundViewModel.seedDefaultBackground(applicationContext)
+        }
+
         //注册文件管理器事件监听
         fmEventRegistrar = FileManagerEventRegistrar(this, ::onFileManagerEvent).also { it.start() }
 
@@ -315,51 +319,11 @@ class MainActivity : BaseAppCompatActivity() {
                         viewModel = backgroundViewModel
                     )
 
-                    val dummyJumpIn = listOf(
-                        GameInstance("Redstone Playground", "Minecraft 26.2"),
-                        GameInstance("Wynncraft", "Wynncraft v2.2.3"),
-                        GameInstance("Cobblemon", "Fabric 1.21.1")
-                    )
-                    val dummyLibrary = listOf(
-                        GameInstance("Cobblemon", "Fabric 1.21.1"),
-                        GameInstance("Modrinth SMP", "Neoforge 26.1.2"),
-                        GameInstance("QoL Mods", "Fabric 26.2"),
-                        GameInstance("Redstone Play...", "Vanilla 26.2"),
-                        GameInstance("Wynncraft", "Vanilla 1.21.11")
-                    )
-                    val dummyOnlineFriends = listOf(
-                        Friend("Stantios", "Playing Minecraft"),
-                        Friend("coolbot100s", "Online")
-                    )
-                    val dummyOfflineFriends = List(14) { Friend("Friend $it", "Offline") }
-
-                    ModrinthAppLayout(
-                        sidebarContent = {
-                            ModrinthSidebar(
-                                destinations = listOf(
-                                    SidebarDestination.Home,
-                                    SidebarDestination.Discover,
-                                    SidebarDestination.Library,
-                                    SidebarDestination.Settings
-                                ),
-                                currentRoute = "home",
-                                onNavigate = { /* Navigation logic to be added later */ }
-                            )
-                        },
-                        mainContent = {
-                            ModrinthMainContent(
-                                jumpInItems = dummyJumpIn,
-                                libraryItems = dummyLibrary,
-                                onPlayClick = { /* Game launch logic to be added later */ }
-                            )
-                        },
-                        rightPanelContent = {
-                            ModrinthRightPanel(
-                                currentUser = UserProfile("ProspectorDev", "Minecraft account"),
-                                onlineFriends = dummyOnlineFriends,
-                                offlineFriends = dummyOfflineFriends
-                            )
-                        }
+                    MainScreen(
+                        screenBackStackModel = screenBackStackModel,
+                        eventViewModel = eventViewModel,
+                        modpackImportViewModel = modpackImportViewModel,
+                        submitError = { errorViewModel.showError(it) }
                     )
 
                     //节日彩蛋效果层

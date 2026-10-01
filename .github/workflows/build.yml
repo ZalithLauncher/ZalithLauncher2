@@ -1,7 +1,16 @@
-name: Build APK
+name: Build Mirai APKs
 
 on:
   workflow_dispatch:
+    inputs:
+      variant:
+        description: APK build variant
+        required: true
+        type: choice
+        options:
+          - Debug
+          - Release
+        default: Debug
   workflow_call:
     inputs:
       variant:
@@ -49,31 +58,39 @@ jobs:
         with:
           add-job-summary: "on-failure"
 
+      - name: Validate release signing configuration
+        if: inputs.variant == 'Release'
+        run: |
+          if [[ -z "$STORE_PASSWORD" || -z "$KEY_PASSWORD" ]]; then
+            echo "::error::Release builds require the STORE_PASSWORD and KEY_PASSWORD repository secrets."
+            exit 1
+          fi
+
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew
           ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
 
-      - name: Upload Release APK for ${{ matrix.arch }}
+      - name: Upload Mirai Release APK for ${{ matrix.arch }}
         if: inputs.variant == 'Release'
-        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
-          name: release apk (${{ matrix.arch }})
+          name: mirai-release-apk-${{ matrix.arch }}
           path: ZalithLauncher/build/outputs/apk/release/*.apk
+          if-no-files-found: error
 
       - name: Upload Release Mapping for ${{ matrix.arch }}
         if: inputs.variant == 'Release'
-        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
-          name: mapping (${{ matrix.arch }})
+          name: mirai-release-mapping-${{ matrix.arch }}
           path: ZalithLauncher/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: error
 
-      - name: Upload Debug APK for ${{ matrix.arch }}
+      - name: Upload Mirai Debug APK for ${{ matrix.arch }}
         if: inputs.variant == 'Debug'
-        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
-          name: debug apk (${{ matrix.arch }})
+          name: mirai-debug-apk-${{ matrix.arch }}
           path: ZalithLauncher/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

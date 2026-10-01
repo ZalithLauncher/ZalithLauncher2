@@ -1,4 +1,4 @@
-name: Android CI
+name: Mirai Release APKs
 
 on:
   release:
@@ -25,23 +25,57 @@ jobs:
     if: success()
 
     steps:
-      - name: Download Files
+      - name: Checkout release source
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Download build artifacts
         uses: actions/download-artifact@v8
         with:
           path: ./artifacts
 
-      - name: Organize Artifacts
+      - name: Collect and verify all five ABI APKs
         run: |
+          set -euo pipefail
           mkdir -p ./apks
-          
-          find ./artifacts -name "*.apk" -type f -exec cp {} ./apks/ \;
-          
-          echo "Found $(ls ./apks/ | wc -l) APK file(s)"
+          find ./artifacts -type f -name "*.apk" -exec cp {} ./apks/ \;
+          python3 .github/scripts/mirai_release.py verify ./apks
 
-      - name: Upload To Release
+      - name: Read Mirai version metadata
+        id: version
+        run: |
+          set -euo pipefail
+          version_code="$(sed -n 's/^launcher_version_code=//p' ZalithLauncher/gradle.properties | head -n 1)"
+          version_name="$(sed -n 's/^launcher_version_name=//p' ZalithLauncher/gradle.properties | head -n 1)"
+          test -n "$version_code"
+          test -n "$version_name"
+          echo "code=$version_code" >> "$GITHUB_OUTPUT"
+          echo "name=$version_name" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Mirai update metadata
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_PUBLISHED_AT: ${{ github.event.release.published_at }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+          RELEASE_REPOSITORY: ${{ github.repository }}
+          VERSION_CODE: ${{ steps.version.outputs.code }}
+          VERSION_NAME: ${{ steps.version.outputs.name }}
+        run: |
+          python3 .github/scripts/mirai_release.py metadata \
+            --apks-directory ./apks \
+            --output ./mirai-update.json \
+            --repository "$RELEASE_REPOSITORY" \
+            --tag "$RELEASE_TAG" \
+            --published-at "$RELEASE_PUBLISHED_AT" \
+            --version-code "$VERSION_CODE" \
+            --version-name "$VERSION_NAME"
+
+      - name: Upload APKs and update metadata to the release
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.event.release.tag_name }}
           files: |
             ./apks/*.apk
+            ./mirai-update.json
           fail_on_unmatched_files: true

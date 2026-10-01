@@ -45,6 +45,7 @@ import com.movtery.zalithlauncher.game.account.wardrobe.SkinModelType
 import com.movtery.zalithlauncher.game.account.wardrobe.capeLocalRes
 import com.movtery.zalithlauncher.game.account.wardrobe.getLocalUUIDWithSkinModel
 import com.movtery.zalithlauncher.game.account.wardrobe.isSlimModel
+import com.movtery.zalithlauncher.game.account.wardrobe.validateCapeFile
 import com.movtery.zalithlauncher.game.account.wardrobe.validateSkinFile
 import com.movtery.zalithlauncher.game.account.yggdrasil.PlayerProfile
 import com.movtery.zalithlauncher.game.account.yggdrasil.cacheAllCapes
@@ -109,6 +110,7 @@ sealed interface AccountManageIntent {
     data class UpdatePendingCapeData(val capeState: ChangeCape) :
         AccountManageIntent
     data class OnSkinPicked(val uri: Uri) : AccountManageIntent
+    data class OnCapePicked(val uri: Uri) : AccountManageIntent
     data object ResetAccountSkinDialogState : AccountManageIntent
 
 
@@ -138,6 +140,12 @@ sealed interface AccountManageIntent {
     data class ApplyMicrosoftCape(
         val account: Account,
         val cape: PlayerProfile.Cape
+    ) : AccountManageIntent
+
+    /** Save or remove a custom cape on an offline account. */
+    data class ApplyLocalCape(
+        val account: Account,
+        val file: File?
     ) : AccountManageIntent
 
     /** 创建新的离线账号 */
@@ -282,7 +290,8 @@ class AccountManageViewModel @AssistedInject constructor(
     data class AccountSkinDialogState(
         val pendingSkinData: ChangeSkin = ChangeSkin.None,
         val pendingCapeData: ChangeCape = ChangeCape.None,
-        val importingSkin: Boolean = false
+        val importingSkin: Boolean = false,
+        val importingCape: Boolean = false
     )
 
     /**
@@ -335,16 +344,12 @@ class AccountManageViewModel @AssistedInject constructor(
                 }
             }
 
-            is AccountManageIntent.UpdatePendingCapeData -> {
-                _accountSkinDialogState.update {
-                    it.copy(
-                        pendingCapeData = intent.capeState
-                    )
-                }
-            }
+            is AccountManageIntent.UpdatePendingCapeData -> setPendingCapeData(intent.capeState)
 
             is AccountManageIntent.OnSkinPicked -> onSkinPicked(intent)
+            is AccountManageIntent.OnCapePicked -> onCapePicked(intent)
             is AccountManageIntent.ResetAccountSkinDialogState -> {
+                setPendingCapeData(ChangeCape.None)
                 _accountSkinDialogState.update { AccountSkinDialogState() }
             }
 
@@ -355,6 +360,7 @@ class AccountManageViewModel @AssistedInject constructor(
             is AccountManageIntent.UploadMicrosoftSkin -> uploadMicrosoftSkin(intent)
             is AccountManageIntent.FetchMicrosoftCapes -> fetchMicrosoftCapes(intent.account)
             is AccountManageIntent.ApplyMicrosoftCape -> applyMicrosoftCape(intent)
+            is AccountManageIntent.ApplyLocalCape -> applyLocalCape(intent)
             is AccountManageIntent.CreateLocalAccount -> createLocalAccount(
                 intent.userName,
                 intent.userUUID
@@ -418,6 +424,50 @@ class AccountManageViewModel @AssistedInject constructor(
 
             _accountSkinDialogState.update {
                 it.copy(importingSkin = false)
+            }
+        }
+    }
+
+    /** Replace the pending cape and remove any temporary import no longer in use. */
+    private fun setPendingCapeData(capeState: ChangeCape) {
+        var staleFile: File? = null
+        _accountSkinDialogState.update { current ->
+            val previousFile = (current.pendingCapeData as? ChangeCape.LocalCapeData)?.file
+            val replacementFile = (capeState as? ChangeCape.LocalCapeData)?.file
+            staleFile = previousFile?.takeIf { it != replacementFile }
+            current.copy(pendingCapeData = capeState)
+        }
+        staleFile?.let { FileUtils.deleteQuietly(it) }
+    }
+
+    /** Validate a selected 64×32 cape texture and stage it for the account dialog. */
+    private fun onCapePicked(intent: AccountManageIntent.OnCapePicked) {
+        viewModelScope.launch(Dispatchers.IO) {
+            _accountSkinDialogState.update { it.copy(importingCape = true) }
+            val cacheFile = File(
+                PathManager.DIR_IMAGE_CACHE,
+                "cape_pick_${UUID.randomUUID()}.png"
+            )
+
+            try {
+                context.copyLocalFile(intent.uri, cacheFile)
+                if (validateCapeFile(cacheFile)) {
+                    setPendingCapeData(ChangeCape.LocalCapeData(cacheFile))
+                } else {
+                    FileUtils.deleteQuietly(cacheFile)
+                    emitError(
+                        androidText(R.string.generic_warning),
+                        androidText(R.string.account_change_cape_invalid_local)
+                    )
+                }
+            } catch (th: Exception) {
+                FileUtils.deleteQuietly(cacheFile)
+                emitError(
+                    androidText(R.string.account_change_cape_failed_to_import_local),
+                    androidText(th.getMessageOrToString())
+                )
+            } finally {
+                _accountSkinDialogState.update { it.copy(importingCape = false) }
             }
         }
     }
@@ -689,6 +739,70 @@ class AccountManageViewModel @AssistedInject constructor(
                             )
                         }
                     }
+                }
+            )
+        )
+    }
+
+    /** Persist or remove the custom cape belonging to an offline account. */
+    private fun applyLocalCape(intent: AccountManageIntent.ApplyLocalCape) {
+        val account = intent.account
+        if (!account.isLocalAccount()) return
+
+        val sourceFile = intent.file
+        if (sourceFile == null) {
+            setPendingCapeData(ChangeCape.None)
+        } else {
+            // The task owns this temporary file now; a following dialog reset must not delete it early.
+            _accountSkinDialogState.update { current ->
+                if ((current.pendingCapeData as? ChangeCape.LocalCapeData)?.file == sourceFile) {
+                    current.copy(pendingCapeData = ChangeCape.None)
+                } else {
+                    current
+                }
+            }
+        }
+        TaskSystem.submitTask(
+            Task.runTask(
+                id = account.uniqueUUID + "_cape",
+                dispatcher = Dispatchers.IO,
+                task = {
+                    if (sourceFile != null && !validateCapeFile(sourceFile)) {
+                        FileUtils.deleteQuietly(sourceFile)
+                        emitError(
+                            androidText(R.string.generic_warning),
+                            androidText(R.string.account_change_cape_invalid_local)
+                        )
+                        return@runTask
+                    }
+
+                    val targetFile = account.getCapeFile()
+                    val tempFile = File(
+                        PathManager.DIR_ACCOUNT_CAPE,
+                        "${account.uniqueUUID}.tmp.png"
+                    )
+                    try {
+                        if (sourceFile == null) {
+                            FileUtils.deleteQuietly(targetFile)
+                        } else {
+                            FileUtils.deleteQuietly(tempFile)
+                            sourceFile.copyTo(tempFile, overwrite = true)
+                            FileUtils.deleteQuietly(targetFile)
+                            FileUtils.moveFile(tempFile, targetFile)
+                        }
+                        AccountsManager.refreshWardrobe()
+                        emitToast(androidText(R.string.account_change_local_cape_saved))
+                    } finally {
+                        FileUtils.deleteQuietly(tempFile)
+                        sourceFile?.let { FileUtils.deleteQuietly(it) }
+                    }
+                },
+                onError = { th ->
+                    sourceFile?.let { FileUtils.deleteQuietly(it) }
+                    emitError(
+                        androidText(R.string.generic_error),
+                        androidText(th.getMessageOrToString())
+                    )
                 }
             )
         )

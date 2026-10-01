@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="launcher_brand_name">Mirai Launcher</string>
+    <string name="launcher_brand_short">Mirai</string>
+    <string name="app_unofficial_modified">Unofficial Modified Version</string>
+    <string name="home_welcome_title">Ready for your next world?</string>
+    <string name="home_welcome_subtitle">Launch an installation, explore content, and make it yours.</string>
+    <string name="home_play">Play</string>
+    <string name="home_choose_version">Choose a version</string>
+    <string name="home_selected_installation">Selected installation</string>
+    <string name="home_explore_content">Explore mods</string>
+    <string name="home_manage_versions">Manage versions</string>
+    <string name="home_account_not_set">Choose an account to start playing.</string>
     <string name="generic_cancel">Cancel</string>
     <string name="generic_confirm">Confirm</string>
     <string name="generic_error">Error</string>
@@ -94,6 +105,7 @@
     <string name="theme_color_verdant_field">Verdant Twilight</string>
     <string name="theme_color_urban_ash">Urban Ash</string>
     <string name="theme_color_verdant_dawn">Silent Forest Dawn</string>
+    <string name="theme_color_mirai">Mirai Forest</string>
     <string name="theme_color_picker_title">Color Picker</string>
     <string name="theme_color_picker_edit_hex">Edit Hex</string>
     <string name="theme_color_picker_edit_hex_invalid">Invalid Hex</string>
@@ -518,6 +530,11 @@
     <string name="account_change_cape_apply_success">Successfully changed your cape to: %s</string>
     <string name="account_change_cape_apply_reset">Successfully reset your cape</string>
     <string name="account_change_cape_apply_failed">(%d) Failed to change cape</string>
+    <string name="account_change_local_cape">Import a custom offline cape</string>
+    <string name="account_remove_local_cape">Remove custom cape</string>
+    <string name="account_change_cape_invalid_local">Invalid cape texture. Choose a 64×32 PNG image.</string>
+    <string name="account_change_cape_failed_to_import_local">Could not read that cape image</string>
+    <string name="account_change_local_cape_saved">Offline cape updated</string>
     <string name="account_supporting_username_invalid_title">Invalid Username</string>
     <string name="account_supporting_username_invalid_local_message_hint1">Valid usernames only support letters (case-insensitive), numbers, and underscores, with length between 3 and 16 characters.</string>
     <string name="account_supporting_username_invalid_local_message_hint2">Otherwise, the game may not run properly.</string>
@@ -1257,6 +1274,8 @@
     <string name="about_launcher_version">Launcher Version: %s</string>
     <string name="about_launcher_author_movtery_title">MovTery</string>
     <string name="about_launcher_author_movtery_text">Author of %s</string>
+    <string name="about_launcher_upstream_title">Original project contributors</string>
+    <string name="about_launcher_upstream_text">With thanks to MovTery and the Zalith Launcher 2 contributors for the work Mirai builds on.</string>
     <string name="about_launcher_project_link">Project Link</string>
     <string name="about_sponsor">Sponsorship Support</string>
     <string name="about_acknowledgements_title">Acknowledgements</string>

@@ -91,10 +91,12 @@ import com.movtery.zalithlauncher.ui.components.SkinPreview3D
 import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
+import com.movtery.zalithlauncher.ui.screens.content.navigateToDownload
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.content.home.HomeGrid
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiHeroCard
 import com.movtery.zalithlauncher.ui.screens.content.home.LocalActionMenuDrag
 import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragAnchor
 import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragExclusion
@@ -202,10 +204,12 @@ fun LauncherScreen(
                             .weight(ContentWeight)
                             .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
                         isVisible = isVisible,
-                        onLaunchGame = { version ->
-                            onLaunchGame(version)
+                        onLaunchGame = onLaunchGame,
+                        onOpenVersionSettings = navigateToVersions,
+                        onExploreContent = {
+                            backStackViewModel.navigateToDownload(backStackViewModel.downloadModScreen)
                         },
-                        onOpenVersionSettings = navigateToVersions
+                        onManageVersions = toVersionManageScreen
                     )
                 }
 
@@ -251,8 +255,10 @@ fun LauncherScreen(
 @Composable
 private fun ContentMenu(
     isVisible: Boolean,
-    onLaunchGame: (Version) -> Unit,
+    onLaunchGame: (Version?) -> Unit,
     onOpenVersionSettings: (Version) -> Unit,
+    onExploreContent: () -> Unit,
+    onManageVersions: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val yOffset by swapAnimateDpAsState(
@@ -262,15 +268,30 @@ private fun ContentMenu(
     val gridState = rememberCardGridState()
 
     CompositionLocalProvider(
-        LocalHomeCardLauncher provides onLaunchGame,
+        LocalHomeCardLauncher provides { version -> onLaunchGame(version) },
         LocalHomeCardVersionSettings provides onOpenVersionSettings
     ) {
-        HomeGrid(
-            state = gridState,
+        Column(
             modifier = modifier
                 .fillMaxSize()
-                .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
-        )
+                .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            MiraiHeroCard(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 6.dp),
+                onLaunch = onLaunchGame,
+                onExplore = onExploreContent,
+                onManageVersions = onManageVersions
+            )
+            HomeGrid(
+                state = gridState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            )
+        }
     }
 }
 

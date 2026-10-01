@@ -281,8 +281,8 @@ object AccountsManager {
     fun deleteAccount(account: Account) {
         scope.launch {
             accountDao.deleteAccount(account)
-            val skinFile = account.getSkinFile()
-            FileUtils.deleteQuietly(skinFile)
+            FileUtils.deleteQuietly(account.getSkinFile())
+            FileUtils.deleteQuietly(account.getCapeFile())
             suspendReloadAccounts()
         }
     }

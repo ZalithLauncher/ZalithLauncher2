@@ -1,54 +1,54 @@
-# Zalith Launcher 2
-![Downloads](https://img.shields.io/github/downloads/ZalithLauncher/ZalithLauncher2/total)
-[![Sponsor](https://img.shields.io/badge/sponsor-30363D?logo=GitHub-Sponsors)](https://afdian.com/a/MovTery)
+# Mirai Launcher
 
-[English](README_EN_US.md) | [简体中文](README.md)
+<p align="center">
+  <img src="assets/mirai-logo.png" alt="Mirai Launcher 標誌" width="192">
+</p>
 
+<p align="center"><strong>More worlds. More control.</strong><br>
+為 Android 上的 Minecraft: Java Edition 打造的啟動器。</p>
 
-> [!IMPORTANT]
-> 該專案與 [ZalithLauncher](https://github.com/ZalithLauncher/ZalithLauncher) 屬於兩個完全不同的專案  
+<p align="center">
+  <a href="https://github.com/entitybrian69-bit/Mirai-launcher/releases">查看已發布版本</a> ·
+  <a href="README_EN_US.md">English</a> ·
+  <a href="README.md">简体中文</a>
+</p>
 
-**Zalith Launcher 2** 是一個全新設計、面向 **Android 裝置** 的 [Minecraft: Java Edition](https://www.minecraft.net/) 啟動器。專案使用 [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) 作為啟動核心，採用 **Jetpack Compose** 與 **Material Design 3** 構建現代化 UI 體驗。  
-我們目前正在搭建自己的官方網站 [zalithlauncher.cn](https://zalithlauncher.cn)  
-此外，我們已注意到有第三方使用「Zalith Launcher」名稱搭建了一個看似官方的網站。請注意：**該網站並非我們創建**，其透過冒用名義並植入廣告牟利。我們對此類行為**不參與、不認可、不信任**。  
-請務必提高警覺，**謹防個人隱私資訊洩露**！
+![GitHub downloads](https://img.shields.io/github/downloads/entitybrian69-bit/Mirai-launcher/total)
 
+> **Unofficial Modified Version** — Mirai 為希望在 Android 上清楚管理 Minecraft Java Edition 的玩家而設。版本、內容、帳號與控制設定集中於一處，讓你更快回到想玩的世界。
 
+## 功能一覽
 
-## 🌐 語言與翻譯支援
+- **安裝與版本管理**：安裝遊戲版本、管理多個實例與版本設定。
+- **內容探索與下載**：瀏覽並下載模組、整合包、資源包、世界存檔與光影包。
+- **帳號與外觀**：管理 Microsoft、離線與第三方 Yggdrasil 帳號；離線帳號可匯入自訂皮膚及披風，並提供 3D 預覽。
+- **依裝置調整**：選擇可用的渲染器與 Java 執行環境，並調整啟動參數。實際效能會因裝置、遊戲版本與設定而異。
+- **輸入與控制**：自訂觸控配置，並設定支援的遊戲手把、鍵盤與滑鼠輸入。
+- **多人遊戲與快速啟動**：管理伺服器項目，並可直接啟動至伺服器或存檔。
+- **遊戲檔案工具**：使用內建檔案管理器、匯入或匯出整合包，並設定版本隔離。
+- **個人化**：綠黑介面、自選背景與啟動器設定。
 
-我們正在使用 Weblate 平台翻譯 Zalith Launcher 2，歡迎您前往我們的 [Weblate 專案](https://hosted.weblate.org/projects/zalithlauncher2) 參與翻譯！  
-感謝每一位語言貢獻者的支持，讓 Zalith Launcher 2 更加多語化、更加國際化！
+Mirai 將版本、內容、帳號、控制與常用工具整合在一起，重視可調整性與日常使用，不對所有裝置作出不切實際的效能承諾。
 
+## 下載與建置
 
+已發布的 APK 會放在 [GitHub Releases](https://github.com/entitybrian69-bit/Mirai-launcher/releases)。GitHub Actions 可建置通用 APK，以及 ARMv7、ARM64、x86 與 x86_64 架構版本。手動工作流程可選擇 Debug 或 Release；Release 建置需在儲存庫的 Actions secrets 中設定 `STORE_PASSWORD` 與 `KEY_PASSWORD`，發布前會核驗五種 APK。
 
-
-
-## 📦 構建方式（開發者）
-
-> 以下內容適用於希望參與開發或自行構建應用的使用者。
-
-### 環境要求
-
-* Android Studio Bumblebee 以上
-* Android SDK：
-    * **最低 API**：26
-    * **目標 API**：35
-* JDK 11
-
-### 構建步驟
+本機建置需要 JDK 21 與 Android SDK（最低 API 26；專案使用 API 37 編譯設定）：
 
 ```bash
-git clone git@github.com:ZalithLauncher/ZalithLauncher2.git
-# 使用 Android Studio 開啟專案並進行構建
+git clone https://github.com/entitybrian69-bit/Mirai-launcher.git
+cd Mirai-launcher
+./gradlew :ZalithLauncher:assembleDebug -Darch=all
 ```
 
-
-
+將 `all` 替換為 `arm`、`arm64`、`x86` 或 `x86_64` 即可建置指定架構。也可使用 Android Studio 開啟專案並執行 Gradle 建置。
 
 ## 📜 License
 
 本專案程式碼遵循 **[GPL-3.0 license](LICENSE)** 開源協議。
+
+Mirai Launcher 使用了由 MovTery 與貢獻者為 Zalith Launcher 2 開發的程式碼，並保留原有的原始碼著作權聲明及適用的 GPL-3.0 授權條款。
 
 ### 附加條款（依據 GPLv3 開源授權條款第七條）
 

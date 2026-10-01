@@ -91,6 +91,7 @@ import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.AccountManageScreen
+import com.movtery.zalithlauncher.ui.screens.content.FirstLoginMenu
 import com.movtery.zalithlauncher.ui.screens.content.DownloadScreen
 import com.movtery.zalithlauncher.ui.screens.content.FileSelectorScreen
 import com.movtery.zalithlauncher.ui.screens.content.LauncherScreen
@@ -181,23 +182,18 @@ fun MainScreen(
                 isTasksExpanded = isTaskMenuExpanded,
                 contentColor = onBackgroundColor(),
                 onScreenBack = {
-                    screenBackStackModel.mainScreen.backStack.removeFirstOrNull()
+                    screenBackStackModel.mainScreen.backStack.removeLastOrNull()
                 },
                 toMainScreen = toMainScreen,
                 toSettingsScreen = {
-                    screenBackStackModel.mainScreen.removeAndNavigateTo(
-                        removes = screenBackStackModel.clearBeforeNavKeys,
-                        screenKey = screenBackStackModel.settingsScreen
-                    )
+                    screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
                 },
                 toDownloadScreen = {
-                    screenBackStackModel.navigateToDownload()
+                    screenBackStackModel.downloadScreen.clearWith(screenBackStackModel.downloadGameScreen)
+                    screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
                 },
                 toMultiplayerScreen = {
-                    screenBackStackModel.mainScreen.removeAndNavigateTo(
-                        removes = screenBackStackModel.clearBeforeNavKeys,
-                        screenKey = NormalNavKey.Multiplayer
-                    )
+                    screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer)
                 },
                 openFileManager = {
                     eventViewModel.sendEvent(
@@ -211,34 +207,81 @@ fun MainScreen(
                 },
             )
 
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                NavigationUI(
-                    modifier = Modifier.fillMaxSize(),
-                    screenBackStackModel = screenBackStackModel,
-                    toMainScreen = toMainScreen,
-                    eventViewModel = eventViewModel,
-                    modpackImportViewModel = modpackImportViewModel,
-                    submitError = submitError
+                MiraiNavigationRail(
+                    modifier = Modifier.fillMaxHeight(),
+                    selectedSection = mainScreenKey.toLauncherSection(),
+                    onNavigate = { section ->
+                        when (section) {
+                            LauncherSection.HOME -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain)
+                            LauncherSection.DISCOVER -> {
+                                screenBackStackModel.downloadScreen.clearWith(screenBackStackModel.downloadGameScreen)
+                                screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
+                            }
+                            LauncherSection.LIBRARY -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager)
+                            LauncherSection.MULTIPLAYER -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer)
+                            LauncherSection.SETTINGS -> screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
+                        }
+                    },
+                    onAccountClick = {
+                        screenBackStackModel.mainScreen.clearWith(
+                            NormalNavKey.AccountManager(FirstLoginMenu.NONE)
+                        )
+                    }
                 )
 
-                TaskMenu(
-                    tasks = tasks,
-                    isExpanded = isTaskMenuExpanded,
+                Box(
                     modifier = Modifier
                         .fillMaxHeight()
-                        .fillMaxWidth(0.3f)
-                        .align(Alignment.CenterStart)
-                        .padding(all = 6.dp)
+                        .weight(1f)
                 ) {
-                    changeTasksExpandedState()
+                    NavigationUI(
+                        modifier = Modifier.fillMaxSize(),
+                        screenBackStackModel = screenBackStackModel,
+                        toMainScreen = toMainScreen,
+                        eventViewModel = eventViewModel,
+                        modpackImportViewModel = modpackImportViewModel,
+                        submitError = submitError
+                    )
+
+                    TaskMenu(
+                        tasks = tasks,
+                        isExpanded = isTaskMenuExpanded,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(0.3f)
+                            .align(Alignment.CenterStart)
+                            .padding(all = 6.dp)
+                    ) {
+                        changeTasksExpandedState()
+                    }
                 }
             }
         }
     }
+}
+
+private fun TitledNavKey?.toLauncherSection(): LauncherSection? = when (this) {
+    null, NormalNavKey.LauncherMain -> LauncherSection.HOME
+    is NestedNavKey.Download,
+    is NestedNavKey.DownloadGame,
+    is NestedNavKey.DownloadModPack,
+    is NestedNavKey.DownloadMod,
+    is NestedNavKey.DownloadResourcePack,
+    is NestedNavKey.DownloadSaves,
+    is NestedNavKey.DownloadShaders,
+    is NestedNavKey.DownloadFavorites,
+    is NestedNavKey.AssetInfo -> LauncherSection.DISCOVER
+    NormalNavKey.VersionsManager,
+    is NestedNavKey.VersionSettings,
+    is NestedNavKey.VersionExport -> LauncherSection.LIBRARY
+    NormalNavKey.Multiplayer -> LauncherSection.MULTIPLAYER
+    is NestedNavKey.Settings -> LauncherSection.SETTINGS
+    else -> null
 }
 
 @Composable

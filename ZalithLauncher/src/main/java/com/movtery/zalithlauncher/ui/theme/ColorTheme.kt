@@ -39,5 +39,6 @@ enum class ColorThemeType {
     VERDANTFIELD,
     URBAN_ASH,
     VERDANT_DAWN,
-    CUSTOM
+    CUSTOM,
+    MIRAI
 }

@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.copyLocalFile
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
@@ -45,6 +46,8 @@ import com.movtery.zalithlauncher.utils.video.isVideoFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
@@ -54,6 +57,12 @@ import java.io.File
  */
 class BackgroundViewModel: ViewModel() {
     val backgroundFile: File = PathManager.FILE_LAUNCHER_BACKGROUND
+
+    private val backgroundMutationMutex = Mutex()
+    private val defaultBackgroundSeedMarker = File(
+        backgroundFile.parentFile,
+        ".mirai_background_seeded"
+    )
 
     /**
      * 背景文件是否有效（存在，且是有效的视频或图片）
@@ -164,23 +173,54 @@ class BackgroundViewModel: ViewModel() {
         }
     }
 
+    /**
+     * Seed the Mirai shader wallpaper once, without overwriting a user's existing
+     * background or restoring it after they intentionally clear it.
+     */
+    suspend fun seedDefaultBackground(context: Context) = withContext(Dispatchers.IO) {
+        backgroundMutationMutex.withLock {
+            if (defaultBackgroundSeedMarker.exists()) return@withLock
+
+            if (!backgroundFile.exists()) {
+                val copied = runCatching {
+                    context.resources.openRawResource(R.drawable.mirai_hero_bg).use { input ->
+                        backgroundFile.outputStream().use { output -> input.copyTo(output) }
+                    }
+                }.isSuccess
+                if (!copied) {
+                    FileUtils.deleteQuietly(backgroundFile)
+                    return@withLock
+                }
+            }
+
+            defaultBackgroundSeedMarker.createNewFile()
+            updateState()
+        }
+    }
+
     suspend fun delete() {
         withContext(Dispatchers.IO) {
-            FileUtils.deleteQuietly(backgroundFile)
-            updateState()
+            backgroundMutationMutex.withLock {
+                defaultBackgroundSeedMarker.createNewFile()
+                FileUtils.deleteQuietly(backgroundFile)
+                updateState()
+            }
         }
     }
 
     suspend fun import(context: Context, result: Uri) {
         withContext(Dispatchers.IO) {
-            FileUtils.deleteQuietly(backgroundFile)
-            context.copyLocalFile(result, backgroundFile)
-            if (!backgroundFile.isImageFile() && !backgroundFile.isVideoFile()) {
-                //不是媒体类文件
+            backgroundMutationMutex.withLock {
+                defaultBackgroundSeedMarker.createNewFile()
                 FileUtils.deleteQuietly(backgroundFile)
-                error("The selected file is not an image or a video!")
+                context.copyLocalFile(result, backgroundFile)
+                if (!backgroundFile.isImageFile() && !backgroundFile.isVideoFile()) {
+                    //不是媒体类文件
+                    FileUtils.deleteQuietly(backgroundFile)
+                    error("The selected file is not an image or a video!")
+                }
+                updateState()
             }
-            updateState()
         }
     }
 }

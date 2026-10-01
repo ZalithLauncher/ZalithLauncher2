@@ -184,8 +184,8 @@ class LaunchArgs(
         val argsList: MutableList<String> = ArrayList()
 
         if (account.isLocalAccount()) {
-            if (account.hasSkinFile) {
-                //该离线账号拥有本地皮肤，启用离线yggdrasil服务器
+            if (account.hasSkinFile || account.getCapeFile().exists()) {
+                //该离线账号拥有本地皮肤或披风，启用离线yggdrasil服务器
                 offlineServer.start()
                 offlineServer.addCharacter(account)
                 offlineServer.getPort()?.let { port ->

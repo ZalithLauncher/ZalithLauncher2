@@ -1,4 +1,4 @@
-name: Build CI
+name: Mirai Build CI
 
 on:
   push:

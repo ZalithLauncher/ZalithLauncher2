@@ -1271,6 +1271,9 @@ sealed interface ChangeCape {
     data class ChangeCapeData(
         val cape: PlayerProfile.Cape
     ) : ChangeCape
+
+    /** Local cape file for offline profiles; null means remove the saved cape. */
+    data class LocalCapeData(val file: File?) : ChangeCape
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -1284,11 +1287,14 @@ fun ChangeSkinDialog(
     capeState: ChangeCape,
     onCapeStateChange: (ChangeCape) -> Unit,
     isImportingSkin: Boolean,
+    isImportingCape: Boolean,
     onSkinPicked: (Uri) -> Unit,
+    onCapePicked: (Uri) -> Unit,
     onDismissRequest: () -> Unit,
     onResetSkin: () -> Unit,
     onApplySkin: (File, SkinModelType) -> Unit,
     onApplyCape: (PlayerProfile.Cape) -> Unit,
+    onApplyLocalCape: (File?) -> Unit,
     onFetchCapes: () -> Unit
 ) {
     val context = LocalContext.current
@@ -1324,6 +1330,10 @@ fun ChangeSkinDialog(
     val skinPicker =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let(onSkinPicked)
+        }
+    val capePicker =
+        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+            uri?.let(onCapePicked)
         }
 
     /**
@@ -1424,6 +1434,22 @@ fun ChangeSkinDialog(
                                         }
                                         if (account.isMicrosoftAccount()) {
                                             playerSkin.loadCape(currentCapeToLoad)
+                                        } else if (account.isLocalAccount()) {
+                                            val localCape = when (val pendingCape = capeState) {
+                                                is ChangeCape.LocalCapeData -> pendingCape.file
+                                                else -> account.getCapeFile().takeIf { it.exists() }
+                                            }
+                                            if (localCape?.exists() == true) {
+                                                runCatching {
+                                                    localCape.inputStream().use { stream ->
+                                                        playerSkin.loadCape(inputStream = stream)
+                                                    }
+                                                }.onFailure {
+                                                    playerSkin.loadCape(cape = null)
+                                                }
+                                            } else {
+                                                playerSkin.loadCape(cape = null)
+                                            }
                                         }
                                     }
                                 },
@@ -1538,6 +1564,54 @@ fun ChangeSkinDialog(
                                 )
                             }
 
+                            if (account.isLocalAccount()) {
+                                val hasLocalCape = when (val pendingCape = capeState) {
+                                    is ChangeCape.LocalCapeData -> pendingCape.file != null
+                                    else -> account.getCapeFile().exists()
+                                }
+                                InfoLayoutTextItem(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    title = if (isImportingCape) {
+                                        stringResource(R.string.generic_in_progress)
+                                    } else {
+                                        stringResource(R.string.account_change_local_cape)
+                                    },
+                                    icon = {
+                                        if (isImportingCape) {
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(22.dp),
+                                                strokeWidth = 2.dp
+                                            )
+                                        } else {
+                                            Icon(
+                                                modifier = Modifier.size(22.dp),
+                                                painter = painterResource(R.drawable.ic_upload),
+                                                contentDescription = null
+                                            )
+                                        }
+                                    },
+                                    onClick = { capePicker.launch(arrayOf("image/png")) },
+                                    enabled = !isImportingCape
+                                )
+                                if (hasLocalCape) {
+                                    InfoLayoutTextItem(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        title = stringResource(R.string.account_remove_local_cape),
+                                        icon = {
+                                            Icon(
+                                                modifier = Modifier.size(22.dp),
+                                                painter = painterResource(R.drawable.ic_delete_outlined),
+                                                contentDescription = null
+                                            )
+                                        },
+                                        onClick = {
+                                            onCapeStateChange(ChangeCape.LocalCapeData(file = null))
+                                        },
+                                        enabled = !isImportingCape
+                                    )
+                                }
+                            }
+
                             //离线账号重置皮肤
                             if (account.isLocalAccount() && account.hasSkinFile && skinState != ChangeSkin.ResetSkin) {
                                 InfoLayoutTextItem(
@@ -1587,6 +1661,9 @@ fun ChangeSkinDialog(
 
                                 if (capeState is ChangeCape.ChangeCapeData) {
                                     onApplyCape(capeState.cape)
+                                }
+                                if (capeState is ChangeCape.LocalCapeData) {
+                                    onApplyLocalCape(capeState.file)
                                 }
 
                                 onDismissRequest()

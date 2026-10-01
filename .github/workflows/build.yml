@@ -71,9 +71,48 @@ jobs:
           fi
 
       - name: Build APK for ${{ matrix.arch }}
+        id: build-apk
         run: |
+          set -euo pipefail
           chmod +x gradlew
-          ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
+          build_log="${RUNNER_TEMP}/mirai-gradle-${{ matrix.arch }}.log"
+          set +e
+          ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }} --console=plain --stacktrace 2>&1 | tee "$build_log"
+          gradle_status=${PIPESTATUS[0]}
+          exit "$gradle_status"
+
+      - name: Publish Gradle failure details
+        if: ${{ always() && steps.build-apk.outcome == 'failure' }}
+        env:
+          MIRAI_ARCH: ${{ matrix.arch }}
+        run: |
+          set -euo pipefail
+          build_log="${RUNNER_TEMP}/mirai-gradle-${MIRAI_ARCH}.log"
+          if [[ ! -s "$build_log" ]]; then
+            echo "No Gradle output was captured for ${MIRAI_ARCH}." >> "$GITHUB_STEP_SUMMARY"
+            echo "::error title=Gradle build failure::No Gradle output was captured."
+            exit 0
+          fi
+          python3 - "$build_log" "$MIRAI_ARCH" "$GITHUB_STEP_SUMMARY" <<'PY'
+          import pathlib
+          import sys
+
+          log_path, arch, summary_path = sys.argv[1:]
+          lines = pathlib.Path(log_path).read_text(errors="replace").splitlines()
+          marker = "FAILURE: Build failed with an exception."
+          failure_start = max((i for i, line in enumerate(lines) if marker in line), default=max(0, len(lines) - 120))
+          excerpt = "\n".join(lines[failure_start:])[-12000:]
+          if not excerpt:
+              excerpt = "Gradle exited unsuccessfully without writing diagnostic output."
+
+          pathlib.Path(summary_path).write_text(
+              f"## Gradle build failure ({arch})\n\n```text\n{excerpt}\n```\n",
+              encoding="utf-8",
+          )
+          message = f"Gradle build failed for {arch}:\n{excerpt}"
+          encoded = message.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+          print(f"::error title=Gradle build failure ({arch})::{encoded}")
+          PY
 
       - name: Verify Release APK signatures
         if: inputs.variant == 'Release'

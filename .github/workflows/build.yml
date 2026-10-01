@@ -178,6 +178,7 @@ jobs:
           ./gradlew ZalithLauncher:testDebugUnitTest \
             --tests "com.movtery.zalithlauncher.game.renderer.LTWRendererTest" \
             --tests "com.movtery.zalithlauncher.game.addons.mirror.MirrorPreferencesTest" \
+            --tests "com.movtery.zalithlauncher.game.account.wardrobe.FileReplacementTest" \
             -Darch=all
 
       - name: Upload Mirai Release APK for ${{ matrix.arch }}

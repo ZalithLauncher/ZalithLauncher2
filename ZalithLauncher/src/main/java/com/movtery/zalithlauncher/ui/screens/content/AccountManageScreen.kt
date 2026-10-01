@@ -700,7 +700,7 @@ private fun LocalAccountWardrobeActions(
                     AccountSkinOperation.ChangeSkin(account)
                 )
             )
-            onIntent(AccountManageIntent.OnSkinPicked(selectedUri))
+            onIntent(AccountManageIntent.OnSkinPicked(account, selectedUri))
         }
     }
     val capePicker = rememberLauncherForActivityResult(
@@ -712,7 +712,7 @@ private fun LocalAccountWardrobeActions(
                     AccountSkinOperation.ChangeSkin(account)
                 )
             )
-            onIntent(AccountManageIntent.OnCapePicked(selectedUri))
+            onIntent(AccountManageIntent.OnCapePicked(account, selectedUri))
         }
     }
 
@@ -786,12 +786,12 @@ private fun AccountSkinOperation(
                 isImportingCape = skinDialogState.importingCape,
                 onSkinPicked = { uri ->
                     actions.onIntent(
-                        AccountManageIntent.OnSkinPicked(uri)
+                        AccountManageIntent.OnSkinPicked(account, uri)
                     )
                 },
                 onCapePicked = { uri ->
                     actions.onIntent(
-                        AccountManageIntent.OnCapePicked(uri)
+                        AccountManageIntent.OnCapePicked(account, uri)
                     )
                 },
                 onDismissRequest = {

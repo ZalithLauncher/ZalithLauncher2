@@ -46,6 +46,7 @@ import com.movtery.zalithlauncher.game.account.wardrobe.SkinModelType
 import com.movtery.zalithlauncher.game.account.wardrobe.capeLocalRes
 import com.movtery.zalithlauncher.game.account.wardrobe.getLocalUUIDWithSkinModel
 import com.movtery.zalithlauncher.game.account.wardrobe.isSlimModel
+import com.movtery.zalithlauncher.game.account.wardrobe.replaceFileKeepingOriginal
 import com.movtery.zalithlauncher.game.account.wardrobe.validateCapeFile
 import com.movtery.zalithlauncher.game.account.wardrobe.validateSkinFile
 import com.movtery.zalithlauncher.game.account.yggdrasil.PlayerProfile
@@ -74,6 +75,7 @@ import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,6 +87,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
 import java.io.File
+import java.nio.file.Files
 import java.util.UUID
 import io.ktor.client.plugins.ResponseException as KtorResponseException
 import kotlinx.coroutines.flow.combine as kotlinxCombine
@@ -110,8 +113,8 @@ sealed interface AccountManageIntent {
         AccountManageIntent
     data class UpdatePendingCapeData(val capeState: ChangeCape) :
         AccountManageIntent
-    data class OnSkinPicked(val uri: Uri) : AccountManageIntent
-    data class OnCapePicked(val uri: Uri) : AccountManageIntent
+    data class OnSkinPicked(val account: Account, val uri: Uri) : AccountManageIntent
+    data class OnCapePicked(val account: Account, val uri: Uri) : AccountManageIntent
     data object ResetAccountSkinDialogState : AccountManageIntent
 
 
@@ -336,19 +339,14 @@ class AccountManageViewModel @AssistedInject constructor(
                 _accountSkinOp.value = intent.operation
             }
 
-            is AccountManageIntent.UpdatePendingSkinData -> {
-                _accountSkinDialogState.update {
-                    it.copy(
-                        pendingSkinData = intent.skinState
-                    )
-                }
-            }
+            is AccountManageIntent.UpdatePendingSkinData -> setPendingSkinData(intent.skinState)
 
             is AccountManageIntent.UpdatePendingCapeData -> setPendingCapeData(intent.capeState)
 
             is AccountManageIntent.OnSkinPicked -> onSkinPicked(intent)
             is AccountManageIntent.OnCapePicked -> onCapePicked(intent)
             is AccountManageIntent.ResetAccountSkinDialogState -> {
+                setPendingSkinData(ChangeSkin.None)
                 setPendingCapeData(ChangeCape.None)
                 _accountSkinDialogState.update { AccountSkinDialogState() }
             }
@@ -374,53 +372,80 @@ class AccountManageViewModel @AssistedInject constructor(
     }
 
     /**
-     * 选中皮肤后，先在 VM 层做文件合法性校验，再推进后续 Dialog 流程状态
+     * Validate an imported skin before making it the pending preview for the active account dialog.
      */
     private fun onSkinPicked(intent: AccountManageIntent.OnSkinPicked) {
         viewModelScope.launch(Dispatchers.IO) {
-            _accountSkinDialogState.update {
-                it.copy(importingSkin = true)
-            }
+            if (!isEditingSkinDialog(intent.account)) return@launch
+            _accountSkinDialogState.update { it.copy(importingSkin = true) }
 
             val cacheFile = File(
                 PathManager.DIR_IMAGE_CACHE,
-                "skin_pick_${UUID.randomUUID()}"
+                "skin_pick_${UUID.randomUUID()}.png"
             )
-
-            runCatching {
+            var transferred = false
+            try {
                 context.copyLocalFile(intent.uri, cacheFile)
-                validateSkinFile(cacheFile)
-            }.onSuccess { isValid ->
-                if (!isValid) {
+                if (!validateSkinFile(cacheFile)) {
                     emitError(
                         androidText(R.string.generic_warning),
                         androidText(R.string.account_change_skin_invalid)
                     )
-                    return@onSuccess
+                    return@launch
                 }
+
                 val recommendedModel = if (cacheFile.isSlimModel()) {
                     SkinModelType.ALEX
                 } else {
                     SkinModelType.STEVE
                 }
+                if (!isEditingSkinDialog(intent.account)) return@launch
 
-                _accountSkinDialogState.update {
-                    it.copy(
-                        pendingSkinData = ChangeSkin.ChangeSkinData(
-                            cacheFile = cacheFile,
-                            skinModel = recommendedModel
-                        )
+                setPendingSkinData(
+                    ChangeSkin.ChangeSkinData(
+                        cacheFile = cacheFile,
+                        skinModel = recommendedModel
                     )
-                }
-            }.onFailure { th ->
+                )
+                transferred = true
+            } catch (th: Exception) {
+                if (th is CancellationException) throw th
                 emitError(
                     androidText(R.string.account_change_skin_failed_to_import),
                     androidText(th.getMessageOrToString())
                 )
+            } finally {
+                if (!transferred) FileUtils.deleteQuietly(cacheFile)
+                if (isEditingSkinDialog(intent.account)) {
+                    _accountSkinDialogState.update { it.copy(importingSkin = false) }
+                }
             }
+        }
+    }
 
-            _accountSkinDialogState.update {
-                it.copy(importingSkin = false)
+    private fun isEditingSkinDialog(account: Account): Boolean =
+        (_accountSkinOp.value as? AccountSkinOperation.ChangeSkin)
+            ?.account?.uniqueUUID == account.uniqueUUID
+
+    /** Replace the pending skin and delete any temporary import no longer in use. */
+    private fun setPendingSkinData(skinState: ChangeSkin) {
+        var staleFile: File? = null
+        _accountSkinDialogState.update { current ->
+            val previousFile = (current.pendingSkinData as? ChangeSkin.ChangeSkinData)?.cacheFile
+            val replacementFile = (skinState as? ChangeSkin.ChangeSkinData)?.cacheFile
+            staleFile = previousFile?.takeIf { it != replacementFile }
+            current.copy(pendingSkinData = skinState)
+        }
+        staleFile?.let { FileUtils.deleteQuietly(it) }
+    }
+
+    /** Transfer a pending import to its apply task without deleting it during dialog dismissal. */
+    private fun releasePendingSkinFile(file: File) {
+        _accountSkinDialogState.update { current ->
+            if ((current.pendingSkinData as? ChangeSkin.ChangeSkinData)?.cacheFile == file) {
+                current.copy(pendingSkinData = ChangeSkin.None)
+            } else {
+                current
             }
         }
     }
@@ -437,34 +462,41 @@ class AccountManageViewModel @AssistedInject constructor(
         staleFile?.let { FileUtils.deleteQuietly(it) }
     }
 
-    /** Validate a selected 64×32 cape texture and stage it for the account dialog. */
+    /** Validate a selected 64×32 cape texture and stage it for the active account dialog. */
     private fun onCapePicked(intent: AccountManageIntent.OnCapePicked) {
         viewModelScope.launch(Dispatchers.IO) {
+            if (!isEditingSkinDialog(intent.account)) return@launch
             _accountSkinDialogState.update { it.copy(importingCape = true) }
+
             val cacheFile = File(
                 PathManager.DIR_IMAGE_CACHE,
                 "cape_pick_${UUID.randomUUID()}.png"
             )
-
+            var transferred = false
             try {
                 context.copyLocalFile(intent.uri, cacheFile)
-                if (validateCapeFile(cacheFile)) {
-                    setPendingCapeData(ChangeCape.LocalCapeData(cacheFile))
-                } else {
-                    FileUtils.deleteQuietly(cacheFile)
+                if (!validateCapeFile(cacheFile)) {
                     emitError(
                         androidText(R.string.generic_warning),
                         androidText(R.string.account_change_cape_invalid_local)
                     )
+                    return@launch
                 }
+                if (!isEditingSkinDialog(intent.account)) return@launch
+
+                setPendingCapeData(ChangeCape.LocalCapeData(cacheFile))
+                transferred = true
             } catch (th: Exception) {
-                FileUtils.deleteQuietly(cacheFile)
+                if (th is CancellationException) throw th
                 emitError(
                     androidText(R.string.account_change_cape_failed_to_import_local),
                     androidText(th.getMessageOrToString())
                 )
             } finally {
-                _accountSkinDialogState.update { it.copy(importingCape = false) }
+                if (!transferred) FileUtils.deleteQuietly(cacheFile)
+                if (isEditingSkinDialog(intent.account)) {
+                    _accountSkinDialogState.update { it.copy(importingCape = false) }
+                }
             }
         }
     }
@@ -500,6 +532,7 @@ class AccountManageViewModel @AssistedInject constructor(
 
     /** 应用选中的皮肤 */
     private fun applySkin(account: Account, file: File, model: SkinModelType) {
+        releasePendingSkinFile(file)
         when {
             account.isLocalAccount() -> saveLocalSkin(account, file, model)
             account.isMicrosoftAccount() -> importSkinFile(account, file, model)
@@ -550,31 +583,36 @@ class AccountManageViewModel @AssistedInject constructor(
             Task.runTask(
                 dispatcher = Dispatchers.IO,
                 task = { task ->
-                    executeWithAuthorization(block = {
-                        task.updateProgress(-1f)
-                        task.updateMessage(androidText(R.string.account_change_skin_uploading))
-                        uploadSkin(MINECRAFT_SERVICES_URL, account.accessToken, skinFile, skinModel)
-                    }, onRefreshRequest = {
-                        account.refreshMicrosoft(task = task, coroutineContext = coroutineContext)
-                        AccountsManager.suspendSaveAccount(account)
-                    })
+                    try {
+                        executeWithAuthorization(block = {
+                            task.updateProgress(-1f)
+                            task.updateMessage(androidText(R.string.account_change_skin_uploading))
+                            uploadSkin(MINECRAFT_SERVICES_URL, account.accessToken, skinFile, skinModel)
+                        }, onRefreshRequest = {
+                            account.refreshMicrosoft(task = task, coroutineContext = coroutineContext)
+                            AccountsManager.suspendSaveAccount(account)
+                        })
 
-                    task.updateMessage(androidText(R.string.account_change_skin_update_local))
-                    runCatching {
-                        account.downloadYggdrasil()
-                    }.onFailure { th ->
-                        emitError(
-                            androidText(R.string.account_logging_in_failed),
-                            formatAccountError(th)
+                        task.updateMessage(androidText(R.string.account_change_skin_update_local))
+                        runCatching {
+                            account.downloadYggdrasil()
+                        }.onFailure { th ->
+                            emitError(
+                                androidText(R.string.account_logging_in_failed),
+                                formatAccountError(th)
+                            )
+                        }
+
+                        emitToast(
+                            androidText(R.string.account_change_skin_update_toast),
+                            duration = Toast.LENGTH_LONG
                         )
+                    } finally {
+                        FileUtils.deleteQuietly(skinFile)
                     }
-
-                    emitToast(
-                        androidText(R.string.account_change_skin_update_toast),
-                        duration = Toast.LENGTH_LONG
-                    )
                 },
                 onError = { th ->
+                    FileUtils.deleteQuietly(skinFile)
                     when {
                         th.isReloginRequired() -> {
                             onIntent(
@@ -780,12 +818,11 @@ class AccountManageViewModel @AssistedInject constructor(
                     )
                     try {
                         if (sourceFile == null) {
-                            FileUtils.deleteQuietly(targetFile)
+                            Files.deleteIfExists(targetFile.toPath())
                         } else {
                             FileUtils.deleteQuietly(tempFile)
                             sourceFile.copyTo(tempFile, overwrite = true)
-                            FileUtils.deleteQuietly(targetFile)
-                            FileUtils.moveFile(tempFile, targetFile)
+                            replaceFileKeepingOriginal(tempFile, targetFile)
                         }
                         AccountsManager.refreshWardrobe()
                         emitToast(androidText(R.string.account_change_local_cape_saved))
@@ -892,32 +929,42 @@ class AccountManageViewModel @AssistedInject constructor(
     /** 保存离线账号皮肤到本地存储 */
     private fun saveLocalSkin(account: Account, file: File, model: SkinModelType) {
         val skinFile = account.getSkinFile()
+        val stagedFile = File(
+            PathManager.DIR_ACCOUNT_SKIN,
+            ".${account.uniqueUUID}.${UUID.randomUUID()}.skin.tmp.png"
+        )
 
         TaskSystem.submitTask(Task.runTask(dispatcher = Dispatchers.IO, task = {
-            if (validateSkinFile(file)) {
-                account.skinModelType = model
-                account.profileId = getLocalUUIDWithSkinModel(account.username, model)
-                file.copyTo(skinFile, true)
+            try {
+                if (validateSkinFile(file)) {
+                    file.copyTo(stagedFile, overwrite = true)
+                    replaceFileKeepingOriginal(stagedFile, skinFile)
+                    account.skinModelType = model
+                    account.profileId = getLocalUUIDWithSkinModel(account.username, model)
+                    AccountsManager.suspendSaveAccount(account)
+                    AccountsManager.refreshWardrobe()
+                    onIntent(
+                        AccountManageIntent.UpdateAccountSkinOp(
+                            AccountSkinOperation.None
+                        )
+                    )
+                } else {
+                    emitError(
+                        androidText(R.string.generic_warning),
+                        androidText(R.string.account_change_skin_invalid)
+                    )
+                    onIntent(
+                        AccountManageIntent.UpdateAccountSkinOp(
+                            AccountSkinOperation.None
+                        )
+                    )
+                }
+            } finally {
+                FileUtils.deleteQuietly(stagedFile)
                 FileUtils.deleteQuietly(file)
-                AccountsManager.suspendSaveAccount(account)
-                AccountsManager.refreshWardrobe()
-                onIntent(
-                    AccountManageIntent.UpdateAccountSkinOp(
-                        AccountSkinOperation.None
-                    )
-                )
-            } else {
-                emitError(
-                    androidText(R.string.generic_warning),
-                    androidText(R.string.account_change_skin_invalid)
-                )
-                onIntent(
-                    AccountManageIntent.UpdateAccountSkinOp(
-                        AccountSkinOperation.None
-                    )
-                )
             }
         }, onError = { th ->
+            FileUtils.deleteQuietly(stagedFile)
             FileUtils.deleteQuietly(file)
             emitError(androidText(R.string.error_import_image), androidText(th.getMessageOrToString()))
             AccountsManager.refreshWardrobe()

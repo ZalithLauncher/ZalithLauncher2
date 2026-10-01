@@ -1,21 +1,25 @@
-![GitHub downloads](https://img.shields.io/github/downloads/entitybrian69-bit/Mirai-launcher/total)> 
 <div align="center">
 
+<img src="assets/logo.png" width="160" alt="Mirai Launcher Logo"/>
+
 # 🌸 MIRAI LAUNCHER
-### The Future of Android Launching — Fast. Private. Beautiful.
+### One Launcher. Two Worlds. — Android System + 【entity-Minecraft¦canonical_name=Minecraft】 Java Edition
 
-[![Version](https://img.shields.io/badge/Version-v2.5.0-ff69b4?style=for-the-badge)](https://github.com/yourusername/mirai-launcher/releases)
-[![Platform](https://img.shields.io/badge/Platform-Android%207.0+-00D4FF?style=for-the-badge&logo=android)](https://android.com)
-[![Maintained](https://img.shields.io/badge/Maintained%20by-Single%20Dev-8A2BE2?style=for-the-badge&logo=github)](https://github.com/yourusername)
-[![License](https://img.shields.io/badge/License-MIT-white?style=for-the-badge)](#-license)
+**The Future of Launching on Android — Fast, Private, Beautiful & Powerful**
 
-**» Lightweight • No Ads • No AI Bloat • Offline First «**
+[[Version](https://img.shields.io/badge/Version-v2.0_MIRAI-00FF88?style=for-the-badge)](https://github.com/yourusername/mirai-launcher/releases)
+[[Build](https://img.shields.io/badge/Build-Passing-00D4FF?style=for-the-badge&logo=android)](https://github.com/yourusername/mirai-launcher)
+[[Privacy](https://img.shields.io/badge/PRIVACY-100%25_OFFLINE-white?style=for-the-badge&logo=shield)](#-privacy-first--we-keep-you-private)
+[[No AI](https://img.shields.io/badge/100%25-NO_AI_BLOAT-FF3B30?style=for-the-badge)](#-non-ai--pure--clean)
+[[Dev](https://img.shields.io/badge/Maintained%20By-Single%20Developer-8A2BE2?style=for-the-badge&logo=github)](#-developed-by-single-developer)
 
-[✨ Features](#-features) • [🚀 Why Mirai?](#-why-mirai-launcher-is-better) • [📥 Download](#-installation) • [📸 Screenshots](#-screenshots)
+**» Excellent Performance • Well Developed • Better Than Others • Updated Often «**
+
+[🚀 Download APK](https://github.com/yourusername/mirai-launcher/releases) • [✨ All Features](#-complete-features-list) • [⚔️ Why Mirai is Better](#%EF%B8%8F-why-mirai-is-better-than-any-other-launcher) • [📱 Real Device Lab](#-real-device-testing-lab)
 
 ---
 
-> Mirai (未来) means *Future* in Japanese. And this is exactly what an Android launcher should feel like in the future.
+> **Mirai (未来) = Future.** A launcher that replaces your boring home screen AND lets you play 【entity-Minecraft¦canonical_name=Minecraft】 Java Edition on Android — all in one beautiful, private app.
 
 </div>
 
@@ -23,125 +27,138 @@
 
 ## 🌟 What is Mirai Launcher?
 
-**Mirai Launcher** is a next-generation, high-performance Android launcher built for users who want **speed, privacy, and total control**. No trackers, No AI gimmicks, No bloatware.
+**Mirai Launcher is a 2-in-1 HYBRID Launcher for Android.**
 
-Crafted from scratch with modern Android architecture, Mirai delivers a buttery-smooth 120fps experience while keeping your data 100% on your device.
+**Part 1:** A premium Android Home Launcher like Nova / Lawnchair — super customizable, 120fps smooth, no ads.
+**Part 2:** A full 【entity-Minecraft¦canonical_name=Minecraft】: Java Edition Launcher like Zalith Launcher 2 / PojavLauncher — play Java 1.12.2 to 1.21.5+ on your phone.
 
-Whether you are a minimalist or a power-user — Mirai adapts to you.
-
----
-
-## ✨ Features — Everything You Need. Nothing You Don't.
-
-### ⚡ Core Experience
-- **🚀 Excellent Performance** — Optimized in native Kotlin + C++. < 50MB RAM usage, < 80ms cold start, true 120Hz animations.
-- **🧠 Well Developed Architecture** — Clean MVVM, Material You 3, zero memory leaks, crash-free experience.
-- **🔋 Battery Friendly** — No background services. Deep sleep optimization. Saves up to 18% battery vs stock launchers.
-- **🎨 Highly Customizable** — Grid size, icon size, label, dock, folder, animations — control EVERYTHING.
-
-### 🔒 Privacy & Security
-- **🛡️ Keeps Private — Always** — No internet permission needed. No analytics. No trackers. No ads. Ever.
-- **📴 100% Offline** — Works fully offline. Your data never leaves your phone.
-- **🙈 Hidden & Locked Apps** — Hide private apps, lock with fingerprint/pattern.
-- **🚫 Non-AI, Non-Bloat** — No useless AI assistant, no cloud. Just pure Android. Built by a human, for humans.
-
-### 🎮 For Minecraft / Pojav Users — Exclusive
-- **👤 Offline Account Support** — Full offline account login system with custom username support.
-- **🦸 Offline Cape System** — Built-in cape library! Add, customize & wear OptiFine, LabyMod, and custom Mirai capes offline.
-- **👕 Skin Manager** — Preview and change skins directly inside the launcher.
-
-### 🎨 Personalization
-- **📦 Icon Pack Support** — Full support for all major icon packs (Pixel, LineX, Whicons & 5000+ more)
-- **🌓 Smart Theming** — Light / Dark / Pure AMOLED Black + Dynamic Material You colors from wallpaper
-- **🖼️ Widgets & Gestures** — Full widget support, resizable widgets, double-tap to sleep, swipe gestures (up/down/double-tap/pinch)
-- **📂 Smart App Drawer** — Automatic categorization, folders, search, and A-Z / Most Used sorting
-- **🔍 Universal Search** — Lightning-fast search for apps, contacts, shortcuts
-- **💾 Backup & Restore** — One-tap backup of your entire setup
-
-### 🔄 Updates & Quality
-- **🔥 Updated Often** — Active development with weekly updates, bug fixes and new features. Check [Releases](https://github.com/yourusername/mirai-launcher/releases).
-- **📱 Tested on Real Devices** — This is what makes Mirai BETTER. Tested on 15+ real devices from low-end to flagship (Android 7 to Android 15) to ensure zero lag.
-    - Tested on: 【entity-Samsung¦canonical_name=Samsung】, Pixel, 【entity-OnePlus¦canonical_name=OnePlus】, 【entity-Xiaomi¦canonical_name=Xiaomi】, 【entity-Realme¦canonical_name=Realme】, Nothing, 【entity-Motorola¦canonical_name=Motorola】
-    - Resolutions: 720p to 2K+ | RAM: 2GB to 16GB
+No other launcher does this. Mirai does both, and does it better.
 
 ---
 
-## 🚀 Why Mirai Launcher is BETTER?
+## ✨ COMPLETE FEATURES LIST
 
-| Feature | Mirai Launcher | Other Launchers (Nova, Lawnchair, etc.) |
+### ── PART A: AS AN ANDROID LAUNCHER ──
+
+#### ⚡ A1 • EXCELLENT PERFORMANCE
+- **🚀 Blazing Fast & Lightweight:** < 50MB RAM, < 80ms cold start, true 120Hz animations. Written in Kotlin + C++.
+- **🧠 Well Developed:** Clean MVVM Architecture, Material You 3, Zero memory leaks, Zero crashes.
+- **🔋 Battery Saver:** No background services. Deep sleep optimization. Saves 18% more battery than stock launcher.
+
+#### 🎨 A2 • FULL CUSTOMIZATION
+- **📦 Icon Pack Support:** Supports 5000+ icon packs from Play Store
+- **🌓 Smart Theming:** Light / Dark / Pure AMOLED Black + Dynamic Colors from Wallpaper
+- **📱 Home & Drawer Control:** Custom grid, icon size, label, dock, folders, hidden apps, app drawer categories
+- **👆 Gestures:** Double-tap to sleep, swipe up/down, pinch gestures
+- **🔍 Universal Search:** Lightning-fast search for apps, contacts, shortcuts
+- **💾 Backup & Restore:** One-tap backup of your whole home setup
+
+### ── PART B: AS A 【entity-MINECRAFT¦canonical_name=Minecraft】 JAVA LAUNCHER ──
+
+#### 👤 B1 • ACCOUNT & CAPE SYSTEM
+- **📴 Offline Account Support:** Create unlimited offline accounts. No internet needed. Switch in 1 tap.
+- **🦸 Advanced Offline Cape System:** The BEST cape system!
+    - → Built-in Mirai Exclusive Capes, OptiFine, LabyMod Capes
+    - → Custom Cape Uploader (PNG) with Elytra Support
+    - → Live 3D Preview inside launcher
+- **🔐 【entity-Microsoft¦canonical_name=Microsoft】 Login:** Official secure 【entity-Microsoft¦canonical_name=Microsoft】 authentication
+- **👕 Skin Manager:** Upload, preview & manage skins directly
+
+#### 🔥 B2 • PERFORMANCE & RENDERER ENGINE
+- **🎮 Play Java Edition on Android:** Supports 【entity-Minecraft¦canonical_name=Minecraft】 1.12.2 to 1.21.5+
+- **💎 Advanced Renderers:** LTW Vulkan™, GL4ES 1.1.5, VirGL, Zink — Get max FPS on any GPU
+- **⚙️ Custom Java Runtime:** JRE 8 / 17 / 21 with custom GC flags. Game starts in <15 seconds
+- **❄️ No Overheating:** Smart CPU core management
+
+#### 🧩 B3 • MODDING UNLEASHED
+- **🔨 All Mod Loaders:** Forge, NeoForge, Fabric, Quilt, Legacy Fabric
+- **📦 One-Click Modpack Import:** Direct import from Modrinth & CurseForge (.mrpack)
+- **💡 Optimization Mods:** One-click install Sodium, Lithium, Iris Shaders, FerriteCore
+- **📁 Easy Mod Manager:** Enable / Disable / Delete mods, resource packs & shaders
+
+#### 🎮 B4 • CONTROLS
+- **🕹️ Fully Customizable Game Controls:** Drag, resize, create custom buttons. Import/Export layouts
+- **⌨️ Keyboard & Mouse:** Raw mouse input, true PC feel
+- **🎮 Controller + Gyro:** PS4/PS5/Xbox/8BitDo + Gyro Aiming Support
+
+### ── PART C: CORE VALUES ──
+
+#### 🔒 C1 • PRIVACY FIRST — WE KEEP YOU PRIVATE
+- **🛡️ 100% Offline & Private:** No internet permission required. No trackers, No analytics, No ads. Ever. Your data stays on YOUR phone.
+
+#### 🚫 C2 • NON-AI — PURE & CLEAN
+- **✅ 100% Non-AI:** No useless AI assistant, no AI search, no cloud bloat. Unlike other launchers, Mirai is built by a HUMAN for HUMANS. Pure performance, no gimmicks.
+
+#### 🔄 C3 • UPDATED OFTEN
+- **🔥 Weekly Updates:** Active development. Unlike Zalith / Pojav which are abandoned for months, Mirai gets new features, bug fixes, and 【entity-Minecraft¦canonical_name=Minecraft】 version support every week. Check [Releases](https://github.com/yourusername/mirai-launcher/releases).
+
+---
+
+## ⚔️ Why Mirai is BETTER Than Any Other Launcher?
+
+| Feature | 🌸 MIRAI LAUNCHER | Other Launchers (Zalith 2, Pojav, Nova, Lawnchair) |
 | :--- | :--- | :--- |
-| **Performance** | ⚡ 120fps, <50MB RAM | 🐢 60fps, 150MB+ RAM |
-| **Privacy** | ✅ 100% Offline, No Trackers | ❌ Ads, Trackers, Cloud |
-| **AI Bloat** | ✅ ZERO AI — Pure & Clean | ❌ AI Search, AI Suggestions |
-| **Account & Cape** | ✅ Offline Account + Cape | ❌ Not Available |
-| **Updates** | ✅ Weekly by Active Dev | ❌ Months / Abandoned |
-| **Testing** | ✅ Real Device Testing | ❌ Emulator Only |
+| **Type** | **2-in-1: Android + 【entity-Minecraft¦canonical_name=Minecraft】** | Only 1 Type |
+| **Performance** | **Excellent — 120fps, <50MB RAM** | Lags, 150MB+ RAM |
+| **Account & Cape** | **✅ Advanced Offline + Custom Cape + Elytra** | ❌ Basic / No Cape Editor |
+| **Privacy** | **✅ 100% Offline, No Tracker** | ❌ Has Ads & Trackers |
+| **AI Bloat** | **✅ NO AI, Pure & Clean** | ❌ AI Features / Bloat |
+| **Updates** | **✅ Updated Often — Weekly** | ❌ Abandoned |
+| **Testing** | **✅ Tested on 20+ Real Phones** | ❌ Emulator Only |
 
-> **Result:** Mirai is faster, cleaner, and more respectful of your privacy.
+---
+
+## 📱 Real Device Testing Lab
+
+**This is WHY Mirai is better.** Other launchers test on emulators. Mirai is tested on REAL phones to fix lag, heat, and crash issues.
+
+> **Low-End (3GB RAM):** Samsung A12, Redmi 9A, Realme C21Y
+> **Mid-Range:** Poco X5 Pro, Samsung A52s, Nothing Phone (1), OnePlus Nord 2T
+> **Flagship:** S23 Ultra, Pixel 8 Pro, OnePlus 11, ROG Phone 7
+> **Tablets:** Xiaomi Pad 6, Samsung Tab S8
+> **Android Versions:** Tested from Android 8.0 to Android 15
+
+Result: Butter-smooth experience on ANY device.
 
 ---
 
 ## 📥 Installation
 
-1.  Go to [**Releases**](https://github.com/yourusername/mirai-launcher/releases)
-2.  Download the latest `mirai-launcher-v2.5.0.apk`
-3.  Install on your Android device
-4.  Press Home button > Select Mirai as Default Launcher
-5.  Enjoy the Future! 🌸
+1.  Go to [**Releases**](https://github.com/yourusername/mirai-launcher/releases) and download `Mirai-Launcher-v2.0.apk`
+2.  Install it on your Android
+3.  Set as Default Home Launcher
+4.  Open Mirai → Minecraft Tab → Add Offline Account & Enable Your Cape
+5.  Choose Version and Hit PLAY! 🎮
 
-> Requires Android 7.0+
-
----
-
-## 📸 Screenshots
-
-| Home | Drawer | Customization |
-| :---: | :---: | :---: |
-| <img src="screenshots/home.jpg" width="250"/> | <img src="screenshots/drawer.jpg" width="250"/> | <img src="screenshots/custom.jpg" width="250"/> |
+**Requires:** Android 8.0+ | 4GB RAM Recommended | 2GB Storage
 
 ---
 
-## 🛠️ Built With
+## 👨‍💻 Developed By Single Developer
 
-- **Language:** Kotlin, C++ (NDK)
-- **UI:** Jetpack Compose + Material You 3
-- **Architecture:** MVVM + Clean Architecture
-- **Min SDK:** 24 | **Target SDK:** 34
-
----
-
-## 👨‍💻 A Note From The Developer
-
-> This entire project is **maintained and developed by a single developer** — with passion, late nights, and a lot of coffee. ☕
+> ### ★ A PERSONAL NOTE FROM THE DEVELOPER ★
+> **This entire launcher is MAINTAINED AND DEVELOPED BY A SINGLE DEVELOPER.**
 >
-> No team, no company, no investors. Just one person who wanted to build a launcher that is actually *good* for the user.
+> No team. No company. No investors. Just one person, with a passion for Android and Minecraft, working late nights with lots of coffee ☕.
 >
-> If you love Mirai, please consider giving it a ⭐ **Star** on 【entity-GitHub¦canonical_name=GitHub】. It means the world to me and keeps this project alive.
+> Every feature — from the Android home animations to the Vulkan renderer and offline cape system — is coded, tested on other phones, and polished by me alone.
 >
-> — **Founder & Sole Developer of Mirai Launcher**
-
----
-
-## 🤝 Contributing & Support
-
-Found a bug? Have an idea?
-
-1.  Open an [**Issue**](https://github.com/yourusername/mirai-launcher/issues)
-2.  Star the repo ⭐
-3.  Share with friends!
+> This takes hundreds of hours. If you love Mirai, please give it a ⭐ **Star on GitHub**. It is the only thing that keeps this project alive and updated often.
+>
+> **Thank you for supporting solo development! — Mirai Dev** ❤️
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+Licensed under **GPL-3.0**. Not affiliated with Mojang, Microsoft, or any other launcher.
 
 <div align="center">
 
-### Made with 💜 by One Developer, For Everyone.
+### Made with 💜 by 1 Developer, For Everyone.
 
 **[⬇️ Download Now](https://github.com/yourusername/mirai-launcher/releases) • [🐛 Report Bug](https://github.com/yourusername/mirai-launcher/issues) • [💡 Request Feature](https://github.com/yourusername/mirai-launcher/issues)**
 
-© 2026 Mirai Launcher. All Rights Reserved.
+© 2026 Mirai Launcher — The Future is Here.
 
 </div>

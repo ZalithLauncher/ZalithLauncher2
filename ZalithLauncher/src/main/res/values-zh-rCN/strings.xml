@@ -557,6 +557,9 @@
     <string name="account_microsoft_exit_by_user">您离开了网页屏幕，已为您取消了微软登录流程。</string>
     <string name="account_advanced">高级设置</string>
     <string name="account_local_create_account">创建离线账号</string>
+    <string name="account_local_create_button">创建账号</string>
+    <string name="account_local_add_skin">添加皮肤</string>
+    <string name="account_local_add_cape">添加自定义披风</string>
     <string name="account_local_uuid_tip_1">UUID 是 Minecraft 玩家的唯一身份标识。</string>
     <string name="account_local_uuid_tip_2">不同启动器可能生成不同的 UUID。</string>
     <string name="account_local_uuid_tip_3">如果切换启动器时保持 UUID 不变，游戏就能继续识别你的角色，保留背包物品等数据。</string>

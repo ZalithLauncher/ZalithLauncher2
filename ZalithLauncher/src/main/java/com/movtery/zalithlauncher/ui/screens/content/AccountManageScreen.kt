@@ -18,7 +18,10 @@
 
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,14 +30,17 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.nonInteractiveScrollbar
@@ -50,8 +56,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -63,6 +69,7 @@ import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.isAuthServerAccount
+import com.movtery.zalithlauncher.game.account.isLocalAccount
 import com.movtery.zalithlauncher.game.account.isMicrosoftAccount
 import com.movtery.zalithlauncher.game.account.isMicrosoftLogging
 import com.movtery.zalithlauncher.game.account.yggdrasil.PlayerProfile
@@ -236,7 +243,6 @@ private fun AccountManageContent(
                 .padding(all = 12.dp)
                 .weight(3f),
             currentAccount = profileUiState.currentAccount,
-            isOffline = profileUiState.isOffline,
             actions = actions
         )
 
@@ -272,7 +278,6 @@ private fun ActionsLayout(
     isVisible: Boolean,
     modifier: Modifier = Modifier,
     currentAccount: Account?,
-    isOffline: Boolean,
     actions: AccountActions
 ) {
     val xOffset by swapAnimateDpAsState(
@@ -306,12 +311,7 @@ private fun ActionsLayout(
             modifier = Modifier
                 .fillMaxWidth(),
             onClick = {
-                if (isOffline) {
-                    //非正版状态下，只允许创建微软账号
-                    actions.onIntent(AccountManageIntent.UpdateMicrosoftLoginOp(MicrosoftLoginOperation.Tip))
-                } else {
-                    actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
-                }
+                actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
             }
         ) {
             MarqueeText(text = stringResource(R.string.account_add_new_account))
@@ -427,63 +427,22 @@ private fun LocalLoginOperation(
                         )
                     )
                 },
-                onConfirm = { isInvalid, name, uuid ->
-                    val nextOp = if (isInvalid) LocalLoginOperation.Alert(
-                        name,
-                        uuid
-                    ) else LocalLoginOperation.Create(name, uuid)
-                    actions.onIntent(AccountManageIntent.UpdateLocalLoginOp(nextOp))
-                },
-                openLink = actions.openLink
+                onConfirm = { name ->
+                    actions.onIntent(
+                        AccountManageIntent.UpdateLocalLoginOp(
+                            LocalLoginOperation.Create(name)
+                        )
+                    )
+                }
             )
         }
 
         is LocalLoginOperation.Create -> {
             LaunchedEffect(operation) {
                 actions.onIntent(
-                    AccountManageIntent.CreateLocalAccount(
-                        operation.userName,
-                        operation.userUUID
-                    )
+                    AccountManageIntent.CreateLocalAccount(operation.userName)
                 )
             }
-        }
-
-        is LocalLoginOperation.Alert -> {
-            SimpleAlertDialog(
-                title = stringResource(R.string.account_supporting_username_invalid_title),
-                text = {
-                    Text(text = stringResource(R.string.account_supporting_username_invalid_local_message_hint1))
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.account_supporting_username_invalid_local_message_hint2),
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = stringResource(R.string.account_supporting_username_invalid_local_message_hint3))
-                    Text(text = stringResource(R.string.account_supporting_username_invalid_local_message_hint4))
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = stringResource(R.string.account_supporting_username_invalid_local_message_hint5),
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                confirmText = stringResource(R.string.account_supporting_username_invalid_still_use),
-                onConfirm = {
-                    actions.onIntent(
-                        AccountManageIntent.UpdateLocalLoginOp(
-                            LocalLoginOperation.Create(operation.userName, operation.userUUID)
-                        )
-                    )
-                },
-                onCancel = {
-                    actions.onIntent(
-                        AccountManageIntent.UpdateLocalLoginOp(
-                            LocalLoginOperation.None
-                        )
-                    )
-                }
-            )
         }
     }
 }
@@ -668,41 +627,52 @@ private fun AccountsLayout(
                 state = scrollState,
             ) {
                 items(accounts, key = { it.uniqueUUID }) { account ->
-                    AccountItem(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        currentAccount = currentAccount,
-                        account = account,
-                        enabled = !isOffline, //非正版状态下不允许选择任何状态
-                        onSelected = { AccountsManager.setCurrentAccount(it) },
-                        openChangeSkinDialog = {
-                            if (!account.isAuthServerAccount()) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        AccountItem(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 6.dp),
+                            currentAccount = currentAccount,
+                            account = account,
+                            enabled = !isOffline, //非正版状态下不允许选择任何状态
+                            onSelected = { AccountsManager.setCurrentAccount(it) },
+                            openChangeSkinDialog = {
+                                if (!account.isAuthServerAccount()) {
+                                    actions.onIntent(
+                                        AccountManageIntent.UpdateAccountSkinOp(
+                                            AccountSkinOperation.ChangeSkin(account)
+                                        )
+                                    )
+                                }
+                            },
+                            onRefreshClick = {
                                 actions.onIntent(
-                                    AccountManageIntent.UpdateAccountSkinOp(
-                                        AccountSkinOperation.ChangeSkin(account)
+                                    AccountManageIntent.RefreshAccount(
+                                        account
+                                    )
+                                )
+                            },
+                            onCopyUUID = {
+                                copyText(COPY_LABEL_ACCOUNT_UUID, account.profileId, context, true)
+                            },
+                            onDeleteClick = {
+                                actions.onIntent(
+                                    AccountManageIntent.UpdateAccountOp(
+                                        AccountOperation.Delete(account)
                                     )
                                 )
                             }
-                        },
-                        onRefreshClick = {
-                            actions.onIntent(
-                                AccountManageIntent.RefreshAccount(
-                                    account
-                                )
-                            )
-                        },
-                        onCopyUUID = {
-                            copyText(COPY_LABEL_ACCOUNT_UUID, account.profileId, context, true)
-                        },
-                        onDeleteClick = {
-                            actions.onIntent(
-                                AccountManageIntent.UpdateAccountOp(
-                                    AccountOperation.Delete(account)
-                                )
+                        )
+
+                        if (account.isLocalAccount() &&
+                            (isOffline || account.uniqueUUID == currentAccount?.uniqueUUID)
+                        ) {
+                            LocalAccountWardrobeActions(
+                                account = account,
+                                onIntent = actions.onIntent
                             )
                         }
-                    )
+                    }
                 }
             }
         } else {
@@ -712,6 +682,69 @@ private fun AccountsLayout(
                     text = stringResource(R.string.account_no_account)
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun LocalAccountWardrobeActions(
+    account: Account,
+    onIntent: (AccountManageIntent) -> Unit
+) {
+    val skinPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { selectedUri ->
+            onIntent(
+                AccountManageIntent.UpdateAccountSkinOp(
+                    AccountSkinOperation.ChangeSkin(account)
+                )
+            )
+            onIntent(AccountManageIntent.OnSkinPicked(selectedUri))
+        }
+    }
+    val capePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { selectedUri ->
+            onIntent(
+                AccountManageIntent.UpdateAccountSkinOp(
+                    AccountSkinOperation.ChangeSkin(account)
+                )
+            )
+            onIntent(AccountManageIntent.OnCapePicked(selectedUri))
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        OutlinedButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { skinPicker.launch(arrayOf("image/png")) }
+        ) {
+            Icon(
+                modifier = Modifier.size(18.dp),
+                painter = painterResource(R.drawable.ic_checkroom),
+                contentDescription = null
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = stringResource(R.string.account_local_add_skin))
+        }
+        OutlinedButton(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = { capePicker.launch(arrayOf("image/png")) }
+        ) {
+            Icon(
+                modifier = Modifier.size(18.dp),
+                painter = painterResource(R.drawable.ic_upload),
+                contentDescription = null
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = stringResource(R.string.account_local_add_cape))
         }
     }
 }

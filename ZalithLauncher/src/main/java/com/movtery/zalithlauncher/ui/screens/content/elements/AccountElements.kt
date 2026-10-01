@@ -29,9 +29,7 @@ import android.graphics.RectF
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -83,7 +81,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -118,11 +115,9 @@ import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountType
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.account.accountErrorText
-import com.movtery.zalithlauncher.game.account.accountUUID
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.auth_server.models.AuthResult
 import com.movtery.zalithlauncher.game.account.getAccountTypeName
-import com.movtery.zalithlauncher.game.account.getUUIDFromUserName
 import com.movtery.zalithlauncher.game.account.isLocalAccount
 import com.movtery.zalithlauncher.game.account.isMicrosoftAccount
 import com.movtery.zalithlauncher.game.account.isSkinChangeAllowed
@@ -136,7 +131,6 @@ import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.path.URL_MINECRAFT_PURCHASE
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
-import com.movtery.zalithlauncher.ui.components.BaseIconTextButton
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.ImePanContainer
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -193,10 +187,7 @@ sealed interface LocalLoginOperation {
     data object Edit : LocalLoginOperation
 
     /** 创建账号流程 */
-    data class Create(val userName: String, val userUUID: String?) : LocalLoginOperation
-
-    /** 警告非法用户名流程 */
-    data class Alert(val userName: String, val userUUID: String?) : LocalLoginOperation
+    data class Create(val userName: String) : LocalLoginOperation
 }
 
 /**
@@ -657,46 +648,19 @@ private val localNamePattern = Pattern.compile("[^a-zA-Z0-9_]")
 @Composable
 fun LocalLoginDialog(
     onDismissRequest: () -> Unit,
-    onConfirm: (isUserNameInvalid: Boolean, userName: String, userUUID: String?) -> Unit,
-    openLink: (url: String) -> Unit
+    onConfirm: (userName: String) -> Unit
 ) {
-    /** 用户输入的用户名 */
     var userName by rememberSaveable { mutableStateOf("") }
 
-    /** 用户名是否无效 */
-    var isUserNameInvalid by rememberSaveable { mutableStateOf(false) }
-
-    /** 用户编辑了UUID */
-    var userEditedUUID by rememberSaveable { mutableStateOf(false) }
-
-    /** 用户输入的UUID */
-    var userUUID by rememberSaveable { mutableStateOf("") }
-
-    /** 根据用户名生成的待定UUID */
-    val pendingUUID = remember(userName) {
-        runCatching {
-            getUUIDFromUserName(userName).toString()
-        }.getOrElse {
-            ""
-        }.also { uuid ->
-            if (!userEditedUUID) userUUID = uuid
-        }
+    val usernameError = when {
+        userName.isEmpty() -> stringResource(R.string.account_supporting_username_invalid_empty)
+        userName.length <= 2 -> stringResource(R.string.account_supporting_username_invalid_short)
+        userName.length > 16 -> stringResource(R.string.account_supporting_username_invalid_long)
+        localNamePattern.matcher(userName).find() ->
+            stringResource(R.string.account_supporting_username_invalid_illegal_characters)
+        else -> null
     }
-
-    /** 用户UUID是否无效 */
-    val isUserUUIDInvalid: Boolean = remember(userUUID) {
-        if (userUUID.isEmpty()) false
-        else {
-            runCatching {
-                accountUUID(userUUID)
-                false
-            }.getOrElse {
-                true
-            }
-        }
-    }
-
-    var editUUID by rememberSaveable { mutableStateOf(false) }
+    val isUsernameValid = usernameError == null
 
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -728,151 +692,32 @@ fun LocalLoginDialog(
                     )
                     Spacer(modifier = Modifier.size(16.dp))
 
-                    val scrollState = rememberScrollState()
-                    Column(
-                        modifier = Modifier
-                            .fadeEdge(state = scrollState)
-                            .weight(1f, fill = false)
-                            .verticalScrollWithBar(state = scrollState)
-                            .fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        SingleLineTextCheck(
-                            text = userName,
-                            onSingleLined = { userName = it }
-                        )
-
-                        OwnOutlinedTextField(
-                            modifier = Modifier.fillMaxWidth(),
-                            value = userName,
-                            onValueChange = {
-                                userName = it
-                            },
-                            isError = isUserNameInvalid,
-                            label = { Text(text = stringResource(R.string.account_label_username)) },
-                            supportingText = {
-                                val errorText = when {
-                                    userName.isEmpty() -> stringResource(R.string.account_supporting_username_invalid_empty)
-                                    userName.length <= 2 -> stringResource(R.string.account_supporting_username_invalid_short)
-                                    userName.length > 16 -> stringResource(R.string.account_supporting_username_invalid_long)
-                                    localNamePattern.matcher(userName)
-                                        .find() -> stringResource(R.string.account_supporting_username_invalid_illegal_characters)
-
-                                    else -> ""
-                                }.also {
-                                    isUserNameInvalid = it.isNotEmpty()
-                                }
-                                if (isUserNameInvalid) {
-                                    Text(text = errorText)
-                                }
-                            },
-                            singleLine = true,
-                            shape = MaterialTheme.shapes.large
-                        )
-
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            IconTextButton(
-                                onClick = {
-                                    openLink(URL_MINECRAFT_PURCHASE)
-                                },
-                                painter = painterResource(R.drawable.ic_link),
-                                contentDescription = null,
-                                text = stringResource(R.string.account_supporting_microsoft_tip_link_purchase)
-                            )
-
-                            //打开高级设置
-                            BaseIconTextButton(
-                                onClick = {
-                                    editUUID = !editUUID
-                                },
-                                icon = { iconModifier ->
-                                    val rotate by animateFloatAsState(
-                                        if (editUUID) 0f
-                                        else 180f
-                                    )
-
-                                    Icon(
-                                        modifier = iconModifier
-                                            .size(24.dp)
-                                            .rotate(rotate),
-                                        painter = painterResource(R.drawable.ic_arrow_drop_up_rounded),
-                                        contentDescription = null
-                                    )
-                                },
-                                text = stringResource(R.string.account_advanced)
-                            )
-                        }
-
-                        //编辑自定义 UUID
-                        AnimatedVisibility(
-                            visible = editUUID
-                        ) {
-                            Column(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Spacer(modifier = Modifier.size(8.dp))
-
-                                SingleLineTextCheck(
-                                    text = userUUID,
-                                    onSingleLined = { userUUID = it }
-                                )
-
-                                OwnOutlinedTextField(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    value = userUUID,
-                                    onValueChange = {
-                                        userUUID = it
-                                        userEditedUUID = true
-                                    },
-                                    isError = isUserUUIDInvalid,
-                                    label = { Text(text = stringResource(R.string.account_local_uuid)) },
-                                    supportingText = {
-                                        if (isUserUUIDInvalid) {
-                                            Text(text = stringResource(R.string.account_local_uuid_invalid))
-                                        }
-                                    },
-                                    singleLine = true,
-                                    shape = MaterialTheme.shapes.large
-                                )
-
-                                //关于 UUID 的提示
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
-                                    shape = MaterialTheme.shapes.medium
-                                ) {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(all = 8.dp),
-                                    ) {
-                                        Text(
-                                            text = stringResource(R.string.account_local_uuid_tip_1),
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.account_local_uuid_tip_2),
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.account_local_uuid_tip_3),
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                        Text(
-                                            text = stringResource(R.string.account_local_uuid_tip_4),
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                    }
-                                }
+                    SingleLineTextCheck(
+                        text = userName,
+                        onSingleLined = { userName = it }
+                    )
+                    OwnOutlinedTextField(
+                        modifier = Modifier.fillMaxWidth(),
+                        value = userName,
+                        onValueChange = { userName = it },
+                        isError = !isUsernameValid,
+                        label = { Text(text = stringResource(R.string.account_label_username)) },
+                        supportingText = {
+                            usernameError?.let { Text(text = it) }
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                if (isUsernameValid) onConfirm(userName)
                             }
-                        }
-                    }
-                    Spacer(modifier = Modifier.size(16.dp))
+                        ),
+                        singleLine = true,
+                        shape = MaterialTheme.shapes.large
+                    )
 
+                    Spacer(modifier = Modifier.size(16.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -885,25 +730,10 @@ fun LocalLoginDialog(
                         }
                         Button(
                             modifier = Modifier.weight(1f),
-                            onClick = {
-                                if (userName.isNotEmpty()) {
-                                    if (userUUID.isNotEmpty()) {
-                                        runCatching {
-                                            val uuid = accountUUID(userUUID)
-                                            val uuidString = accountUUID(uuid)
-                                            onConfirm(isUserNameInvalid, userName, uuidString)
-                                        }
-                                    } else {
-                                        //如果未填写UUID，则默认使用待定UUID
-                                        onConfirm(
-                                            isUserNameInvalid,
-                                            userName,
-                                            pendingUUID.takeIf { it.isNotEmpty() })
-                                    }
-                                }
-                            }
+                            enabled = isUsernameValid,
+                            onClick = { onConfirm(userName) }
                         ) {
-                            MarqueeText(text = stringResource(R.string.generic_confirm))
+                            MarqueeText(text = stringResource(R.string.account_local_create_button))
                         }
                     }
                 }

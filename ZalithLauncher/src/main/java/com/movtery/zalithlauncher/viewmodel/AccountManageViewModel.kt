@@ -31,6 +31,7 @@ import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.account.accountErrorText
 import com.movtery.zalithlauncher.game.account.addOtherServer
+import com.movtery.zalithlauncher.game.account.getUUIDFromUserName
 import com.movtery.zalithlauncher.game.account.auth_server.AuthServerHelper
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.isLocalAccount
@@ -149,8 +150,7 @@ sealed interface AccountManageIntent {
     ) : AccountManageIntent
 
     /** 创建新的离线账号 */
-    data class CreateLocalAccount(val userName: String, val userUUID: String?) :
-        AccountManageIntent
+    data class CreateLocalAccount(val userName: String) : AccountManageIntent
 
     /** 使用第三方验证服务器进行登录 */
     data class LoginWithOtherServer(
@@ -361,10 +361,7 @@ class AccountManageViewModel @AssistedInject constructor(
             is AccountManageIntent.FetchMicrosoftCapes -> fetchMicrosoftCapes(intent.account)
             is AccountManageIntent.ApplyMicrosoftCape -> applyMicrosoftCape(intent)
             is AccountManageIntent.ApplyLocalCape -> applyLocalCape(intent)
-            is AccountManageIntent.CreateLocalAccount -> createLocalAccount(
-                intent.userName,
-                intent.userUUID
-            )
+            is AccountManageIntent.CreateLocalAccount -> createLocalAccount(intent.userName)
 
             is AccountManageIntent.LoginWithOtherServer -> loginWithOtherServer(intent)
             is AccountManageIntent.AddServer -> addServer(intent.url)
@@ -809,8 +806,9 @@ class AccountManageViewModel @AssistedInject constructor(
     }
 
     /** 创建离线账号 */
-    private fun createLocalAccount(userName: String, userUUID: String?) {
-        localLogin(userName, userUUID)
+    private fun createLocalAccount(userName: String) {
+        val offlineUUID = getUUIDFromUserName(userName).toString()
+        localLogin(userName, offlineUUID)
         onIntent(AccountManageIntent.UpdateLocalLoginOp(LocalLoginOperation.None))
     }
 

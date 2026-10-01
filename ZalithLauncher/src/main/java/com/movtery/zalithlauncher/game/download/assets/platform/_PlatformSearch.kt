@@ -30,6 +30,7 @@ import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.Modrint
 import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthVersion
 import com.movtery.zalithlauncher.game.download.assets.utils.localizedModSearchKeywords
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.DownloadAssetsState
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.SearchAssetsState
 import com.movtery.zalithlauncher.utils.isChinaMainland
@@ -107,17 +108,20 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
 }
 
 /**
- * 镜像源只能在中国地区使用
+ * Automatically fall back to the alternate CurseForge source when the preferred source fails.
+ * An explicit Official preference continues to use only CurseForge's API.
  */
 fun mirroredCurseForgeSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<CurseForgeSearcher> {
-    val source = resolveMirrorPriority(AllSettings.assetPlatformSource.getValue(), mainland = enabledMirror)
-    val mirrorSource = mirrorCurseForgeSearcher.takeIf { enabledMirror }
-    return when (source) {
-        MirrorPriority.OFFICIAL -> listOf(curseForgeSearcher)
-        MirrorPriority.MIRROR_FIRST ->
-            listOfNotNull(mirrorSource, curseForgeSearcher)
+    val preference = AllSettings.assetPlatformSource.getValue()
+    val priority = resolveMirrorPriority(preference, mainland = enabledMirror)
+    val mirrorSource = mirrorCurseForgeSearcher.takeIf {
+        preference != MirrorSourceType.OFFICIAL
+    }
+    return when (priority) {
+        MirrorPriority.OFFICIAL -> listOfNotNull(curseForgeSearcher, mirrorSource)
+        MirrorPriority.MIRROR_FIRST -> listOfNotNull(mirrorSource, curseForgeSearcher)
     }
 }
 

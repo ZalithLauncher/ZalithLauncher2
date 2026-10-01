@@ -503,6 +503,9 @@
     <string name="account_microsoft_exit_by_user">您離開了網頁畫面，已為您取消了微軟登入流程</string>
     <string name="account_advanced">進階設定</string>
     <string name="account_local_create_account">建立離線帳號</string>
+    <string name="account_local_create_button">建立帳號</string>
+    <string name="account_local_add_skin">新增皮膚</string>
+    <string name="account_local_add_cape">新增自訂披風</string>
     <string name="account_local_uuid_tip_1">UUID 是 Minecraft 玩家的唯一身分識別碼。</string>
     <string name="account_local_uuid_tip_2">不同的啟動器可能會產生不同的 UUID。</string>
     <string name="account_local_uuid_tip_3">在切換啟動器時保持 UUID 不變，遊戲即可持續識別你的角色，並保留背包物品等資料。</string>

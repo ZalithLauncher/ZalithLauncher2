@@ -574,6 +574,9 @@
     <string name="account_microsoft_exit_by_user">You left the webpage, so the Microsoft login process has been canceled for you.</string>
     <string name="account_advanced">Advanced Settings</string>
     <string name="account_local_create_account">Create Offline Account</string>
+    <string name="account_local_create_button">Create account</string>
+    <string name="account_local_add_skin">Add skin</string>
+    <string name="account_local_add_cape">Add custom cape</string>
     <string name="account_local_uuid" translatable="false">UUID</string>
     <string name="account_local_uuid_tip_1">UUID is the unique identifier of a Minecraft player.</string>
     <string name="account_local_uuid_tip_2">Different launchers may generate different UUIDs.</string>

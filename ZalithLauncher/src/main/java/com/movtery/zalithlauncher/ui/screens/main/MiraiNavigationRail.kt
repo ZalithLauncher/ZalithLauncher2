@@ -2,8 +2,10 @@ package com.movtery.zalithlauncher.ui.screens.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,20 +14,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
@@ -54,7 +59,7 @@ fun MiraiNavigationRail(
 
     Surface(
         modifier = modifier
-            .width(68.dp)
+            .width(208.dp)
             .fillMaxHeight(),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         contentColor = MaterialTheme.colorScheme.onSurface
@@ -62,118 +67,130 @@ fun MiraiNavigationRail(
         Column(
             modifier = Modifier
                 .fillMaxHeight()
-                .padding(horizontal = 8.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(horizontal = 12.dp, vertical = 14.dp)
         ) {
-            Box(
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp),
-                contentAlignment = Alignment.Center
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_mirai_mark),
-                    contentDescription = stringResource(R.string.launcher_brand_name),
-                    tint = androidx.compose.ui.graphics.Color.Unspecified,
-                    modifier = Modifier.size(32.dp)
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(28.dp)
+                )
+                Text(
+                    text = stringResource(R.string.launcher_brand_name),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
-            Spacer(Modifier.height(10.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(16.dp))
 
-            LauncherSectionItem(
+            RailItem(
                 icon = R.drawable.ic_home_filled,
-                label = stringResource(R.string.generic_main_menu),
+                label = "Play",
                 selected = selectedSection == LauncherSection.HOME,
                 onClick = { onNavigate(LauncherSection.HOME) }
             )
-            LauncherSectionItem(
+            RailItem(
                 icon = R.drawable.ic_search,
-                label = stringResource(R.string.generic_download),
+                label = "Discover",
                 selected = selectedSection == LauncherSection.DISCOVER,
                 onClick = { onNavigate(LauncherSection.DISCOVER) }
             )
-            LauncherSectionItem(
-                icon = R.drawable.ic_checkroom,
-                label = "MCSkin",
-                selected = selectedSection == LauncherSection.SKINS,
-                onClick = { onNavigate(LauncherSection.SKINS) }
-            )
-            LauncherSectionItem(
+            RailItem(
                 icon = R.drawable.ic_dashboard_filled,
-                label = stringResource(R.string.page_title_version_list),
+                label = "Library",
                 selected = selectedSection == LauncherSection.LIBRARY,
                 onClick = { onNavigate(LauncherSection.LIBRARY) }
             )
-            LauncherSectionItem(
+            RailItem(
+                icon = R.drawable.ic_checkroom,
+                label = "Skins",
+                selected = selectedSection == LauncherSection.SKINS,
+                onClick = { onNavigate(LauncherSection.SKINS) }
+            )
+            RailItem(
                 icon = R.drawable.ic_group_filled,
-                label = stringResource(R.string.terracotta),
+                label = "Servers",
                 selected = selectedSection == LauncherSection.MULTIPLAYER,
                 onClick = { onNavigate(LauncherSection.MULTIPLAYER) }
             )
 
             Spacer(Modifier.weight(1f))
 
-            LauncherSectionItem(
+            RailItem(
                 icon = R.drawable.ic_add,
-                label = stringResource(R.string.home_new_instance),
+                label = "Create instance",
                 selected = false,
-                highlighted = true,
+                emphasized = true,
                 onClick = onCreateInstance
             )
-            LauncherSectionItem(
+            Spacer(Modifier.height(6.dp))
+            RailItem(
                 icon = R.drawable.ic_settings_filled,
-                label = stringResource(R.string.generic_setting),
+                label = "Settings",
                 selected = selectedSection == LauncherSection.SETTINGS,
                 onClick = { onNavigate(LauncherSection.SETTINGS) }
             )
 
-            Spacer(Modifier.height(6.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(10.dp))
             AccountShortcut(account = account, onClick = onAccountClick)
         }
     }
 }
 
 @Composable
-private fun LauncherSectionItem(
+private fun RailItem(
     icon: Int,
     label: String,
     selected: Boolean,
-    highlighted: Boolean = false,
+    emphasized: Boolean = false,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(13.dp)
-    val backgroundColor = when {
+    val background = when {
         selected -> MaterialTheme.colorScheme.primary
-        highlighted -> MaterialTheme.colorScheme.primaryContainer
-        else -> MaterialTheme.colorScheme.surfaceContainerLow
+        emphasized -> MaterialTheme.colorScheme.primaryContainer
+        else -> Color.Transparent
     }
-    val iconColor = when {
+    val content = when {
         selected -> MaterialTheme.colorScheme.onPrimary
-        highlighted -> MaterialTheme.colorScheme.onPrimaryContainer
+        emphasized -> MaterialTheme.colorScheme.onPrimaryContainer
         else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
-
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 3.dp)
+            .padding(vertical = 2.dp)
             .height(42.dp)
-            .clip(shape)
-            .background(backgroundColor)
+            .clip(RoundedCornerShape(12.dp))
+            .background(background)
             .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = label },
-        contentAlignment = Alignment.Center
+            .semantics { contentDescription = label }
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = iconColor,
-            modifier = Modifier.size(21.dp)
+            tint = content,
+            modifier = Modifier.size(20.dp)
+        )
+        Text(
+            text = label,
+            color = content,
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (selected || emphasized) FontWeight.SemiBold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -183,33 +200,51 @@ private fun AccountShortcut(
     account: Account?,
     onClick: () -> Unit
 ) {
-    val description = account?.username ?: stringResource(R.string.account_add_new_account)
-    Box(
+    val name = account?.username ?: stringResource(R.string.account_add_new_account)
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(44.dp)
-            .clip(RoundedCornerShape(13.dp))
+            .height(52.dp)
+            .clip(RoundedCornerShape(14.dp))
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = description },
-        contentAlignment = Alignment.Center
+            .semantics { contentDescription = name }
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         if (account != null) {
-            PlayerFace(account = account, avatarSize = 34.dp)
+            PlayerFace(account = account, avatarSize = 32.dp)
         } else {
             Box(
                 modifier = Modifier
-                    .size(34.dp)
+                    .size(32.dp)
                     .clip(RoundedCornerShape(50))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_person_outlined),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(19.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = if (account == null) "Sign in" else "Account",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1
+            )
         }
     }
 }

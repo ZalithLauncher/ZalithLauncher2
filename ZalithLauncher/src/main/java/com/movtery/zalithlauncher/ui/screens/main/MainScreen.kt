@@ -53,6 +53,7 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
+import com.movtery.zalithlauncher.ui.guide.sendStartGuideOnce
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -104,7 +105,7 @@ fun MainScreen(
     var section by remember { mutableStateOf(LauncherSection.HOME) }
     var showTool by remember { mutableStateOf(false) }
     fun openDownload(target: TitledNavKey) {
-        screenBackStackModel.downloadScreen.backStack.clearWith(target)
+        screenBackStackModel.downloadScreen.clearWith(target)
         screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
         showTool = true
     }

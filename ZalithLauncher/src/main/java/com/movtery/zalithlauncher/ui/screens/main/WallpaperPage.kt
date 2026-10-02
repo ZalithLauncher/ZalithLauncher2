@@ -31,7 +31,7 @@ import java.io.File
 
 fun wallpaperFile(context: android.content.Context) = File(context.filesDir, "mirai-wallpaper.jpg")
 
-private val bundled = listOf("dusk", "blossom", "lake", "peaks", "islands", "portal")
+private val bundled = listOf("dusk", "blossom", "lake", "peaks", "islands", "portal", "cave", "autumn", "ridge")
 
 @Composable
 fun WallpaperPage(modifier: Modifier = Modifier) {
@@ -68,7 +68,7 @@ fun WallpaperPage(modifier: Modifier = Modifier) {
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Text(name.replaceFirstChar { it.uppercase() }, color = Color.White, modifier = Modifier.clickable { revision++ })
+                Text(name.replaceFirstChar { it.uppercase() }, color = Color.White)
             }
         }
         Text(if (wallpaperFile(context).exists()) "Applied. Go home to see it." else "Pick one, or import your own.", color = Color(0xFFD7CFC8))

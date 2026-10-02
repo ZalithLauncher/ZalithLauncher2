@@ -27,7 +27,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -44,6 +46,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.version.installed.Version
+import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
@@ -65,6 +68,10 @@ import com.movtery.zalithlauncher.ui.screens.content.VersionSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionsManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.WebViewScreen
 import com.movtery.zalithlauncher.ui.screens.content.assetinfo.AssetInfoScreen
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiDiscoverPage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiLibraryPage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiServersPage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiSettingsPage
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
@@ -93,32 +100,56 @@ fun MainScreen(
     fun changeTasksExpandedState() { AllSettings.launcherTaskMenuExpanded.save(!isTaskMenuExpanded) }
     val toMainScreen: () -> Unit = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain) }
     val mainScreenKey = screenBackStackModel.mainScreen.currentKey
+    var section by remember { mutableStateOf(LauncherSection.HOME) }
+    var showTool by remember { mutableStateOf(false) }
+    fun openDownload(target: Any) {
+        screenBackStackModel.downloadScreen.clearWith(target)
+        screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
+        showTool = true
+    }
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0E0E10), contentColor = Color.White) {
         Row(modifier = Modifier.fillMaxSize()) {
             MiraiNavigationRail(
                 modifier = Modifier.fillMaxHeight(),
-                selectedSection = mainScreenKey.toLauncherSection(),
-                onNavigate = { section ->
-                    when (section) {
-                        LauncherSection.HOME -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain)
-                        LauncherSection.DISCOVER -> {
-                            screenBackStackModel.downloadScreen.clearWith(screenBackStackModel.downloadModScreen)
-                            screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
-                        }
-                        LauncherSection.LIBRARY -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager)
-                        LauncherSection.MULTIPLAYER -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer)
-                        LauncherSection.SETTINGS -> screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
-                        LauncherSection.SKINS -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary)
-                    }
+                selectedSection = section,
+                onNavigate = {
+                    section = it
+                    showTool = false
+                    if (it == LauncherSection.HOME) toMainScreen()
+                    if (it == LauncherSection.SKINS) screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary)
                 },
-                onCreateInstance = {
-                    screenBackStackModel.downloadScreen.clearWith(screenBackStackModel.downloadGameScreen)
-                    screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
-                },
-                onAccountClick = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE)) }
+                onCreateInstance = { openDownload(screenBackStackModel.downloadGameScreen) },
+                onAccountClick = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE)); showTool = true }
             )
             Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
-                NavigationUI(modifier = Modifier.fillMaxSize(), screenBackStackModel = screenBackStackModel, toMainScreen = toMainScreen, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
+                when {
+                    section == LauncherSection.DISCOVER && !showTool -> MiraiDiscoverPage(
+                        onMods = { openDownload(screenBackStackModel.downloadModScreen) },
+                        onModpacks = { openDownload(screenBackStackModel.downloadModpackScreen) },
+                        onResourcePacks = { openDownload(screenBackStackModel.downloadResourceScreen) },
+                        onShaders = { openDownload(screenBackStackModel.downloadShaderScreen) },
+                        onWorlds = { openDownload(screenBackStackModel.downloadWorldScreen) },
+                        onVersions = { openDownload(screenBackStackModel.downloadGameScreen) },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    section == LauncherSection.LIBRARY && !showTool -> MiraiLibraryPage(
+                        onInstances = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager); showTool = true },
+                        onExport = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager); showTool = true },
+                        onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    section == LauncherSection.MULTIPLAYER && !showTool -> MiraiServersPage(
+                        onMultiplayer = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer); showTool = true },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    section == LauncherSection.SETTINGS && !showTool -> MiraiSettingsPage(
+                        onAllSettings = { screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen); showTool = true },
+                        onAccounts = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE)); showTool = true },
+                        onRenderer = { screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen); showTool = true },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    else -> NavigationUI(modifier = Modifier.fillMaxSize(), screenBackStackModel = screenBackStackModel, toMainScreen = toMainScreen, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
+                }
             }
         }
     }

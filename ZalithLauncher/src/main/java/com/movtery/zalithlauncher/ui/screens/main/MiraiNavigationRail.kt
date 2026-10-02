@@ -1,5 +1,6 @@
 package com.movtery.zalithlauncher.ui.screens.main
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -11,7 +12,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -56,11 +57,10 @@ fun MiraiNavigationRail(
             modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(painterResource(R.drawable.ic_mirai_mark), contentDescription = stringResource(R.string.launcher_brand_name), tint = Color.Unspecified, modifier = Modifier.size(28.dp))
+            Image(painterResource(R.drawable.ic_mirai_mark), contentDescription = stringResource(R.string.launcher_brand_name), modifier = Modifier.size(28.dp))
             RailIcon(R.drawable.ic_home_filled, "Play", selectedSection == LauncherSection.HOME) { onNavigate(LauncherSection.HOME) }
             RailIcon(R.drawable.ic_search, "Discover", selectedSection == LauncherSection.DISCOVER) { onNavigate(LauncherSection.DISCOVER) }
             RailIcon(R.drawable.ic_checkroom, "Skins", selectedSection == LauncherSection.SKINS) { onNavigate(LauncherSection.SKINS) }
-            RailIcon(R.drawable.ic_group_filled, "Servers", selectedSection == LauncherSection.MULTIPLAYER) { onNavigate(LauncherSection.MULTIPLAYER) }
             RailIcon(R.drawable.ic_settings_filled, "Settings", selectedSection == LauncherSection.SETTINGS) { onNavigate(LauncherSection.SETTINGS) }
             AccountMark(currentAccount != null, currentAccount?.username ?: "Add account", onAccountClick) {
                 val faceAccount = currentAccount
@@ -84,7 +84,12 @@ private fun RailIcon(icon: Int, label: String, selected: Boolean, emphasized: Bo
         modifier = Modifier.padding(vertical = 4.dp).size(48.dp).clip(RoundedCornerShape(16.dp)).background(background).clickable(role = Role.Button, onClick = onClick).semantics { contentDescription = label },
         contentAlignment = Alignment.Center
     ) {
-        Icon(painterResource(icon), contentDescription = null, tint = if (selected) Color(0xFF06210F) else Color.White, modifier = Modifier.size(22.dp))
+        Image(
+            painterResource(icon),
+            contentDescription = null,
+            colorFilter = ColorFilter.tint(if (selected) Color(0xFF06210F) else Color.White),
+            modifier = Modifier.size(26.dp)
+        )
     }
 }
 
@@ -94,6 +99,6 @@ private fun AccountMark(hasAccount: Boolean, label: String, onClick: () -> Unit,
         modifier = Modifier.padding(vertical = 4.dp).size(48.dp).clip(RoundedCornerShape(16.dp)).background(Color(0x33FFFFFF)).clickable(role = Role.Button, onClick = onClick).semantics { contentDescription = label },
         contentAlignment = Alignment.Center
     ) {
-        if (hasAccount) face() else Icon(painterResource(R.drawable.ic_person_outlined), contentDescription = null, tint = Color.White)
+        if (hasAccount) face() else Image(painterResource(R.drawable.ic_person_outlined), contentDescription = null, colorFilter = ColorFilter.tint(Color.White), modifier = Modifier.size(26.dp))
     }
 }

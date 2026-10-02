@@ -23,7 +23,10 @@ fun CaveBackground(modifier: Modifier = Modifier, content: @Composable () -> Uni
     val file = wallpaperFile(context)
     val image = remember(file.exists(), file.lastModified()) {
         val bytes = if (file.exists()) file.readBytes() else runCatching {
-            Base64.decode(context.assets.open("wallpapers/cave.b64").bufferedReader().readText().replace("\n", ""), Base64.DEFAULT)
+            val encoded = listOf("cave-a.b64", "cave-b.b64", "cave-c.b64").joinToString("") {
+                context.assets.open("wallpapers/$it").bufferedReader().readText()
+            }
+            Base64.decode(encoded.replace("\n", ""), Base64.DEFAULT)
         }.getOrNull()
         bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }
     }

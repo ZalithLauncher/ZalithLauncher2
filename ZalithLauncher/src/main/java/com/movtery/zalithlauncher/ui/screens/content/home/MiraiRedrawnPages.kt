@@ -61,20 +61,24 @@ fun MiraiEditorPage(title: String, onEdit: () -> Unit, onBack: () -> Unit, modif
 @Composable
 fun MiraiHostPage(onHost: () -> Unit, onBack: () -> Unit, modifier: Modifier = Modifier) {
     val enabled = AllSettings.enableTerracotta.state
+    var invite by remember { mutableStateOf("") }
     Page("Servers", onBack, modifier) {
         Row(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(CardBg).padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) { Text("Multiplayer", color = Color.White, fontWeight = FontWeight.SemiBold); Text(if (enabled) "On" else "Off", color = Muted) }
             Switch(checked = enabled, onCheckedChange = { AllSettings.enableTerracotta.save(it) })
         }
-        Read("Join", "Enter an invite from the host")
-        Read("Host", "Open a world to LAN and copy the invite")
+        Field(invite, { invite = it }, "Invite or host code")
+        Text(if (invite.isBlank()) "Turn multiplayer on, then join or host." else "Ready to use $invite", color = Muted)
         GreenButton("Open servers", onHost)
     }
 }
 
 @Composable
 fun MiraiLoginPage(onOffline: () -> Unit, onMicrosoft: () -> Unit, onBack: () -> Unit, modifier: Modifier = Modifier) {
+    var name by remember { mutableStateOf("") }
     Page("Accounts", onBack, modifier) {
+        Field(name, { name = it }, "Account name")
+        Text(if (name.isBlank()) "Enter a name for offline, or continue with Microsoft." else "Offline name: $name", color = Muted)
         GreenButton("Offline account", onOffline)
         GreenButton("Microsoft login", onMicrosoft)
     }

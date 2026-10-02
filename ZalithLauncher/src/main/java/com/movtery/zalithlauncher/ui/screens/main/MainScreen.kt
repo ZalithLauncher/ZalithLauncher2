@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -21,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -31,7 +31,6 @@ import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.guide.sendStartGuideOnce
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -50,7 +49,6 @@ import com.movtery.zalithlauncher.ui.screens.content.VersionSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionsManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.WebViewScreen
 import com.movtery.zalithlauncher.ui.screens.content.assetinfo.AssetInfoScreen
-import com.movtery.zalithlauncher.ui.screens.content.home.MiraiDiscoverPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiEditorPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiHostPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiInstanceDetail
@@ -59,7 +57,6 @@ import com.movtery.zalithlauncher.ui.screens.content.home.MiraiLogPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiLoginPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiPackPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiPlayPage
-import com.movtery.zalithlauncher.ui.screens.content.home.MiraiSearchInstallPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiServersPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiSettingsPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiTutorialPage
@@ -83,28 +80,48 @@ fun MainScreen(screenBackStackModel: ScreenBackStackViewModel, eventViewModel: E
     var accountsOpen by remember { mutableStateOf(false) }
     var exportVersion by remember { mutableStateOf<Version?>(null) }
     var logPath by remember { mutableStateOf<String?>(null) }
-    var discoverTarget by remember { mutableStateOf<TitledNavKey?>(null) }
     var openedVersion by remember { mutableStateOf<Version?>(null) }
     var instanceEditor by remember { mutableStateOf(false) }
     var serversOpen by remember { mutableStateOf(false) }
     var settingsTarget by remember { mutableStateOf<NormalNavKey.Settings?>(null) }
     var runAction by remember { mutableStateOf(false) }
-    fun openDownload(target: TitledNavKey) { screenBackStackModel.downloadScreen.clearWith(target); screenBackStackModel.mainScreen.currentKey = screenBackStackModel.downloadScreen; discoverTarget = target; runAction = false }
+    fun openDownload(target: TitledNavKey) { screenBackStackModel.downloadScreen.clearWith(target); screenBackStackModel.mainScreen.currentKey = screenBackStackModel.downloadScreen; runAction = false }
     fun openSetting(target: NormalNavKey.Settings) { screenBackStackModel.settingsScreen.clearWith(target); screenBackStackModel.mainScreen.currentKey = screenBackStackModel.settingsScreen; settingsTarget = target; runAction = false }
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0E0E10), contentColor = Color.White) {
+    fun playSelected() { section = LauncherSection.HOME; VersionsManager.currentVersion.value?.let { eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(it)) } }
+    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF120818), Color(0xFF5A3D86), Color(0xFFE24A1B))))) {
         Row(modifier = Modifier.fillMaxSize()) {
-            MiraiNavigationRail(modifier = Modifier.fillMaxHeight(), selectedSection = section, onNavigate = { section = it; showTool = false; tutorialOpen = false; accountsOpen = false; exportVersion = null; logPath = null; discoverTarget = null; openedVersion = null; instanceEditor = false; serversOpen = false; settingsTarget = null; runAction = false; if (it == LauncherSection.HOME) toMainScreen() }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onAccountClick = { section = LauncherSection.SETTINGS; accountsOpen = true; runAction = false })
+            MiraiNavigationRail(
+                modifier = Modifier.fillMaxHeight(),
+                selectedSection = section,
+                onNavigate = { next ->
+                    section = next
+                    showTool = false
+                    tutorialOpen = false
+                    accountsOpen = false
+                    exportVersion = null
+                    logPath = null
+                    openedVersion = null
+                    instanceEditor = false
+                    serversOpen = false
+                    settingsTarget = null
+                    runAction = false
+                    if (next == LauncherSection.HOME) toMainScreen()
+                    if (next == LauncherSection.DISCOVER) openDownload(screenBackStackModel.downloadModScreen)
+                },
+                onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) },
+                onAccountClick = { section = LauncherSection.SETTINGS; accountsOpen = true; runAction = false },
+                onPlay = { playSelected() }
+            )
             Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
                 Crossfade(targetState = section to showTool, animationSpec = tween(180), label = "mirai-page") { (page, tool) ->
                     when {
-                        page == LauncherSection.HOME && !tool -> MiraiPlayPage(onLaunch = { version -> version?.let { eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(it)) } }, onExploreContent = { section = LauncherSection.DISCOVER }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onManageVersions = { section = LauncherSection.LIBRARY }, onOpenVersionSettings = { version -> section = LauncherSection.LIBRARY; openedVersion = version; instanceEditor = false }, modifier = Modifier.fillMaxSize())
-                        page == LauncherSection.SKINS && !tool -> Column(modifier = Modifier.fillMaxSize().background(Color(0xFF0E0E10)).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { Text("Skins", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold); Text("Browse a skin, download it, and equip it.", color = Color(0xFF9A9AA3)); Text("Open skins", color = Color(0xFF1BD96A), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary); showTool = true }) }
-                        page == LauncherSection.DISCOVER && !tool && discoverTarget != null && runAction -> DownloadScreen(key = screenBackStackModel.downloadScreen, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
-                        page == LauncherSection.DISCOVER && !tool && discoverTarget != null -> MiraiSearchInstallPage("Discover", onInstall = { runAction = true }, onBack = { discoverTarget = null }, modifier = Modifier.fillMaxSize())
-                        page == LauncherSection.DISCOVER && !tool -> MiraiDiscoverPage(onMods = { openDownload(screenBackStackModel.downloadModScreen) }, onModpacks = { openDownload(screenBackStackModel.downloadModPackScreen) }, onResourcePacks = { openDownload(screenBackStackModel.downloadResourcePackScreen) }, onShaders = { openDownload(screenBackStackModel.downloadShadersScreen) }, onWorlds = { openDownload(screenBackStackModel.downloadSavesScreen) }, onVersions = { openDownload(screenBackStackModel.downloadGameScreen) }, onFavorites = { openDownload(screenBackStackModel.downloadFavoritesScreen) }, onSearchId = { openDownload(NormalNavKey.SearchId) }, modifier = Modifier.fillMaxSize())
-                        page == LauncherSection.LIBRARY && !tool && openedVersion != null && instanceEditor -> VersionSettingsScreen(key = NestedNavKey.VersionSettings(openedVersion!!), backScreenViewModel = screenBackStackModel, backToMainScreen = { instanceEditor = false }, onExportModpack = { exportVersion = openedVersion; section = LauncherSection.SETTINGS; runAction = false }, eventViewModel = eventViewModel, submitError = submitError)
+                        page == LauncherSection.HOME && !tool -> MiraiPlayPage(onLaunch = { version -> version?.let { eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(it)) } }, onExploreContent = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadModScreen) }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onManageVersions = { }, onOpenVersionSettings = { version -> openedVersion = version; instanceEditor = true }, modifier = Modifier.fillMaxSize())
+                        page == LauncherSection.SKINS && !tool -> Column(modifier = Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { Text("Skins", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold); Text("Browse a skin, download it, and equip it.", color = Color(0xFFD7CFC8)); Text("Open skins", color = Color(0xFF1BD96A), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary); showTool = true }) }
+                        page == LauncherSection.DISCOVER && !tool -> DownloadScreen(key = screenBackStackModel.downloadScreen, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
+                        page == LauncherSection.HOME && instanceEditor && openedVersion != null -> VersionSettingsScreen(key = NestedNavKey.VersionSettings(openedVersion!!), backScreenViewModel = screenBackStackModel, backToMainScreen = { instanceEditor = false }, onExportModpack = { exportVersion = openedVersion; section = LauncherSection.SETTINGS; instanceEditor = false }, eventViewModel = eventViewModel, submitError = submitError)
+                        page == LauncherSection.LIBRARY && !tool && openedVersion != null && instanceEditor -> VersionSettingsScreen(key = NestedNavKey.VersionSettings(openedVersion!!), backScreenViewModel = screenBackStackModel, backToMainScreen = { instanceEditor = false }, onExportModpack = { exportVersion = openedVersion; section = LauncherSection.SETTINGS }, eventViewModel = eventViewModel, submitError = submitError)
                         page == LauncherSection.LIBRARY && !tool && openedVersion != null -> MiraiInstanceDetail(openedVersion!!, onOpenContent = { instanceEditor = true }, onBack = { openedVersion = null }, modifier = Modifier.fillMaxSize())
-                        page == LauncherSection.LIBRARY && !tool -> MiraiLibraryPage(onOpenInstance = { openedVersion = it; instanceEditor = false }, onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) }, modifier = Modifier.fillMaxSize())
+                        page == LauncherSection.LIBRARY && !tool -> MiraiLibraryPage(onOpenInstance = { openedVersion = it }, onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) }, modifier = Modifier.fillMaxSize())
                         page == LauncherSection.MULTIPLAYER && !tool && serversOpen && runAction -> MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel)
                         page == LauncherSection.MULTIPLAYER && !tool && serversOpen -> MiraiHostPage(onHost = { runAction = true }, onBack = { serversOpen = false }, modifier = Modifier.fillMaxSize())
                         page == LauncherSection.MULTIPLAYER && !tool -> MiraiServersPage(onMultiplayer = { serversOpen = true; runAction = false }, modifier = Modifier.fillMaxSize())

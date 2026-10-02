@@ -1,22 +1,3 @@
-/*
- * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
- * Copyright (C) 2026 Mirai Launcher contributors.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/gpl-3.0.txt>.
- */
-
 package com.movtery.zalithlauncher.ui.screens.main
 
 import androidx.compose.foundation.background
@@ -52,13 +33,13 @@ import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
 
-/** Primary destinations kept visible while nested launcher screens are open. */
 enum class LauncherSection {
     HOME,
     DISCOVER,
     LIBRARY,
     MULTIPLAYER,
-    SETTINGS
+    SETTINGS,
+    SKINS
 }
 
 @Composable
@@ -113,6 +94,12 @@ fun MiraiNavigationRail(
                 label = stringResource(R.string.generic_download),
                 selected = selectedSection == LauncherSection.DISCOVER,
                 onClick = { onNavigate(LauncherSection.DISCOVER) }
+            )
+            LauncherSectionItem(
+                icon = R.drawable.ic_checkroom,
+                label = "MCSkin",
+                selected = selectedSection == LauncherSection.SKINS,
+                onClick = { onNavigate(LauncherSection.SKINS) }
             )
             LauncherSectionItem(
                 icon = R.drawable.ic_dashboard_filled,

@@ -1,6 +1,7 @@
 package com.movtery.zalithlauncher.ui.screens.main
 
 import android.graphics.BitmapFactory
+import android.util.Base64
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,10 +22,13 @@ fun CaveBackground(modifier: Modifier = Modifier, content: @Composable () -> Uni
     val context = LocalContext.current
     val file = wallpaperFile(context)
     val image = remember(file.exists(), file.lastModified()) {
-        if (!file.exists()) null else BitmapFactory.decodeFile(file.absolutePath)?.asImageBitmap()
+        val bytes = if (file.exists()) file.readBytes() else runCatching {
+            Base64.decode(context.assets.open("wallpapers/cave.b64").bufferedReader().readText().replace("\n", ""), Base64.DEFAULT)
+        }.getOrNull()
+        bytes?.let { BitmapFactory.decodeByteArray(it, 0, it.size)?.asImageBitmap() }
     }
     Box(modifier.fillMaxSize()) {
-        if (image != null) Image(image, contentDescription = null, modifier = Modifier.fillMaxSize().blur(10.dp), contentScale = ContentScale.Crop)
+        if (image != null) Image(image, contentDescription = null, modifier = Modifier.fillMaxSize().blur(8.dp), contentScale = ContentScale.Crop)
         else Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF2A1248), Color(0xFFE26A8A), Color(0xFF5A2A78)))))
         Box(Modifier.fillMaxSize().background(Color(0x33120A16)))
         content()

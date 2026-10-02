@@ -141,6 +141,8 @@ fun MainScreen(
                             onShaders = { openDownload(screenBackStackModel.downloadShadersScreen) },
                             onWorlds = { openDownload(screenBackStackModel.downloadSavesScreen) },
                             onVersions = { openDownload(screenBackStackModel.downloadGameScreen) },
+                            onFavorites = { openDownload(screenBackStackModel.downloadFavoritesScreen) },
+                            onSearchId = { openDownload(NormalNavKey.SearchId) },
                             modifier = Modifier.fillMaxSize()
                         )
                         page == LauncherSection.LIBRARY && !tool -> MiraiLibraryPage(
@@ -159,6 +161,7 @@ fun MainScreen(
                             onGamepad = { openSetting(NormalNavKey.Settings.Gamepad) },
                             onLauncher = { openSetting(NormalNavKey.Settings.Launcher) },
                             onJava = { openSetting(NormalNavKey.Settings.JavaManager) },
+                            onControlLayouts = { openSetting(NormalNavKey.Settings.ControlManager) },
                             onAccounts = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE)); showTool = true },
                             onAbout = { openSetting(NormalNavKey.Settings.AboutInfo) },
                             modifier = Modifier.fillMaxSize()

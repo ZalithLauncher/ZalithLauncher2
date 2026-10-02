@@ -1,5 +1,7 @@
 package com.movtery.zalithlauncher.ui.screens.main
 
+import android.graphics.BitmapFactory
+import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -21,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -28,7 +31,7 @@ import java.io.File
 
 fun wallpaperFile(context: android.content.Context) = File(context.filesDir, "mirai-wallpaper.jpg")
 
-private val bundled = listOf("wall_dusk", "wall_blossom", "wall_lake")
+private val bundled = listOf("dusk", "blossom", "lake", "peaks", "islands", "portal")
 
 @Composable
 fun WallpaperPage(modifier: Modifier = Modifier) {
@@ -44,20 +47,31 @@ fun WallpaperPage(modifier: Modifier = Modifier) {
         Text("Wallpaper", color = Color.White, style = MaterialTheme.typography.headlineSmall)
         Button(onClick = { picker.launch("image/*") }, modifier = Modifier.fillMaxWidth()) { Text("Import from storage") }
         bundled.forEach { name ->
-            val id = context.resources.getIdentifier(name, "raw", context.packageName)
-            if (id != 0) {
+            val encoded = remember(name) {
+                runCatching { context.assets.open("wallpapers/$name.b64").bufferedReader().readText() }.getOrNull()
+            }
+            val image = remember(encoded) {
+                encoded?.let {
+                    val bytes = Base64.decode(it.replace("\n", ""), Base64.DEFAULT)
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+                }
+            }
+            if (image != null) {
                 Image(
-                    painter = androidx.compose.ui.res.painterResource(context.resources.getIdentifier(name, "drawable", context.packageName).let { if (it != 0) it else id }),
+                    bitmap = image,
                     contentDescription = name,
                     modifier = Modifier.fillMaxWidth().height(140.dp).clip(RoundedCornerShape(16.dp)).clickable {
-                        context.resources.openRawResource(id).use { wallpaperFile(context).writeBytes(it.readBytes()) }
+                        val bytes = Base64.decode(encoded!!.replace("\n", ""), Base64.DEFAULT)
+                        wallpaperFile(context).writeBytes(bytes)
                         revision++
                     },
                     contentScale = ContentScale.Crop
                 )
+            } else {
+                Text(name.replaceFirstChar { it.uppercase() }, color = Color.White, modifier = Modifier.clickable { revision++ })
             }
         }
-        Text(if (wallpaperFile(context).exists()) "Applied. Go home to see it." else "Pick one of the three, or import your own.", color = Color(0xFFD7CFC8))
+        Text(if (wallpaperFile(context).exists()) "Applied. Go home to see it." else "Pick one, or import your own.", color = Color(0xFFD7CFC8))
         if (revision < 0) Text("")
     }
 }

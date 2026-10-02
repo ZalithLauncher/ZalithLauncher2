@@ -37,18 +37,24 @@ fun MiraiSearchInstallPage(title: String, onInstall: () -> Unit, onBack: () -> U
     var query by remember { mutableStateOf("") }
     Page(title, onBack, modifier) {
         Field(query, { query = it }, "Search $title")
-        Text(if (query.isBlank()) "Search, open a project, then install it." else "Install results for $query", color = Muted)
+        Text(if (query.isBlank()) "Search, then install into the selected instance." else "Install results for $query", color = Muted)
         GreenButton("Install", onInstall)
     }
 }
 
 @Composable
 fun MiraiEditorPage(title: String, onEdit: () -> Unit, onBack: () -> Unit, modifier: Modifier = Modifier) {
+    var javaRuntime by remember { mutableStateOf(AllSettings.javaRuntime.getValue()) }
+    var controls by remember { mutableStateOf(AllSettings.controlLayout.getValue()) }
     Page(title, onBack, modifier) {
         Read("Renderer", AllSettings.renderer.getValue())
-        Read("Java", AllSettings.javaRuntime.getValue().ifBlank { "Default" })
-        Read("Controls", AllSettings.controlLayout.getValue().ifBlank { "Default" })
-        GreenButton("Edit $title", onEdit)
+        Field(javaRuntime, { javaRuntime = it }, "Java runtime")
+        Field(controls, { controls = it }, "Control layout")
+        GreenButton("Save") {
+            AllSettings.javaRuntime.save(javaRuntime)
+            AllSettings.controlLayout.save(controls)
+        }
+        GreenButton("More $title options", onEdit)
     }
 }
 

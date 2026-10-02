@@ -1,3 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="terracotta">Multiplayer</string>
+    <string name="terracotta_metadata_ver">Versi Terracota: %s</string>
+    <string name="terracotta_metadata_easytier_ver">Versi EasyTier: %s</string>
+    <string name="terracotta_easytier">Tentang EasyTier</string>
+    <string name="terracotta_terracotta">Terracota | Multiplayer</string>
+    <string name="terracotta_back">Keluar</string>
+    <string name="terracotta_enable">Aktifkan Multiplayer</string>
+    <string name="terracotta_difficulty_easiest">Jaringan sangat baik: hampir terhubung!</string>
+    <string name="terracotta_difficulty_simple">Jaringan bagus: koneksi mungkin membutuhkan waktu…</string>
+    <string name="terracotta_difficulty_medium">Jaringan sedang: mengaktifkan rute cadangan, tetapi koneksi mungkin gagal</string>
+    <string name="terracotta_difficulty_tough">Jaringan buruk: mengaktifkan rute cadangan, tetapi koneksi mungkin gagal</string>
+    <string name="terracotta_difficulty_estimate_only">Tingkat keberhasilan hanyalah perkiraan berdasarkan tipe NAT host dan klien, hanya sebagai referensi!</string>
+    <string name="terracotta_log">Lihat Log</string>
+    <string name="terracotta_log_exit">Tutup log dan kembali ke halaman fitur.</string>
+    <string name="terracotta_export_log">Anda dapat membagikan log di halaman Multiplayer launcher untuk memberikan informasi lebih lanjut dalam menganalisis error.</string>
+    <string name="terracotta_export_log_share">Bagikan Log dari Multiplayer Core</string>
+    <string name="terracotta_export_log_share_null">Log tidak ditemukan</string>
+    <string name="terracotta_status_uninitialized_desc">Anda berjanji secara hukum untuk mematuhi semua hukum dan peraturan di negara atau wilayah Anda selama proses Multiplayer.</string>
+    <string name="terracotta_confirm_title">Pemberitahuan Pengguna</string>
+    <string name="terracotta_confirm_software">Terracotta adalah perangkat lunak gratis dan open source dari pihak ketiga. Silakan sampaikan masalah yang Anda temui melalui saluran yang relevan selama penggunaan.</string>
+    <string name="terracotta_confirm_p2p">Terracotta menggunakan teknologi P2P. Setelah berhasil terhubung, pengguna di dalam room akan terhubung langsung satu sama lain, dan tidak ada server pihak ketiga yang meneruskan data Anda. Pengalaman Multiplayer pada akhirnya sangat bergantung pada kondisi jaringan para pengguna.</string>
+    <string name="terracotta_confirm_law">Sepanjang proses Multiplayer, Anda harus mematuhi semua hukum dan peraturan di negara atau wilayah Anda.</string>
+    <string name="terracotta_custom_note_list">Node Server EasyTier Kustom</string>
+    <string name="terracotta_custom_note_list_hint">Kosongkan untuk menggunakan node bawaan</string>
+    <string name="terracotta_menu">Menu Multiplayer</string>
+    <string name="terracotta_notification_title">Terracota | Multiplayer Sedang Berjalan</string>
+    <string name="terracotta_notification_desc">Identitas: %s, Status: %s</string>
+    <string name="terracotta_notification_state_preparing">Menyiapkan koneksi…</string>
+    <string name="terracotta_status_waiting_host_title">Saya ingin menjadi host sesi</string>
+    <string name="terracotta_status_waiting_host_desc">Buat room dan hasilkan kode undangan untuk bermain bersama teman</string>
+    <string name="terracotta_status_waiting_guest_title">Saya ingin bergabung ke sesi</string>
+    <string name="terracotta_status_waiting_guest_desc">Masukkan kode undangan dari host untuk bergabung ke dunia game</string>
+    <string name="terracotta_status_host_scanning">Memindai dunia LAN</string>
+    <string name="terracotta_status_host_scanning_desc">Buka dunia, tekan ESC, pilih Open to LAN, lalu pilih Start LAN World.</string>
+    <string name="terracotta_status_host_scanning_back">Ini juga akan menghentikan pemindaian dunia LAN.</string>
+    <string name="terracotta_status_exception_desc_ping_server_rst">Room ditutup: Anda keluar dari dunia game, room ditutup secara</string>
 </resources>

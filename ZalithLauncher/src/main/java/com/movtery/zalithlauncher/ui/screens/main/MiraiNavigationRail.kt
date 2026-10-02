@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
 
@@ -48,6 +49,7 @@ fun MiraiNavigationRail(
     modifier: Modifier = Modifier
 ) {
     val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
+    val currentAccount: Account? = account
 
     Surface(
         modifier = modifier.width(72.dp).fillMaxHeight(),
@@ -70,8 +72,9 @@ fun MiraiNavigationRail(
             RailIcon(R.drawable.ic_checkroom, "Skins", selectedSection == LauncherSection.SKINS) { onNavigate(LauncherSection.SKINS) }
             RailIcon(R.drawable.ic_group_filled, "Servers", selectedSection == LauncherSection.MULTIPLAYER) { onNavigate(LauncherSection.MULTIPLAYER) }
             Spacer(Modifier.weight(1f))
-            AccountMark(account != null, account?.username ?: "Account", onAccountClick) {
-                if (account != null) PlayerFace(account = account, avatarSize = 28.dp)
+            AccountMark(currentAccount != null, currentAccount?.username ?: "Account", onAccountClick) {
+                val faceAccount = currentAccount
+                if (faceAccount != null) PlayerFace(account = faceAccount, avatarSize = 28.dp)
             }
             RailIcon(R.drawable.ic_play_arrow_filled, "Play", false, emphasized = true, onClick = onPlay)
             RailIcon(R.drawable.ic_settings_filled, "Settings", selectedSection == LauncherSection.SETTINGS) { onNavigate(LauncherSection.SETTINGS) }

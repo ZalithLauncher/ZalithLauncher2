@@ -11,9 +11,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -45,6 +44,7 @@ import com.movtery.zalithlauncher.game.account.yggdrasil.uploadSkin
 import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsBytes
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -74,16 +74,17 @@ private fun skinPreviewUrl(name: String) = "https://minotar.net/body/$name/128.p
 fun McSkinScreen() {
     val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
     var query by remember { mutableStateOf("") }
-    var skins by remember { mutableStateOf(featuredSkins) }
+    var results by remember { mutableStateOf(featuredSkins) }
     var selected by remember { mutableStateOf<McSkin?>(null) }
+    var searching by remember { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
-    var message by remember { mutableStateOf("Pick a skin, then equip it on your offline or Microsoft account.") }
+    var message by remember { mutableStateOf("Search a username, pick a result, then download it.") }
     val scope = rememberCoroutineScope()
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("MCSkin", style = MaterialTheme.typography.headlineSmall)
         Text(
-            "Online Minecraft skins. Create an offline or Microsoft account first, then download and equip.",
+            "Search shows matching skins as options. Pick one, then equip it on your offline or Microsoft account.",
             style = MaterialTheme.typography.bodyMedium
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -94,13 +95,26 @@ fun McSkinScreen() {
                 singleLine = true,
                 label = { Text("Minecraft username") }
             )
-            Button(onClick = {
-                val name = query.trim()
-                if (name.isNotEmpty()) {
-                    skins = listOf(McSkin(name)) + featuredSkins.filter { it.name.equals(name, true).not() }
-                    selected = McSkin(name)
+            Button(
+                enabled = !searching,
+                onClick = {
+                    val name = query.trim()
+                    if (name.isEmpty()) return@Button
+                    scope.launch {
+                        searching = true
+                        message = "Searching $name..."
+                        val found = runCatching { lookupSkins(name) }.getOrElse { emptyList() }
+                        results = found
+                        selected = null
+                        message = if (found.isEmpty()) {
+                            "No skin found for $name. Try another username."
+                        } else {
+                            "Pick a result, then download it."
+                        }
+                        searching = false
+                    }
                 }
-            }) { Text("Search") }
+            ) { Text("Search") }
         }
         if (account == null || !(account!!.isLocalAccount() || account!!.isMicrosoftAccount())) {
             Text("No offline or Microsoft account selected. Add one in Accounts, then come back.")
@@ -108,15 +122,20 @@ fun McSkinScreen() {
             Text("Equipping to ${account!!.username}")
         }
         Text(message)
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(120.dp),
+        if (searching) {
+            CircularProgressIndicator(modifier = Modifier.size(28.dp))
+        }
+        LazyColumn(
             contentPadding = PaddingValues(bottom = 24.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.weight(1f)
         ) {
-            items(skins, key = { it.name }) { skin ->
-                SkinCard(skin = skin, selected = selected?.name == skin.name, onClick = { selected = skin })
+            items(results, key = { it.name }) { skin ->
+                SkinOption(
+                    skin = skin,
+                    selected = selected?.name == skin.name,
+                    onClick = { selected = skin }
+                )
             }
         }
         Button(
@@ -137,13 +156,13 @@ fun McSkinScreen() {
             }
         ) {
             if (busy) CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
-            else Text("Download and equip")
+            else Text(if (selected == null) "Choose a skin" else "Download ${selected!!.name}")
         }
     }
 }
 
 @Composable
-private fun SkinCard(skin: McSkin, selected: Boolean, onClick: () -> Unit) {
+private fun SkinOption(skin: McSkin, selected: Boolean, onClick: () -> Unit) {
     var bitmap by remember(skin.name) { mutableStateOf<android.graphics.Bitmap?>(null) }
     LaunchedEffect(skin.name) {
         bitmap = withContext(Dispatchers.IO) {
@@ -158,15 +177,41 @@ private fun SkinCard(skin: McSkin, selected: Boolean, onClick: () -> Unit) {
         shape = RoundedCornerShape(16.dp),
         color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
-        Column(modifier = Modifier.padding(8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Row(
+            modifier = Modifier.padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             if (bitmap != null) {
-                Image(bitmap!!.asImageBitmap(), contentDescription = skin.name, modifier = Modifier.size(96.dp).clip(RoundedCornerShape(8.dp)), contentScale = ContentScale.Fit)
+                Image(
+                    bitmap!!.asImageBitmap(),
+                    contentDescription = skin.name,
+                    modifier = Modifier.size(72.dp).clip(RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Fit
+                )
             } else {
-                CircularProgressIndicator(modifier = Modifier.size(32.dp))
+                CircularProgressIndicator(modifier = Modifier.size(28.dp))
             }
-            Text(skin.name, maxLines = 1)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(skin.name, style = MaterialTheme.typography.titleMedium, maxLines = 1)
+                Text(if (selected) "Selected" else "Tap to choose", style = MaterialTheme.typography.bodySmall)
+            }
         }
     }
+}
+
+private suspend fun lookupSkins(query: String): List<McSkin> = withContext(Dispatchers.IO) {
+    val name = query.trim()
+    val exact = runCatching {
+        val response = GLOBAL_CLIENT.get("https://api.mojang.com/users/profiles/minecraft/$name")
+        if (response.status.isSuccess()) {
+            val body = response.bodyAsBytes().decodeToString()
+            val official = Regex("\"name\"\\s*:\\s*\"([^\"]+)\"").find(body)?.groupValues?.get(1)
+            official?.let { McSkin(it) }
+        } else null
+    }.getOrNull()
+    val featured = featuredSkins.filter { it.name.contains(name, ignoreCase = true) && it.name != exact?.name }
+    listOfNotNull(exact) + featured
 }
 
 private suspend fun equipSkin(account: Account, skin: McSkin) = withContext(Dispatchers.IO) {

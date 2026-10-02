@@ -20,6 +20,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 
 private val PageBg = Color(0xFF0E0E10)
@@ -47,7 +49,7 @@ private val Green = Color(0xFF1BD96A)
 data class SectionAction(val title: String, val subtitle: String, val onClick: () -> Unit)
 
 @Composable
-fun MiraiDiscoverPage(onMods: () -> Unit, onModpacks: () -> Unit, onResourcePacks: () -> Unit, onShaders: () -> Unit, onWorlds: () -> Unit, onVersions: () -> Unit, modifier: Modifier = Modifier) {
+fun MiraiDiscoverPage(onMods: () -> Unit, onModpacks: () -> Unit, onResourcePacks: () -> Unit, onShaders: () -> Unit, onWorlds: () -> Unit, onVersions: () -> Unit, onFavorites: () -> Unit, onSearchId: () -> Unit, modifier: Modifier = Modifier) {
     var query by remember { mutableStateOf("") }
     val actions = listOf(
         SectionAction("Mods", "Search and install mods", onMods),
@@ -55,20 +57,14 @@ fun MiraiDiscoverPage(onMods: () -> Unit, onModpacks: () -> Unit, onResourcePack
         SectionAction("Resource packs", "Textures and sounds", onResourcePacks),
         SectionAction("Shaders", "Shader packs", onShaders),
         SectionAction("Worlds", "Save downloads", onWorlds),
-        SectionAction("Game versions", "Create an instance", onVersions)
+        SectionAction("Game versions", "Create an instance", onVersions),
+        SectionAction("Favorites", "Saved projects", onFavorites),
+        SectionAction("Search by ID", "Open a project id", onSearchId)
     ).filter { query.isBlank() || it.title.contains(query, true) || it.subtitle.contains(query, true) }
     Column(modifier = modifier.fillMaxSize().background(PageBg).padding(20.dp)) {
         Text("Discover", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
         Spacer(Modifier.height(12.dp))
-        BasicTextField(
-            value = query,
-            onValueChange = { query = it },
-            singleLine = true,
-            textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White),
-            cursorBrush = SolidColor(Green),
-            modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(CardBg).padding(14.dp),
-            decorationBox = { inner -> if (query.isEmpty()) Text("Search mods, packs, shaders", color = Muted); inner() }
-        )
+        BasicTextField(value = query, onValueChange = { query = it }, singleLine = true, textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White), cursorBrush = SolidColor(Green), modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(CardBg).padding(14.dp), decorationBox = { inner -> if (query.isEmpty()) Text("Search mods, packs, shaders", color = Muted); inner() })
         Spacer(Modifier.height(16.dp))
         if (actions.isEmpty()) Text("No matching category.", color = Muted) else LazyVerticalGrid(columns = GridCells.Adaptive(220.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             items(actions) { action ->
@@ -109,23 +105,45 @@ fun MiraiLibraryPage(onOpenInstance: (Version) -> Unit, onFiles: () -> Unit, mod
 
 @Composable
 fun MiraiServersPage(onMultiplayer: () -> Unit, modifier: Modifier = Modifier) {
+    val enabled = AllSettings.enableTerracotta.state
     Column(modifier = modifier.fillMaxSize().background(PageBg).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Servers", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
         Text("Join a server or host one from this launcher.", color = Muted)
+        Row(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(CardBg).padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text("Multiplayer", color = Color.White, fontWeight = FontWeight.SemiBold)
+                Text(if (enabled) "Terracotta is on" else "Terracotta is off", color = Muted, style = MaterialTheme.typography.bodySmall)
+            }
+            Switch(checked = enabled, onCheckedChange = { AllSettings.enableTerracotta.save(it) })
+        }
         Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(CardBg).clickable(onClick = onMultiplayer).padding(16.dp)) {
             Text("Join", color = Color.White, fontWeight = FontWeight.SemiBold)
-            Text("Open the server list and Terracotta.", color = Muted, style = MaterialTheme.typography.bodySmall)
+            Text("Open the server list and invite flow.", color = Muted, style = MaterialTheme.typography.bodySmall)
         }
         Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(CardBg).clickable(onClick = onMultiplayer).padding(16.dp)) {
             Text("Host", color = Color.White, fontWeight = FontWeight.SemiBold)
-            Text("Share a world from the multiplayer screen.", color = Muted, style = MaterialTheme.typography.bodySmall)
+            Text("Share a world and copy an invite.", color = Muted, style = MaterialTheme.typography.bodySmall)
+        }
+        Column(modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp)).background(CardBg).clickable(onClick = onMultiplayer).padding(16.dp)) {
+            Text("Nodes and logs", color = Color.White, fontWeight = FontWeight.SemiBold)
+            Text("Custom nodes and Terracotta logs.", color = Muted, style = MaterialTheme.typography.bodySmall)
         }
     }
 }
 
 @Composable
-fun MiraiSettingsPage(onRenderer: () -> Unit, onGame: () -> Unit, onControls: () -> Unit, onGamepad: () -> Unit, onLauncher: () -> Unit, onJava: () -> Unit, onAccounts: () -> Unit, onAbout: () -> Unit, modifier: Modifier = Modifier) {
-    SectionPage("Settings", "Launcher, game, controls, and accounts.", listOf(SectionAction("Renderer", "Resolution, renderer, and RAM", onRenderer), SectionAction("Game", "Game options", onGame), SectionAction("Controls", "Touch controls", onControls), SectionAction("Gamepad", "Controller options", onGamepad), SectionAction("Launcher", "Launcher behavior", onLauncher), SectionAction("Java", "Java runtime", onJava), SectionAction("Accounts", "Offline and Microsoft accounts", onAccounts), SectionAction("About", "Version and licenses", onAbout)), modifier)
+fun MiraiSettingsPage(onRenderer: () -> Unit, onGame: () -> Unit, onControls: () -> Unit, onGamepad: () -> Unit, onLauncher: () -> Unit, onJava: () -> Unit, onControlLayouts: () -> Unit, onAccounts: () -> Unit, onAbout: () -> Unit, modifier: Modifier = Modifier) {
+    SectionPage("Settings", "Launcher, game, controls, and accounts.", listOf(
+        SectionAction("Renderer", "Resolution, renderer, and RAM", onRenderer),
+        SectionAction("Game", "Game options", onGame),
+        SectionAction("Controls", "Touch controls", onControls),
+        SectionAction("Control layouts", "Manage control layouts", onControlLayouts),
+        SectionAction("Gamepad", "Controller options", onGamepad),
+        SectionAction("Launcher", "Launcher behavior", onLauncher),
+        SectionAction("Java", "Java runtime", onJava),
+        SectionAction("Accounts", "Offline and Microsoft accounts", onAccounts),
+        SectionAction("About", "Version and licenses", onAbout)
+    ), modifier)
 }
 
 @Composable

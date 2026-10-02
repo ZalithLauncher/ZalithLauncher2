@@ -73,8 +73,12 @@ import com.movtery.zalithlauncher.ui.screens.content.VersionsManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.WebViewScreen
 import com.movtery.zalithlauncher.ui.screens.content.assetinfo.AssetInfoScreen
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiDiscoverPage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiDiscoverResults
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiInstanceDetail
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiLibraryPage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiServerDetail
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiServersPage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiSettingsDetail
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiSettingsPage
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.onBack
@@ -106,18 +110,24 @@ fun MainScreen(
     var section by remember { mutableStateOf(LauncherSection.HOME) }
     var showTool by remember { mutableStateOf(false) }
     var discoverTarget by remember { mutableStateOf<TitledNavKey?>(null) }
+    var discoverEditor by remember { mutableStateOf(false) }
     var openedVersion by remember { mutableStateOf<Version?>(null) }
+    var instanceEditor by remember { mutableStateOf(false) }
     var serversOpen by remember { mutableStateOf(false) }
+    var serverEditor by remember { mutableStateOf(false) }
     var settingsTarget by remember { mutableStateOf<NormalNavKey.Settings?>(null) }
+    var settingsEditor by remember { mutableStateOf(false) }
     fun openDownload(target: TitledNavKey) {
         screenBackStackModel.downloadScreen.clearWith(target)
         screenBackStackModel.mainScreen.currentKey = screenBackStackModel.downloadScreen
         discoverTarget = target
+        discoverEditor = false
     }
     fun openSetting(target: NormalNavKey.Settings) {
         screenBackStackModel.settingsScreen.clearWith(target)
         screenBackStackModel.mainScreen.currentKey = screenBackStackModel.settingsScreen
         settingsTarget = target
+        settingsEditor = false
     }
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0E0E10), contentColor = Color.White) {
         Row(modifier = Modifier.fillMaxSize()) {
@@ -128,9 +138,13 @@ fun MainScreen(
                     section = it
                     showTool = false
                     discoverTarget = null
+                    discoverEditor = false
                     openedVersion = null
+                    instanceEditor = false
                     serversOpen = false
+                    serverEditor = false
                     settingsTarget = null
+                    settingsEditor = false
                     if (it == LauncherSection.HOME) toMainScreen()
                     if (it == LauncherSection.SKINS) screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary)
                 },
@@ -143,8 +157,8 @@ fun MainScreen(
             Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
                 Crossfade(targetState = section to showTool, animationSpec = tween(durationMillis = 180), label = "mirai-page") { (page, tool) ->
                     when {
-                        page == LauncherSection.DISCOVER && !tool -> if (discoverTarget == null) {
-                            MiraiDiscoverPage(
+                        page == LauncherSection.DISCOVER && !tool -> when {
+                            discoverTarget == null -> MiraiDiscoverPage(
                                 onMods = { openDownload(screenBackStackModel.downloadModScreen) },
                                 onModpacks = { openDownload(screenBackStackModel.downloadModPackScreen) },
                                 onResourcePacks = { openDownload(screenBackStackModel.downloadResourcePackScreen) },
@@ -155,48 +169,36 @@ fun MainScreen(
                                 onSearchId = { openDownload(NormalNavKey.SearchId) },
                                 modifier = Modifier.fillMaxSize()
                             )
-                        } else {
-                            EmbeddedTool(title = "Discover", onBack = { discoverTarget = null }) {
+                            !discoverEditor -> MiraiDiscoverResults("Discover", onOpenSearch = { discoverEditor = true }, onBack = { discoverTarget = null }, modifier = Modifier.fillMaxSize())
+                            else -> EmbeddedTool("Discover", { discoverEditor = false }) {
                                 DownloadScreen(key = screenBackStackModel.downloadScreen, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
                             }
                         }
                         page == LauncherSection.LIBRARY && !tool -> {
                             val version = openedVersion
-                            if (version == null) {
-                                MiraiLibraryPage(
+                            when {
+                                version == null -> MiraiLibraryPage(
                                     onOpenInstance = { opened ->
-                                        val key = NestedNavKey.VersionSettings(opened)
-                                        screenBackStackModel.mainScreen.currentKey = key
+                                        screenBackStackModel.mainScreen.currentKey = NestedNavKey.VersionSettings(opened)
                                         openedVersion = opened
+                                        instanceEditor = false
                                     },
                                     onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) },
                                     modifier = Modifier.fillMaxSize()
                                 )
-                            } else {
-                                EmbeddedTool(title = version.getVersionName(), onBack = { openedVersion = null }) {
-                                    VersionSettingsScreen(
-                                        key = NestedNavKey.VersionSettings(version),
-                                        backScreenViewModel = screenBackStackModel,
-                                        backToMainScreen = { openedVersion = null },
-                                        onExportModpack = { screenBackStackModel.mainScreen.navigateTo(screenKey = NestedNavKey.VersionExport(version), useClassEquality = true); showTool = true },
-                                        eventViewModel = eventViewModel,
-                                        submitError = submitError
-                                    )
+                                !instanceEditor -> MiraiInstanceDetail(version, onOpenContent = { instanceEditor = true }, onBack = { openedVersion = null }, modifier = Modifier.fillMaxSize())
+                                else -> EmbeddedTool(version.getVersionName(), { instanceEditor = false }) {
+                                    VersionSettingsScreen(key = NestedNavKey.VersionSettings(version), backScreenViewModel = screenBackStackModel, backToMainScreen = { openedVersion = null; instanceEditor = false }, onExportModpack = { screenBackStackModel.mainScreen.navigateTo(screenKey = NestedNavKey.VersionExport(version), useClassEquality = true); showTool = true }, eventViewModel = eventViewModel, submitError = submitError)
                                 }
                             }
                         }
-                        page == LauncherSection.MULTIPLAYER && !tool -> if (!serversOpen) {
-                            MiraiServersPage(onMultiplayer = {
-                                screenBackStackModel.mainScreen.currentKey = NormalNavKey.Multiplayer
-                                serversOpen = true
-                            }, modifier = Modifier.fillMaxSize())
-                        } else {
-                            EmbeddedTool(title = "Servers", onBack = { serversOpen = false }) {
-                                MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel)
-                            }
+                        page == LauncherSection.MULTIPLAYER && !tool -> when {
+                            !serversOpen -> MiraiServersPage(onMultiplayer = { screenBackStackModel.mainScreen.currentKey = NormalNavKey.Multiplayer; serversOpen = true; serverEditor = false }, modifier = Modifier.fillMaxSize())
+                            !serverEditor -> MiraiServerDetail(onOpen = { serverEditor = true }, onBack = { serversOpen = false }, modifier = Modifier.fillMaxSize())
+                            else -> EmbeddedTool("Servers", { serverEditor = false }) { MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel) }
                         }
-                        page == LauncherSection.SETTINGS && !tool -> if (settingsTarget == null) {
-                            MiraiSettingsPage(
+                        page == LauncherSection.SETTINGS && !tool -> when {
+                            settingsTarget == null -> MiraiSettingsPage(
                                 onRenderer = { openSetting(NormalNavKey.Settings.Renderer) },
                                 onGame = { openSetting(NormalNavKey.Settings.Game) },
                                 onControls = { openSetting(NormalNavKey.Settings.Control) },
@@ -208,8 +210,8 @@ fun MainScreen(
                                 onAbout = { openSetting(NormalNavKey.Settings.AboutInfo) },
                                 modifier = Modifier.fillMaxSize()
                             )
-                        } else {
-                            EmbeddedTool(title = "Settings", onBack = { settingsTarget = null }) {
+                            !settingsEditor -> MiraiSettingsDetail("Settings", onOpenEditor = { settingsEditor = true }, onBack = { settingsTarget = null }, modifier = Modifier.fillMaxSize())
+                            else -> EmbeddedTool("Settings", { settingsEditor = false }) {
                                 SettingsScreen(key = screenBackStackModel.settingsScreen, backStackViewModel = screenBackStackModel, openLicenseScreen = { raw -> screenBackStackModel.mainScreen.navigateTo(NormalNavKey.License(raw)); showTool = true }, eventViewModel = eventViewModel, submitError = submitError)
                             }
                         }

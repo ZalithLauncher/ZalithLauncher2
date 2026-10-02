@@ -1,76 +1,53 @@
 package com.movtery.zalithlauncher.ui.screens.main
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
-import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.version.installed.Version
-import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
-import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
-import com.movtery.zalithlauncher.ui.components.TextRailItem
-import com.movtery.zalithlauncher.ui.guide.sendStartGuide
-import com.movtery.zalithlauncher.ui.guide.sendStartGuideOnce
-import com.movtery.zalithlauncher.ui.screens.BackStackNavKey
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -88,21 +65,17 @@ import com.movtery.zalithlauncher.ui.screens.content.VersionSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionsManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.WebViewScreen
 import com.movtery.zalithlauncher.ui.screens.content.assetinfo.AssetInfoScreen
-import com.movtery.zalithlauncher.ui.screens.content.navigateToDownload
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
 import com.movtery.zalithlauncher.ui.theme.backgroundColor
 import com.movtery.zalithlauncher.ui.theme.cardColor
-import com.movtery.zalithlauncher.ui.theme.festivals.FestivalTitleText
 import com.movtery.zalithlauncher.ui.theme.onBackgroundColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
-import com.movtery.zalithlauncher.utils.festival.LocalFestivals
 import com.movtery.zalithlauncher.utils.file.formatFileSize
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
-import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.ModpackImportViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 import com.movtery.zalithlauncher.viewmodel.sendKeepScreen
@@ -115,83 +88,37 @@ fun MainScreen(
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
     val tasks by TaskSystem.tasksFlow.collectAsStateWithLifecycle()
-    LaunchedEffect(tasks) {
-        eventViewModel.sendKeepScreen(tasks.isNotEmpty())
-    }
+    LaunchedEffect(tasks) { eventViewModel.sendKeepScreen(tasks.isNotEmpty()) }
     val isTaskMenuExpanded = AllSettings.launcherTaskMenuExpanded.state
-    fun changeTasksExpandedState() {
-        AllSettings.launcherTaskMenuExpanded.save(!isTaskMenuExpanded)
-    }
-    val toMainScreen: () -> Unit = {
-        screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain)
-    }
+    fun changeTasksExpandedState() { AllSettings.launcherTaskMenuExpanded.save(!isTaskMenuExpanded) }
+    val toMainScreen: () -> Unit = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain) }
     val mainScreenKey = screenBackStackModel.mainScreen.currentKey
-    val inLauncherScreen = mainScreenKey == null || mainScreenKey is NormalNavKey.LauncherMain
-    val isBackgroundValid = LocalBackgroundViewModel.current?.isValid == true
-    val launcherBackgroundOpacity = AllSettings.launcherBackgroundOpacity.state.toFloat() / 100f
-    val backgroundColor = if (isBackgroundValid) backgroundColor().copy(alpha = launcherBackgroundOpacity) else backgroundColor()
-    Surface(modifier = Modifier.fillMaxSize(), color = backgroundColor, contentColor = onBackgroundColor()) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            TopBar(
-                modifier = Modifier.fillMaxWidth().height(48.dp),
-                mainScreenKey = mainScreenKey,
-                inLauncherScreen = inLauncherScreen,
-                taskRunning = tasks.isEmpty(),
-                isTasksExpanded = isTaskMenuExpanded,
-                contentColor = onBackgroundColor(),
-                onScreenBack = { screenBackStackModel.mainScreen.backStack.removeLastOrNull() },
-                toMainScreen = toMainScreen,
-                toSettingsScreen = { screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen) },
-                toDownloadScreen = {
+    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0E0E10), contentColor = Color.White) {
+        Row(modifier = Modifier.fillMaxSize()) {
+            MiraiNavigationRail(
+                modifier = Modifier.fillMaxHeight(),
+                selectedSection = mainScreenKey.toLauncherSection(),
+                onNavigate = { section ->
+                    when (section) {
+                        LauncherSection.HOME -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain)
+                        LauncherSection.DISCOVER -> {
+                            screenBackStackModel.downloadScreen.clearWith(screenBackStackModel.downloadModScreen)
+                            screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
+                        }
+                        LauncherSection.LIBRARY -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager)
+                        LauncherSection.MULTIPLAYER -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer)
+                        LauncherSection.SETTINGS -> screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
+                        LauncherSection.SKINS -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary)
+                    }
+                },
+                onCreateInstance = {
                     screenBackStackModel.downloadScreen.clearWith(screenBackStackModel.downloadGameScreen)
                     screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
                 },
-                toMultiplayerScreen = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer) },
-                openFileManager = {
-                    eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath))
-                },
-                changeExpandedState = { changeTasksExpandedState() },
+                onAccountClick = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE)) }
             )
-            Row(modifier = Modifier.fillMaxWidth().weight(1f)) {
-                MiraiNavigationRail(
-                    modifier = Modifier.fillMaxHeight(),
-                    selectedSection = mainScreenKey.toLauncherSection(),
-                    onNavigate = { section ->
-                        when (section) {
-                            LauncherSection.HOME -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain)
-                            LauncherSection.DISCOVER -> {
-                                screenBackStackModel.downloadScreen.clearWith(screenBackStackModel.downloadModScreen)
-                                screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
-                            }
-                            LauncherSection.LIBRARY -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager)
-                            LauncherSection.MULTIPLAYER -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer)
-                            LauncherSection.SETTINGS -> screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
-                            LauncherSection.SKINS -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary)
-                        }
-                    },
-                    onCreateInstance = {
-                        screenBackStackModel.downloadScreen.clearWith(screenBackStackModel.downloadGameScreen)
-                        screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
-                    },
-                    onAccountClick = {
-                        screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE))
-                    }
-                )
-                Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
-                    NavigationUI(
-                        modifier = Modifier.fillMaxSize(),
-                        screenBackStackModel = screenBackStackModel,
-                        toMainScreen = toMainScreen,
-                        eventViewModel = eventViewModel,
-                        modpackImportViewModel = modpackImportViewModel,
-                        submitError = submitError
-                    )
-                    TaskMenu(
-                        tasks = tasks,
-                        isExpanded = isTaskMenuExpanded,
-                        modifier = Modifier.fillMaxHeight().fillMaxWidth(0.3f).align(Alignment.CenterStart).padding(all = 6.dp)
-                    ) { changeTasksExpandedState() }
-                }
+            Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
+                NavigationUI(modifier = Modifier.fillMaxSize(), screenBackStackModel = screenBackStackModel, toMainScreen = toMainScreen, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
             }
         }
     }
@@ -208,93 +135,6 @@ private fun TitledNavKey?.toLauncherSection(): LauncherSection? = when (this) {
 }
 
 @Composable
-private fun <E: TitledNavKey> TopBar(
-    mainScreenKey: E?,
-    inLauncherScreen: Boolean,
-    taskRunning: Boolean,
-    isTasksExpanded: Boolean,
-    modifier: Modifier = Modifier,
-    contentColor: Color,
-    onScreenBack: () -> Unit,
-    toMainScreen: () -> Unit,
-    toSettingsScreen: () -> Unit,
-    toDownloadScreen: () -> Unit,
-    toMultiplayerScreen: () -> Unit,
-    openFileManager: () -> Unit,
-    changeExpandedState: () -> Unit,
-) {
-    val festivals = LocalFestivals.current
-    val inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer
-    val inDownloadScreen = mainScreenKey is NestedNavKey.Download
-    val inSettingsScreen = mainScreenKey is NestedNavKey.Settings
-    CompositionLocalProvider(LocalContentColor provides contentColor) {
-        BoxWithConstraints(modifier = modifier) {
-            val compactTopBar = maxWidth < 680.dp
-            ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-                val (backCenter, title, endButtons) = createRefs()
-                Row(modifier = Modifier.constrainAs(backCenter) { start.linkTo(parent.start); top.linkTo(parent.top); bottom.linkTo(parent.bottom) }.fillMaxHeight()) {
-                    AnimatedVisibility(visible = !inLauncherScreen) {
-                        Row(modifier = Modifier.fillMaxHeight()) {
-                            Spacer(Modifier.width(12.dp))
-                            IconButton(modifier = Modifier.fillMaxHeight(), onClick = { if (!inLauncherScreen) toMainScreen() }) {
-                                Icon(modifier = Modifier.size(24.dp), painter = painterResource(R.drawable.ic_arrow_back), contentDescription = stringResource(R.string.generic_back))
-                            }
-                            IconButton(modifier = Modifier.fillMaxHeight(), onClick = { if (!inLauncherScreen) toMainScreen() }) {
-                                Icon(painter = painterResource(R.drawable.ic_home_filled), contentDescription = stringResource(R.string.generic_main_menu))
-                            }
-                        }
-                    }
-                }
-                val parentRes = mainScreenKey?.title
-                val childRes = (mainScreenKey as? BackStackNavKey<*>)?.currentKey?.title
-                Crossfade(modifier = Modifier.constrainAs(title) { centerVerticallyTo(parent); start.linkTo(backCenter.end, margin = 16.dp) }, targetState = parentRes to childRes) { (parent, child) ->
-                    val style = MaterialTheme.typography.titleMedium
-                    if (inLauncherScreen) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Icon(painter = painterResource(R.drawable.ic_mirai_mark), contentDescription = null, tint = Color.Unspecified, modifier = Modifier.size(25.dp))
-                            Column(modifier = Modifier.widthIn(max = 170.dp)) {
-                                Text(text = stringResource(R.string.launcher_brand_name), style = style, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                                Text(text = stringResource(R.string.app_unofficial_modified), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                            }
-                            if (!compactTopBar) {
-                                Text("/", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                if (festivals.isEmpty()) Text(text = stringResource(R.string.generic_main_menu), style = style, maxLines = 1)
-                                else FestivalTitleText(festivals = festivals, style = style, maxLines = 1)
-                            }
-                        }
-                    } else if (parent == null) {
-                        if (festivals.isEmpty()) Text(text = BuildKeys.LAUNCHER_IDENTIFIER, style = style, maxLines = 1)
-                        else FestivalTitleText(festivals = festivals, style = style, maxLines = 1)
-                    } else {
-                        val titleText = if (child != null) androidText(parent, androidText(" - "), child) else parent
-                        AndroidStringText(text = titleText, style = style, softWrap = false, maxLines = 1)
-                    }
-                }
-                Row(modifier = Modifier.constrainAs(endButtons) { top.linkTo(parent.top); bottom.linkTo(parent.bottom); end.linkTo(parent.end, margin = 12.dp) }, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    AnimatedVisibility(visible = !(isTasksExpanded || taskRunning), enter = slideInVertically(initialOffsetY = { -50 }) + fadeIn(), exit = slideOutVertically(targetOffsetY = { -50 }) + fadeOut()) {
-                        Row(modifier = Modifier.clip(shape = MaterialTheme.shapes.large).clickable { changeExpandedState() }.padding(all = 8.dp).width(120.dp), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            LinearProgressIndicator(modifier = Modifier.weight(1f))
-                            Icon(modifier = Modifier.size(22.dp), painter = painterResource(R.drawable.ic_assignment_filled), contentDescription = stringResource(R.string.main_task_menu))
-                        }
-                    }
-                    IconButton(onClick = openFileManager) { Icon(painter = painterResource(R.drawable.ic_folder_filled), contentDescription = stringResource(R.string.main_file_manager)) }
-                    if (!compactTopBar) {
-                        TopBarRailItem(selected = inMultiplayerScreen, painter = painterResource(R.drawable.ic_group_filled), text = stringResource(R.string.terracotta), onClick = { if (!inMultiplayerScreen) toMultiplayerScreen() })
-                        TopBarRailItem(selected = inDownloadScreen, painter = painterResource(R.drawable.ic_download_2_filled), text = stringResource(R.string.generic_download), onClick = { if (!inDownloadScreen) toDownloadScreen() })
-                        TopBarRailItem(selected = inSettingsScreen, painter = painterResource(R.drawable.ic_settings_filled), text = stringResource(R.string.generic_setting), onClick = { if (!inSettingsScreen) toSettingsScreen() })
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TopBarRailItem(selected: Boolean, painter: Painter, text: String, modifier: Modifier = Modifier, onClick: () -> Unit = {}, textStyle: TextStyle = MaterialTheme.typography.labelMedium) {
-    TextRailItem(modifier = modifier, onClick = onClick, text = { AnimatedVisibility(visible = selected) { Row { Spacer(modifier = Modifier.width(6.dp)); Text(text = text, style = textStyle) } } }, icon = { Icon(painter = painter, contentDescription = text) }, selected = selected, selectedPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp), unSelectedPadding = PaddingValues(all = 8.dp))
-}
-
-@Composable
 private fun NavigationUI(modifier: Modifier = Modifier, screenBackStackModel: ScreenBackStackViewModel, toMainScreen: () -> Unit, eventViewModel: EventViewModel, modpackImportViewModel: ModpackImportViewModel, submitError: (ErrorViewModel.ThrowableMessage) -> Unit) {
     val backStack = screenBackStackModel.mainScreen.backStack
     val currentKey = backStack.lastOrNull()
@@ -303,9 +143,7 @@ private fun NavigationUI(modifier: Modifier = Modifier, screenBackStackModel: Sc
         val navigateToVersions: (Version) -> Unit = { version -> screenBackStackModel.mainScreen.navigateTo(screenKey = NestedNavKey.VersionSettings(version), useClassEquality = true) }
         val navigateToExport: (Version) -> Unit = { version -> screenBackStackModel.mainScreen.removeAndNavigateTo(remove = NestedNavKey.VersionSettings::class, screenKey = NestedNavKey.VersionExport(version), useClassEquality = true) }
         NavDisplay(backStack = backStack, modifier = modifier, onBack = { onBack(backStack) }, transitionSpec = rememberTransitionSpec(), popTransitionSpec = rememberTransitionSpec(), entryProvider = entryProvider {
-            entry<NormalNavKey.LauncherMain> {
-                LauncherScreen(backStackViewModel = screenBackStackModel, navigateToVersions = navigateToVersions, onLaunchGame = { version -> eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(version)) }, onOpenLink = { eventViewModel.sendEvent(EventViewModel.Event.OpenLink(it)) }, startGuideOnce = { keys -> eventViewModel.sendStartGuideOnce(keys) })
-            }
+            entry<NormalNavKey.LauncherMain> { LauncherScreen(backStackViewModel = screenBackStackModel, navigateToVersions = navigateToVersions, onLaunchGame = { version -> eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(version)) }, onOpenLink = { eventViewModel.sendEvent(EventViewModel.Event.OpenLink(it)) }, startGuideOnce = { keys -> eventViewModel.sendStartGuideOnce(keys) }) }
             entry<NestedNavKey.Settings> { key -> SettingsScreen(key = key, backStackViewModel = screenBackStackModel, openLicenseScreen = { raw -> backStack.navigateTo(NormalNavKey.License(raw)) }, eventViewModel = eventViewModel, submitError = submitError) }
             entry<NormalNavKey.License> { key -> LicenseScreen(key = key, backStackViewModel = screenBackStackModel) }
             entry<NormalNavKey.McSkinLibrary> { com.movtery.zalithlauncher.ui.screens.content.McSkinScreen() }
@@ -320,9 +158,7 @@ private fun NavigationUI(modifier: Modifier = Modifier, screenBackStackModel: Sc
             entry<NormalNavKey.Multiplayer> { MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel) }
             entry<NormalNavKey.LogView> { key -> LogViewScreen(key = key, backStackViewModel = screenBackStackModel) }
         })
-    } else {
-        Box(modifier)
-    }
+    } else Box(modifier)
 }
 
 @Composable
@@ -334,9 +170,7 @@ private fun TaskMenu(tasks: List<Task>, isExpanded: Boolean, modifier: Modifier 
             Column {
                 CardTitleLayout(blur = 0) {
                     Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 8.dp, bottom = 4.dp)) {
-                        IconButton(modifier = Modifier.size(28.dp).align(Alignment.CenterStart), onClick = changeExpandedState) {
-                            Icon(modifier = Modifier.size(28.dp), painter = painterResource(R.drawable.ic_arrow_left_rounded), contentDescription = stringResource(R.string.generic_collapse))
-                        }
+                        IconButton(modifier = Modifier.size(28.dp).align(Alignment.CenterStart), onClick = changeExpandedState) { Icon(modifier = Modifier.size(28.dp), painter = painterResource(R.drawable.ic_arrow_left_rounded), contentDescription = stringResource(R.string.generic_collapse)) }
                         Text(modifier = Modifier.align(Alignment.Center), text = stringResource(R.string.main_task_menu))
                     }
                 }
@@ -345,7 +179,7 @@ private fun TaskMenu(tasks: List<Task>, isExpanded: Boolean, modifier: Modifier 
                         val taskProgress by task.progress.collectAsStateWithLifecycle()
                         val taskMessage by task.message.collectAsStateWithLifecycle()
                         val rateBytesPerSec by task.rateBytesPerSec.collectAsStateWithLifecycle()
-                        TaskItem(taskProgress = taskProgress, taskMessage = taskMessage, rateBytesPerSec = rateBytesPerSec, modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp)) { TaskSystem.cancelTask(task.id) }
+                        TaskItem(taskProgress, taskMessage, rateBytesPerSec, Modifier.fillMaxWidth().padding(vertical = 6.dp)) { TaskSystem.cancelTask(task.id) }
                     }
                 }
             }
@@ -357,18 +191,13 @@ private fun TaskMenu(tasks: List<Task>, isExpanded: Boolean, modifier: Modifier 
 private fun TaskItem(taskProgress: Float, taskMessage: AndroidStringText?, rateBytesPerSec: Long?, modifier: Modifier = Modifier, shape: Shape = MaterialTheme.shapes.large, color: Color = cardColor(false), contentColor: Color = onCardColor(), onCancelClick: () -> Unit = {}) {
     Surface(modifier = modifier, shape = shape, color = color, contentColor = contentColor) {
         Row(modifier = Modifier.padding(all = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            IconButton(modifier = Modifier.size(24.dp).align(Alignment.CenterVertically), onClick = onCancelClick) {
-                Icon(modifier = Modifier.size(20.dp), painter = painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.generic_cancel))
-            }
+            IconButton(modifier = Modifier.size(24.dp).align(Alignment.CenterVertically), onClick = onCancelClick) { Icon(modifier = Modifier.size(20.dp), painter = painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.generic_cancel)) }
             Column(modifier = Modifier.weight(1f).align(Alignment.CenterVertically)) {
-                taskMessage?.let { message -> AndroidStringText(text = message, style = MaterialTheme.typography.labelMedium) }
+                taskMessage?.let { AndroidStringText(text = it, style = MaterialTheme.typography.labelMedium) }
                 if (taskProgress < 0) LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) else LinearProgressIndicator(progress = { taskProgress }, modifier = Modifier.fillMaxWidth())
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    taskProgress.takeIf { it >= 0f }?.let { progress -> Text(text = "${(progress * 100).toInt()}%", style = MaterialTheme.typography.labelMedium) }
-                    rateBytesPerSec?.let { bytes ->
-                        val text = remember(bytes) { "${formatFileSize(bytes)}/s" }
-                        Text(text = text, style = MaterialTheme.typography.labelMedium)
-                    }
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (taskProgress >= 0f) Text("${(taskProgress * 100).toInt()}%", style = MaterialTheme.typography.labelMedium)
+                    rateBytesPerSec?.let { bytes -> Text(remember(bytes) { "${formatFileSize(bytes)}/s" }, style = MaterialTheme.typography.labelMedium) }
                 }
             }
         }

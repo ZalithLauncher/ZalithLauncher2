@@ -1,215 +1,184 @@
-🚀 Mirai Launcher
+<div align="center">
 
-The ultimate Android Minecraft launcher — crafted with obsession, powered by passion.
+# ✨ 🚀 MIRAI LAUNCHER
+### The Best Minecraft: Java Edition Launcher for Android
 
-https://img.shields.io/badge/Platform-Android%208%2B-green?style=for-the-badge&logo=android
-https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-red?style=for-the-badge
-https://img.shields.io/badge/100%25-Human%20Made-blueviolet?style=for-the-badge
-https://img.shields.io/badge/Built%20by-One%20Developer-orange?style=for-the-badge
-https://img.shields.io/badge/License-MIT-blue?style=for-the-badge
-https://img.shields.io/github/stars/entitybrian/MiraiLauncher?style=for-the-badge&color=yellow
+**Hand-built. Privately kept. Tested on real phones. Maintained by one developer.**
 
----
+[![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/entitybrian69-bit/Mirai-launcher/releases)
+[![Human Made](https://img.shields.io/badge/100%25-Human%20Made-7C3AED?style=for-the-badge)](https://github.com/entitybrian69-bit/Mirai-launcher)
+[![Solo Developer](https://img.shields.io/badge/Maintained%20by-One%20Developer-F59E0B?style=for-the-badge)](https://github.com/entitybrian69-bit)
+[![Privacy](https://img.shields.io/badge/Privacy-No%20Trackers-111827?style=for-the-badge)](https://github.com/entitybrian69-bit/Mirai-launcher)
+[![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge)](LICENSE)
 
-🎮 Mirai Launcher isn't just another Minecraft launcher for Android.
-It's a statement. It's a masterpiece. It's what happens when one developer refuses to settle for "good enough".
-No team. No AI. No shortcuts. Just pure, handcrafted excellence. 💎
+▶ Play &nbsp;·&nbsp; 🔍 Discover &nbsp;·&nbsp; ⚙️ Settings &nbsp;·&nbsp; 👤 Offline accounts & capes &nbsp;·&nbsp; 🔒 Private by design
 
----
-
-✨ Welcome to the Future of Minecraft on Android
-
-Mirai Launcher redefines what a mobile Minecraft launcher can be. Inspired by the elegance of Modrinth, engineered for speed, built for you. Every pixel, every animation, every line of code — placed with intention, tested with care, and refined until it's flawless.
-
-This isn't a product. This is a promise — that mobile Minecraft deserves better, and you deserve the best. 🏆
+</div>
 
 ---
 
-🔥 Features That Redefine Everything
+## 🏆 Why Mirai
 
-🎨 Modrinth‑Inspired Interface
+Mirai Launcher is a **Minecraft: Java Edition** launcher for Android, built to feel faster, cleaner, and more complete than the launchers most players settle for.
 
-A clean, modern, gorgeous UI that feels like it belongs in 2025 — because it does. Sidebar navigation, smooth transitions, dark & light themes. Every screen is a joy to use.
+It is not a generated app. It is not a team product with a tracker bolted on. It is a **well-developed, frequently updated** launcher, written and tested by **a single developer — entitybrian** — on more than one phone, so the thing that ships is the thing that actually runs in a hand.
 
-🧭 Discover Page
-
-Browse, search, and install modpacks, mods, resource packs, and shaders without ever leaving the launcher. One tap and it's in your game. No browser. No hassle. Just Minecraft.
-
-🏠 Unified Play Page
-
-Home and Library merged into one beautiful hub:
-
-· Jump In — your 5 most recent worlds, one tap away.
-· Library — every instance, beautifully displayed in a grid.
-· Launch, edit, duplicate, delete, manage — instantly.
-
-🖼️ Instance Icon Editor
-
-Give every instance its own personality. Pick a color, choose a symbol or emoji, and make your library truly yours. Because boring icons are for boring launchers.
-
-📁 Instance Groups
-
-Organize chaos into order. Create custom groups, drag and drop instances, keep your modpacks, survival worlds, and creative builds exactly where you want them.
-
-⚙️ Advanced Settings
-
-· 🌍 Global RAM slider — set it once, apply everywhere.
-· 🎯 Per‑instance overrides — because some worlds need more power.
-· 🧪 Renderer selection — GL4ES, VirGL, Zink, and more.
-· 🎨 Theme customization — system, dark, light, accent colors.
-· 👤 Account management — Microsoft, offline, and beyond.
-
-🔄 Built‑in Update Checker
-
-Always on the latest version. One tap and Mirai tells you if you're up to date — or grabs the newest release for you. No more guessing. No more manual downloads.
-
-📂 Full File Manager
-
-Access your instances' files directly from the launcher. Edit configs, drop in mods, back up worlds — all in one place.
-
-⚡ Blazing‑Fast Performance
-
-Optimized to the millisecond. Launch times that feel instant. Memory usage that respects your device. Mirai doesn't just run — it flies. 🚀
-
-🌙 Dark & Light Mode
-
-Because your eyes deserve comfort at 3 AM when you're still building that perfect redstone contraption.
-
-🛡️ Privacy First
-
-No trackers. No ads. No telemetry. Your data is yours. Period.
-
-🧩 Endlessly Customizable
-
-Themes, icons, layouts, renderers, groups — Mirai bends to fit you, not the other way around.
-
-💎 And So Much More…
-
-· Native Android performance
-· Multi‑language support
-· Crash‑resistant architecture
-· Clean, readable, open source code
-· Regular updates and improvements
+> ✨ One developer. Zero AI. Real devices. Private by default.
 
 ---
 
-🏆 Why Mirai Launcher Is The Best
+## ⚡ Built for excellent performance
 
-Feature Mirai Launcher 🚀 Other Launchers 😴
-Modern Modrinth‑style UI ✅ ❌
-Built‑in Discover page ✅ ⚠️ Limited
-Instance icon editor ✅ ❌
-Instance groups ✅ ❌
-Working update checker ✅ ⚠️ Often broken
-100% Human‑made (non‑AI) ✅ ❌
-Solo‑developer passion ✅ ❌ Big teams only
-No ads, no tracking ✅ ⚠️ Varies
-Per‑instance RAM overrides ✅ ⚠️ Rare
-Truly free & open source ✅ ⚠️ Sometimes
+Mirai is tuned for the phone, not for a demo video.
 
-Verdict: Mirai Launcher doesn't compete — it dominates. 👑
+- ⚡ **Fast path to play** — recent worlds and instances stay one tap away.
+- 🧩 **Serious render stack** — choose the renderer that fits the device, including LTW, GL4ES, VirGL, and Zink-class options.
+- 🧮 **RAM that you control** — a global memory slider, plus per-instance overrides when a pack needs more.
+- 📱 **Tested on other phones** — layouts, accounts, skins, and launch flow are checked across devices, not only on the developer’s main handset. That real-world pass is what keeps Mirai ahead of launchers that only look good on one screen.
+- 🛠️ **Updated often** — fixes and polish land on a regular cadence, with a built-in update check against GitHub Releases.
 
 ---
 
-👨‍💻 A Solo Developer's Masterpiece
+## 🛡️ Private. On purpose.
 
-Mirai Launcher is built by one person: entitybrian.
+Mirai keeps your launcher private.
 
-No company. No funding. No team of engineers. Just a developer who loves Minecraft, loves Android, and refused to accept that mobile launchers had to be clunky, ugly, or outdated.
+- 🚫 **No ads**
+- 🚫 **No telemetry**
+- 🚫 **No account resale, no profile harvesting**
+- 🔒 Accounts, skins, and capes stay on the device unless you choose a login that needs the network
+- 📦 Open source under **GPL-3.0**, so the behavior is inspectable
 
-Every commit was written by hand.
-Every bug was hunted down personally.
-Every feature was dreamed up, designed, coded, tested, and refined — alone.
-
-🤖 And No, It's Not AI‑Generated.
-
-In a world where AI spits out generic apps overnight, Mirai Launcher stands apart. It is 100% human‑made. Every line, every pixel, every decision comes from a real developer who cares deeply about the result.
-
-That's why it works. That's why it feels right. That's why it's better. 💪
+Your worlds are yours. Your accounts are yours. Mirai does not take a cut of either.
 
 ---
 
-📸 Screenshots
+## 👤 Accounts, skins, and capes
 
-(Replace these placeholders with real screenshots of your launcher)
-
-https://via.placeholder.com/800x400?text=Play+Page+-+Jump+In+%26+Library
-https://via.placeholder.com/800x400?text=Discover+Page+-+Browse+Mods
-https://via.placeholder.com/800x400?text=Instance+Settings
-https://via.placeholder.com/800x400?text=About+Tab+-+Maintained+by+entitybrian
-
----
-
-📥 Installation
-
-Getting started is easy — three steps, one minute:
-
-1. Download the latest APK from the Releases page.
-2. Enable "Install from unknown sources" in your Android settings.
-3. Install and launch — and enjoy Minecraft the way it was meant to be played on mobile. 🎮
-
-Requires Android 8.0+. Works best on devices with 4 GB RAM or more.
+- 👤 **Offline accounts** — create a local username and select it. The radio stays selected. Worldwide. No region lock.
+- 👕 **Equip a skin** on that offline account.
+- 🧥 **Equip a cape** on that offline account.
+- 🌐 **Microsoft login** for Java Edition accounts that own the game.
+- 🔑 **Yggdrasil / auth-server login** for third-party servers.
+- 🖼️ **3D skin preview** so you can see the skin and cape before you launch.
 
 ---
 
-🔄 Built‑in Update Checker
+## 📋 Full feature list
 
-Never miss a release again. Head to Settings → About → Check for Update and Mirai will:
+### ▶ Play
+- Unified Play hub for recent worlds and your library
+- Launch, edit, duplicate, delete, and manage instances
+- Instance icons — color, symbol, or emoji
+- Instance groups, so modpacks and survival worlds stay sorted
+- Version install and version settings
+- Per-instance and global game options
 
-· 📡 Ping the GitHub releases API.
-· 🔍 Compare your version with the latest.
-· ✅ Tell you if you're up to date.
-· ⬇️ Offer a one‑tap link to download the newest build.
+### 🔍 Discover
+- Browse and install **modpacks, mods, resource packs, shaders, and saves**
+- Search, filters, and favorites
+- Downloads that land in the right instance, not in a random folder
 
-Simple. Reliable. Just like everything else in Mirai. ✨
+### ⚙️ Settings
+- Material 3 interface, dark and light
+- Theme and accent control
+- Renderer selection
+- Global and per-instance RAM
+- Background and launcher appearance
+- Language support
+- About page — owner: **entitybrian**
+- Update checker via the GitHub Releases API
+
+### 🎮 In game and around it
+- Touch control editor, including custom layouts
+- Gamepad support and remapping
+- File manager inside the launcher — configs, mods, worlds, backups
+- Multiplayer screen
+- Log viewer when something goes wrong
+- Modpack import
+- License and credits screens kept reachable — nothing useful is stripped out to look “simpler”
+
+### 🛡️ Quality bar
+- **100% human-made. Non-AI.** Every screen is developed, not generated.
+- **Single-developer maintenance** by entitybrian — one person owns the bugs and the fixes.
+- **Real-phone testing** on more than one device before a build is treated as good.
+- **Frequent updates**, with Debug CI on push and pull request so broken builds do not silently ship.
 
 ---
 
-🤝 Contributing
+## 🥇 Mirai vs typical Android launchers
 
-Mirai is a solo project, but the community is always welcome. You can help by:
+| | Mirai Launcher | Typical launcher |
+| --- | --- | --- |
+| Best-in-class Java launcher for Android | ✅ Built for it | ⚠️ Often a port |
+| Offline account + skin + cape | ✅ | ⚠️ Cape often missing |
+| Microsoft + auth servers | ✅ | ⚠️ Hit or miss |
+| Modrinth-style Play / Discover / Settings | ✅ | ❌ Dated menus |
+| No ads, no telemetry | ✅ Private | ⚠️ Often tracked |
+| Human-made, non-AI | ✅ | ❌ Increasingly generated |
+| Tested on other phones | ✅ | ⚠️ One-device demos |
+| Updated often by the maintainer | ✅ Solo, active | ⚠️ Stalls |
+| Open source | ✅ GPL-3.0 | ⚠️ Sometimes closed |
 
-· ⭐ Starring the repo — it means the world.
-· 🐛 Reporting bugs — clear, reproducible issues get fixed fast.
-· 💡 Suggesting features — great ideas shape the future.
-· 🌍 Translating — help Mirai speak your language.
-· 📢 Sharing — tell a friend, post online, spread the word.
-
-Open a PR or an issue anytime. Every contribution matters. 🙏
-
----
-
-📜 License
-
-Mirai Launcher is released under the MIT License — free to use, study, modify, and share. See LICENSE for details.
+Mirai does not need a bigger team to be the better launcher. It needs care, and it has it.
 
 ---
 
-🙏 Acknowledgements
+## 👨‍💻 Maintained by a single developer
 
-· To the Minecraft community — for keeping the game alive for over a decade.
-· To the open‑source ecosystem — for the tools that made this possible.
-· To every user who ever reported a bug, suggested a feature, or said "thanks".
-· And to you — for reading this far.
+**entitybrian** designs, writes, tests, and ships Mirai Launcher alone.
+
+No studio. No outsourced UI. No AI pass that “fills in the screens.”
+
+That is why the product stays coherent: the same person who adds offline capes is the person who checks them on another phone, and the same person who cuts a release when it is actually ready.
 
 ---
 
-📬 Contact
+## 📥 Install
 
-· Developer: entitybrian
-· Issues: GitHub Issues
-· Releases: Latest Downloads
+1. Download the latest APK from [Releases](https://github.com/entitybrian69-bit/Mirai-launcher/releases).
+2. Allow install from this source in Android settings.
+3. Open Mirai, add an offline account or sign in with Microsoft, equip a skin and cape, and play.
+
+**Requires Android 8.0+.** Best on 4 GB RAM or more.
+
+Debug builds from CI are for testing. Release builds are the ones to keep.
+
+---
+
+## 🔄 Updates
+
+Settings → About → Check for update.
+
+Mirai asks the GitHub Releases API, compares your build, and points you at the newest APK. No mystery JSON. No dead link.
+
+---
+
+## 🤝 Contributing
+
+This is a solo project. Help is still welcome.
+
+- ⭐ Star the repo
+- 🐛 Open a clear bug report
+- 💡 Suggest a feature
+- 🌍 Help translate
+
+---
+
+## 📜 License
+
+GPL-3.0. See [LICENSE](LICENSE).
+
+Minecraft is a trademark of Mojang Synergies AB. Mirai Launcher is an independent project and is not affiliated with, endorsed by, or associated with Mojang or Microsoft.
 
 ---
 
 <div align="center">
 
-🎮 Join the Revolution 🎮
+### 🎮 The best Java launcher on Android for Minecraft.
 
-Download Mirai Launcher today and experience Minecraft on Android like never before.
+**Excellent performance. Well developed. Non-AI. Updated often. Private. Offline accounts and capes. Tested on other phones. Maintained by one developer.**
 
-One developer. Zero AI. Infinite passion.
-
-⭐ Star the repo ⭐ • 🍴 Fork it 🍴 • 🚀 Share it 🚀
+⭐ [Star Mirai](https://github.com/entitybrian69-bit/Mirai-launcher) · 📦 [Get the APK](https://github.com/entitybrian69-bit/Mirai-launcher/releases)
 
 </div>

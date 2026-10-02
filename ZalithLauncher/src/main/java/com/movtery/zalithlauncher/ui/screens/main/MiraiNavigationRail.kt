@@ -4,12 +4,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -50,34 +51,23 @@ fun MiraiNavigationRail(
 ) {
     val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
     val currentAccount: Account? = account
-
-    Surface(
-        modifier = modifier.width(72.dp).fillMaxHeight(),
-        color = Color(0x66101412),
-        contentColor = Color.White
-    ) {
+    Surface(modifier = modifier.width(72.dp).fillMaxHeight(), color = Color(0x66101412), contentColor = Color.White) {
         Column(
-            modifier = Modifier.fillMaxHeight().padding(vertical = 12.dp),
+            modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState()).padding(vertical = 12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                painter = painterResource(R.drawable.ic_mirai_mark),
-                contentDescription = stringResource(R.string.launcher_brand_name),
-                tint = Color.Unspecified,
-                modifier = Modifier.size(28.dp)
-            )
-            Spacer(Modifier.size(12.dp))
+            Icon(painterResource(R.drawable.ic_mirai_mark), contentDescription = stringResource(R.string.launcher_brand_name), tint = Color.Unspecified, modifier = Modifier.size(28.dp))
             RailIcon(R.drawable.ic_home_filled, "Play", selectedSection == LauncherSection.HOME) { onNavigate(LauncherSection.HOME) }
             RailIcon(R.drawable.ic_search, "Discover", selectedSection == LauncherSection.DISCOVER) { onNavigate(LauncherSection.DISCOVER) }
             RailIcon(R.drawable.ic_checkroom, "Skins", selectedSection == LauncherSection.SKINS) { onNavigate(LauncherSection.SKINS) }
             RailIcon(R.drawable.ic_group_filled, "Servers", selectedSection == LauncherSection.MULTIPLAYER) { onNavigate(LauncherSection.MULTIPLAYER) }
-            Spacer(Modifier.weight(1f))
-            AccountMark(currentAccount != null, currentAccount?.username ?: "Account", onAccountClick) {
+            RailIcon(R.drawable.ic_settings_filled, "Settings", selectedSection == LauncherSection.SETTINGS) { onNavigate(LauncherSection.SETTINGS) }
+            AccountMark(currentAccount != null, currentAccount?.username ?: "Add account", onAccountClick) {
                 val faceAccount = currentAccount
                 if (faceAccount != null) PlayerFace(account = faceAccount, avatarSize = 28.dp)
             }
+            RailIcon(R.drawable.ic_person_outlined, "Add account", false, emphasized = true, onClick = onAccountClick)
             RailIcon(R.drawable.ic_play_arrow_filled, "Play", false, emphasized = true, onClick = onPlay)
-            RailIcon(R.drawable.ic_settings_filled, "Settings", selectedSection == LauncherSection.SETTINGS) { onNavigate(LauncherSection.SETTINGS) }
             RailIcon(R.drawable.ic_add, "Create instance", false, emphasized = true, onClick = onCreateInstance)
         }
     }

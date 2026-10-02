@@ -88,12 +88,12 @@ fun MainScreen(screenBackStackModel: ScreenBackStackViewModel, eventViewModel: E
     fun openAccounts() { section = LauncherSection.SETTINGS; accountsOpen = true; runAction = true }
     fun playSelected() { section = LauncherSection.HOME; VersionsManager.currentVersion.value?.let { eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(it)) } }
     CaveBackground {
-        Row(modifier = Modifier.fillMaxSize()) {
+        if (section == LauncherSection.DISCOVER && !showTool) {
+            DownloadScreen(key = screenBackStackModel.downloadScreen, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
+        } else Row(modifier = Modifier.fillMaxSize()) {
             MiraiNavigationRail(modifier = Modifier.fillMaxHeight(), selectedSection = section, onNavigate = { next -> section = next; showTool = false; tutorialOpen = false; accountsOpen = false; exportVersion = null; logPath = null; openedVersion = null; instanceEditor = false; serversOpen = false; settingsTarget = null; runAction = false; if (next == LauncherSection.HOME) toMainScreen(); if (next == LauncherSection.DISCOVER) openDownload(screenBackStackModel.downloadModScreen) }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onAccountClick = { openAccounts() }, onPlay = { playSelected() })
             Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
-                if (section == LauncherSection.DISCOVER && !showTool) {
-                    DownloadScreen(key = screenBackStackModel.downloadScreen, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
-                } else Crossfade(targetState = section to showTool, animationSpec = tween(120), label = "mirai-page") { (page, tool) ->
+                Crossfade(targetState = section to showTool, animationSpec = tween(120), label = "mirai-page") { (page, tool) ->
                     when {
                         page == LauncherSection.HOME && !tool -> MiraiPlayPage(onLaunch = { version -> version?.let { eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(it)) } }, onExploreContent = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadModScreen) }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onManageVersions = { }, onOpenVersionSettings = { version -> openedVersion = version; instanceEditor = true }, modifier = Modifier.fillMaxSize())
                         page == LauncherSection.SKINS && !tool -> Column(modifier = Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { Text("Skins", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold); Text("Browse a skin, download it, and equip it.", color = Color(0xFFD7CFC8)); Text("Open skins", color = Color(0xFF1BD96A), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary); showTool = true }) }

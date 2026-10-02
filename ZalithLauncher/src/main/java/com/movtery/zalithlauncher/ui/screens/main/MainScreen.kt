@@ -103,8 +103,8 @@ fun MainScreen(
     val toMainScreen: () -> Unit = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain) }
     var section by remember { mutableStateOf(LauncherSection.HOME) }
     var showTool by remember { mutableStateOf(false) }
-    fun openDownload(target: Any) {
-        screenBackStackModel.downloadScreen.clearWith(target)
+    fun openDownload(target: TitledNavKey) {
+        screenBackStackModel.downloadScreen.backStack.clearWith(target)
         screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
         showTool = true
     }
@@ -126,11 +126,7 @@ fun MainScreen(
                 }
             )
             Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
-                Crossfade(
-                    targetState = section to showTool,
-                    animationSpec = tween(durationMillis = 180),
-                    label = "mirai-page"
-                ) { (page, tool) ->
+                Crossfade(targetState = section to showTool, animationSpec = tween(durationMillis = 180), label = "mirai-page") { (page, tool) ->
                     when {
                         page == LauncherSection.DISCOVER && !tool -> MiraiDiscoverPage(
                             onMods = { openDownload(screenBackStackModel.downloadModScreen) },

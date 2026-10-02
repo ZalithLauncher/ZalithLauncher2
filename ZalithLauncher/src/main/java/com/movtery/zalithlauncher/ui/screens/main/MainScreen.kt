@@ -1,6 +1,8 @@
 package com.movtery.zalithlauncher.ui.screens.main
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
@@ -124,33 +126,39 @@ fun MainScreen(
                 }
             )
             Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
-                when {
-                    section == LauncherSection.DISCOVER && !showTool -> MiraiDiscoverPage(
-                        onMods = { openDownload(screenBackStackModel.downloadModScreen) },
-                        onModpacks = { openDownload(screenBackStackModel.downloadModPackScreen) },
-                        onResourcePacks = { openDownload(screenBackStackModel.downloadResourcePackScreen) },
-                        onShaders = { openDownload(screenBackStackModel.downloadShadersScreen) },
-                        onWorlds = { openDownload(screenBackStackModel.downloadSavesScreen) },
-                        onVersions = { openDownload(screenBackStackModel.downloadGameScreen) },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    section == LauncherSection.LIBRARY && !showTool -> MiraiLibraryPage(
-                        onInstances = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager); showTool = true },
-                        onExport = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager); showTool = true },
-                        onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    section == LauncherSection.MULTIPLAYER && !showTool -> MiraiServersPage(
-                        onMultiplayer = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer); showTool = true },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    section == LauncherSection.SETTINGS && !showTool -> MiraiSettingsPage(
-                        onAllSettings = { screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen); showTool = true },
-                        onAccounts = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE)); showTool = true },
-                        onRenderer = { screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen); showTool = true },
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    else -> NavigationUI(modifier = Modifier.fillMaxSize(), screenBackStackModel = screenBackStackModel, toMainScreen = toMainScreen, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
+                Crossfade(
+                    targetState = section to showTool,
+                    animationSpec = tween(durationMillis = 180),
+                    label = "mirai-page"
+                ) { (page, tool) ->
+                    when {
+                        page == LauncherSection.DISCOVER && !tool -> MiraiDiscoverPage(
+                            onMods = { openDownload(screenBackStackModel.downloadModScreen) },
+                            onModpacks = { openDownload(screenBackStackModel.downloadModPackScreen) },
+                            onResourcePacks = { openDownload(screenBackStackModel.downloadResourcePackScreen) },
+                            onShaders = { openDownload(screenBackStackModel.downloadShadersScreen) },
+                            onWorlds = { openDownload(screenBackStackModel.downloadSavesScreen) },
+                            onVersions = { openDownload(screenBackStackModel.downloadGameScreen) },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        page == LauncherSection.LIBRARY && !tool -> MiraiLibraryPage(
+                            onInstances = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager); showTool = true },
+                            onExport = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager); showTool = true },
+                            onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        page == LauncherSection.MULTIPLAYER && !tool -> MiraiServersPage(
+                            onMultiplayer = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer); showTool = true },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        page == LauncherSection.SETTINGS && !tool -> MiraiSettingsPage(
+                            onAllSettings = { screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen); showTool = true },
+                            onAccounts = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE)); showTool = true },
+                            onRenderer = { screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen); showTool = true },
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        else -> NavigationUI(modifier = Modifier.fillMaxSize(), screenBackStackModel = screenBackStackModel, toMainScreen = toMainScreen, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
+                    }
                 }
             }
         }
@@ -198,7 +206,7 @@ private fun NavigationUI(modifier: Modifier = Modifier, screenBackStackModel: Sc
 private fun TaskMenu(tasks: List<Task>, isExpanded: Boolean, modifier: Modifier = Modifier, changeExpandedState: () -> Unit = {}) {
     val show = isExpanded && tasks.isNotEmpty()
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    AnimatedVisibility(modifier = modifier, enter = slideInHorizontally(initialOffsetX = { if (isRtl) it else -it }, animationSpec = getAnimateTween()) + fadeIn(), exit = slideOutHorizontally(targetOffsetX = { if (isRtl) it else -it }, animationSpec = getAnimateTween()) + fadeOut(), visible = show) {
+    AnimatedVisibility(modifier = modifier, enter = fadeIn(tween(180)) + slideInHorizontally(initialOffsetX = { if (isRtl) it / 8 else -it / 8 }), exit = fadeOut(tween(180)) + slideOutHorizontally(targetOffsetX = { if (isRtl) it / 8 else -it / 8 }), visible = show) {
         BackgroundCard(modifier = Modifier.fillMaxSize().padding(all = 6.dp), influencedByBackground = false, shape = MaterialTheme.shapes.extraLarge, colors = CardDefaults.cardColors(containerColor = backgroundColor(), contentColor = onBackgroundColor()), elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp)) {
             Column {
                 CardTitleLayout(blur = 0) {

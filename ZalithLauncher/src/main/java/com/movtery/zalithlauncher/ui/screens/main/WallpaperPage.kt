@@ -31,7 +31,10 @@ import java.io.File
 
 fun wallpaperFile(context: android.content.Context) = File(context.filesDir, "mirai-wallpaper.jpg")
 
-private val bundled = listOf("dusk", "blossom", "lake", "peaks", "islands", "portal", "cave", "autumn", "ridge")
+private val bundled = listOf(
+    "dusk", "blossom", "lake", "peaks", "islands", "portal",
+    "cave", "autumn", "ridge", "ocean", "title", "swamp"
+)
 
 @Composable
 fun WallpaperPage(modifier: Modifier = Modifier) {

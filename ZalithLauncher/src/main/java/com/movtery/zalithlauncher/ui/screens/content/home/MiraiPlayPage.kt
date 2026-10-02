@@ -68,9 +68,7 @@ fun MiraiPlayPage(
         Column(modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(22.dp)).background(Color(0x66161618)).padding(24.dp)) {
             Text(selected?.getVersionName() ?: "Pick or create an instance", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(8.dp))
-            Text("Install a version, then play it from here. Skins, servers, and settings stay in the sidebar.", color = Color(0xFFD7CFC8))
-            Spacer(Modifier.height(22.dp))
-            Button(onClick = { onLaunch(selected) }, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = glass) { Text("Play", fontWeight = FontWeight.SemiBold) }
+            Text("Install a version, then play it from the button under the account. Skins, servers, and settings stay in the sidebar.", color = Color(0xFFD7CFC8))
             if (selected != null) {
                 Spacer(Modifier.height(12.dp))
                 Text("Add content", color = Color(0xFF1BD96A), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable(onClick = onExploreContent))

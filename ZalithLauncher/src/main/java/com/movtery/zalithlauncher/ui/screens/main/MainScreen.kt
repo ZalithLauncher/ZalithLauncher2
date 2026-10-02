@@ -109,6 +109,11 @@ fun MainScreen(
         screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
         showTool = true
     }
+    fun openSetting(target: NormalNavKey.Settings) {
+        screenBackStackModel.settingsScreen.clearWith(target)
+        screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
+        showTool = true
+    }
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0E0E10), contentColor = Color.White) {
         Row(modifier = Modifier.fillMaxSize()) {
             MiraiNavigationRail(
@@ -139,8 +144,7 @@ fun MainScreen(
                             modifier = Modifier.fillMaxSize()
                         )
                         page == LauncherSection.LIBRARY && !tool -> MiraiLibraryPage(
-                            onInstances = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager); showTool = true },
-                            onExport = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager); showTool = true },
+                            onOpenInstance = { version -> screenBackStackModel.mainScreen.navigateTo(screenKey = NestedNavKey.VersionSettings(version), useClassEquality = true); showTool = true },
                             onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) },
                             modifier = Modifier.fillMaxSize()
                         )
@@ -149,9 +153,14 @@ fun MainScreen(
                             modifier = Modifier.fillMaxSize()
                         )
                         page == LauncherSection.SETTINGS && !tool -> MiraiSettingsPage(
-                            onAllSettings = { screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen); showTool = true },
+                            onRenderer = { openSetting(NormalNavKey.Settings.Renderer) },
+                            onGame = { openSetting(NormalNavKey.Settings.Game) },
+                            onControls = { openSetting(NormalNavKey.Settings.Control) },
+                            onGamepad = { openSetting(NormalNavKey.Settings.Gamepad) },
+                            onLauncher = { openSetting(NormalNavKey.Settings.Launcher) },
+                            onJava = { openSetting(NormalNavKey.Settings.JavaManager) },
                             onAccounts = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE)); showTool = true },
-                            onRenderer = { screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen); showTool = true },
+                            onAbout = { openSetting(NormalNavKey.Settings.AboutInfo) },
                             modifier = Modifier.fillMaxSize()
                         )
                         else -> NavigationUI(modifier = Modifier.fillMaxSize(), screenBackStackModel = screenBackStackModel, toMainScreen = toMainScreen, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)

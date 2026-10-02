@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -23,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.game.version.installed.Version
@@ -69,10 +71,12 @@ fun MiraiSettingsDetail(title: String, onOpenEditor: () -> Unit, onBack: () -> U
 
 @Composable
 fun MiraiDiscoverResults(title: String, onOpenSearch: () -> Unit, onBack: () -> Unit, modifier: Modifier = Modifier) {
+    var query by remember { mutableStateOf("") }
     Column(modifier = modifier.fillMaxSize().background(PageBg).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text("Back", color = Green, fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable(onClick = onBack))
         Text(title, color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
-        Text("Search this category, open a project, then install it into an instance.", color = Muted)
+        BasicTextField(value = query, onValueChange = { query = it }, singleLine = true, textStyle = MaterialTheme.typography.bodyLarge.copy(color = Color.White), cursorBrush = SolidColor(Green), modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(CardBg).padding(14.dp), decorationBox = { inner -> if (query.isEmpty()) Text("Search this category", color = Muted); inner() })
+        Text(if (query.isBlank()) "Enter a name, then search to install." else "Search for $query", color = Muted)
         Text("Search", color = Color(0xFF0E0E10), fontWeight = FontWeight.SemiBold, modifier = Modifier.clip(RoundedCornerShape(14.dp)).background(Green).clickable(onClick = onOpenSearch).padding(14.dp))
     }
 }

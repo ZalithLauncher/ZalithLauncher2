@@ -87,9 +87,25 @@ fun MainScreen(screenBackStackModel: ScreenBackStackViewModel, eventViewModel: E
     fun openSetting(target: NormalNavKey.Settings) { screenBackStackModel.settingsScreen.clearWith(target); screenBackStackModel.mainScreen.currentKey = screenBackStackModel.settingsScreen; settingsTarget = target; runAction = false }
     fun openAccounts() { section = LauncherSection.SETTINGS; accountsOpen = true; runAction = true }
     fun playSelected() { section = LauncherSection.HOME; VersionsManager.currentVersion.value?.let { eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(it)) } }
+    fun goDashboard() {
+        section = LauncherSection.HOME
+        showTool = false
+        tutorialOpen = false
+        accountsOpen = false
+        exportVersion = null
+        logPath = null
+        openedVersion = null
+        instanceEditor = false
+        serversOpen = false
+        settingsTarget = null
+        runAction = false
+        toMainScreen()
+    }
+    LauncherBack(onDashboard = { goDashboard() })
     CaveBackground {
         if (section == LauncherSection.DISCOVER && !showTool) {
             DownloadScreen(key = screenBackStackModel.downloadScreen, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
+            LauncherBack(onDashboard = { goDashboard() })
         } else Row(modifier = Modifier.fillMaxSize()) {
             MiraiNavigationRail(modifier = Modifier.fillMaxHeight(), selectedSection = section, onNavigate = { next -> section = next; showTool = false; tutorialOpen = false; accountsOpen = false; exportVersion = null; logPath = null; openedVersion = null; instanceEditor = false; serversOpen = false; settingsTarget = null; runAction = false; if (next == LauncherSection.HOME) toMainScreen(); if (next == LauncherSection.DISCOVER) openDownload(screenBackStackModel.downloadModScreen) }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onAccountClick = { openAccounts() }, onPlay = { playSelected() })
             Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
@@ -114,6 +130,7 @@ fun MainScreen(screenBackStackModel: ScreenBackStackViewModel, eventViewModel: E
                     }
                 }
             }
+            LauncherBack(onDashboard = { goDashboard() })
         }
     }
 }

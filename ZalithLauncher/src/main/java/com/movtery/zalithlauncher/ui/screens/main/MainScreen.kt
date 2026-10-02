@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -104,15 +105,19 @@ fun MainScreen(
     val toMainScreen: () -> Unit = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain) }
     var section by remember { mutableStateOf(LauncherSection.HOME) }
     var showTool by remember { mutableStateOf(false) }
+    var discoverTarget by remember { mutableStateOf<TitledNavKey?>(null) }
+    var openedVersion by remember { mutableStateOf<Version?>(null) }
+    var serversOpen by remember { mutableStateOf(false) }
+    var settingsTarget by remember { mutableStateOf<NormalNavKey.Settings?>(null) }
     fun openDownload(target: TitledNavKey) {
         screenBackStackModel.downloadScreen.clearWith(target)
-        screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
-        showTool = true
+        screenBackStackModel.mainScreen.currentKey = screenBackStackModel.downloadScreen
+        discoverTarget = target
     }
     fun openSetting(target: NormalNavKey.Settings) {
         screenBackStackModel.settingsScreen.clearWith(target)
-        screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
-        showTool = true
+        screenBackStackModel.mainScreen.currentKey = screenBackStackModel.settingsScreen
+        settingsTarget = target
     }
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0E0E10), contentColor = Color.White) {
         Row(modifier = Modifier.fillMaxSize()) {
@@ -122,10 +127,14 @@ fun MainScreen(
                 onNavigate = {
                     section = it
                     showTool = false
+                    discoverTarget = null
+                    openedVersion = null
+                    serversOpen = false
+                    settingsTarget = null
                     if (it == LauncherSection.HOME) toMainScreen()
                     if (it == LauncherSection.SKINS) screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary)
                 },
-                onCreateInstance = { openDownload(screenBackStackModel.downloadGameScreen) },
+                onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) },
                 onAccountClick = {
                     screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE))
                     showTool = true
@@ -134,43 +143,89 @@ fun MainScreen(
             Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
                 Crossfade(targetState = section to showTool, animationSpec = tween(durationMillis = 180), label = "mirai-page") { (page, tool) ->
                     when {
-                        page == LauncherSection.DISCOVER && !tool -> MiraiDiscoverPage(
-                            onMods = { openDownload(screenBackStackModel.downloadModScreen) },
-                            onModpacks = { openDownload(screenBackStackModel.downloadModPackScreen) },
-                            onResourcePacks = { openDownload(screenBackStackModel.downloadResourcePackScreen) },
-                            onShaders = { openDownload(screenBackStackModel.downloadShadersScreen) },
-                            onWorlds = { openDownload(screenBackStackModel.downloadSavesScreen) },
-                            onVersions = { openDownload(screenBackStackModel.downloadGameScreen) },
-                            onFavorites = { openDownload(screenBackStackModel.downloadFavoritesScreen) },
-                            onSearchId = { openDownload(NormalNavKey.SearchId) },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        page == LauncherSection.LIBRARY && !tool -> MiraiLibraryPage(
-                            onOpenInstance = { version -> screenBackStackModel.mainScreen.navigateTo(screenKey = NestedNavKey.VersionSettings(version), useClassEquality = true); showTool = true },
-                            onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        page == LauncherSection.MULTIPLAYER && !tool -> MiraiServersPage(
-                            onMultiplayer = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer); showTool = true },
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        page == LauncherSection.SETTINGS && !tool -> MiraiSettingsPage(
-                            onRenderer = { openSetting(NormalNavKey.Settings.Renderer) },
-                            onGame = { openSetting(NormalNavKey.Settings.Game) },
-                            onControls = { openSetting(NormalNavKey.Settings.Control) },
-                            onGamepad = { openSetting(NormalNavKey.Settings.Gamepad) },
-                            onLauncher = { openSetting(NormalNavKey.Settings.Launcher) },
-                            onJava = { openSetting(NormalNavKey.Settings.JavaManager) },
-                            onControlLayouts = { openSetting(NormalNavKey.Settings.ControlManager) },
-                            onAccounts = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE)); showTool = true },
-                            onAbout = { openSetting(NormalNavKey.Settings.AboutInfo) },
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        page == LauncherSection.DISCOVER && !tool -> if (discoverTarget == null) {
+                            MiraiDiscoverPage(
+                                onMods = { openDownload(screenBackStackModel.downloadModScreen) },
+                                onModpacks = { openDownload(screenBackStackModel.downloadModPackScreen) },
+                                onResourcePacks = { openDownload(screenBackStackModel.downloadResourcePackScreen) },
+                                onShaders = { openDownload(screenBackStackModel.downloadShadersScreen) },
+                                onWorlds = { openDownload(screenBackStackModel.downloadSavesScreen) },
+                                onVersions = { openDownload(screenBackStackModel.downloadGameScreen) },
+                                onFavorites = { openDownload(screenBackStackModel.downloadFavoritesScreen) },
+                                onSearchId = { openDownload(NormalNavKey.SearchId) },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            EmbeddedTool(title = "Discover", onBack = { discoverTarget = null }) {
+                                DownloadScreen(key = screenBackStackModel.downloadScreen, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
+                            }
+                        }
+                        page == LauncherSection.LIBRARY && !tool -> {
+                            val version = openedVersion
+                            if (version == null) {
+                                MiraiLibraryPage(
+                                    onOpenInstance = { opened ->
+                                        val key = NestedNavKey.VersionSettings(opened)
+                                        screenBackStackModel.mainScreen.currentKey = key
+                                        openedVersion = opened
+                                    },
+                                    onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) },
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                EmbeddedTool(title = version.getVersionName(), onBack = { openedVersion = null }) {
+                                    VersionSettingsScreen(
+                                        key = NestedNavKey.VersionSettings(version),
+                                        backScreenViewModel = screenBackStackModel,
+                                        backToMainScreen = { openedVersion = null },
+                                        onExportModpack = { screenBackStackModel.mainScreen.navigateTo(screenKey = NestedNavKey.VersionExport(version), useClassEquality = true); showTool = true },
+                                        eventViewModel = eventViewModel,
+                                        submitError = submitError
+                                    )
+                                }
+                            }
+                        }
+                        page == LauncherSection.MULTIPLAYER && !tool -> if (!serversOpen) {
+                            MiraiServersPage(onMultiplayer = {
+                                screenBackStackModel.mainScreen.currentKey = NormalNavKey.Multiplayer
+                                serversOpen = true
+                            }, modifier = Modifier.fillMaxSize())
+                        } else {
+                            EmbeddedTool(title = "Servers", onBack = { serversOpen = false }) {
+                                MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel)
+                            }
+                        }
+                        page == LauncherSection.SETTINGS && !tool -> if (settingsTarget == null) {
+                            MiraiSettingsPage(
+                                onRenderer = { openSetting(NormalNavKey.Settings.Renderer) },
+                                onGame = { openSetting(NormalNavKey.Settings.Game) },
+                                onControls = { openSetting(NormalNavKey.Settings.Control) },
+                                onGamepad = { openSetting(NormalNavKey.Settings.Gamepad) },
+                                onLauncher = { openSetting(NormalNavKey.Settings.Launcher) },
+                                onJava = { openSetting(NormalNavKey.Settings.JavaManager) },
+                                onControlLayouts = { openSetting(NormalNavKey.Settings.ControlManager) },
+                                onAccounts = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE)); showTool = true },
+                                onAbout = { openSetting(NormalNavKey.Settings.AboutInfo) },
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        } else {
+                            EmbeddedTool(title = "Settings", onBack = { settingsTarget = null }) {
+                                SettingsScreen(key = screenBackStackModel.settingsScreen, backStackViewModel = screenBackStackModel, openLicenseScreen = { raw -> screenBackStackModel.mainScreen.navigateTo(NormalNavKey.License(raw)); showTool = true }, eventViewModel = eventViewModel, submitError = submitError)
+                            }
+                        }
                         else -> NavigationUI(modifier = Modifier.fillMaxSize(), screenBackStackModel = screenBackStackModel, toMainScreen = toMainScreen, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun EmbeddedTool(title: String, onBack: () -> Unit, content: @Composable () -> Unit) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(text = "Back to $title", color = Color(0xFF1BD96A), modifier = Modifier.clickable(onClick = onBack).padding(horizontal = 16.dp, vertical = 10.dp), fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold)
+        Box(modifier = Modifier.fillMaxSize()) { content() }
     }
 }
 

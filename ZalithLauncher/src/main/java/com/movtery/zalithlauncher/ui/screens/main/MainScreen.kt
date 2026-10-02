@@ -1,30 +1,16 @@
 package com.movtery.zalithlauncher.ui.screens.main
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,29 +20,18 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
-import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.ui.AndroidStringText
-import com.movtery.zalithlauncher.ui.components.BackgroundCard
-import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.guide.sendStartGuideOnce
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -76,22 +51,21 @@ import com.movtery.zalithlauncher.ui.screens.content.VersionsManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.WebViewScreen
 import com.movtery.zalithlauncher.ui.screens.content.assetinfo.AssetInfoScreen
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiDiscoverPage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiEditorPage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiHostPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiInstanceDetail
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiLibraryPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiLogPage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiLoginPage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiPackPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiPlayPage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiSearchInstallPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiServersPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiSettingsPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiTutorialPage
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
-import com.movtery.zalithlauncher.ui.theme.backgroundColor
-import com.movtery.zalithlauncher.ui.theme.cardColor
-import com.movtery.zalithlauncher.ui.theme.onBackgroundColor
-import com.movtery.zalithlauncher.ui.theme.onCardColor
-import com.movtery.zalithlauncher.utils.animation.getAnimateTween
-import com.movtery.zalithlauncher.utils.file.formatFileSize
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.ModpackImportViewModel
@@ -102,8 +76,6 @@ import com.movtery.zalithlauncher.viewmodel.sendKeepScreen
 fun MainScreen(screenBackStackModel: ScreenBackStackViewModel, eventViewModel: EventViewModel, modpackImportViewModel: ModpackImportViewModel, submitError: (ErrorViewModel.ThrowableMessage) -> Unit) {
     val tasks by TaskSystem.tasksFlow.collectAsStateWithLifecycle()
     LaunchedEffect(tasks) { eventViewModel.sendKeepScreen(tasks.isNotEmpty()) }
-    val isTaskMenuExpanded = AllSettings.launcherTaskMenuExpanded.state
-    fun changeTasksExpandedState() { AllSettings.launcherTaskMenuExpanded.save(!isTaskMenuExpanded) }
     val toMainScreen: () -> Unit = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain) }
     var section by remember { mutableStateOf(LauncherSection.HOME) }
     var showTool by remember { mutableStateOf(false) }
@@ -116,35 +88,35 @@ fun MainScreen(screenBackStackModel: ScreenBackStackViewModel, eventViewModel: E
     var instanceEditor by remember { mutableStateOf(false) }
     var serversOpen by remember { mutableStateOf(false) }
     var settingsTarget by remember { mutableStateOf<NormalNavKey.Settings?>(null) }
-    fun openDownload(target: TitledNavKey) { screenBackStackModel.downloadScreen.clearWith(target); screenBackStackModel.mainScreen.currentKey = screenBackStackModel.downloadScreen; discoverTarget = target }
-    fun openSetting(target: NormalNavKey.Settings) { screenBackStackModel.settingsScreen.clearWith(target); screenBackStackModel.mainScreen.currentKey = screenBackStackModel.settingsScreen; settingsTarget = target }
-    fun openSkins() { screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary); showTool = true }
+    var runAction by remember { mutableStateOf(false) }
+    fun openDownload(target: TitledNavKey) { screenBackStackModel.downloadScreen.clearWith(target); screenBackStackModel.mainScreen.currentKey = screenBackStackModel.downloadScreen; discoverTarget = target; runAction = false }
+    fun openSetting(target: NormalNavKey.Settings) { screenBackStackModel.settingsScreen.clearWith(target); screenBackStackModel.mainScreen.currentKey = screenBackStackModel.settingsScreen; settingsTarget = target; runAction = false }
     Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF0E0E10), contentColor = Color.White) {
         Row(modifier = Modifier.fillMaxSize()) {
-            MiraiNavigationRail(modifier = Modifier.fillMaxHeight(), selectedSection = section, onNavigate = { section = it; showTool = false; tutorialOpen = false; accountsOpen = false; exportVersion = null; logPath = null; discoverTarget = null; openedVersion = null; instanceEditor = false; serversOpen = false; settingsTarget = null; if (it == LauncherSection.HOME) toMainScreen() }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onAccountClick = { section = LauncherSection.SETTINGS; accountsOpen = true })
+            MiraiNavigationRail(modifier = Modifier.fillMaxHeight(), selectedSection = section, onNavigate = { section = it; showTool = false; tutorialOpen = false; accountsOpen = false; exportVersion = null; logPath = null; discoverTarget = null; openedVersion = null; instanceEditor = false; serversOpen = false; settingsTarget = null; runAction = false; if (it == LauncherSection.HOME) toMainScreen() }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onAccountClick = { section = LauncherSection.SETTINGS; accountsOpen = true; runAction = false })
             Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
                 Crossfade(targetState = section to showTool, animationSpec = tween(180), label = "mirai-page") { (page, tool) ->
                     when {
                         page == LauncherSection.HOME && !tool -> MiraiPlayPage(onLaunch = { version -> version?.let { eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(it)) } }, onExploreContent = { section = LauncherSection.DISCOVER }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onManageVersions = { section = LauncherSection.LIBRARY }, onOpenVersionSettings = { version -> section = LauncherSection.LIBRARY; openedVersion = version; instanceEditor = false }, modifier = Modifier.fillMaxSize())
-                        page == LauncherSection.SKINS && !tool -> Column(modifier = Modifier.fillMaxSize().background(Color(0xFF0E0E10)).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { Text("Skins", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold); Text("Browse a skin, download it, and equip it on the selected account.", color = Color(0xFF9A9AA3)); Text("Open skins", color = Color(0xFF1BD96A), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable(onClick = { openSkins() })) }
-                        page == LauncherSection.DISCOVER && !tool && discoverTarget != null -> EmbeddedTool("Discover", { discoverTarget = null }) { DownloadScreen(key = screenBackStackModel.downloadScreen, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError) }
+                        page == LauncherSection.SKINS && !tool -> Column(modifier = Modifier.fillMaxSize().background(Color(0xFF0E0E10)).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { Text("Skins", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold); Text("Browse a skin, download it, and equip it.", color = Color(0xFF9A9AA3)); Text("Open skins", color = Color(0xFF1BD96A), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary); showTool = true }) }
+                        page == LauncherSection.DISCOVER && !tool && discoverTarget != null && runAction -> DownloadScreen(key = screenBackStackModel.downloadScreen, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
+                        page == LauncherSection.DISCOVER && !tool && discoverTarget != null -> MiraiSearchInstallPage("Discover", onInstall = { runAction = true }, onBack = { discoverTarget = null }, modifier = Modifier.fillMaxSize())
                         page == LauncherSection.DISCOVER && !tool -> MiraiDiscoverPage(onMods = { openDownload(screenBackStackModel.downloadModScreen) }, onModpacks = { openDownload(screenBackStackModel.downloadModPackScreen) }, onResourcePacks = { openDownload(screenBackStackModel.downloadResourcePackScreen) }, onShaders = { openDownload(screenBackStackModel.downloadShadersScreen) }, onWorlds = { openDownload(screenBackStackModel.downloadSavesScreen) }, onVersions = { openDownload(screenBackStackModel.downloadGameScreen) }, onFavorites = { openDownload(screenBackStackModel.downloadFavoritesScreen) }, onSearchId = { openDownload(NormalNavKey.SearchId) }, modifier = Modifier.fillMaxSize())
-                        page == LauncherSection.LIBRARY && !tool -> {
-                            val version = openedVersion
-                            when {
-                                version == null -> MiraiLibraryPage(onOpenInstance = { opened -> screenBackStackModel.mainScreen.currentKey = NestedNavKey.VersionSettings(opened); openedVersion = opened; instanceEditor = false }, onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) }, modifier = Modifier.fillMaxSize())
-                                !instanceEditor -> MiraiInstanceDetail(version, onOpenContent = { instanceEditor = true }, onBack = { openedVersion = null }, modifier = Modifier.fillMaxSize())
-                                else -> EmbeddedTool(version.getVersionName(), { instanceEditor = false }) { VersionSettingsScreen(key = NestedNavKey.VersionSettings(version), backScreenViewModel = screenBackStackModel, backToMainScreen = { openedVersion = null; instanceEditor = false }, onExportModpack = { exportVersion = version; section = LauncherSection.SETTINGS }, eventViewModel = eventViewModel, submitError = submitError) }
-                            }
-                        }
-                        page == LauncherSection.MULTIPLAYER && !tool && serversOpen -> EmbeddedTool("Servers", { serversOpen = false }) { MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel) }
-                        page == LauncherSection.MULTIPLAYER && !tool -> MiraiServersPage(onMultiplayer = { screenBackStackModel.mainScreen.currentKey = NormalNavKey.Multiplayer; serversOpen = true }, modifier = Modifier.fillMaxSize())
-                        page == LauncherSection.SETTINGS && !tool && accountsOpen -> EmbeddedTool("Accounts", { accountsOpen = false }) { AccountManageScreen(key = NormalNavKey.AccountManager(FirstLoginMenu.NONE), backStackViewModel = screenBackStackModel, backToMainScreen = { accountsOpen = false }, openLink = { url -> eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url)) }, eventViewModel = eventViewModel, submitError = submitError) }
-                        page == LauncherSection.SETTINGS && !tool && exportVersion != null -> EmbeddedTool("Export", { exportVersion = null }) { VersionExportScreen(key = NestedNavKey.VersionExport(exportVersion!!), backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, backToMainScreen = { exportVersion = null }) }
+                        page == LauncherSection.LIBRARY && !tool && openedVersion != null && instanceEditor -> VersionSettingsScreen(key = NestedNavKey.VersionSettings(openedVersion!!), backScreenViewModel = screenBackStackModel, backToMainScreen = { instanceEditor = false }, onExportModpack = { exportVersion = openedVersion; section = LauncherSection.SETTINGS; runAction = false }, eventViewModel = eventViewModel, submitError = submitError)
+                        page == LauncherSection.LIBRARY && !tool && openedVersion != null -> MiraiInstanceDetail(openedVersion!!, onOpenContent = { instanceEditor = true }, onBack = { openedVersion = null }, modifier = Modifier.fillMaxSize())
+                        page == LauncherSection.LIBRARY && !tool -> MiraiLibraryPage(onOpenInstance = { openedVersion = it; instanceEditor = false }, onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) }, modifier = Modifier.fillMaxSize())
+                        page == LauncherSection.MULTIPLAYER && !tool && serversOpen && runAction -> MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel)
+                        page == LauncherSection.MULTIPLAYER && !tool && serversOpen -> MiraiHostPage(onHost = { runAction = true }, onBack = { serversOpen = false }, modifier = Modifier.fillMaxSize())
+                        page == LauncherSection.MULTIPLAYER && !tool -> MiraiServersPage(onMultiplayer = { serversOpen = true; runAction = false }, modifier = Modifier.fillMaxSize())
+                        page == LauncherSection.SETTINGS && !tool && accountsOpen && runAction -> AccountManageScreen(key = NormalNavKey.AccountManager(FirstLoginMenu.NONE), backStackViewModel = screenBackStackModel, backToMainScreen = { accountsOpen = false; runAction = false }, openLink = { url -> eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url)) }, eventViewModel = eventViewModel, submitError = submitError)
+                        page == LauncherSection.SETTINGS && !tool && accountsOpen -> MiraiLoginPage(onOffline = { runAction = true }, onMicrosoft = { runAction = true }, onBack = { accountsOpen = false }, modifier = Modifier.fillMaxSize())
+                        page == LauncherSection.SETTINGS && !tool && exportVersion != null && runAction -> VersionExportScreen(key = NestedNavKey.VersionExport(exportVersion!!), backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, backToMainScreen = { exportVersion = null; runAction = false })
+                        page == LauncherSection.SETTINGS && !tool && exportVersion != null -> MiraiPackPage(exportVersion?.getVersionName(), onPack = { runAction = true }, onBack = { exportVersion = null }, modifier = Modifier.fillMaxSize())
                         page == LauncherSection.SETTINGS && !tool && logPath != null -> MiraiLogPage(logPath, onBack = { logPath = null }, modifier = Modifier.fillMaxSize())
                         page == LauncherSection.SETTINGS && !tool && tutorialOpen -> MiraiTutorialPage(onBack = { tutorialOpen = false }, modifier = Modifier.fillMaxSize())
-                        page == LauncherSection.SETTINGS && !tool && settingsTarget != null -> EmbeddedTool("Settings", { settingsTarget = null }) { SettingsScreen(key = screenBackStackModel.settingsScreen, backStackViewModel = screenBackStackModel, openLicenseScreen = { raw -> screenBackStackModel.mainScreen.navigateTo(NormalNavKey.License(raw)); showTool = true }, eventViewModel = eventViewModel, submitError = submitError) }
-                        page == LauncherSection.SETTINGS && !tool -> MiraiSettingsPage(onRenderer = { openSetting(NormalNavKey.Settings.Renderer) }, onGame = { openSetting(NormalNavKey.Settings.Game) }, onControls = { openSetting(NormalNavKey.Settings.Control) }, onGamepad = { openSetting(NormalNavKey.Settings.Gamepad) }, onLauncher = { openSetting(NormalNavKey.Settings.Launcher) }, onJava = { openSetting(NormalNavKey.Settings.JavaManager) }, onControlLayouts = { openSetting(NormalNavKey.Settings.ControlManager) }, onAccounts = { accountsOpen = true }, onAbout = { openSetting(NormalNavKey.Settings.AboutInfo) }, onExport = { exportVersion = VersionsManager.currentVersion.value }, onSkins = { openSkins() }, onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) }, onLogs = { logPath = VersionsManager.currentVersion.value?.getLatestLog()?.absolutePath ?: "" }, onWeb = { eventViewModel.sendEvent(EventViewModel.Event.OpenLink("https://modrinth.com")) }, onTutorial = { tutorialOpen = true }, modifier = Modifier.fillMaxSize())
+                        page == LauncherSection.SETTINGS && !tool && settingsTarget != null && runAction -> SettingsScreen(key = screenBackStackModel.settingsScreen, backStackViewModel = screenBackStackModel, openLicenseScreen = { raw -> screenBackStackModel.mainScreen.navigateTo(NormalNavKey.License(raw)); showTool = true }, eventViewModel = eventViewModel, submitError = submitError)
+                        page == LauncherSection.SETTINGS && !tool && settingsTarget != null -> MiraiEditorPage("Settings", onEdit = { runAction = true }, onBack = { settingsTarget = null }, modifier = Modifier.fillMaxSize())
+                        page == LauncherSection.SETTINGS && !tool -> MiraiSettingsPage(onRenderer = { openSetting(NormalNavKey.Settings.Renderer) }, onGame = { openSetting(NormalNavKey.Settings.Game) }, onControls = { openSetting(NormalNavKey.Settings.Control) }, onGamepad = { openSetting(NormalNavKey.Settings.Gamepad) }, onLauncher = { openSetting(NormalNavKey.Settings.Launcher) }, onJava = { openSetting(NormalNavKey.Settings.JavaManager) }, onControlLayouts = { openSetting(NormalNavKey.Settings.ControlManager) }, onAccounts = { accountsOpen = true; runAction = false }, onAbout = { openSetting(NormalNavKey.Settings.AboutInfo) }, onExport = { exportVersion = VersionsManager.currentVersion.value; runAction = false }, onSkins = { screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary); showTool = true }, onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) }, onLogs = { logPath = VersionsManager.currentVersion.value?.getLatestLog()?.absolutePath ?: "" }, onWeb = { eventViewModel.sendEvent(EventViewModel.Event.OpenLink("https://modrinth.com")) }, onTutorial = { tutorialOpen = true }, modifier = Modifier.fillMaxSize())
                         else -> NavigationUI(Modifier.fillMaxSize(), screenBackStackModel, toMainScreen, eventViewModel, modpackImportViewModel, submitError)
                     }
                 }
@@ -154,89 +126,27 @@ fun MainScreen(screenBackStackModel: ScreenBackStackViewModel, eventViewModel: E
 }
 
 @Composable
-private fun EmbeddedTool(title: String, onBack: () -> Unit, content: @Composable () -> Unit) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Text("Back to $title", color = Color(0xFF1BD96A), modifier = Modifier.clickable(onClick = onBack).padding(horizontal = 16.dp, vertical = 10.dp), fontWeight = FontWeight.SemiBold)
-        Box(modifier = Modifier.fillMaxSize()) { content() }
-    }
-}
-
-private fun TitledNavKey?.toLauncherSection(): LauncherSection? = when (this) {
-    null, NormalNavKey.LauncherMain -> LauncherSection.HOME
-    is NestedNavKey.Download, is NestedNavKey.DownloadGame, is NestedNavKey.DownloadModPack, is NestedNavKey.DownloadMod, is NestedNavKey.DownloadResourcePack, is NestedNavKey.DownloadSaves, is NestedNavKey.DownloadShaders, is NestedNavKey.DownloadFavorites, is NestedNavKey.AssetInfo -> LauncherSection.DISCOVER
-    NormalNavKey.VersionsManager, is NestedNavKey.VersionSettings, is NestedNavKey.VersionExport -> LauncherSection.LIBRARY
-    NormalNavKey.Multiplayer -> LauncherSection.MULTIPLAYER
-    is NestedNavKey.Settings -> LauncherSection.SETTINGS
-    NormalNavKey.McSkinLibrary -> LauncherSection.SKINS
-    else -> null
-}
-
-@Composable
 private fun NavigationUI(modifier: Modifier = Modifier, screenBackStackModel: ScreenBackStackViewModel, toMainScreen: () -> Unit, eventViewModel: EventViewModel, modpackImportViewModel: ModpackImportViewModel, submitError: (ErrorViewModel.ThrowableMessage) -> Unit) {
     val backStack = screenBackStackModel.mainScreen.backStack
     val currentKey = backStack.lastOrNull()
     LaunchedEffect(currentKey) { screenBackStackModel.mainScreen.currentKey = currentKey }
-    if (backStack.isNotEmpty()) {
-        val navigateToVersions: (Version) -> Unit = { version -> screenBackStackModel.mainScreen.navigateTo(screenKey = NestedNavKey.VersionSettings(version), useClassEquality = true) }
-        val navigateToExport: (Version) -> Unit = { version -> screenBackStackModel.mainScreen.removeAndNavigateTo(remove = NestedNavKey.VersionSettings::class, screenKey = NestedNavKey.VersionExport(version), useClassEquality = true) }
-        NavDisplay(backStack = backStack, modifier = modifier, onBack = { onBack(backStack) }, transitionSpec = rememberTransitionSpec(), popTransitionSpec = rememberTransitionSpec(), entryProvider = entryProvider {
-            entry<NormalNavKey.LauncherMain> { LauncherScreen(backStackViewModel = screenBackStackModel, navigateToVersions = navigateToVersions, onLaunchGame = { version -> eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(version)) }, onOpenLink = { eventViewModel.sendEvent(EventViewModel.Event.OpenLink(it)) }, startGuideOnce = { keys -> eventViewModel.sendStartGuideOnce(keys) }) }
-            entry<NestedNavKey.Settings> { key -> SettingsScreen(key = key, backStackViewModel = screenBackStackModel, openLicenseScreen = { raw -> backStack.navigateTo(NormalNavKey.License(raw)) }, eventViewModel = eventViewModel, submitError = submitError) }
-            entry<NormalNavKey.License> { key -> LicenseScreen(key = key, backStackViewModel = screenBackStackModel) }
-            entry<NormalNavKey.McSkinLibrary> { com.movtery.zalithlauncher.ui.screens.content.McSkinScreen() }
-            entry<NormalNavKey.AccountManager> { key -> AccountManageScreen(key = key, backStackViewModel = screenBackStackModel, backToMainScreen = toMainScreen, openLink = { url -> eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url)) }, eventViewModel = eventViewModel, submitError = submitError) }
-            entry<NormalNavKey.WebScreen> { key -> WebViewScreen(key = key, backStackViewModel = screenBackStackModel, eventViewModel = eventViewModel) }
-            entry<NormalNavKey.VersionsManager> { VersionsManageScreen(backScreenViewModel = screenBackStackModel, navigateToVersions = navigateToVersions, navigateToExport = navigateToExport, eventViewModel = eventViewModel, submitError = submitError) }
-            entry<NormalNavKey.FileSelector> { key -> FileSelectorScreen(key = key, backScreenViewModel = screenBackStackModel) { backStack.removeLastOrNull() } }
-            entry<NestedNavKey.VersionSettings> { key -> VersionSettingsScreen(key = key, backScreenViewModel = screenBackStackModel, backToMainScreen = toMainScreen, onExportModpack = { navigateToExport(key.version) }, eventViewModel = eventViewModel, submitError = submitError) }
-            entry<NestedNavKey.VersionExport> { key -> VersionExportScreen(key = key, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, backToMainScreen = toMainScreen) }
-            entry<NestedNavKey.Download> { key -> DownloadScreen(key = key, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError) }
-            entry<NestedNavKey.AssetInfo> { key -> AssetInfoScreen(key = key, mainScreenKey = screenBackStackModel.mainScreen.currentKey, assetInfoScreenKey = key.currentKey, eventViewModel = eventViewModel, submitError = submitError) }
-            entry<NormalNavKey.Multiplayer> { MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel) }
-            entry<NormalNavKey.LogView> { key -> LogViewScreen(key = key, backStackViewModel = screenBackStackModel) }
-        })
-    } else Box(modifier)
-}
-
-@Composable
-private fun TaskMenu(tasks: List<Task>, isExpanded: Boolean, modifier: Modifier = Modifier, changeExpandedState: () -> Unit = {}) {
-    val show = isExpanded && tasks.isNotEmpty()
-    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    AnimatedVisibility(modifier = modifier, enter = fadeIn(tween(180)) + slideInHorizontally(initialOffsetX = { if (isRtl) it / 8 else -it / 8 }), exit = fadeOut(tween(180)) + slideOutHorizontally(targetOffsetX = { if (isRtl) it / 8 else -it / 8 }), visible = show) {
-        BackgroundCard(modifier = Modifier.fillMaxSize().padding(all = 6.dp), influencedByBackground = false, shape = MaterialTheme.shapes.extraLarge, colors = CardDefaults.cardColors(containerColor = backgroundColor(), contentColor = onBackgroundColor()), elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp)) {
-            Column {
-                CardTitleLayout(blur = 0) {
-                    Box(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).padding(top = 8.dp, bottom = 4.dp)) {
-                        IconButton(modifier = Modifier.size(28.dp).align(Alignment.CenterStart), onClick = changeExpandedState) { Icon(modifier = Modifier.size(28.dp), painter = painterResource(R.drawable.ic_arrow_left_rounded), contentDescription = stringResource(R.string.generic_collapse)) }
-                        Text(modifier = Modifier.align(Alignment.Center), text = stringResource(R.string.main_task_menu))
-                    }
-                }
-                LazyColumn(modifier = Modifier.fillMaxHeight().weight(1f), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) {
-                    items(tasks) { task ->
-                        val taskProgress by task.progress.collectAsStateWithLifecycle()
-                        val taskMessage by task.message.collectAsStateWithLifecycle()
-                        val rateBytesPerSec by task.rateBytesPerSec.collectAsStateWithLifecycle()
-                        TaskItem(taskProgress, taskMessage, rateBytesPerSec, Modifier.fillMaxWidth().padding(vertical = 6.dp)) { TaskSystem.cancelTask(task.id) }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TaskItem(taskProgress: Float, taskMessage: AndroidStringText?, rateBytesPerSec: Long?, modifier: Modifier = Modifier, shape: Shape = MaterialTheme.shapes.large, color: Color = cardColor(false), contentColor: Color = onCardColor(), onCancelClick: () -> Unit = {}) {
-    Surface(modifier = modifier, shape = shape, color = color, contentColor = contentColor) {
-        Row(modifier = Modifier.padding(all = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            IconButton(modifier = Modifier.size(24.dp).align(Alignment.CenterVertically), onClick = onCancelClick) { Icon(modifier = Modifier.size(20.dp), painter = painterResource(R.drawable.ic_close), contentDescription = stringResource(R.string.generic_cancel)) }
-            Column(modifier = Modifier.weight(1f).align(Alignment.CenterVertically)) {
-                taskMessage?.let { AndroidStringText(text = it, style = MaterialTheme.typography.labelMedium) }
-                if (taskProgress < 0) LinearProgressIndicator(modifier = Modifier.fillMaxWidth()) else LinearProgressIndicator(progress = { taskProgress }, modifier = Modifier.fillMaxWidth())
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (taskProgress >= 0f) Text("${(taskProgress * 100).toInt()}%", style = MaterialTheme.typography.labelMedium)
-                    rateBytesPerSec?.let { bytes -> Text(remember(bytes) { "${formatFileSize(bytes)}/s" }, style = MaterialTheme.typography.labelMedium) }
-                }
-            }
-        }
-    }
+    if (backStack.isEmpty()) { Box(modifier); return }
+    val navigateToVersions: (Version) -> Unit = { version -> screenBackStackModel.mainScreen.navigateTo(screenKey = NestedNavKey.VersionSettings(version), useClassEquality = true) }
+    val navigateToExport: (Version) -> Unit = { version -> screenBackStackModel.mainScreen.removeAndNavigateTo(remove = NestedNavKey.VersionSettings::class, screenKey = NestedNavKey.VersionExport(version), useClassEquality = true) }
+    NavDisplay(backStack = backStack, modifier = modifier, onBack = { onBack(backStack) }, transitionSpec = rememberTransitionSpec(), popTransitionSpec = rememberTransitionSpec(), entryProvider = entryProvider {
+        entry<NormalNavKey.LauncherMain> { LauncherScreen(backStackViewModel = screenBackStackModel, navigateToVersions = navigateToVersions, onLaunchGame = { version -> eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(version)) }, onOpenLink = { eventViewModel.sendEvent(EventViewModel.Event.OpenLink(it)) }, startGuideOnce = { keys -> eventViewModel.sendStartGuideOnce(keys) }) }
+        entry<NestedNavKey.Settings> { key -> SettingsScreen(key = key, backStackViewModel = screenBackStackModel, openLicenseScreen = { raw -> backStack.navigateTo(NormalNavKey.License(raw)) }, eventViewModel = eventViewModel, submitError = submitError) }
+        entry<NormalNavKey.License> { key -> LicenseScreen(key = key, backStackViewModel = screenBackStackModel) }
+        entry<NormalNavKey.McSkinLibrary> { com.movtery.zalithlauncher.ui.screens.content.McSkinScreen() }
+        entry<NormalNavKey.AccountManager> { key -> AccountManageScreen(key = key, backStackViewModel = screenBackStackModel, backToMainScreen = toMainScreen, openLink = { url -> eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url)) }, eventViewModel = eventViewModel, submitError = submitError) }
+        entry<NormalNavKey.WebScreen> { key -> WebViewScreen(key = key, backStackViewModel = screenBackStackModel, eventViewModel = eventViewModel) }
+        entry<NormalNavKey.VersionsManager> { VersionsManageScreen(backScreenViewModel = screenBackStackModel, navigateToVersions = navigateToVersions, navigateToExport = navigateToExport, eventViewModel = eventViewModel, submitError = submitError) }
+        entry<NormalNavKey.FileSelector> { key -> FileSelectorScreen(key = key, backScreenViewModel = screenBackStackModel) { backStack.removeLastOrNull() } }
+        entry<NestedNavKey.VersionSettings> { key -> VersionSettingsScreen(key = key, backScreenViewModel = screenBackStackModel, backToMainScreen = toMainScreen, onExportModpack = { navigateToExport(key.version) }, eventViewModel = eventViewModel, submitError = submitError) }
+        entry<NestedNavKey.VersionExport> { key -> VersionExportScreen(key = key, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, backToMainScreen = toMainScreen) }
+        entry<NestedNavKey.Download> { key -> DownloadScreen(key = key, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError) }
+        entry<NestedNavKey.AssetInfo> { key -> AssetInfoScreen(key = key, mainScreenKey = screenBackStackModel.mainScreen.currentKey, assetInfoScreenKey = key.currentKey, eventViewModel = eventViewModel, submitError = submitError) }
+        entry<NormalNavKey.Multiplayer> { MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel) }
+        entry<NormalNavKey.LogView> { key -> LogViewScreen(key = key, backStackViewModel = screenBackStackModel) }
+    })
 }

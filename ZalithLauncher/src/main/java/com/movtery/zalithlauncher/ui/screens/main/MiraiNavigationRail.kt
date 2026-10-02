@@ -61,6 +61,7 @@ fun MiraiNavigationRail(
             RailIcon(R.drawable.ic_home_filled, "Play", selectedSection == LauncherSection.HOME) { onNavigate(LauncherSection.HOME) }
             RailIcon(R.drawable.ic_search, "Discover", selectedSection == LauncherSection.DISCOVER) { onNavigate(LauncherSection.DISCOVER) }
             RailIcon(R.drawable.ic_checkroom, "Skins", selectedSection == LauncherSection.SKINS) { onNavigate(LauncherSection.SKINS) }
+            RailIcon(R.drawable.ic_wallpaper, "Wallpaper", selectedSection == LauncherSection.MULTIPLAYER) { onNavigate(LauncherSection.MULTIPLAYER) }
             RailIcon(R.drawable.ic_settings_filled, "Settings", selectedSection == LauncherSection.SETTINGS) { onNavigate(LauncherSection.SETTINGS) }
             AccountMark(currentAccount != null, currentAccount?.username ?: "Add account", onAccountClick) {
                 val faceAccount = currentAccount
@@ -84,12 +85,7 @@ private fun RailIcon(icon: Int, label: String, selected: Boolean, emphasized: Bo
         modifier = Modifier.padding(vertical = 4.dp).size(48.dp).clip(RoundedCornerShape(16.dp)).background(background).clickable(role = Role.Button, onClick = onClick).semantics { contentDescription = label },
         contentAlignment = Alignment.Center
     ) {
-        Image(
-            painterResource(icon),
-            contentDescription = null,
-            colorFilter = ColorFilter.tint(if (selected) Color(0xFF06210F) else Color.White),
-            modifier = Modifier.size(26.dp)
-        )
+        Image(painterResource(icon), contentDescription = null, colorFilter = ColorFilter.tint(if (selected) Color(0xFF06210F) else Color.White), modifier = Modifier.size(26.dp))
     }
 }
 

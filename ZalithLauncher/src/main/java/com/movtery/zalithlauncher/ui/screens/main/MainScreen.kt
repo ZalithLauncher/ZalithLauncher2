@@ -40,7 +40,6 @@ import com.movtery.zalithlauncher.ui.screens.content.FileSelectorScreen
 import com.movtery.zalithlauncher.ui.screens.content.LauncherScreen
 import com.movtery.zalithlauncher.ui.screens.content.LicenseScreen
 import com.movtery.zalithlauncher.ui.screens.content.LogViewScreen
-import com.movtery.zalithlauncher.ui.screens.content.MultiplayerScreen
 import com.movtery.zalithlauncher.ui.screens.content.SettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionExportScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionSettingsScreen
@@ -48,14 +47,12 @@ import com.movtery.zalithlauncher.ui.screens.content.VersionsManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.WebViewScreen
 import com.movtery.zalithlauncher.ui.screens.content.assetinfo.AssetInfoScreen
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiEditorPage
-import com.movtery.zalithlauncher.ui.screens.content.home.MiraiHostPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiInstanceDetail
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiLibraryPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiLogPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiLoginPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiPackPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiPlayPage
-import com.movtery.zalithlauncher.ui.screens.content.home.MiraiServersPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiSettingsPage
 import com.movtery.zalithlauncher.ui.screens.content.home.MiraiTutorialPage
 import com.movtery.zalithlauncher.ui.screens.navigateTo
@@ -114,9 +111,7 @@ fun MainScreen(screenBackStackModel: ScreenBackStackViewModel, eventViewModel: E
                         page == LauncherSection.HOME && !tool -> MiraiPlayPage(onLaunch = { version -> version?.let { eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(it)) } }, onExploreContent = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadModScreen) }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onManageVersions = { }, onOpenVersionSettings = { version -> openedVersion = version; instanceEditor = true }, modifier = Modifier.fillMaxSize())
                         page == LauncherSection.SKINS && !tool -> Column(modifier = Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { Text("Skins", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold); Text("Browse a skin, download it, and equip it.", color = Color(0xFFD7CFC8)); Text("Open skins", color = Color(0xFF1BD96A), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary); showTool = true }) }
                         page == LauncherSection.HOME && instanceEditor && openedVersion != null -> VersionSettingsScreen(key = NestedNavKey.VersionSettings(openedVersion!!), backScreenViewModel = screenBackStackModel, backToMainScreen = { instanceEditor = false }, onExportModpack = { exportVersion = openedVersion; section = LauncherSection.SETTINGS; instanceEditor = false }, eventViewModel = eventViewModel, submitError = submitError)
-                        page == LauncherSection.MULTIPLAYER && !tool && serversOpen && runAction -> MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel)
-                        page == LauncherSection.MULTIPLAYER && !tool && serversOpen -> MiraiHostPage(onHost = { runAction = true }, onBack = { serversOpen = false }, modifier = Modifier.fillMaxSize())
-                        page == LauncherSection.MULTIPLAYER && !tool -> MiraiServersPage(onMultiplayer = { serversOpen = true; runAction = false }, modifier = Modifier.fillMaxSize())
+                        page == LauncherSection.MULTIPLAYER && !tool -> WallpaperPage(Modifier.fillMaxSize())
                         page == LauncherSection.SETTINGS && !tool && accountsOpen && runAction -> AccountManageScreen(key = NormalNavKey.AccountManager(FirstLoginMenu.NONE), backStackViewModel = screenBackStackModel, backToMainScreen = { accountsOpen = false; runAction = false }, openLink = { url -> eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url)) }, eventViewModel = eventViewModel, submitError = submitError)
                         page == LauncherSection.SETTINGS && !tool && accountsOpen -> MiraiLoginPage(onOffline = { runAction = true }, onMicrosoft = { runAction = true }, onBack = { accountsOpen = false }, modifier = Modifier.fillMaxSize())
                         page == LauncherSection.SETTINGS && !tool && exportVersion != null && runAction -> VersionExportScreen(key = NestedNavKey.VersionExport(exportVersion!!), backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, backToMainScreen = { exportVersion = null; runAction = false })
@@ -156,7 +151,6 @@ private fun NavigationUI(modifier: Modifier = Modifier, screenBackStackModel: Sc
         entry<NestedNavKey.VersionExport> { key -> VersionExportScreen(key = key, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, backToMainScreen = toMainScreen) }
         entry<NestedNavKey.Download> { key -> DownloadScreen(key = key, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError) }
         entry<NestedNavKey.AssetInfo> { key -> AssetInfoScreen(key = key, mainScreenKey = screenBackStackModel.mainScreen.currentKey, assetInfoScreenKey = key.currentKey, eventViewModel = eventViewModel, submitError = submitError) }
-        entry<NormalNavKey.Multiplayer> { MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel) }
         entry<NormalNavKey.LogView> { key -> LogViewScreen(key = key, backStackViewModel = screenBackStackModel) }
     })
 }

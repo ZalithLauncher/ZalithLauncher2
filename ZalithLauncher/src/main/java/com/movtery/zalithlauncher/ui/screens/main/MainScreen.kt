@@ -2,7 +2,6 @@ package com.movtery.zalithlauncher.ui.screens.main
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,7 +19,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -88,40 +86,17 @@ fun MainScreen(screenBackStackModel: ScreenBackStackViewModel, eventViewModel: E
     fun openDownload(target: TitledNavKey) { screenBackStackModel.downloadScreen.clearWith(target); screenBackStackModel.mainScreen.currentKey = screenBackStackModel.downloadScreen; runAction = false }
     fun openSetting(target: NormalNavKey.Settings) { screenBackStackModel.settingsScreen.clearWith(target); screenBackStackModel.mainScreen.currentKey = screenBackStackModel.settingsScreen; settingsTarget = target; runAction = false }
     fun playSelected() { section = LauncherSection.HOME; VersionsManager.currentVersion.value?.let { eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(it)) } }
-    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(Color(0xFF120818), Color(0xFF5A3D86), Color(0xFFE24A1B))))) {
+    CaveBackground {
         Row(modifier = Modifier.fillMaxSize()) {
-            MiraiNavigationRail(
-                modifier = Modifier.fillMaxHeight(),
-                selectedSection = section,
-                onNavigate = { next ->
-                    section = next
-                    showTool = false
-                    tutorialOpen = false
-                    accountsOpen = false
-                    exportVersion = null
-                    logPath = null
-                    openedVersion = null
-                    instanceEditor = false
-                    serversOpen = false
-                    settingsTarget = null
-                    runAction = false
-                    if (next == LauncherSection.HOME) toMainScreen()
-                    if (next == LauncherSection.DISCOVER) openDownload(screenBackStackModel.downloadModScreen)
-                },
-                onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) },
-                onAccountClick = { section = LauncherSection.SETTINGS; accountsOpen = true; runAction = false },
-                onPlay = { playSelected() }
-            )
+            MiraiNavigationRail(modifier = Modifier.fillMaxHeight(), selectedSection = section, onNavigate = { next -> section = next; showTool = false; tutorialOpen = false; accountsOpen = false; exportVersion = null; logPath = null; openedVersion = null; instanceEditor = false; serversOpen = false; settingsTarget = null; runAction = false; if (next == LauncherSection.HOME) toMainScreen(); if (next == LauncherSection.DISCOVER) openDownload(screenBackStackModel.downloadModScreen) }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onAccountClick = { section = LauncherSection.SETTINGS; accountsOpen = true; runAction = false }, onPlay = { playSelected() })
             Box(modifier = Modifier.fillMaxHeight().weight(1f)) {
-                Crossfade(targetState = section to showTool, animationSpec = tween(180), label = "mirai-page") { (page, tool) ->
+                if (section == LauncherSection.DISCOVER && !showTool) {
+                    DownloadScreen(key = screenBackStackModel.downloadScreen, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
+                } else Crossfade(targetState = section to showTool, animationSpec = tween(120), label = "mirai-page") { (page, tool) ->
                     when {
                         page == LauncherSection.HOME && !tool -> MiraiPlayPage(onLaunch = { version -> version?.let { eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(it)) } }, onExploreContent = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadModScreen) }, onCreateInstance = { section = LauncherSection.DISCOVER; openDownload(screenBackStackModel.downloadGameScreen) }, onManageVersions = { }, onOpenVersionSettings = { version -> openedVersion = version; instanceEditor = true }, modifier = Modifier.fillMaxSize())
                         page == LauncherSection.SKINS && !tool -> Column(modifier = Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) { Text("Skins", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold); Text("Browse a skin, download it, and equip it.", color = Color(0xFFD7CFC8)); Text("Open skins", color = Color(0xFF1BD96A), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable { screenBackStackModel.mainScreen.clearWith(NormalNavKey.McSkinLibrary); showTool = true }) }
-                        page == LauncherSection.DISCOVER && !tool -> DownloadScreen(key = screenBackStackModel.downloadScreen, backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel, modpackImportViewModel = modpackImportViewModel, submitError = submitError)
                         page == LauncherSection.HOME && instanceEditor && openedVersion != null -> VersionSettingsScreen(key = NestedNavKey.VersionSettings(openedVersion!!), backScreenViewModel = screenBackStackModel, backToMainScreen = { instanceEditor = false }, onExportModpack = { exportVersion = openedVersion; section = LauncherSection.SETTINGS; instanceEditor = false }, eventViewModel = eventViewModel, submitError = submitError)
-                        page == LauncherSection.LIBRARY && !tool && openedVersion != null && instanceEditor -> VersionSettingsScreen(key = NestedNavKey.VersionSettings(openedVersion!!), backScreenViewModel = screenBackStackModel, backToMainScreen = { instanceEditor = false }, onExportModpack = { exportVersion = openedVersion; section = LauncherSection.SETTINGS }, eventViewModel = eventViewModel, submitError = submitError)
-                        page == LauncherSection.LIBRARY && !tool && openedVersion != null -> MiraiInstanceDetail(openedVersion!!, onOpenContent = { instanceEditor = true }, onBack = { openedVersion = null }, modifier = Modifier.fillMaxSize())
-                        page == LauncherSection.LIBRARY && !tool -> MiraiLibraryPage(onOpenInstance = { openedVersion = it }, onFiles = { eventViewModel.sendEvent(EventViewModel.Event.OpenFileManager(rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath)) }, modifier = Modifier.fillMaxSize())
                         page == LauncherSection.MULTIPLAYER && !tool && serversOpen && runAction -> MultiplayerScreen(backScreenViewModel = screenBackStackModel, eventViewModel = eventViewModel)
                         page == LauncherSection.MULTIPLAYER && !tool && serversOpen -> MiraiHostPage(onHost = { runAction = true }, onBack = { serversOpen = false }, modifier = Modifier.fillMaxSize())
                         page == LauncherSection.MULTIPLAYER && !tool -> MiraiServersPage(onMultiplayer = { serversOpen = true; runAction = false }, modifier = Modifier.fillMaxSize())

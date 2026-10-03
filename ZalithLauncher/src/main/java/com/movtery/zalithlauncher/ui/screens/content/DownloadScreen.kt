@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.download.assets.favorites.FavoriteProjectsRepository
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
@@ -155,7 +156,7 @@ private fun NavigationUI(
                     categories.forEach { cat ->
                         val selected = stackTopKey?.javaClass == cat.target.javaClass
                         val bgColor by animateColorAsState(
-                            targetValue = if (selected) Color(0xFF1BD96A) else Color(0xFF21242B),
+                            targetValue = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF21242B),
                             animationSpec = tween(160),
                             label = "discoverCatBg"
                         )
@@ -170,7 +171,7 @@ private fun NavigationUI(
                             color = bgColor,
                             border = BorderStroke(
                                 1.dp,
-                                if (selected) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                                if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
                             ),
                             onClick = {
                                 backScreenViewModel.navigateToDownload(cat.target)

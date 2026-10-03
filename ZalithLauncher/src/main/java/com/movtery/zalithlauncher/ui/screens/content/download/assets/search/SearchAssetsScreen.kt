@@ -70,6 +70,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformDisplayLabel
@@ -405,7 +406,7 @@ fun SearchAssetsScreen(
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium
                             ),
-                            cursorBrush = SolidColor(Color(0xFF1BD96A)),
+                            cursorBrush = SolidColor(MiraiThemeManager.currentAccent()),
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                             keyboardActions = KeyboardActions(onSearch = { viewModel.resetSearch() }),
                             modifier = Modifier.fillMaxWidth()
@@ -478,7 +479,7 @@ fun SearchAssetsScreen(
                                     Text(
                                         text = "All Categories",
                                         fontWeight = if (selectedCats.isEmpty()) FontWeight.Bold else FontWeight.Normal,
-                                        color = if (selectedCats.isEmpty()) Color(0xFF1BD96A) else Color.Unspecified
+                                        color = if (selectedCats.isEmpty()) MiraiThemeManager.currentAccent() else Color.Unspecified
                                     )
                                 },
                                 onClick = {
@@ -495,7 +496,7 @@ fun SearchAssetsScreen(
                                         Text(
                                             text = stringResource(cat.getDisplayName()),
                                             fontWeight = if (isCatSelected) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (isCatSelected) Color(0xFF1BD96A) else Color.Unspecified
+                                            color = if (isCatSelected) MiraiThemeManager.currentAccent() else Color.Unspecified
                                         )
                                     },
                                     onClick = {

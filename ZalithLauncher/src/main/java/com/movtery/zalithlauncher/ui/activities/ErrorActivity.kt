@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
+import com.movtery.zalithlauncher.game.optimization.SmartCrashDoctorCard
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.screens.main.ErrorScreen
@@ -168,6 +169,12 @@ class ErrorActivity : BaseAppCompatActivity() {
                             this@ErrorActivity.requestedOrientation = it
                         },
                     ) {
+                        SmartCrashDoctorCard(
+                            logFile = logFile,
+                            onRestartClick = {
+                                ProcessPhoenix.triggerRebirth(this@ErrorActivity)
+                            }
+                        )
                         Text(
                             text = errorMessage.message,
                             style = MaterialTheme.typography.bodyMedium

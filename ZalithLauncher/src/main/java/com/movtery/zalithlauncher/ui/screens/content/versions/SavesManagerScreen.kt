@@ -84,6 +84,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.context.COPY_LABEL_SAVE_SEED
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.version.installed.Version
@@ -659,8 +660,9 @@ private fun SaveItemLayout(
 
                 if (saveData.isValid) {
                     Row(
-                        modifier = Modifier.alpha(0.7f),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        modifier = Modifier.alpha(0.75f),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         val timeString = formatDate(
                             date = Date(saveData.lastPlayed ?: saveData.saveFile.lastModified()),
@@ -670,16 +672,79 @@ private fun SaveItemLayout(
                             text = stringResource(R.string.saves_manage_last_played, timeString),
                             style = MaterialTheme.typography.bodySmall
                         )
+                        saveData.worldSeed?.let { seedValue ->
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                                onClick = { copyText(COPY_LABEL_SAVE_SEED, seedValue.toString(), context) }
+                            ) {
+                                Text(
+                                    text = "Seed: $seedValue 📋",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
 
             Row(
                 modifier = Modifier.align(Alignment.CenterVertically),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (saveData.isValid) {
+                    // 1-Tap Backup .zip Pill Button
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        onClick = { updateOperation(SavesOperation.BackupSave(saveData)) }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_save_filled),
+                                contentDescription = stringResource(R.string.saves_manage_backup),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Text(
+                                text = "Backup .zip",
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
+
+                    // 1-Tap Quick Join World Pill Button
+                    if (quickPlay.isQuickPlaySingleplayer) {
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = MiraiThemeManager.currentAccent(),
+                            contentColor = Color(0xFF06210F),
+                            onClick = { updateOperation(SavesOperation.QuickPlay(saveData)) }
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 9.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_play_arrow_filled),
+                                    contentDescription = stringResource(R.string.saves_manage_quick_play),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "Quick Join",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
+                        }
+                    }
+
                     //详细信息展示
                     TooltipIconButton(
                         modifier = Modifier.size(38.dp),

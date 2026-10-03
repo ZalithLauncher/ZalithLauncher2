@@ -85,6 +85,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersions
 import com.movtery.zalithlauncher.game.versioninfo.models.isType
@@ -370,7 +371,7 @@ fun SelectGameVersionScreen(
                                             fontSize = 13.sp,
                                             fontWeight = FontWeight.SemiBold
                                         ),
-                                        cursorBrush = SolidColor(Color(0xFF1BD96A)),
+                                        cursorBrush = SolidColor(MiraiThemeManager.currentAccent()),
                                         modifier = Modifier.fillMaxWidth()
                                     )
                                 }
@@ -404,10 +405,10 @@ fun SelectGameVersionScreen(
                                 filterItems.forEach { (label, active, onToggle) ->
                                     Surface(
                                         shape = RoundedCornerShape(14.dp),
-                                        color = if (active) Color(0xFF1BD96A) else Color(0xFF21242B),
+                                        color = if (active) MiraiThemeManager.currentAccent() else Color(0xFF21242B),
                                         border = BorderStroke(
                                             1.dp,
-                                            if (active) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                                            if (active) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
                                         ),
                                         onClick = onToggle
                                     ) {
@@ -448,7 +449,7 @@ fun SelectGameVersionScreen(
                                             color = Color.White,
                                             fontSize = 11.sp
                                         ),
-                                        cursorBrush = SolidColor(Color(0xFF1BD96A)),
+                                        cursorBrush = SolidColor(MiraiThemeManager.currentAccent()),
                                         modifier = Modifier.fillMaxWidth()
                                     )
                                 }
@@ -474,7 +475,7 @@ fun SelectGameVersionScreen(
                                         color = if (isSelected) Color(0xFF172D22) else Color(0xFF21242B),
                                         border = BorderStroke(
                                             width = if (isSelected) 1.5.dp else 1.dp,
-                                            color = if (isSelected) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                                            color = if (isSelected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
                                         ),
                                         onClick = {
                                             selectedVersionId = verId
@@ -551,7 +552,7 @@ fun SelectGameVersionScreen(
                                                 color = if (isSelected) Color(0xFF1B2B24) else Color(0xFF21242B),
                                                 border = BorderStroke(
                                                     width = if (isSelected) 1.5.dp else 1.dp,
-                                                    color = if (isSelected) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                                                    color = if (isSelected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
                                                 ),
                                                 onClick = { selectedLoader = loaderName }
                                             ) {
@@ -572,7 +573,7 @@ fun SelectGameVersionScreen(
                                                         Text(
                                                             text = subLabel,
                                                             fontSize = 11.sp,
-                                                            color = if (isSelected) Color(0xFF1BD96A) else Color(0xFF9CA3AF)
+                                                            color = if (isSelected) MiraiThemeManager.currentAccent() else Color(0xFF9CA3AF)
                                                         )
                                                     }
                                                 }
@@ -589,7 +590,7 @@ fun SelectGameVersionScreen(
                                     .height(44.dp),
                                 shape = RoundedCornerShape(22.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF1BD96A),
+                                    containerColor = MiraiThemeManager.currentAccent(),
                                     contentColor = Color(0xFF06210F)
                                 )
                             ) {

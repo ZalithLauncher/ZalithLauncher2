@@ -70,6 +70,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
 import com.movtery.zalithlauncher.game.plugin.driver.Driver
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
@@ -213,7 +214,7 @@ fun RendererSettingsScreen(
                                 }
 
                                 val borderColor by animateColorAsState(
-                                    targetValue = if (isSelected) Color(0xFF1BD96A) else Color(0xFF2E323C),
+                                    targetValue = if (isSelected) MiraiThemeManager.currentAccent() else Color(0xFF2E323C),
                                     animationSpec = tween(160),
                                     label = "rendererOptionBorder"
                                 )
@@ -253,7 +254,7 @@ fun RendererSettingsScreen(
                                                 }
                                             },
                                             colors = RadioButtonDefaults.colors(
-                                                selectedColor = Color(0xFF1BD96A),
+                                                selectedColor = MiraiThemeManager.currentAccent(),
                                                 unselectedColor = Color(0xFF9CA3AF)
                                             ),
                                             modifier = Modifier.size(20.dp)
@@ -326,7 +327,7 @@ fun RendererSettingsScreen(
                                     text = "${AllSettings.ramAllocation.state} MB / $totalRamMb MB",
                                     style = MaterialTheme.typography.labelLarge,
                                     fontWeight = FontWeight.ExtraBold,
-                                    color = Color(0xFF1BD96A)
+                                    color = MiraiThemeManager.currentAccent()
                                 )
                             }
 
@@ -356,10 +357,10 @@ fun RendererSettingsScreen(
                                 val currentJre = AllSettings.javaRuntime.state
                                 Surface(
                                     shape = RoundedCornerShape(12.dp),
-                                    color = if (currentJre.isEmpty()) Color(0xFF1BD96A) else Color(0xFF17191E),
+                                    color = if (currentJre.isEmpty()) MiraiThemeManager.currentAccent() else Color(0xFF17191E),
                                     border = BorderStroke(
                                         1.dp,
-                                        if (currentJre.isEmpty()) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                                        if (currentJre.isEmpty()) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
                                     ),
                                     onClick = {
                                         AllSettings.autoPickJavaRuntime.save(true)
@@ -379,10 +380,10 @@ fun RendererSettingsScreen(
                                     val selected = currentJre == runtime.name
                                     Surface(
                                         shape = RoundedCornerShape(12.dp),
-                                        color = if (selected) Color(0xFF1BD96A) else Color(0xFF17191E),
+                                        color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF17191E),
                                         border = BorderStroke(
                                             1.dp,
-                                            if (selected) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                                            if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
                                         ),
                                         onClick = {
                                             AllSettings.autoPickJavaRuntime.save(false)
@@ -434,7 +435,7 @@ fun RendererSettingsScreen(
                             },
                             shape = RoundedCornerShape(16.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF1BD96A),
+                                containerColor = MiraiThemeManager.currentAccent(),
                                 contentColor = Color(0xFF06210F)
                             ),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)

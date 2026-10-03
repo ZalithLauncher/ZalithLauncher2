@@ -108,6 +108,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
@@ -859,7 +860,7 @@ private fun ModsActionsHeader(
                     color = if (selected) Color(0xFF143825) else Color(0xFF21242B),
                     border = androidx.compose.foundation.BorderStroke(
                         1.dp,
-                        if (selected) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                        if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
                     ),
                     onClick = { onStateFilterChange(filter) }
                 ) {
@@ -872,14 +873,14 @@ private fun ModsActionsHeader(
                             text = stringResource(filter.textRes),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (selected) Color(0xFF1BD96A) else Color(0xFFE5E7EB)
+                            color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFFE5E7EB)
                         )
                         if (count != null) {
                             Text(
                                 text = count.toString(),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Bold,
-                                color = if (selected) Color(0xFF1BD96A) else Color(0xFF9CA3AF)
+                                color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF9CA3AF)
                             )
                         }
                     }
@@ -930,7 +931,7 @@ private fun ModsActionsHeader(
                 onClick = swapToDownload,
                 shape = RoundedCornerShape(10.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1BD96A),
+                    containerColor = MiraiThemeManager.currentAccent(),
                     contentColor = Color(0xFF06210F)
                 ),
                 contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
@@ -1193,7 +1194,7 @@ private fun ModItemLayout(
                     },
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = Color(0xFF06210F),
-                        checkedTrackColor = Color(0xFF1BD96A),
+                        checkedTrackColor = MiraiThemeManager.currentAccent(),
                         uncheckedThumbColor = Color(0xFF9CA3AF),
                         uncheckedTrackColor = Color(0xFF282C36),
                         uncheckedBorderColor = Color(0xFF3E4452)

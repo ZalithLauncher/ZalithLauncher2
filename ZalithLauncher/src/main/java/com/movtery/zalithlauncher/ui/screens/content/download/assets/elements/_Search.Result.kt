@@ -84,6 +84,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.download.assets.favorites.FavoriteProjectsRepository
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
@@ -570,8 +571,8 @@ fun ResultProjectLayout(
 
                     Surface(
                         shape = RoundedCornerShape(16.dp),
-                        color = if (isInstalled) Color(0xFF143825) else Color(0xFF1BD96A),
-                        contentColor = if (isInstalled) Color(0xFF1BD96A) else Color(0xFF06210F),
+                        color = if (isInstalled) Color(0xFF143825) else MiraiThemeManager.currentAccent(),
+                        contentColor = if (isInstalled) MiraiThemeManager.currentAccent() else Color(0xFF06210F),
                         onClick = onClick
                     ) {
                         Text(

@@ -63,6 +63,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.addons.modloader.cleanroom.CleanroomVersions
 import com.movtery.zalithlauncher.game.addons.modloader.fabriclike.fabric.FabricAPIVersions
@@ -707,7 +708,7 @@ private fun ScreenHeader(
                 enabled = !isError,
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1BD96A),
+                    containerColor = MiraiThemeManager.currentAccent(),
                     contentColor = Color(0xFF06210F)
                 ),
                 modifier = Modifier.padding(start = 6.dp)

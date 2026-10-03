@@ -90,6 +90,7 @@ import com.movtery.zalithlauncher.game.download.game.GameInstaller
 import com.movtery.zalithlauncher.game.download.game.optifine.CantFetchingOptiFineUrlException
 import com.movtery.zalithlauncher.game.download.jvm_server.JvmCrashException
 import com.movtery.zalithlauncher.game.download.jvm_server.isProcessStartRefused
+import com.movtery.zalithlauncher.game.optimization.MobileFpsBoosterDialog
 import com.movtery.zalithlauncher.game.version.download.DownloadFailedException
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
@@ -120,6 +121,7 @@ import com.movtery.zalithlauncher.ui.screens.content.versions.VersionOverViewScr
 import com.movtery.zalithlauncher.ui.screens.navigateOnce
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -325,15 +327,24 @@ private fun ModrinthInstanceHeroBanner(
     onOpenFolder: () -> Unit
 ) {
     val context = LocalContext.current
+    val activeAccent = MiraiThemeManager.currentAccent()
     val info = version.getVersionInfo()
     val mcVer = info?.minecraftVersion ?: "Unknown"
     val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
     val ramMb = remember(version) { version.getRamAllocation(context) }
+    var showFpsBooster by remember { mutableStateOf(false) }
+
+    if (showFpsBooster) {
+        MobileFpsBoosterDialog(
+            version = version,
+            onDismiss = { showFpsBooster = false }
+        )
+    }
 
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Back Arrow Button
         Surface(
@@ -369,7 +380,7 @@ private fun ModrinthInstanceHeroBanner(
             )
         }
 
-        // Title + Inline Subtitle ("Fabric 1.21.1 • LTW • 4096 MB")
+        // Title + Inline Subtitle
         Column(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(1.dp)
@@ -389,6 +400,28 @@ private fun ModrinthInstanceHeroBanner(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+        }
+
+        // 1-Tap Mobile FPS Booster Button
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = activeAccent.copy(alpha = 0.16f),
+            border = BorderStroke(1.dp, activeAccent.copy(alpha = 0.7f)),
+            onClick = { showFpsBooster = true }
+        ) {
+            Row(
+                modifier = Modifier
+                    .height(34.dp)
+                    .padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "⚡ Boost FPS",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = activeAccent
+                )
+            }
         }
 
         // Open Folder Button
@@ -411,12 +444,12 @@ private fun ModrinthInstanceHeroBanner(
             }
         }
 
-        // Emerald '▶ Play' Button
+        // Dynamic Accent '▶ Play' Button
         Button(
             onClick = onPlay,
             shape = RoundedCornerShape(10.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1BD96A),
+                containerColor = activeAccent,
                 contentColor = Color(0xFF06210F)
             ),
             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
@@ -444,12 +477,14 @@ private fun ModrinthInstanceSubTabs(
     canUpdateLoader: Boolean,
     isUpdateLoader: Boolean
 ) {
+    val activeAccent = MiraiThemeManager.currentAccent()
     val tabs = remember(canUpdateLoader, isUpdateLoader) {
         buildList {
             add(ModrinthSubTabItem(NormalNavKey.Versions.ModsManager, "Mods", R.drawable.ic_extension_outlined))
             add(ModrinthSubTabItem(NormalNavKey.Versions.ResourcePackManager, "Resource Packs", R.drawable.ic_format_paint_outlined))
             add(ModrinthSubTabItem(NormalNavKey.Versions.ShadersManager, "Shaders", R.drawable.ic_lightbulb))
             add(ModrinthSubTabItem(NormalNavKey.Versions.SavesManager, "Worlds", R.drawable.ic_public))
+            add(ModrinthSubTabItem(NormalNavKey.Versions.ScreenshotsManager, "Screenshots", R.drawable.ic_image_outlined))
             add(ModrinthSubTabItem(NormalNavKey.Versions.Config, "Settings", R.drawable.ic_build_outlined))
             add(ModrinthSubTabItem(NormalNavKey.Versions.OverView, "Overview", R.drawable.ic_dashboard_outlined))
             if (canUpdateLoader) {
@@ -469,13 +504,13 @@ private fun ModrinthInstanceSubTabs(
         tabs.forEach { tab ->
             val selected = versionsScreenKey === tab.key
             val bgColor by animateColorAsState(
-                targetValue = if (selected) Color(0xFF1BD96A) else Color(0xFF21242B),
-                animationSpec = tween(160),
+                targetValue = if (selected) activeAccent else Color(0xFF21242B),
+                animationSpec = tween(140),
                 label = "subTabBg"
             )
             val textColor by animateColorAsState(
                 targetValue = if (selected) Color(0xFF06210F) else Color(0xFFE5E7EB),
-                animationSpec = tween(160),
+                animationSpec = tween(140),
                 label = "subTabText"
             )
 
@@ -484,7 +519,7 @@ private fun ModrinthInstanceSubTabs(
                 color = bgColor,
                 border = BorderStroke(
                     1.dp,
-                    if (selected) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                    if (selected) activeAccent else Color(0xFF2E333E)
                 ),
                 onClick = {
                     if (tab.key == NormalNavKey.Versions.UpdateLoader) {

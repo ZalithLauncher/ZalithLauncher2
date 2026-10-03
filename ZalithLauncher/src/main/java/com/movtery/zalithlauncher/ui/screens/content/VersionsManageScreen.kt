@@ -92,6 +92,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionComparator
@@ -616,7 +617,7 @@ private fun VersionsLayout(
                             color = if (showGamePathDrawer) Color(0xFF143825) else Color(0xFF21242B),
                             border = BorderStroke(
                                 1.dp,
-                                if (showGamePathDrawer) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                                if (showGamePathDrawer) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
                             ),
                             onClick = onToggleGamePathDrawer
                         ) {
@@ -624,7 +625,7 @@ private fun VersionsLayout(
                                 Icon(
                                     painter = painterResource(R.drawable.ic_folder_outlined),
                                     contentDescription = "Directories",
-                                    tint = if (showGamePathDrawer) Color(0xFF1BD96A) else Color(0xFFD1D5DB),
+                                    tint = if (showGamePathDrawer) MiraiThemeManager.currentAccent() else Color(0xFFD1D5DB),
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
@@ -634,7 +635,7 @@ private fun VersionsLayout(
                             onClick = onInstall,
                             shape = RoundedCornerShape(12.dp),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF1BD96A),
+                                containerColor = MiraiThemeManager.currentAccent(),
                                 contentColor = Color(0xFF06210F)
                             ),
                             contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
@@ -664,10 +665,10 @@ private fun VersionsLayout(
                             val selected = selectedFilter == group
                             Surface(
                                 shape = RoundedCornerShape(16.dp),
-                                color = if (selected) Color(0xFF1BD96A) else Color(0xFF21242B),
+                                color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF21242B),
                                 border = BorderStroke(
                                     1.dp,
-                                    if (selected) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                                    if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
                                 ),
                                 onClick = { selectedFilter = group }
                             ) {
@@ -709,7 +710,7 @@ private fun VersionsLayout(
                                     Button(
                                         onClick = onInstall,
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color(0xFF1BD96A),
+                                            containerColor = MiraiThemeManager.currentAccent(),
                                             contentColor = Color(0xFF06210F)
                                         )
                                     ) {
@@ -807,7 +808,7 @@ private fun ModrinthLibraryInstanceCard(
         label = "libCardScale"
     )
     val borderColor by animateColorAsState(
-        targetValue = if (selected) Color(0xFF1BD96A) else Color(0xFF2E323C),
+        targetValue = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E323C),
         animationSpec = tween(220),
         label = "libCardBorder"
     )
@@ -1014,7 +1015,7 @@ private fun ModrinthLibraryInstanceCard(
 
                     Surface(
                         shape = RoundedCornerShape(16.dp),
-                        color = Color(0xFF1BD96A),
+                        color = MiraiThemeManager.currentAccent(),
                         contentColor = Color(0xFF06210F),
                         onClick = onPlayClick
                     ) {

@@ -76,9 +76,11 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.GamepadSettingsScr
 import com.movtery.zalithlauncher.ui.screens.content.settings.JavaManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.LauncherSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.RendererSettingsScreen
+import com.movtery.zalithlauncher.ui.screens.main.WallpaperPage
 import com.movtery.zalithlauncher.ui.screens.navigateOnce
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
@@ -88,7 +90,8 @@ private data class ModrinthSettingNavItem(
     val key: TitledNavKey,
     val iconRes: Int,
     val textRes: Int,
-    val division: Boolean = false
+    val division: Boolean = false,
+    val customLabel: String? = null
 )
 
 @Composable
@@ -139,7 +142,8 @@ private val settingItems = listOf(
     ModrinthSettingNavItem(NormalNavKey.Settings.Renderer, R.drawable.ic_video_settings, R.string.settings_tab_renderer),
     ModrinthSettingNavItem(NormalNavKey.Settings.Game, R.drawable.ic_rocket_launch_filled, R.string.settings_tab_game),
     ModrinthSettingNavItem(NormalNavKey.Settings.JavaManager, R.drawable.ic_java, R.string.settings_tab_java_manage),
-    ModrinthSettingNavItem(NormalNavKey.Settings.Launcher, R.drawable.ic_setting_launcher, R.string.settings_tab_launcher, division = true),
+    ModrinthSettingNavItem(NormalNavKey.Settings.Wallpapers, R.drawable.ic_format_paint_outlined, R.string.settings_tab_launcher, division = true, customLabel = "Wallpapers"),
+    ModrinthSettingNavItem(NormalNavKey.Settings.Launcher, R.drawable.ic_setting_launcher, R.string.settings_tab_launcher),
     ModrinthSettingNavItem(NormalNavKey.Settings.Control, R.drawable.ic_videogame_asset_outlined, R.string.settings_tab_control, division = true),
     ModrinthSettingNavItem(NormalNavKey.Settings.ControlManager, R.drawable.ic_videogame_asset_outlined, R.string.settings_tab_control_manage),
     ModrinthSettingNavItem(NormalNavKey.Settings.Gamepad, R.drawable.ic_sports_esports_outlined, R.string.settings_tab_gamepad),
@@ -153,6 +157,7 @@ private fun TabMenu(
     navigateTo: (TitledNavKey) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val activeAccent = MiraiThemeManager.currentAccent()
     val xOffset by swapAnimateDpAsState(
         targetValue = (-40).dp,
         swapIn = isVisible,
@@ -165,7 +170,7 @@ private fun TabMenu(
             .width(156.dp)
             .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
         shape = RoundedCornerShape(14.dp),
-        color = Color(0xFF1A1D24),
+        color = Color(0xFF1A1D24).copy(alpha = 0.92f),
         border = BorderStroke(1.dp, Color(0xFF2B2F3A))
     ) {
         Column(
@@ -186,13 +191,13 @@ private fun TabMenu(
 
                 val selected = settingsScreenKey === item.key
                 val bgColor by animateColorAsState(
-                    targetValue = if (selected) Color(0xFF1BD96A) else Color.Transparent,
-                    animationSpec = tween(160),
+                    targetValue = if (selected) activeAccent else Color.Transparent,
+                    animationSpec = tween(140),
                     label = "settingsTabBg"
                 )
                 val fgColor by animateColorAsState(
                     targetValue = if (selected) Color(0xFF06210F) else Color(0xFFD1D5DB),
-                    animationSpec = tween(160),
+                    animationSpec = tween(140),
                     label = "settingsTabFg"
                 )
 
@@ -214,7 +219,7 @@ private fun TabMenu(
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = stringResource(item.textRes),
+                        text = item.customLabel ?: stringResource(item.textRes),
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
                         color = fgColor,
@@ -273,6 +278,9 @@ private fun NavigationUI(
                         mainScreenKey = mainScreenKey,
                         submitError = submitError,
                     )
+                }
+                entry<NormalNavKey.Settings.Wallpapers> {
+                    WallpaperPage(modifier = Modifier.fillMaxSize())
                 }
                 entry<NormalNavKey.Settings.JavaManager> {
                     JavaManageScreen(key, settingsScreenKey, mainScreenKey, eventViewModel, submitError)

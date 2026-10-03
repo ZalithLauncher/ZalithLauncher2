@@ -48,7 +48,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,11 +66,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.TaskSystem
+import com.movtery.zalithlauncher.game.optimization.MobileFpsBoosterDialog
+import com.movtery.zalithlauncher.game.optimization.SmartCrashDoctorDialog
 import com.movtery.zalithlauncher.game.renderer.RendererPicker
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 
 private val ModrinthCardColor = Color(0xFF21242B)
 private val ModrinthCardBorder = Color(0xFF2E333E)
@@ -126,6 +131,24 @@ fun MiraiHomeDashboard(
     val versions by VersionsManager.versions.collectAsStateWithLifecycle()
     val currentVersion by VersionsManager.currentVersion.collectAsStateWithLifecycle()
     val tasks by TaskSystem.tasksFlow.collectAsStateWithLifecycle()
+    val activeAccent = MiraiThemeManager.currentAccent()
+
+    var showFpsBoosterFor by remember { mutableStateOf<Version?>(null) }
+    var showCrashDoctor by remember { mutableStateOf(false) }
+
+    showFpsBoosterFor?.let { targetVer ->
+        MobileFpsBoosterDialog(
+            version = targetVer,
+            onDismiss = { showFpsBoosterFor = null }
+        )
+    }
+
+    if (showCrashDoctor) {
+        SmartCrashDoctorDialog(
+            version = currentVersion ?: versions.firstOrNull(),
+            onDismiss = { showCrashDoctor = false }
+        )
+    }
 
     val jumpBackInVersions = remember(versions, currentVersion) {
         buildList {
@@ -146,7 +169,7 @@ fun MiraiHomeDashboard(
         contentPadding = PaddingValues(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // 1. Mobile Header Row: 'Mirai Launcher' on left, 'Files' & 'N Tasks' pills on right (Mockup #1)
+        // 1. Mobile Header Row: 'Mirai Launcher' on left, 'Boost FPS', 'Crash Doctor', 'Files' & 'N Tasks' pills on right
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -161,9 +184,58 @@ fun MiraiHomeDashboard(
                 )
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+                    // 1-Tap Mobile FPS Booster Pill
+                    val boostTarget = currentVersion ?: versions.firstOrNull()
+                    if (boostTarget != null) {
+                        Surface(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(18.dp))
+                                .clickable { showFpsBoosterFor = boostTarget },
+                            shape = RoundedCornerShape(18.dp),
+                            color = activeAccent.copy(alpha = 0.16f),
+                            border = BorderStroke(1.dp, activeAccent.copy(alpha = 0.7f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = "⚡ Boost FPS",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = activeAccent
+                                )
+                            }
+                        }
+                    }
+
+                    // Smart Crash Doctor Pill
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(18.dp))
+                            .clickable { showCrashDoctor = true },
+                        shape = RoundedCornerShape(18.dp),
+                        color = ModrinthCardColor,
+                        border = BorderStroke(1.dp, ModrinthCardBorder)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "🩺 Crash Doctor",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFFE5E7EB)
+                            )
+                        }
+                    }
+
                     // Files pill button
                     Surface(
                         modifier = Modifier
@@ -174,19 +246,19 @@ fun MiraiHomeDashboard(
                         border = BorderStroke(1.dp, ModrinthCardBorder)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_folder_outlined),
                                 contentDescription = "Files",
                                 tint = Color(0xFFD1D5DB),
-                                modifier = Modifier.size(15.dp)
+                                modifier = Modifier.size(14.dp)
                             )
                             Text(
                                 text = "Files",
-                                fontSize = 12.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = Color(0xFFE5E7EB)
                             )
@@ -204,30 +276,30 @@ fun MiraiHomeDashboard(
                                 )
                             },
                         shape = RoundedCornerShape(18.dp),
-                        color = if (hasActiveTasks) Color(0xFF153825) else ModrinthCardColor,
+                        color = if (hasActiveTasks) activeAccent.copy(alpha = 0.18f) else ModrinthCardColor,
                         border = BorderStroke(
                             1.dp,
-                            if (hasActiveTasks) ModrinthEmerald else ModrinthCardBorder
+                            if (hasActiveTasks) activeAccent else ModrinthCardBorder
                         )
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            horizontalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             if (hasActiveTasks) {
                                 Box(
                                     modifier = Modifier
                                         .size(7.dp)
                                         .clip(CircleShape)
-                                        .background(ModrinthEmerald)
+                                        .background(activeAccent)
                                 )
                             }
                             Text(
                                 text = "${tasks.size} Tasks",
-                                fontSize = 12.sp,
+                                fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = if (hasActiveTasks) ModrinthEmerald else Color(0xFFE5E7EB)
+                                color = if (hasActiveTasks) activeAccent else Color(0xFFE5E7EB)
                             )
                         }
                     }
@@ -262,7 +334,7 @@ fun MiraiHomeDashboard(
                                 onClick = onCreateInstance,
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = ModrinthEmerald,
+                                    containerColor = activeAccent,
                                     contentColor = ModrinthOnEmerald
                                 )
                             ) {
@@ -341,7 +413,7 @@ fun MiraiHomeDashboard(
                         text = "View All",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = ModrinthEmerald,
+                        color = activeAccent,
                         modifier = Modifier.clickable(onClick = onManageVersions)
                     )
                 }
@@ -373,6 +445,7 @@ private fun JumpBackInMobileCard(
     onPlay: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val activeAccent = MiraiThemeManager.currentAccent()
     val info = version.getVersionInfo()
     val mcVer = info?.minecraftVersion ?: "Unknown"
     val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
@@ -382,10 +455,10 @@ private fun JumpBackInMobileCard(
             .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onSelect),
         shape = RoundedCornerShape(14.dp),
-        color = ModrinthCardColor,
+        color = ModrinthCardColor.copy(alpha = 0.92f),
         border = BorderStroke(
             width = if (isSelected) 1.5.dp else 1.dp,
-            color = if (isSelected) ModrinthEmerald.copy(alpha = 0.7f) else ModrinthCardBorder
+            color = if (isSelected) activeAccent.copy(alpha = 0.7f) else ModrinthCardBorder
         )
     ) {
         Row(
@@ -432,12 +505,12 @@ private fun JumpBackInMobileCard(
                 )
             }
 
-            // Circular Emerald Play Button
+            // Circular Dynamic Accent Play Button
             Box(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(ModrinthEmerald)
+                    .background(activeAccent)
                     .clickable(onClick = onPlay),
                 contentAlignment = Alignment.Center
             ) {
@@ -459,6 +532,7 @@ private fun RecentInstanceMobileRow(
     onSelect: () -> Unit,
     onSettings: () -> Unit
 ) {
+    val activeAccent = MiraiThemeManager.currentAccent()
     val info = version.getVersionInfo()
     val mcVer = info?.minecraftVersion ?: "Unknown"
     val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
@@ -469,10 +543,10 @@ private fun RecentInstanceMobileRow(
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onSelect),
         shape = RoundedCornerShape(12.dp),
-        color = ModrinthCardColor,
+        color = ModrinthCardColor.copy(alpha = 0.92f),
         border = BorderStroke(
             width = 1.dp,
-            color = if (isSelected) ModrinthEmerald.copy(alpha = 0.55f) else ModrinthCardBorder
+            color = if (isSelected) activeAccent.copy(alpha = 0.55f) else ModrinthCardBorder
         )
     ) {
         Row(

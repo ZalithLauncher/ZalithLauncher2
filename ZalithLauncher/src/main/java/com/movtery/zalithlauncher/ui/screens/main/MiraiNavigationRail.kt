@@ -58,12 +58,14 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 
 /** Primary destinations kept visible while nested launcher screens are open. */
 enum class LauncherSection {
     HOME,
     LIBRARY,
     DISCOVER,
+    WALLPAPERS,
     MULTIPLAYER,
     SETTINGS,
     ACCOUNTS
@@ -71,8 +73,6 @@ enum class LauncherSection {
 
 private val ModrinthRailBg = Color(0xFF121418)
 private val ModrinthRailDivider = Color(0xFF222630)
-private val ModrinthEmerald = Color(0xFF1BD96A)
-private val ModrinthEmeraldSurface = Color(0xFF153825)
 
 @Composable
 fun MiraiNavigationRail(
@@ -84,13 +84,14 @@ fun MiraiNavigationRail(
 ) {
     val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
+    val activeAccent = MiraiThemeManager.currentAccent()
 
     Row(modifier = modifier.fillMaxHeight()) {
         Surface(
             modifier = Modifier
                 .width(56.dp)
                 .fillMaxHeight(),
-            color = ModrinthRailBg,
+            color = ModrinthRailBg.copy(alpha = 0.94f),
             contentColor = Color.White
         ) {
             Column(
@@ -101,7 +102,7 @@ fun MiraiNavigationRail(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // Top: M Logo + Primary Nav Icons (Home, Library, Discover, Multiplayer)
+                // Top: M Logo + Primary Nav Icons (Home, Library, Discover, Wallpapers)
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -118,7 +119,7 @@ fun MiraiNavigationRail(
                         Icon(
                             painter = painterResource(R.drawable.ic_mirai_mark),
                             contentDescription = "Mirai",
-                            tint = ModrinthEmerald,
+                            tint = activeAccent,
                             modifier = Modifier.size(26.dp)
                         )
                     }
@@ -129,6 +130,7 @@ fun MiraiNavigationRail(
                         iconRes = R.drawable.ic_home_filled,
                         label = "Home",
                         selected = selectedSection == LauncherSection.HOME,
+                        accentColor = activeAccent,
                         onClick = { onNavigate(LauncherSection.HOME) }
                     )
 
@@ -136,6 +138,7 @@ fun MiraiNavigationRail(
                         iconRes = R.drawable.ic_dashboard_filled,
                         label = "Library",
                         selected = selectedSection == LauncherSection.LIBRARY,
+                        accentColor = activeAccent,
                         onClick = { onNavigate(LauncherSection.LIBRARY) }
                     )
 
@@ -143,7 +146,16 @@ fun MiraiNavigationRail(
                         iconRes = R.drawable.ic_public,
                         label = "Discover",
                         selected = selectedSection == LauncherSection.DISCOVER,
+                        accentColor = activeAccent,
                         onClick = { onNavigate(LauncherSection.DISCOVER) }
+                    )
+
+                    RailIconItem(
+                        iconRes = R.drawable.ic_format_paint_outlined,
+                        label = "Wallpapers",
+                        selected = selectedSection == LauncherSection.WALLPAPERS,
+                        accentColor = activeAccent,
+                        onClick = { onNavigate(LauncherSection.WALLPAPERS) }
                     )
                 }
 
@@ -161,6 +173,7 @@ fun MiraiNavigationRail(
                         iconRes = R.drawable.ic_settings_filled,
                         label = "Settings",
                         selected = selectedSection == LauncherSection.SETTINGS,
+                        accentColor = activeAccent,
                         onClick = { onNavigate(LauncherSection.SETTINGS) }
                     )
                 }
@@ -182,16 +195,17 @@ private fun RailIconItem(
     iconRes: Int,
     label: String,
     selected: Boolean,
+    accentColor: Color,
     onClick: () -> Unit
 ) {
     val containerColor by animateColorAsState(
-        targetValue = if (selected) ModrinthEmeraldSurface else Color.Transparent,
-        animationSpec = tween(150),
+        targetValue = if (selected) accentColor.copy(alpha = 0.18f) else Color.Transparent,
+        animationSpec = tween(140),
         label = "railContainerColor"
     )
     val iconTint by animateColorAsState(
-        targetValue = if (selected) ModrinthEmerald else Color(0xFF9CA3AF),
-        animationSpec = tween(150),
+        targetValue = if (selected) accentColor else Color(0xFF9CA3AF),
+        animationSpec = tween(140),
         label = "railIconTint"
     )
 
@@ -203,7 +217,7 @@ private fun RailIconItem(
             .then(
                 if (selected) {
                     Modifier.border(
-                        BorderStroke(1.5.dp, ModrinthEmerald.copy(alpha = 0.75f)),
+                        BorderStroke(1.5.dp, accentColor.copy(alpha = 0.75f)),
                         RoundedCornerShape(12.dp)
                     )
                 } else Modifier

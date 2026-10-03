@@ -120,6 +120,7 @@ import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragExclusio
 import com.movtery.zalithlauncher.ui.screens.content.home.rememberActionMenuDragState
 import com.movtery.zalithlauncher.ui.screens.content.home.version.LocalHomeCardLauncher
 import com.movtery.zalithlauncher.ui.screens.content.home.version.LocalHomeCardVersionSettings
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 import kotlin.math.roundToInt
@@ -503,7 +504,7 @@ private fun VersionsContent(
                         text = versionSubtitle,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFF1BD96A),
+                        color = MiraiThemeManager.currentAccent(),
                         maxLines = 1
                     )
                 }
@@ -575,6 +576,7 @@ private fun VersionsContent(
         }
 
         // Vibrant Pill PLAY Button (Mockup #1)
+        val activeAccent = MiraiThemeManager.currentAccent()
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -588,7 +590,7 @@ private fun VersionsContent(
                     onLongClick = { showPick = true }
                 ),
             shape = RoundedCornerShape(21.dp),
-            color = Color(0xFF1BD96A),
+            color = activeAccent,
             contentColor = Color(0xFF06210F)
         ) {
             Row(

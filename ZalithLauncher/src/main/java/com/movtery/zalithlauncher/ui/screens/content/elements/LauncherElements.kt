@@ -622,21 +622,6 @@ private fun BackgroundImage(
 ) {
     val context = LocalContext.current
 
-    val imageLoader = remember(refreshTrigger) {
-        ImageLoader.Builder(context)
-            .components { add(GifDecoder.Factory()) }
-            .build()
-    }
-    val request = remember(refreshTrigger) {
-        ImageRequest.Builder(context)
-            .data(imageFile)
-            .allowHardware(false)
-            .crossfade(false)
-            .build()
-    }
-
-    //GIF 的动画帧由绘制 → invalidateSelf → 再绘制的自续循环推进，
-    //任何一帧失效丢失都会让动画永久冻结，由帧时钟显式逐帧驱动重绘，保证循环自愈
     val isAnimatedState = remember(refreshTrigger) { mutableStateOf(false) }
     LaunchedEffect(refreshTrigger) {
         isAnimatedState.value = withContext(Dispatchers.IO) {
@@ -644,6 +629,19 @@ private fun BackgroundImage(
         }
     }
     val isAnimated = isAnimatedState.value
+
+    val imageLoader = remember(context) {
+        ImageLoader.Builder(context)
+            .components { add(GifDecoder.Factory()) }
+            .build()
+    }
+    val request = remember(refreshTrigger, isAnimated) {
+        ImageRequest.Builder(context)
+            .data(imageFile)
+            .allowHardware(!isAnimated)
+            .crossfade(false)
+            .build()
+    }
 
     val frameTick = remember { mutableIntStateOf(0) }
     if (isAnimated) {

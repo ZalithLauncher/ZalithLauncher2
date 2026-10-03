@@ -72,6 +72,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.context.COPY_LABEL_ACCOUNT_UUID
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
@@ -356,7 +357,7 @@ private fun ActionsLayout(
                     ) {
                         Surface(
                             shape = RoundedCornerShape(12.dp),
-                            color = if (!isSlim) Color(0xFF1BD96A) else Color.Transparent
+                            color = if (!isSlim) MiraiThemeManager.currentAccent() else Color.Transparent
                         ) {
                             Text(
                                 text = "Wide (4px)",
@@ -368,7 +369,7 @@ private fun ActionsLayout(
                         }
                         Surface(
                             shape = RoundedCornerShape(12.dp),
-                            color = if (isSlim) Color(0xFF1BD96A) else Color.Transparent
+                            color = if (isSlim) MiraiThemeManager.currentAccent() else Color.Transparent
                         ) {
                             Text(
                                 text = "Slim (3px)",
@@ -433,7 +434,7 @@ private fun ActionsLayout(
                     enabled = currentAccount != null,
                     shape = RoundedCornerShape(19.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1BD96A),
+                        containerColor = MiraiThemeManager.currentAccent(),
                         contentColor = Color(0xFF06210F)
                     ),
                     contentPadding = PaddingValues(horizontal = 8.dp),
@@ -811,7 +812,7 @@ private fun AccountsLayout(
             ) {
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFF1BD96A),
+                    color = MiraiThemeManager.currentAccent(),
                     onClick = {
                         if (!isMicrosoftLogging()) {
                             actions.onIntent(

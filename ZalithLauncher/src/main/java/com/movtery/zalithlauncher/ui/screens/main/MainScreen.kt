@@ -187,8 +187,17 @@ fun MainScreen(
                                 screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
                             }
                             LauncherSection.LIBRARY -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager)
+                            LauncherSection.WALLPAPERS -> {
+                                screenBackStackModel.settingsScreen.backStack.clearWith(NormalNavKey.Settings.Wallpapers)
+                                screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
+                            }
                             LauncherSection.MULTIPLAYER -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer)
-                            LauncherSection.SETTINGS -> screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
+                            LauncherSection.SETTINGS -> {
+                                if (screenBackStackModel.settingsScreen.currentKey === NormalNavKey.Settings.Wallpapers) {
+                                    screenBackStackModel.settingsScreen.backStack.clearWith(NormalNavKey.Settings.Renderer)
+                                }
+                                screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
+                            }
                             LauncherSection.ACCOUNTS -> screenBackStackModel.mainScreen.clearWith(
                                 NormalNavKey.AccountManager(FirstLoginMenu.NONE)
                             )
@@ -283,7 +292,11 @@ private fun TitledNavKey?.toLauncherSection(): LauncherSection? = when (this) {
     is NestedNavKey.VersionSettings,
     is NestedNavKey.VersionExport -> LauncherSection.LIBRARY
     NormalNavKey.Multiplayer -> LauncherSection.MULTIPLAYER
-    is NestedNavKey.Settings -> LauncherSection.SETTINGS
+    is NestedNavKey.Settings -> if (this.currentKey === NormalNavKey.Settings.Wallpapers) {
+        LauncherSection.WALLPAPERS
+    } else {
+        LauncherSection.SETTINGS
+    }
     is NormalNavKey.AccountManager -> LauncherSection.ACCOUNTS
     else -> null
 }

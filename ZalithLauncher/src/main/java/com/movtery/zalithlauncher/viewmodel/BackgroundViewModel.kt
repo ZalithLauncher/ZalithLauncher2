@@ -197,7 +197,7 @@ class BackgroundViewModel: ViewModel() {
                 ".mirai-background-seed-${System.nanoTime()}.tmp"
             )
             try {
-                context.resources.openRawResource(R.drawable.mirai_hero_bg).use { input ->
+                context.assets.open("wallpapers/wp_01_lush_caves.jpg").use { input ->
                     stagedFile.outputStream().use { output -> input.copyTo(output) }
                 }
                 if (!stagedFile.isImageFile()) return@withLock
@@ -210,6 +210,29 @@ class BackgroundViewModel: ViewModel() {
                 // Leave the seed marker unset so a later launch can retry the default copy.
             } finally {
                 FileUtils.deleteQuietly(stagedFile)
+            }
+        }
+    }
+
+    suspend fun importAsset(context: Context, assetPath: String) {
+        withContext(Dispatchers.IO) {
+            backgroundMutationMutex.withLock {
+                val parentDirectory = backgroundFile.parentFile ?: return@withLock
+                val stagedFile = File(
+                    parentDirectory,
+                    ".mirai-background-asset-${System.nanoTime()}.tmp"
+                )
+                try {
+                    context.assets.open(assetPath).use { input ->
+                        stagedFile.outputStream().use { output -> input.copyTo(output) }
+                    }
+                    if (!stagedFile.isImageFile()) return@withLock
+                    replaceBackgroundFile(stagedFile)
+                    defaultBackgroundSeedMarker.createNewFile()
+                    updateState()
+                } finally {
+                    FileUtils.deleteQuietly(stagedFile)
+                }
             }
         }
     }

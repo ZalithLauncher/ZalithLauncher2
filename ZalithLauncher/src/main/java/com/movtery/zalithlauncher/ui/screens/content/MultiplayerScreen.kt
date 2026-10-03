@@ -80,6 +80,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.notification.NotificationManager
 import com.movtery.zalithlauncher.path.PathManager
@@ -295,7 +296,7 @@ private fun HudActionCircle(label: String, highlighted: Boolean) {
             .background(if (highlighted) Color(0xFF143825) else Color(0xFF222731))
             .border(
                 1.dp,
-                if (highlighted) Color(0xFF1BD96A) else Color(0xFF394050),
+                if (highlighted) MiraiThemeManager.currentAccent() else Color(0xFF394050),
                 CircleShape
             ),
         contentAlignment = Alignment.Center
@@ -304,7 +305,7 @@ private fun HudActionCircle(label: String, highlighted: Boolean) {
             text = label,
             fontSize = 8.sp,
             fontWeight = FontWeight.ExtraBold,
-            color = if (highlighted) Color(0xFF1BD96A) else Color(0xFFE5E7EB)
+            color = if (highlighted) MiraiThemeManager.currentAccent() else Color(0xFFE5E7EB)
         )
     }
 }
@@ -388,10 +389,10 @@ private fun LiveDiagnosticsConsoleCard(
                         val selected = levelFilter == filter
                         Surface(
                             shape = RoundedCornerShape(12.dp),
-                            color = if (selected) Color(0xFF1BD96A) else Color(0xFF17191E),
+                            color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF17191E),
                             border = BorderStroke(
                                 1.dp,
-                                if (selected) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                                if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
                             ),
                             onClick = {
                                 cleared = false
@@ -449,7 +450,7 @@ private fun LiveDiagnosticsConsoleCard(
                         val lineColor = when {
                             line.contains("ERROR", true) || line.contains("Exception", true) -> Color(0xFFF87171)
                             line.contains("WARN", true) -> Color(0xFFFBBF24)
-                            line.contains("Renderer", true) || line.contains("LTW", true) -> Color(0xFF1BD96A)
+                            line.contains("Renderer", true) || line.contains("LTW", true) -> MiraiThemeManager.currentAccent()
                             else -> Color(0xFFD1D5DB)
                         }
                         Text(
@@ -498,7 +499,7 @@ private fun LiveDiagnosticsConsoleCard(
                     onClick = onOpenFileManager,
                     shape = RoundedCornerShape(19.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1BD96A),
+                        containerColor = MiraiThemeManager.currentAccent(),
                         contentColor = Color(0xFF06210F)
                     ),
                     contentPadding = PaddingValues(horizontal = 8.dp)
@@ -631,7 +632,7 @@ private fun MainMenu(
                             .weight(1f)
                             .height(30.dp),
                         shape = RoundedCornerShape(15.dp),
-                        color = if (isHostMode) Color(0xFF1BD96A) else Color.Transparent,
+                        color = if (isHostMode) MiraiThemeManager.currentAccent() else Color.Transparent,
                         onClick = { isHostMode = true }
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -649,7 +650,7 @@ private fun MainMenu(
                             .weight(1f)
                             .height(30.dp),
                         shape = RoundedCornerShape(15.dp),
-                        color = if (!isHostMode) Color(0xFF1BD96A) else Color.Transparent,
+                        color = if (!isHostMode) MiraiThemeManager.currentAccent() else Color.Transparent,
                         onClick = { isHostMode = false }
                     ) {
                         Box(contentAlignment = Alignment.Center) {
@@ -723,7 +724,7 @@ private fun MainMenu(
                     .height(40.dp),
                 shape = RoundedCornerShape(20.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF1BD96A),
+                    containerColor = MiraiThemeManager.currentAccent(),
                     contentColor = Color(0xFF06210F)
                 )
             ) {

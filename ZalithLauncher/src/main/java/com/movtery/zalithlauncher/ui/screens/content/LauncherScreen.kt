@@ -26,6 +26,7 @@ fun LauncherScreen(
         onLaunch = onLaunchGame,
         onExploreContent = { backStackViewModel.navigateToDownload(backStackViewModel.downloadModScreen) },
         onCreateInstance = { backStackViewModel.navigateToDownload(backStackViewModel.downloadGameScreen) },
+        onAddAccount = { backStackViewModel.mainScreen.clearWith(NormalNavKey.AccountManager(FirstLoginMenu.NONE)) },
         onManageVersions = { backStackViewModel.mainScreen.clearWith(NormalNavKey.VersionsManager) },
         onOpenVersionSettings = navigateToVersions
     )

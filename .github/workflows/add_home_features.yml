@@ -11,11 +11,11 @@ jobs:
         with:
           ref: Mirai-launcher
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Fix the compile errors
+      - name: Wire the renderer picker
         run: |
-          python3 scripts/fix_compile.py
+          python3 scripts/wire_renderer_picker.py
           git config user.name entitybrian69-bit
           git config user.email entitybrian69@gmail.com
           git add -A
-          git commit -m "Fix the launch button and version name compile errors"
+          git commit -m "Select an existing renderer by Minecraft version"
           git push origin HEAD:Mirai-launcher

@@ -1,0 +1,47 @@
+name: Remove warning and brand title
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: Mirai-launcher
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Remove the debug warning and home title
+        run: |
+          python3 - << 'PY'
+          from pathlib import Path
+          cards = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/home/HomeCards.kt")
+          text = cards.read_text()
+          old = """    fun systemCards(): List<SystemCard> = buildList {
+            if (BuildConfig.DEBUG) {
+                add(debugWarningCard())
+            }
+          }"""
+          new = """    fun systemCards(): List<SystemCard> = emptyList()"""
+          if old not in text:
+              raise SystemExit("warning card pattern not found")
+          cards.write_text(text.replace(old, new, 1))
+
+          screen = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
+          s = screen.read_text()
+          start = s.find("if (inLauncherScreen) {")
+          if start < 0:
+              raise SystemExit("home title not found")
+          end = s.find("FestivalTitleText(", start)
+          if end < 0:
+              raise SystemExit("title end not found")
+          end = s.find(")", s.find(")", end) + 1) + 1
+          # Drop the home brand block through the festival title call.
+          s = s[:start] + "Unit" + s[end:]
+          screen.write_text(s)
+          PY
+          git config user.name entitybrian69-bit
+          git config user.email entitybrian69@gmail.com
+          git add ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/home/HomeCards.kt ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt
+          git commit -m "Remove the test warning and home brand title"
+          git push origin HEAD:Mirai-launcher

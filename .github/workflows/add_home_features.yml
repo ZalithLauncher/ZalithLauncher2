@@ -11,11 +11,11 @@ jobs:
         with:
           ref: Mirai-launcher
           token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Apply home features
+      - name: Fix the compile errors
         run: |
-          python3 scripts/add_home_features.py
+          python3 scripts/fix_compile.py
           git config user.name entitybrian69-bit
           git config user.email entitybrian69@gmail.com
           git add -A
-          git commit -m "Add quiet mode, night background, hold launch, and renderer memory"
+          git commit -m "Fix the launch button and version name compile errors"
           git push origin HEAD:Mirai-launcher

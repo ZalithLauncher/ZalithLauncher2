@@ -45,6 +45,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.movtery.guide.guideNode
 import com.movtery.layer_controller.ControlEditorLayer
 import com.movtery.layer_controller.data.ButtonSize
 import com.movtery.layer_controller.data.CenterPosition
@@ -71,6 +72,7 @@ import com.movtery.zalithlauncher.ui.components.ProgressDialog
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleEditDialog
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
+import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_joystick.EditJoystickStyleDialog
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_joystick.JoystickStyleListDialog
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_layer.EditControlLayerDialog
@@ -293,6 +295,10 @@ fun BoxWithConstraintsScope.ControlEditor(
     )
 
     MenuBox(
+        modifier = Modifier.guideNode(
+            key = GuideKeys.Editor.Step.MenuBall,
+            holeRadius = 12.dp
+        ),
         position = viewModel.editorBallPosition,
         onPositionChanged = { viewModel.editorBallPosition = it },
         opened = viewModel.editorMenu == MenuState.SHOW

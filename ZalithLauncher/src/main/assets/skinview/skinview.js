@@ -295,3 +295,10 @@ function setControlsEnabled(enabled) {
     skinViewer.controls.enableZoom = enabled;
     skinViewer.controls.enablePan = enabled;
 }
+function setInteractionEnabled(enabled) {
+    const interactive = enabled !== false;
+    skinViewer.controls.enableRotate = interactive;
+    container.style.pointerEvents = interactive ? 'auto' : 'none';
+}
+
+setInteractionEnabled(true);

@@ -997,14 +997,6 @@
     <string name="game_menu_option_menu_ball_opacity">Прозрачность меню-наложения</string>
     <string name="settings_launcher_dark_mode_title">Тёмный режим</string>
     <string name="notification_data_terracotta_message">Во время мультиплеера лаунчер использует службу переднего плана для отображения текущего статуса соединения, поэтому требуется разрешение на отправку уведомлений.</string>
-    <string name="versions_update_loader">Обновить мод-лоудер</string>
-    <string name="versions_update_loader_waiting_for_others">Ожидание завершения загрузки других задач</string>
-    <string name="versions_update_loader_diff_message">Вы уверены, что хотите изменить мод-лоудер для текущей сборки?</string>
-    <string name="versions_update_loader_diff_change">Изменение: %1$s %2$s → %3$s</string>
-    <string name="versions_update_loader_diff_remove">Удалить: %s</string>
-    <string name="versions_update_loader_diff_load">Установить: %1$s %2$s</string>
-    <string name="versions_update_loader_error_message">При установке мод-лоудера произошла ошибка:</string>
-    <string name="versions_update_loader_success_message">Версия мод-лоудера сборки была успешно обновлена!</string>
     <string name="settings_control_mouse_enable_click_title">Режим тачпада</string>
     <string name="settings_control_mouse_enable_click_summary">Включает управление как на тачпаде: касание — ЛКМ, долгое нажатие — удержание. Но не влияет на обычную мышь или сенсор:)</string>
     <string name="settings_launcher_background_video_volume_title">Громкость видео на заднем фоне</string>
@@ -1087,9 +1079,6 @@
     <string name="files_delete_file">Вы уверены, что хотите удалить %s?</string>
     <string name="notification_jvm_running_name">Служба поддержания активности JVM</string>
     <string name="unpack_screen_jna">Позволяет Minecraft напрямую вызывать низкоуровневые функции ОС.</string>
-    <string name="download_game_version_overwrite">Перезапишет существующую версию: %s</string>
-    <string name="download_game_version_overwrite_select">Версия для перезаписи</string>
-    <string name="download_game_version_overwrite_select_subtitle">Выберите версию для перезаписи. Эту функцию можно использовать для обновления или отката версии</string>
     <string name="version_summary_fools_herd_craft">Хватит наводить порядок в инвентаре — ваши предметы и блоки хотят бегать на свободе вместе с вами!</string>
     <string name="game_styles_joystick_lock_threshold">Порог фиксации направления</string>
     <string name="plugin_unsupported_warning">Плагин %s не поддерживается для этой версии игры. Его использование может привести к крашу игры! Вы уверены, что хотите продолжить на свой страх и риск?</string>
@@ -1110,7 +1099,6 @@
     <string name="account_local_uuid_copied">UUID аккаунта %s скопирован</string>
     <string name="versions_config_vibrate_kind_title">Тип вибрации</string>
     <string name="versions_config_vibrate_kind_summary">Выберите тип вибрации при срабатывании TouchController</string>
-    <string name="versions_install_loader">Установить загрузчик</string>
     <string name="versions_export">Экспорт сборки</string>
     <string name="versions_export_type_mcbbs">Сборка формата MCBBS</string>
     <string name="versions_export_type_mcbbs_summary">Может быть импортирована в %s, HMCL и другие лаунчеры</string>
@@ -1241,4 +1229,29 @@
     <string name="settings_renderer_config_title">Конфигурация рендерера</string>
     <string name="control_editor_menu_new_widget_joystick">Добавить джойстик</string>
     <string name="control_editor_edit_category_joystick_config">Конфиг джойстика</string>
+
+    <string name="guide_main_welcome_title">Добро пожаловать в %s!</string>
+    <string name="guide_main_welcome_text">Давайте вкратце познакомимся с возможностями главного экрана.</string>
+    <string name="guide_main_account">Нажмите здесь, чтобы открыть управление аккаунтами — здесь можно добавить аккаунты Minecraft или управлять ими</string>
+    <string name="guide_main_version_list">Нажмите здесь, чтобы открыть список версий: все установленные версии игры будут перечислены здесь</string>
+    <string name="guide_main_card_drag_title">Не нравится расположение меню действий?</string>
+    <string name="guide_main_card_drag_text">Удерживайте карточку, чтобы поднять её, затем перетащите и отпустите с другой стороны</string>
+    <string name="guide_main_card_tip_title">Здесь слишком пусто?</string>
+    <string name="guide_main_card_tip_text">Не волнуйтесь — содержимое можно закрепить здесь в виде карточек и свободно расставить, если у него есть пункт «%s»</string>
+    <string name="guide_editor_welcome_title">Добро пожаловать в редактор раскладок управления!</string>
+    <string name="guide_editor_welcome_text">Давайте коротко рассмотрим, как им пользоваться.</string>
+    <string name="guide_editor_menu_ball_title">Это плавающая кнопка меню редактора раскладок управления</string>
+    <string name="guide_editor_menu_ball_text">Перетащите её, чтобы изменить положение! Нажмите, чтобы открыть меню редактора и список слоёв</string>
+    <string name="guide_editor_layer_list_title">Это список слоёв раскладки</string>
+    <string name="guide_editor_layer_list_text">Слой работает как графический слой: это контейнер для элементов управления. Вы можете раскладывать элементы управления по разным слоям и управлять ими</string>
+    <string name="guide_editor_layer_list_note">Все созданные вами слои будут перечислены здесь</string>
+    <string name="guide_editor_create_layer">Нажмите эту кнопку, чтобы создать новый слой раскладки</string>
+    <string name="guide_editor_add_widgets_title">Здесь добавляются элементы управления!</string>
+    <string name="guide_editor_add_widgets_text">После выбора слоя вы можете добавлять на него элементы управления любого типа</string>
+    <string name="guide_editor_styles_title">Хотите изменить внешний вид элементов управления?</string>
+    <string name="guide_editor_styles_text">Вы можете создавать варианты оформления для элементов управления, чтобы быстро использовать их повторно и переключаться между ними</string>
+    <string name="guide_editor_preview">Проверить раскладку можно в режиме предпросмотра.</string>
+    <string name="guide_editor_save">Закончив редактирование, не забудьте сохранить раскладку!</string>
+    <string name="guide_tip_blank">Коснитесь пустого места, чтобы перейти к следующему шагу</string>
+    <string name="guide_tip_finish">Коснитесь пустого места, чтобы завершить руководство</string>
 </resources>

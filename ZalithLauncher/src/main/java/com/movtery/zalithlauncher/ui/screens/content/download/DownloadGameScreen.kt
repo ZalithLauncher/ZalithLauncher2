@@ -52,6 +52,7 @@ import com.movtery.zalithlauncher.coroutine.InstallerRestoreRegistry
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.download.game.GameInstaller
 import com.movtery.zalithlauncher.game.download.game.optifine.CantFetchingOptiFineUrlException
+import com.movtery.zalithlauncher.game.download.game.optifine.OptiFineForge17IncompatibleException
 import com.movtery.zalithlauncher.game.download.jvm_server.JvmCrashException
 import com.movtery.zalithlauncher.game.download.jvm_server.isProcessStartRefused
 import com.movtery.zalithlauncher.game.version.download.DownloadFailedException
@@ -66,6 +67,7 @@ import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.download.game.DownloadGameWithAddonScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.game.SelectGameVersionHost
 import com.movtery.zalithlauncher.ui.screens.content.download.game.SelectGameVersionScreen
 import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialog
 import com.movtery.zalithlauncher.ui.screens.navigateTo
@@ -231,9 +233,11 @@ fun DownloadGameScreen(
             entryProvider = entryProvider {
                 entry<NormalNavKey.DownloadGame.SelectGameVersion> {
                     SelectGameVersionScreen(
-                        mainScreenKey = mainScreenKey,
-                        downloadScreenKey = downloadScreenKey,
-                        downloadGameScreenKey = downloadGameScreenKey,
+                        host = SelectGameVersionHost.Download(
+                            mainScreenKey = mainScreenKey,
+                            downloadScreenKey = downloadScreenKey,
+                            downloadGameScreenKey = downloadGameScreenKey
+                        ),
                         eventViewModel = eventViewModel,
                         onVersionSelect = { versionString ->
                             backStack.navigateTo(
@@ -352,6 +356,7 @@ private fun GameInstallOperation(
                 is ConnectException -> stringResource(R.string.error_connection_failed)
                 is SerializationException, is JsonSyntaxException -> stringResource(R.string.error_parse_failed)
                 is CantFetchingOptiFineUrlException -> stringResource(R.string.download_install_error_cant_fetch_optifine_download_url)
+                is OptiFineForge17IncompatibleException -> stringResource(R.string.download_install_error_optifine_forge17_incompatible, th.buildof)
                 is JvmCrashException -> stringResource(R.string.download_install_error_jvm_crash, th.code)
                 is DownloadFailedException -> stringResource(R.string.download_install_error_download_failed)
                 else -> when {

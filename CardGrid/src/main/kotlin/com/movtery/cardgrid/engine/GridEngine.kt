@@ -29,8 +29,9 @@ import kotlin.math.roundToInt
  * 卡片网格布局引擎：全部结算均为无副作用的纯函数。
  *
  * 缩放使用推箱式语义——沿被拖边把挡路的卡片推开成链，推不动时逐格收缩跨度；
- * 拖动使用挤压让位语义——被压住的卡片各自迁移到最近的空闲位置，不级联影响其他卡片；
- * 任何时刻布局都处于垂直压实状态。
+ * 拖动使用开门让位语义——被压住的卡片沿指针反方向链式滑开，汇入沿途的空洞或网格尾部，
+ * 指针侧轴线推不动时回退垂直轴开门；
+ * 卡片间允许纵向留空，布局不做自动压实；最上最左贪心打包仅用于空闲落位与重排。
  */
 object GridEngine {
 
@@ -100,50 +101,67 @@ object GridEngine {
 
     /**
      * 拖动结算：[moving] 为拖动中的卡片预览（或落位），
-     * 与其重叠的卡片按阅读顺序依次被重新安置，尺寸保持不变，
-     * 且不会级联影响未被直接重叠的卡片
-     * @return 被重新安置的卡片（id -> 新布局），不包含未受影响的卡片
+     * 与其重叠的卡片沿让位方向被链式推开门——挡在路径上的卡片级联随动，
+     * 直到链条完全脱离 [moving]，汇入沿途的空洞或网格尾部。
+     * 让位方向依次尝试指针反方向、其反向与垂直轴的正反向，门朝哪边能开就朝哪边开；
+     * 纵向向下开门必定成功，仅在无法确定让位方向时结算失败。
+     *
+     * @param pointer 指针所在的单元格，用于为未锁定方向的被压卡片推导让位方向
+     * @param directions 卡片的让位方向锁定表，优先于 [pointer] 推导
+     * @return 被重新安置的卡片（id -> 新布局）；无法确定让位方向时返回 null
      */
     fun resolveDisplacements(
         moving: CardRect,
         columns: Int,
         cards: List<CardRect>,
-        pointer: IntOffset? = null
-    ): Map<String, CardRect> {
+        pointer: IntOffset? = null,
+        directions: Map<String, IntOffset> = emptyMap()
+    ): Map<String, CardRect>? {
         val displaced = cards
             .filter { it.id != moving.id && it.intersects(moving) }
             .sortedWith(readingOrder())
-        val occupied = mutableListOf<CardRect>()
-        occupied.add(moving)
-        occupied.addAll(cards.filter { it.id != moving.id && !it.intersects(moving) })
+        // 全部卡片都是链条的障碍：尚未结算的被压卡片以原位参与阻挡，
+        // 先行链条的成果以新位参与阻挡，链条不得从任何卡片身上滑过
+        val occupied = mutableListOf(moving)
+        occupied.addAll(cards.filter { it.id != moving.id })
         val result = mutableMapOf<String, CardRect>()
         for (card in displaced) {
-            val nearest: () -> IntOffset? = {
-                findNearestFreeSlot(
-                    width = card.width,
-                    height = card.height,
-                    origin = IntOffset(card.x, card.y),
-                    columns = columns,
-                    obstacles = occupied
-                )
+            val current = occupied.first { it.id == card.id }
+            // 先行处理的链条可能已把该卡片带离 [moving]
+            if (!current.intersects(moving)) continue
+            val direction = directions[current.id]
+                ?: pointer?.let { displacementDirection(it, current) }
+                ?: return null
+            if (direction.x == 0 && direction.y == 0) return null
+            // 垂直轴候选朝向指针背离侧：指针压在轴的哪一侧，门就朝另一侧开
+            val perpendicular = if (direction.x != 0) {
+                IntOffset(0, if (pointer != null && pointer.y > current.y + current.height / 2f) -1 else 1)
+            } else {
+                IntOffset(if (pointer != null && pointer.x > current.x + current.width / 2f) -1 else 1, 0)
             }
-            val slot = pointer?.let {
-                findDirectionalFreeSlot(card, displacementDirection(it, card), columns, occupied) ?: nearest()
-            } ?: nearest() ?: continue
-            val relocated = card.positionAt(slot)
-            occupied.add(relocated)
-            result[card.id] = relocated
+            val chain = listOf(
+                direction,
+                IntOffset(-direction.x, -direction.y),
+                perpendicular,
+                IntOffset(-perpendicular.x, -perpendicular.y)
+            ).firstNotNullOfOrNull { candidate ->
+                slideChain(current, candidate, moving, columns, occupied)
+            } ?: return null
+            occupied.removeAll { it.id in chain }
+            occupied.addAll(chain.values)
+            result.putAll(chain)
         }
         return result
     }
 
     /**
-     * 依据指针相对被压卡片中心的主导方向决定让位方向
-     * 指针压到卡片的哪一侧，卡片就沿该轴向远离指针的一侧让开
+     * 指针压到卡片的哪一侧，卡片就沿该轴向远离指针的一侧让开。
+     * 偏移按卡片自身跨度归一化后比较主导轴：
+     * 宽（高）卡片上另一轴的绝对偏移天然偏大，直接比较会系统性偏向该轴。
      */
     internal fun displacementDirection(pointer: IntOffset, card: CardRect): IntOffset {
-        val dx = pointer.x - (card.x + card.width / 2f)
-        val dy = pointer.y - (card.y + card.height / 2f)
+        val dx = (pointer.x - (card.x + card.width / 2f)) / card.width
+        val dy = (pointer.y - (card.y + card.height / 2f)) / card.height
         return if (abs(dx) >= abs(dy)) {
             IntOffset(if (dx > 0) -1 else 1, 0)
         } else {
@@ -152,27 +170,41 @@ object GridEngine {
     }
 
     /**
-     * 从 [card] 当前位置沿 [direction]（单位向量）逐格搜索第一个
-     * 不与 [obstacles] 重叠的位置，与运动轴垂直的坐标保持不变，
-     * 网格横向钳制、纵向向下不设限。
-     * @return 让位空位，该方向上无空位时返回 null
+     * 链式滑动：把 [head] 沿 [direction]（单位轴向量）逐格推动，
+     * 挡在路径上的卡片级联加入链条同步移动，
+     * 直到 [head] 完全脱离 [mover]；任何成员越出网格边界（横向越界或纵向越过网格边缘）即推不动。
+     *
+     * @return 链条上全部被移动的卡片（id -> 新布局），推不动时返回 null
      */
-    fun findDirectionalFreeSlot(
-        card: CardRect,
+    internal fun slideChain(
+        head: CardRect,
         direction: IntOffset,
+        mover: CardRect,
         columns: Int,
         obstacles: List<CardRect>
-    ): IntOffset? {
-        var x = card.x
-        var y = card.y
-        while (true) {
-            x += direction.x
-            y += direction.y
-            if (direction.x != 0 && (x < 0 || x + card.width > columns)) return null
-            if (direction.y < 0 && y < 0) return null
-            val candidate = card.positionAt(IntOffset(x, y))
-            if (obstacles.none { it.intersects(candidate) }) return IntOffset(x, y)
+    ): Map<String, CardRect>? {
+        val moved = linkedMapOf(head.id to head)
+        while (moved.getValue(head.id).intersects(mover)) {
+            // 链条生长：挡在任一成员前进一格路径上的卡片加入链条
+            while (true) {
+                val blockers = obstacles.filter { obstacle ->
+                    obstacle.id != mover.id && obstacle.id !in moved &&
+                        moved.values.any { member -> obstacle.intersects(member.shift(direction)) }
+                }
+                if (blockers.isEmpty()) break
+                blockers.forEach { moved[it.id] = it }
+            }
+            // 边界结算：任一成员越界即整条链推不动
+            val overflow = moved.values.any { member ->
+                val next = member.shift(direction)
+                (direction.x != 0 && (next.x < 0 || next.right > columns)) ||
+                    (direction.y < 0 && next.y < 0)
+            }
+            if (overflow) return null
+            // 整链同步前进一格
+            moved.replaceAll { _, member -> member.shift(direction) }
         }
+        return moved
     }
 
     /**
@@ -324,26 +356,6 @@ object GridEngine {
     }
 
     /**
-     * 垂直压实：按阅读顺序处理，每张卡片在保持横向位置不变的前提下
-     * 尽可能上浮，直到贴近网格顶部或压在已有卡片下方。
-     * 压实后任何卡片都无法再向上移动；行内与行尾的横向空位保留。
-     */
-    fun compact(cards: List<CardRect>): List<CardRect> {
-        val sorted = cards.sortedWith(readingOrder())
-        val placed = mutableListOf<CardRect>()
-        for (card in sorted) {
-            var y = 0
-            while (true) {
-                val blocking = placed.firstOrNull { it.intersects(card.positionAt(IntOffset(card.x, y))) }
-                if (blocking == null) break
-                y = blocking.bottom
-            }
-            placed.add(card.positionAt(IntOffset(card.x, y)))
-        }
-        return placed
-    }
-
-    /**
      * 按阅读顺序（先上后下、先左后右）贪心重排，
      * 用于网格宽度变化后的布局迁移：卡片宽高按新旧列数比例折算，
      * 以 [limits] 声明的边界钳制，再逐个放入最上最左的空位。
@@ -368,8 +380,8 @@ object GridEngine {
     }
 
     /**
-     * 加载校验：钳制越界与非法的卡片、化解卡片间的重叠，
-     * 最后执行一次垂直压实。重复 id 的卡片仅保留最先出现的一个。
+     * 加载校验：钳制越界与非法的卡片、化解卡片间的重叠，其余布局原样保留，
+     * 按阅读顺序返回。重复 id 的卡片仅保留最先出现的一个。
      */
     fun validate(
         cards: List<CardRect>,
@@ -402,8 +414,12 @@ object GridEngine {
             }
             settled.add(card.positionAt(position))
         }
-        return compact(settled)
+        return settled.sortedWith(readingOrder())
     }
+
+    /** 矩形沿单位轴向量平移一格 */
+    private fun CardRect.shift(direction: IntOffset): CardRect =
+        positionAt(IntOffset(x + direction.x, y + direction.y))
 
     private fun readingOrder() = compareBy<CardRect>({ it.y }, { it.x })
 }

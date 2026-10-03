@@ -171,6 +171,9 @@ class CardGridState internal constructor(
     var displaced by mutableStateOf<Map<String, CardRect>>(emptyMap())
         private set
 
+    /** 被压卡片的让位方向锁定表：卡片持续被压住期间方向保持稳定，避免指针扫过卡片中心时来回翻转 */
+    private val lockedDirections = mutableMapOf<String, IntOffset>()
+
     /** 布局发生结算后的回调（用于持久化） */
     var onLayoutCommitted: () -> Unit = {}
 
@@ -188,7 +191,7 @@ class CardGridState internal constructor(
         stiffness = Spring.StiffnessMediumLow
     )
 
-    /** 默认空间动画（结算、压实） */
+    /** 默认空间动画（结算、重排） */
     internal var defaultSpec: AnimationSpec<Rect> = spring(
         dampingRatio = Spring.DampingRatioNoBouncy,
         stiffness = Spring.StiffnessMediumLow
@@ -333,16 +336,13 @@ class CardGridState internal constructor(
         return card
     }
 
-    /** 移除一张卡片并压实剩余布局 */
+    /** 移除一张卡片，其余布局保持原样 */
     fun removeCard(id: String) {
         val removed = cards.firstOrNull { it.id == id } ?: return
-        val remaining = cards.filterNot { it.id == id }
-        val compacted = GridEngine.compact(remaining.map { it.layout }).associateBy { it.id }
-        cards = remaining.map { card -> card.copy(layout = compacted.getValue(card.id)) }
+        cards = cards.filterNot { it.id == id }
         animators.remove(removed.id)
         if (adjustingCardId == id) adjustingCardId = null
         if (session?.card?.id == id) endSession()
-        cards.forEach { card -> animateTo(card, effectiveLayout(card), defaultSpec) }
         commitLayout()
         onCardRemoved(id)
     }
@@ -422,18 +422,43 @@ class CardGridState internal constructor(
             (topLeft.y / cellPx).roundToInt().coerceAtLeast(0)
         )
         val preview = current.card.layout.positionAt(target)
-        applyPreview(
-            preview,
-            GridEngine.resolveDisplacements(
-                moving = preview,
-                columns = geometry.columns,
-                cards = layouts(),
-                pointer = IntOffset(
-                    (pointer.x / cellPx).roundToInt(),
-                    (pointer.y / cellPx).roundToInt()
-                )
-            )
+        val pointerCell = IntOffset(
+            (pointer.x / cellPx).roundToInt(),
+            (pointer.y / cellPx).roundToInt()
         )
+        lockDisplacementDirections(preview, pointerCell)
+        val displacements = GridEngine.resolveDisplacements(
+            moving = preview,
+            columns = geometry.columns,
+            cards = layouts(),
+            pointer = pointerCell,
+            directions = lockedDirections
+        )
+        if (displacements == null) {
+            // 引擎无法确定让位方向（方向信息缺失）时兜底：落点钳制到最近可行空位
+            val clamped = GridEngine.findNearestFreeSlot(
+                width = current.card.layout.width,
+                height = current.card.layout.height,
+                origin = target,
+                columns = geometry.columns,
+                obstacles = layouts().filterNot { it.id == current.card.id }
+            ) ?: return
+            applyPreview(current.card.layout.positionAt(clamped), emptyMap())
+            return
+        }
+        applyPreview(preview, displacements)
+    }
+
+    /** 锁定持续被压卡片的让位方向，脱离被压的卡片解除锁定 */
+    private fun lockDisplacementDirections(preview: CardRect, pointerCell: IntOffset) {
+        val sessionId = session?.card?.id
+        val overlapped = layouts().filter { it.id != sessionId && it.intersects(preview) }
+        lockedDirections.keys.retainAll(overlapped.mapTo(mutableSetOf()) { it.id })
+        overlapped.forEach { card ->
+            lockedDirections.getOrPut(card.id) {
+                GridEngine.displacementDirection(pointerCell, card)
+            }
+        }
     }
 
     /** 松手：结算落位与被挤开的卡片，压实并持久化 */
@@ -599,7 +624,7 @@ class CardGridState internal constructor(
         }
     }
 
-    /** 提交会话结果：沿用会话过程中的让位结算，压实并持久化 */
+    /** 提交会话结果：沿用会话过程中的让位结算并持久化 */
     private fun commit(target: CardRect) {
         val current = session ?: return
         // endSession 会清空跟手矩形，必须先捕获供动画器吸附
@@ -607,23 +632,16 @@ class CardGridState internal constructor(
         val settled = displaced
         cards = cards.map { card ->
             when {
-                card.id == current.card.id -> card.copy(layout = target)
+                card.id == current.card.id -> card.copy(
+                    layout = target,
+                    //用户结算的跨度成为新的折算基准
+                    reflowBase = ReflowBase(target.width, target.height, geometry.columns)
+                )
                 else -> settled[card.id]?.let { card.copy(layout = it) } ?: card
             }
         }
-        cards = compactCards(cards)
-        //压实可能改变会话卡的最终落位，以列表中的最终布局为准
-        val finalLayout = cards.firstOrNull { it.id == current.card.id }?.layout ?: target
-        //用户结算的跨度成为新的折算基准
-        cards = cards.map { card ->
-            if (card.id == current.card.id) {
-                card.copy(reflowBase = ReflowBase(card.layout.width, card.layout.height, geometry.columns))
-            } else {
-                card
-            }
-        }
         endSession()
-        settleSessionCard(current.card, rawRect, finalLayout)
+        settleSessionCard(current.card, rawRect, target)
         cards.filterNot { it.id == current.card.id }
             .forEach { animateTo(it, effectiveLayout(it), defaultSpec) }
         commitLayout()
@@ -647,12 +665,7 @@ class CardGridState internal constructor(
         dragRawRect = null
         pointerPosition = null
         displaced = emptyMap()
-    }
-
-    /** 垂直压实全部卡片，保持实例映射 */
-    private fun compactCards(list: List<GridCard>): List<GridCard> {
-        val compacted = GridEngine.compact(list.map { it.layout }).associateBy { it.id }
-        return list.map { card -> card.copy(layout = compacted.getValue(card.id)) }
+        lockedDirections.clear()
     }
 
     private fun reflowTo(newColumns: Int, oldColumns: Int) {

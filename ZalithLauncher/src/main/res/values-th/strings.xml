@@ -384,4 +384,29 @@
     <string name="settings_renderer_resolution_custom_summary">เรนเดอร์เกมด้วยความกว้างและความสูงที่แน่นอน โดยภาพจะถูกปรับขนาดให้พอดีกับหน้าจอ</string>
     <string name="settings_renderer_resolution_custom_width">ความกว้าง</string>
     <string name="settings_renderer_resolution_custom_height">ความสูง</string>
+
+    <string name="guide_main_welcome_title">ยินดีต้อนรับสู่ %s!</string>
+    <string name="guide_main_welcome_text">มาดูฟีเจอร์ของหน้าหลักกันสั้น ๆ นะ</string>
+    <string name="guide_main_account">แตะตรงนี้เพื่อเปิดหน้าจัดการบัญชี คุณสามารถเพิ่มหรือจัดการบัญชี Minecraft ได้</string>
+    <string name="guide_main_version_list">แตะตรงนี้เพื่อเปิดรายการเวอร์ชัน ทุกเวอร์ชันของเกมที่คุณติดตั้งจะแสดงอยู่ที่นี่</string>
+    <string name="guide_main_card_drag_title">ไม่ชอบตำแหน่งของแถบเมนูใช่ไหม</string>
+    <string name="guide_main_card_drag_text">กดค้างที่การ์ดเพื่อยกขึ้น แล้วลากไปวางเพื่อหยุดพักที่อีกฝั่งได้เลย</string>
+    <string name="guide_main_card_tip_title">รู้สึกว่าตรงนี้ว่างเปล่าไปหน่อยใช่ไหม</string>
+    <string name="guide_main_card_tip_text">ไม่ต้องกังวล คุณสามารถปักเนื้อหาไว้ที่นี่เป็นการ์ดและจัดวางได้อย่างอิสระ หากมีตัวเลือก “%s”</string>
+    <string name="guide_editor_welcome_title">ยินดีต้อนรับสู่เครื่องมือแก้ไขเลย์เอาต์ปุ่มควบคุม!</string>
+    <string name="guide_editor_welcome_text">มาดูวิธีใช้งานแบบคร่าว ๆ กันเลย</string>
+    <string name="guide_editor_menu_ball_title">นี่คือปุ่มเมนูลอยของเครื่องมือแก้ไขเลย์เอาต์ปุ่มควบคุม</string>
+    <string name="guide_editor_menu_ball_text">ลากเพื่อเปลี่ยนตำแหน่ง! แตะเพื่อเปิดเมนูของเครื่องมือแก้ไขและรายการเลเยอร์การควบคุม</string>
+    <string name="guide_editor_layer_list_title">นี่คือรายการเลเยอร์การควบคุม</string>
+    <string name="guide_editor_layer_list_text">เลเยอร์การควบคุมทำหน้าที่เหมือนเลเยอร์ของภาพ คือคอนเทนเนอร์สำหรับวางปุ่มควบคุม คุณสามารถแบ่งปุ่มควบคุมที่เพิ่มออกเป็นหลายเลเยอร์เพื่อจัดการได้</string>
+    <string name="guide_editor_layer_list_note">เลเยอร์การควบคุมทั้งหมดที่คุณสร้างจะแสดงอยู่ที่นี่</string>
+    <string name="guide_editor_create_layer">แตะปุ่มนี้เพื่อสร้างเลเยอร์การควบคุมใหม่</string>
+    <string name="guide_editor_add_widgets_title">เพิ่มปุ่มควบคุมที่นี่!</string>
+    <string name="guide_editor_add_widgets_text">เมื่อเลือกเลเยอร์การควบคุมแล้ว คุณจะเพิ่มปุ่มควบคุมได้ทุกประเภท</string>
+    <string name="guide_editor_styles_title">อยากปรับรูปลักษณ์ของปุ่มควบคุมไหม?</string>
+    <string name="guide_editor_styles_text">คุณสามารถสร้างรูปลักษณ์สำหรับปุ่มควบคุมเพื่อนำกลับมาใช้ใหม่และสลับไปมาได้อย่างรวดเร็ว</string>
+    <string name="guide_editor_preview">ทดสอบเลย์เอาต์ปุ่มควบคุมด้วยโหมดดูตัวอย่างได้เลย</string>
+    <string name="guide_editor_save">แก้ไขเสร็จแล้วอย่าลืมบันทึกเลย์เอาต์ปุ่มควบคุม!</string>
+    <string name="guide_tip_blank">แตะบริเวณว่างเพื่อไปยังขั้นตอนถัดไป</string>
+    <string name="guide_tip_finish">แตะบริเวณว่างเพื่อจบคำแนะนำ</string>
 </resources>

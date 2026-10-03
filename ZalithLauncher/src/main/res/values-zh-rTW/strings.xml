@@ -157,6 +157,7 @@
     <string name="unpack_screen_jna">讓 Minecraft 能直接呼叫作業系統的底層功能</string>
     <!--  主選單  -->
     <string name="main_launch_game">啟動遊戲</string>
+    <string name="launch_check_mods">檢查模組</string>
     <string name="main_task_menu">任務選單</string>
     <!--  下載  -->
     <string name="download_category_game">遊戲</string>
@@ -175,9 +176,6 @@
     <string name="download_game_type_old_alpha">Alpha 版</string>
     <string name="download_game_type_old_beta">Beta 版</string>
     <string name="download_game_version_name">版本名稱</string>
-    <string name="download_game_version_overwrite">將會覆蓋安裝到已存在版本：%s</string>
-    <string name="download_game_version_overwrite_select">覆蓋的版本</string>
-    <string name="download_game_version_overwrite_select_subtitle">選擇要覆蓋的版本，您可以使用這個功能升級/降級目標版本</string>
     <string name="download_game_addon_list_load_error">列表載入錯誤：%s</string>
     <string name="download_game_addon_available">可選擇</string>
     <string name="download_game_addon_unavailable">不可用</string>
@@ -198,6 +196,7 @@
     <string name="download_game_install_base_install">安裝 %s</string>
     <string name="download_game_install_base_installing">正在透過前景服務安裝 %s</string>
     <string name="download_game_install_optifine_fetch_download_url">獲取 OptiFine %s 下載連結</string>
+    <string name="download_install_error_optifine_forge17_incompatible">此 OptiFine（組建 %s）與 Forge 1.17+ 不相容，需要 H1 Pre2（20210924–190833）或更新的版本</string>
     <string name="download_game_install_forgelike_analyse">分析 %s 支援函式庫</string>
     <string name="download_game_install_forgelike_preparing_mapping_file">準備 %s 映射檔案中</string>
     <string name="download_game_install_game_files_progress">安裝遊戲檔案</string>
@@ -381,6 +380,9 @@
     <string name="game_menu_option_input_method">切換輸入法</string>
     <string name="game_menu_option_auto_show_ime">自動喚起輸入法（SDL）</string>
     <string name="game_menu_option_switch_fps">幀率顯示</string>
+    <string name="game_menu_option_fps_display_mode">幀率顯示模式</string>
+    <string name="game_menu_option_fps_display_mode_number">數字</string>
+    <string name="game_menu_option_fps_display_mode_chart">圖表</string>
     <string name="game_menu_option_switch_memory">記憶體顯示</string>
     <string name="game_menu_option_fps_settings">幀率設定</string>
     <string name="game_menu_option_ram_settings">記憶體設定</string>
@@ -570,6 +572,9 @@
     <string name="cape_name_zombie_horse">殭屍馬披風</string>
     <string name="cape_name_builder">建造者披風</string>
     <string name="cape_name_crafter">工匠披風</string>
+    <string name="cape_name_twisted">扭曲披風</string>
+    <string name="cape_name_hero">英雄披風</string>
+    <string name="cape_name_aurora">極光披風</string>
     <!--  檔案管理  -->
     <string name="files_back_to_parent">返回上一層</string>
     <string name="files_create_dir">建立目錄</string>
@@ -611,6 +616,18 @@
     <string name="versions_manage_category_modloader">可安裝模組</string>
     <string name="versions_manage_pin">置頂</string>
     <string name="versions_manage_install_exists">此名稱的版本已存在！</string>
+    <string name="versions_modify_version">修改版本</string>
+    <string name="versions_modify_start">開始修改</string>
+    <string name="versions_modify_select_mc">選擇 Minecraft 版本</string>
+    <string name="versions_modify_name_tip">此處可修改該版本的名稱</string>
+    <string name="versions_modify_mc_changed_title">Minecraft 版本已變更</string>
+    <string name="versions_modify_mc_changed_tip">部分載入器可能並不支援該版本，可為新版本重新選擇載入器。</string>
+    <string name="versions_modify_unrecognized_title">以下已安裝的元件無法自動匹配（可能與所選載入器不相容），未選擇新版本時將保留原樣</string>
+    <string name="versions_modify_confirm_message">將為該版本套用以下變更：</string>
+    <string name="versions_modify_diff_remove">移除 %s</string>
+    <string name="versions_modify_diff_install">安裝 %1$s %2$s</string>
+    <string name="versions_modify_success">版本修改成功！</string>
+    <string name="versions_modify_error_message">修改版本時發生錯誤：</string>
     <string name="versions_manage_invalid">此版本無效</string>
     <string name="home_add_version_card">新增卡片至主畫面</string>
     <string name="home_version_card_deleted">版本已刪除</string>
@@ -679,15 +696,6 @@
     <string name="versions_config_failed_to_save">儲存版本組態時發生異常</string>
     <string name="versions_config_microphone_check_title">檢查麥克風</string>
     <string name="versions_config_microphone_check_summary">檢查系統麥克風是否可用，或確認啟動器是否已獲得麥克風權限。此檢查將確保您可以使用像 Simple Voice Chat 這樣需要使用麥克風的模組。</string>
-    <string name="versions_install_loader">安裝載入器</string>
-    <string name="versions_update_loader">更新載入器</string>
-    <string name="versions_update_loader_waiting_for_others">等待其他項目完成加載</string>
-    <string name="versions_update_loader_diff_message">您確定要變更當前遊戲的載入器嗎？</string>
-    <string name="versions_update_loader_diff_change">變更：%1$s %2$s → %3$s</string>
-    <string name="versions_update_loader_diff_remove">移除：%s</string>
-    <string name="versions_update_loader_diff_load">載入：%1$s %2$s</string>
-    <string name="versions_update_loader_error_message">安裝載入器時出現異常：</string>
-    <string name="versions_update_loader_success_message">已成功變更該遊戲的載入器版本！</string>
     <string name="versions_export">匯出模組包</string>
     <string name="versions_export_type_mcbbs">MCBBS 模組包</string>
     <string name="versions_export_type_mcbbs_summary">可被 %s、HMCL 等啟動器匯入</string>
@@ -1491,4 +1499,29 @@
     <string name="fm_trash_size">大小：%s</string>
     <string name="fm_trash_sort_deleted">刪除時間</string>
     <string name="fm_trash_title">資源回收筒</string>
+
+    <string name="guide_main_welcome_title">歡迎使用 %s！</string>
+    <string name="guide_main_welcome_text">我們來簡單看看主畫面的功能吧～</string>
+    <string name="guide_main_account">點擊此處可進入帳號管理頁面，你可以新增或管理 Minecraft 帳號</string>
+    <string name="guide_main_version_list">點擊這裡可開啟版本清單，你將來安裝的所有遊戲版本都會在這裡列出來喔</string>
+    <string name="guide_main_card_drag_title">不太喜歡操作選單的位置？</string>
+    <string name="guide_main_card_drag_text">你可以長按卡片提起它，拖曳並讓它停靠到另一側喔</string>
+    <string name="guide_main_card_tip_title">這裡太空曠了？</string>
+    <string name="guide_main_card_tip_text">別擔心，你可以將一些內容作為卡片放到這裡自由排布，只要它提供了「%s」選項</string>
+    <string name="guide_editor_welcome_title">歡迎使用控制佈局編輯器！</string>
+    <string name="guide_editor_welcome_text">我們來簡單了解一下如何使用它吧！</string>
+    <string name="guide_editor_menu_ball_title">這是控制佈局編輯器的懸浮選單</string>
+    <string name="guide_editor_menu_ball_text">拖曳它可變更懸浮選單的位置！點擊它以開啟選單與控制項圖層列表</string>
+    <string name="guide_editor_layer_list_title">這是控制項圖層列表</string>
+    <string name="guide_editor_layer_list_text">控制項圖層就相當於圖層，是承載控制項的容器。你可以分層管理、控制在控制項圖層上加入的控制項</string>
+    <string name="guide_editor_layer_list_note">你所加入的所有控制項圖層都會在此處列出</string>
+    <string name="guide_editor_create_layer">點擊此按鈕以建立新的控制項圖層</string>
+    <string name="guide_editor_add_widgets_title">在這裡加入控制項！</string>
+    <string name="guide_editor_add_widgets_text">選取控制項圖層之後，你可以為其加入任意類型的控制項</string>
+    <string name="guide_editor_styles_title">想調整控制項的外觀？</string>
+    <string name="guide_editor_styles_text">你可以為控制項建立一些外觀，以便快速複用與切換不同的外觀</string>
+    <string name="guide_editor_preview">可以透過預覽功能來測試你的控制佈局</string>
+    <string name="guide_editor_save">編輯完成後，記得儲存控制佈局！</string>
+    <string name="guide_tip_blank">點擊空白處以進入下一步</string>
+    <string name="guide_tip_finish">點擊空白處以完成引導</string>
 </resources>

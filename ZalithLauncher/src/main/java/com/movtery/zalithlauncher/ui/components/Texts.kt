@@ -18,19 +18,28 @@
 
 package com.movtery.zalithlauncher.ui.components
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.TextAutoSize
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.takeOrElse
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -40,6 +49,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.utils.string.toSingleLine
 
 @Composable
@@ -103,6 +114,35 @@ fun SingleLineTextCheck(
             val singleLined = text.toSingleLine(replace = replace)
             if (text != singleLined) onSingleLined(singleLined)
             checked = true
+        }
+    }
+}
+
+/**
+ * 过渡/变更文本组
+ */
+@Composable
+fun TextTransition(
+    from: String,
+    to: String,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.bodySmall
+) {
+    CompositionLocalProvider(
+        LocalTextStyle provides style
+    ) {
+        Row(
+            modifier = modifier,
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(from)
+            Icon(
+                modifier = Modifier.size(12.dp),
+                painter = painterResource(R.drawable.ic_play_arrow_filled),
+                contentDescription = null
+            )
+            Text(to)
         }
     }
 }

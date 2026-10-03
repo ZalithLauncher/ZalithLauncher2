@@ -471,9 +471,11 @@ private fun PlatformVersion.isCompatibleWith(
 
     // 仅模组依赖需要校验模组加载器
     if (classes != PlatformClasses.MOD) return true
-    val targetLoader = info.loaderInfo?.loader?.toPlatformLoader(platform()) ?: return true
+    // 多加载器组合时任一加载器匹配平台要求即可
+    val targetLoaders = info.loaderInfos.mapNotNull { it.loader.toPlatformLoader(platform()) }
+    if (targetLoaders.isEmpty()) return true
     val versionLoaders = platformLoaders()
-    return versionLoaders.isEmpty() || targetLoader in versionLoaders
+    return versionLoaders.isEmpty() || targetLoaders.any { it in versionLoaders }
 }
 
 /**

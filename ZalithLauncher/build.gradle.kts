@@ -457,14 +457,13 @@ dependencies {
     implementation(libs.editor)
     implementation(libs.editor.language.textmate)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
-    implementation(libs.dev.haze)
-    implementation(libs.dev.haze.blur)
     //Project
     implementation(project(":LayerController"))
     implementation(project(":ColorPicker"))
     implementation(project(":CardGrid"))
     implementation(project(":Terracotta"))
     implementation(project(":InputMap"))
+    implementation(project(":Guide"))
     //Utils
     implementation(libs.bytehook)
     implementation(libs.gson)

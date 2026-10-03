@@ -50,6 +50,11 @@ class SDLInputConnection extends BaseInputConnection
 //        }
 //
 //        return super.sendKeyEvent(event);
+        //输入法（软键盘）合成的可打印字符事件不代表游戏按键，
+        //转发为 SDL 按键事件会误触游戏绑定
+        if ((event.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0 && event.isPrintingKey()) {
+            return true;
+        }
         if(KeyEvent.ACTION_DOWN == event.getAction()){
             SDLActivity.onNativeKeyDown(event.getKeyCode());
         } else SDLActivity.onNativeKeyUp(event.getKeyCode());
@@ -121,16 +126,14 @@ class SDLInputConnection extends BaseInputConnection
         if (matchLength < text.length()) {
             String pendingText = text.subSequence(matchLength, text.length()).toString();
             if (!SDLActivity.dispatchingKeyEvent()) {
+                //不为输入法提交的文本合成扫描码按键事件：文本经 nativeCommitText
+                //以 SDL_EVENT_TEXT_INPUT 进入游戏，合成按键只会误触游戏绑定
                 for (offset = 0; offset < pendingText.length(); ) {
                     int codePoint = pendingText.codePointAt(offset);
                     if (codePoint == '\n') {
                         if (SDLActivity.onNativeSoftReturnKey()) {
                             return;
                         }
-                    }
-                    /* Higher code points don't generate simulated scancodes */
-                    if (codePoint > 0 && codePoint < 128) {
-                        nativeGenerateScancodeForUnichar((char)codePoint);
                     }
                     offset += Character.charCount(codePoint);
                 }

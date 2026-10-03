@@ -34,6 +34,7 @@ import com.movtery.zalithlauncher.setting.enums.AppLanguage
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.setting.enums.ChromaMode
 import com.movtery.zalithlauncher.setting.enums.DarkMode
+import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
 import com.movtery.zalithlauncher.setting.enums.MainScreenMode
@@ -624,6 +625,11 @@ object AllSettings : SettingsRegistry() {
      * 在游戏菜单悬浮窗上显示帧率
      */
     val showFPS = boolSetting("showFPS", true)
+
+    /**
+     * 游戏内帧率的展示模式
+     */
+    val fpsDisplayMode = enumSetting("fpsDisplayMode", FpsDisplayMode.NUMBER)
 
     /**
      * 在游戏菜单悬浮窗上显示内存

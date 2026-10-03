@@ -975,14 +975,6 @@
     <string name="generic_follow_system">システムに従う</string>
     <string name="game_menu_option_menu_ball_opacity">メニューオーバーレイの不透明度</string>
     <string name="settings_launcher_dark_mode_title">ダークモード</string>
-    <string name="versions_update_loader">ローダーをアップデート</string>
-    <string name="versions_update_loader_waiting_for_others">他のアイテムの読み込みの完了を待っています</string>
-    <string name="versions_update_loader_diff_message">現在のゲームローダーを変更してもよろしいですか？</string>
-    <string name="versions_update_loader_diff_change">変更: %1$s %2$s → %3$s</string>
-    <string name="versions_update_loader_diff_remove">削除: %s</string>
-    <string name="versions_update_loader_diff_load">読み込み中: %1$s %2$s</string>
-    <string name="versions_update_loader_error_message">ローダーのインストール中にエラーが発生しました:</string>
-    <string name="versions_update_loader_success_message">ゲームのローダーバージョンが正常に更新されました！</string>
     <string name="notification_data_terracotta_message">マルチプレイセッション中、ランチャーはフォアグラウンドサービスを利用して現在の通信状態を表示するため、通知の許可が必要です。</string>
     <string name="settings_control_mouse_enable_click_title">タッチパッド操作</string>
     <string name="settings_control_mouse_enable_click_summary">画面をタップするとマウスの左クリック、長押しすると左クリックのホールドとして扱われます; この設定は物理マウスコントロールやタップコントロールには影響しません</string>
@@ -1138,12 +1130,8 @@
     <string name="page_title_account_list">アカウントリスト</string>
     <string name="page_title_select_files">パスの選択</string>
     <string name="unpack_screen_jre25">Java 25 環境 (Minecraft 26.1 以降に必要)</string>
-    <string name="versions_install_loader">ローダーのインストール</string>
     <string name="notification_jvm_running_name">JVM キープアライブサービス</string>
     <string name="unpack_screen_jna">Minecraft が低レベルの OS 関数を直接呼び出せるようにします。</string>
-    <string name="download_game_version_overwrite">既存バージョンを上書きしてインストールします: %s</string>
-    <string name="download_game_version_overwrite_select">上書きするバージョン</string>
-    <string name="download_game_version_overwrite_select_subtitle">対象のバージョンを選択してください。この機能で、対象のバージョンをアップグレード/ダウングレードできます</string>
     <string name="version_summary_fools_herd_craft">インベントリの整理はやめましょう。アイテムとブロックはあなたと一緒に暴走したがっています！</string>
     <string name="plugin_unsupported_warning">プラグイン %s はこのバージョンでは対応してません。そのまま使用すると、ゲームがクラッシュする恐れがあります！リスクを無視して続行しますか？</string>
     <string name="plugin_download_title">プラグインをダウンロード</string>
@@ -1189,4 +1177,29 @@
     <string name="festivals_april_fools">エイプリルフールおめでとう！</string>
     <string name="festivals_christmas">メリークリスマス！</string>
     <string name="generic_edit">編集</string>
+
+    <string name="guide_main_welcome_title">ようこそ %s へ！</string>
+    <string name="guide_main_welcome_text">メイン画面の機能を簡単に見ていきましょう。</string>
+    <string name="guide_main_account">タップするとアカウント管理画面を開けます。Minecraft アカウントの追加や管理ができます</string>
+    <string name="guide_main_version_list">タップするとバージョンリストが開きます。インストールしたゲームバージョンはすべてここに表示されます</string>
+    <string name="guide_main_card_drag_title">操作メニューの場所が気に入らない？</string>
+    <string name="guide_main_card_drag_text">カードを長押しして持ち上げ、ドラッグ＆ドロップで反対側にドッキングできます</string>
+    <string name="guide_main_card_tip_title">ここ、少し寂しくない？</string>
+    <string name="guide_main_card_tip_text">ご安心ください。「%s」が提供されているコンテンツは、カードとしてここに自由に配置できます</string>
+    <string name="guide_editor_welcome_title">コントロールレイアウトエディターへようこそ！</string>
+    <string name="guide_editor_welcome_text">簡単な使い方を見ていきましょう。</string>
+    <string name="guide_editor_menu_ball_title">これがコントロールレイアウトエディターのフローティングメニューボタンです</string>
+    <string name="guide_editor_menu_ball_text">ドラッグすると位置を変更できます！タップするとメニューとコントロールレイヤーのリストを開けます</string>
+    <string name="guide_editor_layer_list_title">これはコントロールレイヤーのリストです</string>
+    <string name="guide_editor_layer_list_text">コントロールレイヤーはグラフィックのレイヤーのようなもので、コントロールをまとめる容器です。コントロールをレイヤーごとに分けて管理できます</string>
+    <string name="guide_editor_layer_list_note">追加したコントロールレイヤーはすべてここに表示されます</string>
+    <string name="guide_editor_create_layer">このボタンをタップして新しいコントロールレイヤーを作成します</string>
+    <string name="guide_editor_add_widgets_title">ここでコントロールを追加できます！</string>
+    <string name="guide_editor_add_widgets_text">コントロールレイヤーを選択すると、任意の種類のコントロールを追加できます</string>
+    <string name="guide_editor_styles_title">コントロールの見た目を変えたいときは？</string>
+    <string name="guide_editor_styles_text">コントロールの外観を作成しておけば、簡単に再利用や切り替えができます</string>
+    <string name="guide_editor_preview">プレビュー機能を使ってコントロールレイアウトを試してみましょう。</string>
+    <string name="guide_editor_save">編集が終わったら、コントロールレイアウトの保存を忘れずに！</string>
+    <string name="guide_tip_blank">空いている場所をタップして次に進みましょう</string>
+    <string name="guide_tip_finish">空いている場所をタップしてガイドを終了しましょう</string>
 </resources>

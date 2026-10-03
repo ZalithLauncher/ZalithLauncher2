@@ -537,7 +537,14 @@ private class TouchControllerInputConnection(
             }
             updateState(TextInputState::doDelete)
         } else {
-            LWJGLCharSender.sendOther(event)
+            val char = event.unicodeChar
+            if (char == 0) {
+                LWJGLCharSender.sendOther(event)
+            } else if (event.action == KeyEvent.ACTION_DOWN) {
+                updateState { currentState ->
+                    currentState.commitTextAsNewState(char.toString(), 1)
+                }
+            }
         }
         return true
     }

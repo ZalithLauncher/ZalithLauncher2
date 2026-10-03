@@ -10,7 +10,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.Choreographer;
-import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 
@@ -192,22 +191,30 @@ public class CallbackBridge {
         SDLActivity.onNativeMouse(0, MotionEvent.ACTION_MOVE, x, y, true);
     }
 
+    /**
+     * lwjglx 系桥会暂存可打印按键的按下事件，等待字符事件合并后才投给游戏。
+     * 启用后为无字符的控制按键补发 ASCII 控制码字符事件，使按键即时交付；控制码不会注入文本。
+     */
+    private static volatile boolean sControlKeyCharPairing = false;
+
+    public static void setControlKeyCharPairing(boolean enabled) {
+        sControlKeyCharPairing = enabled;
+    }
+
     public static void sendKeycode(int keycode, char keychar, int scancode, int modifiers, boolean isDown) {
         if (keycode > LwjglGlfwKeycode.GLFW_KEY_UNKNOWN && keycode <= LwjglGlfwKeycode.GLFW_KEY_LAST) {
             nativeSendKey(keycode, scancode, isDown ? 1 : 0, modifiers);
         }
-        // 补齐桌面键盘 keydown 与字符事件成对到达的语义：lwjglx 系 LWJGL2 兼容层
-        // 参考 Display.keyCallback（https://github.com/CleanroomMC/LWJGLXX/blob/master/src/main/java/org/lwjglx/opengl/Display.java）
-        // 将字母/数字/标点的 keydown 暂存，等 charMods 事件合并后才投给游戏；
-        // 虚拟按键等来源不携带字符，按键位反查补发，否则按键无法驱动绑定
-        char charToSend = keychar;
-        if (isDown && charToSend == '\u0000'
+        if (isDown && !Character.isISOControl(keychar)) {
+            nativeSendCharMods(keychar, modifiers);
+            nativeSendChar(keychar);
+        } else if (isDown && sControlKeyCharPairing && keychar == '\u0000'
                 && keycode > LwjglGlfwKeycode.GLFW_KEY_SPACE && keycode <= LwjglGlfwKeycode.GLFW_KEY_GRAVE_ACCENT) {
-            charToSend = getUnicodeChar(EfficientAndroidLWJGLKeycode.getAndroidKeycode(keycode), modifiers);
-        }
-        if (isDown && !Character.isISOControl(charToSend)) {
-            nativeSendCharMods(charToSend, modifiers);
-            nativeSendChar(charToSend);
+            //用 ASCII 控制码补全暂存的按键事件，控制码不通过 ChatAllowedCharacters 校验，不会注入文本
+            char escapeCode = (char) (keycode & 0x1f);
+            if (escapeCode == '\u0000') escapeCode = '\u001f';
+            nativeSendCharMods(escapeCode, modifiers);
+            nativeSendChar(escapeCode);
         }
         if (!SdlBridge.getSdlEnabled()) return;
         int androidKeycode = EfficientAndroidLWJGLKeycode.getSdlAndroidKeycode(keycode);
@@ -216,8 +223,8 @@ public class CallbackBridge {
             if (isDown) {
                 SDLActivity.onNativeKeyDown(androidKeycode);
                 // 游戏只在 SDL_EVENT_TEXT_INPUT 里插入字符，仅 KEYDOWN 不会有任何输入
-                if (isTextEventChar(charToSend, modifiers) && SDLActivity.isSDLTextInputActive()) {
-                    SDLActivity.onNativeTextInput(String.valueOf(charToSend));
+                if (isTextEventChar(keychar, modifiers) && SDLActivity.isSDLTextInputActive()) {
+                    SDLActivity.onNativeTextInput(String.valueOf(keychar));
                 }
             } else {
                 SDLActivity.onNativeKeyUp(androidKeycode);
@@ -231,24 +238,14 @@ public class CallbackBridge {
         return (modifiers & LwjglGlfwKeycode.GLFW_MOD_CONTROL) == 0;
     }
 
-    private static final KeyCharacterMap sKeyCharacterMap = KeyCharacterMap.load(KeyCharacterMap.VIRTUAL_KEYBOARD);
-
-    /** 按键位与修饰键反查字符，键位无字符时返回 '\0' */
-    private static char getUnicodeChar(int androidKeycode, int glfwMods) {
-        int meta = 0;
-        if ((glfwMods & LwjglGlfwKeycode.GLFW_MOD_SHIFT) != 0) meta |= KeyEvent.META_SHIFT_ON;
-        if ((glfwMods & LwjglGlfwKeycode.GLFW_MOD_ALT) != 0) meta |= KeyEvent.META_ALT_ON;
-        if ((glfwMods & LwjglGlfwKeycode.GLFW_MOD_CONTROL) != 0) meta |= KeyEvent.META_CTRL_ON;
-        int unicode = sKeyCharacterMap.get(androidKeycode, meta);
-        return unicode > 0 && unicode < 0x10000 ? (char) unicode : '\u0000';
-    }
-
     public static void sendChar(char keychar, int modifiers){
         nativeSendCharMods(keychar, modifiers);
         nativeSendChar(keychar);
         if (!SdlBridge.getSdlEnabled()) return;
-        SDLActivity.onNativeKeyDown(EfficientAndroidLWJGLKeycode.getAndroidKeycode(keychar));
-        SDLActivity.onNativeKeyUp(EfficientAndroidLWJGLKeycode.getAndroidKeycode(keychar));
+        //输入法字符只能以 SDL 文本输入形式进入游戏，不能合成按键事件触发绑定
+        if (isTextEventChar(keychar, modifiers) && SDLActivity.isSDLTextInputActive()) {
+            SDLActivity.onNativeTextInput(String.valueOf(keychar));
+        }
     }
 
     public static void sendKeyPress(int keyCode, int modifiers, boolean status) {

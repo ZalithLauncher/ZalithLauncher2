@@ -154,6 +154,11 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "GameScreen"
 
+/** 帧率历史记录的最大时间节点数 */
+private const val FPS_HISTORY_SIZE = 15
+/** 最高/最低帧所在节点被清理后，重算前等待的时间节点数 */
+private const val FPS_RESYNC_NODES = 10
+
 private class GameViewModel(
     private val version: Version,
     private val onChangeTextInputMode: (TextInputMode?) -> Unit
@@ -176,9 +181,29 @@ private class GameViewModel(
     /** 游戏内帧率状态 */
     var gameFps by mutableIntStateOf(0)
         private set
+    /** 帧率历史记录（最多保留最近15个时间节点） */
+    var fpsHistory by mutableStateOf<List<Int>>(emptyList())
+        private set
+    /** 记录范围内的历史最高帧 */
+    var fpsMax by mutableIntStateOf(0)
+        private set
+    /** 记录范围内的历史最低帧 */
+    var fpsMin by mutableIntStateOf(0)
+        private set
+    /** 最高帧重算倒计时（时间节点数），-1 表示无需重算 */
+    private var fpsMaxResyncCountdown = -1
+    /** 最低帧重算倒计时（时间节点数），-1 表示无需重算 */
+    private var fpsMinResyncCountdown = -1
     private var fpsJob: Job? = null
     /** 开始帧率捕获 */
     fun startFpsCapture() {
+        if (fpsJob?.isActive == true) return
+        //新一轮捕获，重置历史记录
+        fpsHistory = emptyList()
+        fpsMax = 0
+        fpsMin = 0
+        fpsMaxResyncCountdown = -1
+        fpsMinResyncCountdown = -1
         //开启一个新的协程，每秒更新一次帧率数据
         fpsJob = viewModelScope.launch(Dispatchers.Default) {
             while (true) {
@@ -187,7 +212,7 @@ private class GameViewModel(
                 }.onFailure {
                     break
                 }
-                gameFps = CallbackBridge.getCurrentFps()
+                recordFps(CallbackBridge.getCurrentFps())
                 delay(1000L.milliseconds)
             }
         }
@@ -196,6 +221,53 @@ private class GameViewModel(
     fun stopFpsCapture() {
         fpsJob?.cancel()
         fpsJob = null
+    }
+
+    /**
+     * 记录一次帧率采样，并维护记录范围内的最高/最低帧。
+     * 被清理的最老节点若恰好是最高/最低帧，不立即重算：
+     * 若之后10个时间节点内没有出现更高/更低的帧，才用当前记录的所有节点重算一次
+     */
+    private fun recordFps(fps: Int) {
+        gameFps = fps
+        //衰减重算倒计时，归零说明等待期内没有出现更高/更低的帧
+        if (fpsMaxResyncCountdown > 0) fpsMaxResyncCountdown--
+        if (fpsMinResyncCountdown > 0) fpsMinResyncCountdown--
+        if (fpsMaxResyncCountdown == 0) {
+            fpsMax = fpsHistory.max()
+            fpsMaxResyncCountdown = -1
+        }
+        if (fpsMinResyncCountdown == 0) {
+            fpsMin = fpsHistory.min()
+            fpsMinResyncCountdown = -1
+        }
+
+        if (fpsHistory.isEmpty()) {
+            fpsMax = fps
+            fpsMin = fps
+        } else {
+            if (fps > fpsMax) {
+                fpsMax = fps
+                fpsMaxResyncCountdown = -1
+            }
+            if (fps < fpsMin) {
+                fpsMin = fps
+                fpsMinResyncCountdown = -1
+            }
+        }
+        fpsHistory = fpsHistory + fps
+
+        //超出最大节点数时清理最老的节点
+        if (fpsHistory.size > FPS_HISTORY_SIZE) {
+            val removed = fpsHistory.first()
+            fpsHistory = fpsHistory.drop(1)
+            if (removed == fpsMax && fpsHistory.none { it == fpsMax }) {
+                fpsMaxResyncCountdown = FPS_RESYNC_NODES
+            }
+            if (removed == fpsMin && fpsHistory.none { it == fpsMin }) {
+                fpsMinResyncCountdown = FPS_RESYNC_NODES
+            }
+        }
     }
 
     var editorRefresh by mutableIntStateOf(0)
@@ -853,6 +925,10 @@ fun GameScreen(
                         AllSettings.menuBallPos.save()
                     },
                     gameFps = gameFps,
+                    fpsDisplayMode = AllSettings.fpsDisplayMode.state,
+                    fpsHistory = viewModel.fpsHistory,
+                    fpsMax = viewModel.fpsMax,
+                    fpsMin = viewModel.fpsMin,
                     showMemory = AllSettings.showMemory.state,
                     memoryDisplayMode = AllSettings.memoryDisplayMode.state,
                     opened = viewModel.gameMenuState == MenuState.SHOW,

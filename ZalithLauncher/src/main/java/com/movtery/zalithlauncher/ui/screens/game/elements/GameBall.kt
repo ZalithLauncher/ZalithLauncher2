@@ -29,8 +29,11 @@ import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -53,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.recorder.RecordingState
 import com.movtery.zalithlauncher.setting.enums.MemoryDisplayMode
+import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
 import com.movtery.zalithlauncher.ui.components.FloatingBall
 import com.movtery.zalithlauncher.ui.screens.content.elements.MemoryPreview
 
@@ -62,6 +66,10 @@ fun DraggableGameBall(
     onPositionChanged: (Offset) -> Unit,
     onSavePos: () -> Unit,
     gameFps: Int?,
+    fpsDisplayMode: FpsDisplayMode,
+    fpsHistory: List<Int>,
+    fpsMax: Int,
+    fpsMin: Int,
     showMemory: Boolean,
     memoryDisplayMode: MemoryDisplayMode = MemoryDisplayMode.System,
     opened: Boolean,
@@ -93,6 +101,10 @@ fun DraggableGameBall(
     ) {
         GameBallContent(
             gameFps = gameFps,
+            fpsDisplayMode = fpsDisplayMode,
+            fpsHistory = fpsHistory,
+            fpsMax = fpsMax,
+            fpsMin = fpsMin,
             showMemory = showMemory,
             memoryDisplayMode = memoryDisplayMode,
             opened = opened,
@@ -229,6 +241,10 @@ private fun Long.formatElapsedTime(): String {
 @Composable
 private fun GameBallContent(
     gameFps: Int?,
+    fpsDisplayMode: FpsDisplayMode,
+    fpsHistory: List<Int>,
+    fpsMax: Int,
+    fpsMin: Int,
     showMemory: Boolean,
     memoryDisplayMode: MemoryDisplayMode = MemoryDisplayMode.System,
     opened: Boolean,
@@ -250,23 +266,28 @@ private fun GameBallContent(
         modifier = Modifier.padding(all = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Menu icon — always visible and always opens the built-in Game Menu
-        Box(
-            modifier = Modifier.size(28.dp),
-            contentAlignment = Alignment.Center
+        val showIcon = !(showMemory || (showFps && fpsDisplayMode == FpsDisplayMode.CHART))
+
+        AnimatedVisibility(
+            visible = showIcon
         ) {
-            Crossfade(opened) { state ->
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(
-                        if (state) {
-                            R.drawable.ic_menu_open
-                        } else {
-                            R.drawable.ic_menu
-                        }
-                    ),
-                    contentDescription = null
-                )
+            Box(
+                modifier = Modifier.size(28.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Crossfade(opened) { state ->
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(
+                            if (state) {
+                                R.drawable.ic_menu_open
+                            } else {
+                                R.drawable.ic_menu
+                            }
+                        ),
+                        contentDescription = null
+                    )
+                }
             }
         }
 
@@ -281,6 +302,7 @@ private fun GameBallContent(
             modifier = Modifier
                 .wrapContentSize()
                 .animateContentSize()
+                .width(IntrinsicSize.Max)
         ) {
             CustomAnimatedVisibility(
                 visible = showFps || showMemory
@@ -291,11 +313,26 @@ private fun GameBallContent(
             CustomAnimatedVisibility(
                 visible = showFps
             ) {
-                Text(
-                    modifier = Modifier.padding(end = 4.dp),
-                    text = "FPS: ${gameFps ?: 0}",
-                    style = MaterialTheme.typography.labelMedium
-                )
+                if (fpsDisplayMode == FpsDisplayMode.CHART) {
+                    //帧率图表
+                    FpsChart(
+                        modifier = Modifier.padding(end = 4.dp),
+                        history = fpsHistory,
+                        fpsMax = fpsMax,
+                        fpsMin = fpsMin
+                    )
+                } else {
+                    Text(
+                        modifier = Modifier.padding(end = 4.dp),
+                        text = "FPS: ${gameFps ?: 0}",
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
+            CustomAnimatedVisibility(
+                visible = showFps && showMemory
+            ) {
+                Spacer(Modifier.height(4.dp))
             }
             //内存显示
             CustomAnimatedVisibility(
@@ -303,7 +340,8 @@ private fun GameBallContent(
             ) {
                 MemoryPreview(
                     modifier = Modifier
-                        .width(168.dp)
+                        .defaultMinSize(minWidth = 168.dp)
+                        .fillMaxWidth()
                         .padding(end = 4.dp),
                     mainColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
                     backgroundColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),

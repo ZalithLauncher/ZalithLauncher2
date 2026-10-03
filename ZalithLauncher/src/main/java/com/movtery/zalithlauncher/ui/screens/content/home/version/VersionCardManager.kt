@@ -181,6 +181,7 @@ object VersionCardManager {
         }
         if (!File(gameHome).exists()) return VersionCardStatus.Inaccessible
         val version = VersionsManager.loadVersion(gameHome, record.versionName)
+            ?.takeIf { it.isValid() }
             ?: return VersionCardStatus.Deleted
         Logger.info(
             TAG,

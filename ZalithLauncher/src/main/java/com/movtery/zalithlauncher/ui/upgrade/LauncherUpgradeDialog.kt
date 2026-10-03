@@ -19,11 +19,15 @@
 package com.movtery.zalithlauncher.ui.upgrade
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
@@ -40,10 +44,11 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.components.MarkdownView
-import com.movtery.zalithlauncher.ui.components.defaultMarkdownConfig
-import com.iffly.compose.markdown.config.MarkdownRenderConfig
+import com.movtery.zalithlauncher.ui.components.defaultRichTextStyle
+import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -70,100 +75,115 @@ fun UpgradeDialog(
     }
 
     Dialog(
-        onDismissRequest = onDismissRequest
+        onDismissRequest = onDismissRequest,
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false
+        )
     ) {
-        Surface(
-            modifier = Modifier.padding(all = 3.dp),
-            shape = MaterialTheme.shapes.extraLarge,
-            color = cardColor(false),
-            contentColor = onCardColor(),
-            shadowElevation = 3.dp
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxWidth(0.65f)
+                .heightIn(max = rememberDialogMaxHeight())
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(all = 6.dp)
+                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
+                    .wrapContentHeight(),
+                shape = MaterialTheme.shapes.extraLarge,
+                color = cardColor(false),
+                contentColor = onCardColor(),
+                shadowElevation = 3.dp
             ) {
-                Text(
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .padding(top = 16.dp),
-                    text = stringResource(R.string.upgrade_new)
-                )
-
-                //版本号
-                val versionStr = stringResource(R.string.upgrade_version_change, data.version)
-                //更新时间
-                val dateStr = stringResource(
-                    R.string.upgrade_version_create_at,
-                    formatDate(
-                        input = data.createdAt,
-                        pattern = stringResource(R.string.date_format)
-                    )
-                )
-                val markdownBody = "$versionStr  \n$dateStr  \n\n${body.markdown}"
-
-                CompositionLocalProvider(
-                    LocalUriHandler provides object : UriHandler {
-                        override fun openUri(uri: String) {
-                            onLinkClick(uri)
-                        }
-                    }
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    MarkdownView(
+                    Text(
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 16.dp),
+                        text = stringResource(R.string.upgrade_new)
+                    )
+
+                    //版本号
+                    val versionStr = stringResource(R.string.upgrade_version_change, data.version)
+                    //更新时间
+                    val dateStr = stringResource(
+                        R.string.upgrade_version_create_at,
+                        formatDate(
+                            input = data.createdAt,
+                            pattern = stringResource(R.string.date_format)
+                        )
+                    )
+                    val markdownBody = "$versionStr  \n$dateStr  \n\n${body.markdown}"
+
+                    CompositionLocalProvider(
+                        LocalUriHandler provides object : UriHandler {
+                            override fun openUri(uri: String) {
+                                onLinkClick(uri)
+                            }
+                        }
+                    ) {
+                        MarkdownView(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f, fill = false)
+                                .padding(horizontal = 20.dp)
+                                .verticalScrollWithBar(rememberScrollState()),
+                            content = markdownBody,
+                            richTextStyle = defaultRichTextStyle(),
+                        )
+                    }
+
+                    //按钮
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f, fill = false)
-                            .padding(horizontal = 20.dp)
-                            .verticalScrollWithBar(rememberScrollState()),
-                        content = markdownBody,
-                        config = defaultMarkdownConfig(),
-                    )
-                }
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (cloudDrive == null) {
+                            Spacer(Modifier.weight(1f))
+                        } else {
+                            FilledTonalButton(
+                                onClick = {
+                                    if (cloudDrive.links.isEmpty()) {
+                                        //未配置多网盘链接，使用默认链接（旧版兼容，必定会有）
+                                        onLinkClick(cloudDrive.link)
+                                    } else if (cloudDrive.links.size == 1) {
+                                        //只有一个网盘链接，则直接访问链接
+                                        onLinkClick(cloudDrive.links[0].link)
+                                    } else {
+                                        onCloudDriveClick(cloudDrive)
+                                    }
+                                }
+                            ) {
+                                Text(text = stringResource(R.string.upgrade_cloud_drive))
+                            }
+                            Spacer(Modifier.weight(1f))
+                        }
 
-                //按钮
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .padding(bottom = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    if (cloudDrive == null) {
-                        Spacer(Modifier.weight(1f))
-                    } else {
                         FilledTonalButton(
                             onClick = {
-                                if (cloudDrive.links.isEmpty()) {
-                                    //未配置多网盘链接，使用默认链接（旧版兼容，必定会有）
-                                    onLinkClick(cloudDrive.link)
-                                } else if (cloudDrive.links.size == 1) {
-                                    //只有一个网盘链接，则直接访问链接
-                                    onLinkClick(cloudDrive.links[0].link)
-                                } else {
-                                    onCloudDriveClick(cloudDrive)
-                                }
+                                onIgnored()
+                                onDismissRequest()
                             }
                         ) {
-                            Text(text = stringResource(R.string.upgrade_cloud_drive))
+                            Text(text = stringResource(R.string.generic_ignore))
                         }
-                        Spacer(Modifier.weight(1f))
-                    }
 
-                    FilledTonalButton(
-                        onClick = {
-                            onIgnored()
-                            onDismissRequest()
+                        Button(
+                            onClick = onFilesClick
+                        ) {
+                            Text(text = stringResource(R.string.upgrade_more))
                         }
-                    ) {
-                        Text(text = stringResource(R.string.generic_ignore))
-                    }
-
-                    Button(
-                        onClick = onFilesClick
-                    ) {
-                        Text(text = stringResource(R.string.upgrade_more))
                     }
                 }
             }

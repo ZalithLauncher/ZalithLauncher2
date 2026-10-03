@@ -714,7 +714,7 @@ public class GameManifest {
             if (rules == null || rules.isEmpty()) return true; // always allow
 
             for (Rule rule : rules) {
-                if (rule.action == Action.ALLOW && rule.os != null && rule.os.name.equals("osx")) {
+                if (rule.action == Action.ALLOW && rule.os != null && "osx".equals(rule.os.name)) {
                     return false; //disallow
                 }
             }

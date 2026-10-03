@@ -33,8 +33,6 @@ data class GameDownloadInfo(
     val gameVersion: String,
     /** 自定义版本名称 */
     val customVersionName: String,
-    /** 是否进行覆盖安装 */
-    val overwrite: Boolean = false,
     val optifine: OptiFineVersion? = null,
     val forge: ForgeVersion? = null,
     val neoforge: NeoForgeVersion? = null,

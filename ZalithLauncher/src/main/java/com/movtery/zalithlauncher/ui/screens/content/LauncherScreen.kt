@@ -22,7 +22,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -82,6 +82,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.cardgrid.state.rememberCardGridState
+import com.movtery.guide.GuideSide
+import com.movtery.guide.guideNode
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
@@ -94,6 +96,8 @@ import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
+import com.movtery.zalithlauncher.ui.components.SkinPreview3D
+import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
@@ -128,7 +132,13 @@ fun LauncherScreen(
     navigateToVersions: (Version) -> Unit,
     onLaunchGame: (Version?) -> Unit,
     onOpenLink: (String) -> Unit,
+    startGuideOnce: (GuideKeys.Keys) -> Unit,
 ) {
+    LaunchedEffect(Unit) {
+        //发起新手引导
+        startGuideOnce(GuideKeys.Main)
+    }
+
     BaseScreen(
         screenKey = NormalNavKey.LauncherMain,
         currentKey = backStackViewModel.mainScreen.currentKey
@@ -198,6 +208,10 @@ fun LauncherScreen(
                 ) {
                     ContentMenu(
                         modifier = Modifier
+                            .guideNode(
+                                key = GuideKeys.Main.Step.CardTip,
+                                holeRadius = 0.dp
+                            )
                             .weight(ContentWeight)
                             .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
                         isVisible = isVisible,
@@ -233,6 +247,7 @@ fun LauncherScreen(
                         modifier = Modifier.fillMaxSize(),
                         isVisible = isVisible,
                         isTaller = isActionMenuTaller,
+                        dockedSide = dockedSide,
                         onLaunchGame = onLaunchGame,
                         swapTargetValue = if (dockedSide == ActionMenuSide.END) 40.dp else (-40).dp,
                         pickUpScale = { dragState.scale },
@@ -316,6 +331,51 @@ private fun AccountAvatarCenter(
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun AccountAvatarRow(
+    modifier: Modifier = Modifier,
+    account: Account?,
+    refreshKey: Any? = null,
+) {
+    Row(
+        modifier = modifier.padding(all = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        if (account != null) {
+            PlayerFace(
+                modifier = Modifier.padding(start = 4.dp),
+                account = account,
+                avatarSize = 48.dp,
+                refreshKey = refreshKey
+            )
+        } else {
+            Icon(
+                modifier = Modifier.size(40.dp),
+                painter = painterResource(R.drawable.ic_add),
+                contentDescription = null
+            )
+        }
+
+        Column(
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = account?.username ?: stringResource(R.string.account_add_new_account),
+                maxLines = 1,
+                style = MaterialTheme.typography.titleSmall
+            )
+            if (account != null) {
+                Text(
+                    text = getAccountTypeName(account),
+                    style = MaterialTheme.typography.labelSmall
+                )
             }
         }
     }
@@ -442,16 +502,16 @@ private fun VersionsContent(
 @Composable
 private fun ActionMenuCardContent(
     modifier: Modifier = Modifier,
+    account: Account?,
     onLaunchGame: (Version?) -> Unit,
     toAccountManageScreen: () -> Unit,
     toVersionManageScreen: () -> Unit,
     toVersionSettingsScreen: () -> Unit,
 ) {
-    val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
-
     BackgroundCard(
         modifier = Modifier
             .actionMenuDragAnchor()
+            .guideNode(GuideKeys.Main.Step.CardDrag)
             .then(modifier),
         shape = MaterialTheme.shapes.extraLarge
     ) {
@@ -467,7 +527,10 @@ private fun ActionMenuCardContent(
                         bottom.linkTo(versionManagerLayout.top)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
-                    },
+                    }.guideNode(
+                        key = GuideKeys.Main.Step.Account,
+                        preferSide = GuideSide.Below
+                    ),
                 account = account,
                 onClick = toAccountManageScreen
             )
@@ -487,9 +550,83 @@ private fun ActionMenuCardContent(
 }
 
 @Composable
+private fun ActionMenuTallerContent(
+    modifier: Modifier = Modifier,
+    account: Account?,
+    dockedSide: ActionMenuSide,
+    onLaunchGame: (Version?) -> Unit,
+    toAccountManageScreen: () -> Unit,
+    toVersionManageScreen: () -> Unit,
+    toVersionSettingsScreen: () -> Unit,
+) {
+    val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
+    val skinFile = remember(account, refreshWardrobe) {
+        account?.getSkinFile()?.takeIf { it.exists() }
+    }
+    val capeFile = remember(account, refreshWardrobe) {
+        account?.getCapeFile()?.takeIf { it.exists() }
+    }
+
+    Column(
+        modifier = Modifier
+            .actionMenuDragAnchor()
+            .guideNode(
+                key = GuideKeys.Main.Step.CardDrag,
+                holeRadius = 0.dp,
+            )
+            .then(modifier),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+        val azimuth = (if (dockedSide == ActionMenuSide.START) -35 else 35) * (if (isRtl) -1 else 1)
+
+        SkinPreview3D(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            skinFile = skinFile,
+            capeFile = capeFile,
+            modelType = account?.skinModelType,
+            interactionEnabled = false,
+            azimuth = azimuth,
+        )
+
+        BackgroundCard(
+            modifier = Modifier
+                .guideNode(
+                    key = GuideKeys.Main.Step.Account,
+                    preferSide = GuideSide.Above,
+                    holeRadius = 28.dp
+                )
+                .fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+            onClick = toAccountManageScreen
+        ) {
+            AccountAvatarRow(
+                modifier = Modifier.fillMaxWidth(),
+                account = account,
+            )
+        }
+
+        BackgroundCard(
+            modifier = Modifier.fillMaxWidth(),
+            shape = MaterialTheme.shapes.extraLarge,
+        ) {
+            VersionsContent(
+                modifier = Modifier.fillMaxWidth(),
+                onLaunchGame = onLaunchGame,
+                toVersionManageScreen = toVersionManageScreen,
+                toVersionSettingsScreen = toVersionSettingsScreen,
+            )
+        }
+    }
+}
+
+@Composable
 private fun ActionMenu(
     isVisible: Boolean,
     isTaller: Boolean,
+    dockedSide: ActionMenuSide,
     onLaunchGame: (Version?) -> Unit,
     swapTargetValue: Dp,
     pickUpScale: () -> Float,
@@ -504,17 +641,34 @@ private fun ActionMenu(
         isHorizontal = true
     )
 
-    ActionMenuCardContent(
-        modifier = modifier.graphicsLayer {
-            val scale = pickUpScale()
-            scaleX = scale
-            scaleY = scale
-        }.offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
-        onLaunchGame = onLaunchGame,
-        toAccountManageScreen = toAccountManageScreen,
-        toVersionManageScreen = toVersionManageScreen,
-        toVersionSettingsScreen = toVersionSettingsScreen,
-    )
+    val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
+
+    val contentModifier = modifier.graphicsLayer {
+        val scale = pickUpScale()
+        scaleX = scale
+        scaleY = scale
+    }.offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
+
+    if (isTaller) {
+        ActionMenuTallerContent(
+            modifier = contentModifier,
+            account = account,
+            dockedSide = dockedSide,
+            onLaunchGame = onLaunchGame,
+            toAccountManageScreen = toAccountManageScreen,
+            toVersionManageScreen = toVersionManageScreen,
+            toVersionSettingsScreen = toVersionSettingsScreen,
+        )
+    } else {
+        ActionMenuCardContent(
+            modifier = contentModifier,
+            account = account,
+            onLaunchGame = onLaunchGame,
+            toAccountManageScreen = toAccountManageScreen,
+            toVersionManageScreen = toVersionManageScreen,
+            toVersionSettingsScreen = toVersionSettingsScreen,
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -536,8 +690,10 @@ private fun VersionManagerLayout(
                 onLongClick = {
                     if (version != null) openListMenu()
                 }
-            )
-            .padding(PaddingValues(all = 8.dp))
+            ).guideNode(
+                key = GuideKeys.Main.Step.VersionList,
+                preferSide = GuideSide.Above,
+            ).padding(PaddingValues(all = 8.dp))
     ) {
         if (isRefreshing) {
             Box(modifier = Modifier.fillMaxWidth()) {

@@ -83,8 +83,8 @@ fun parseJsonToVersionInfo(jsonFile: File): VersionInfo? {
                 isQuickPlayMultiplayer = false
             )
         }
-        val (versionId, loaderInfo) = detectMinecraftAndLoader(jsonObject)
-        VersionInfo(versionId, quickPlay, loaderInfo)
+        val (versionId, loaderInfos) = detectMinecraftAndLoader(jsonObject)
+        VersionInfo(versionId, quickPlay, loaderInfos)
     }.getOrElse {
         Logger.error(TAG, "Error parsing version json", it)
         null
@@ -128,10 +128,10 @@ private fun ensureQuickPlay(versionJson: JsonObject): VersionInfo.QuickPlay {
     )
 }
 
-private fun detectMinecraftAndLoader(versionJson: JsonObject): Pair<String, VersionInfo.LoaderInfo?> {
+private fun detectMinecraftAndLoader(versionJson: JsonObject): Pair<String, List<VersionInfo.LoaderInfo>> {
     val mcVersion = extractMinecraftVersion(versionJson)
-    val loaderInfo = detectModLoader(versionJson)
-    return mcVersion to loaderInfo
+    val loaderInfos = detectModLoaders(versionJson)
+    return mcVersion to loaderInfos
 }
 
 private fun extractMinecraftVersion(json: JsonObject): String {
@@ -181,14 +181,15 @@ private fun extractMinecraftVersion(json: JsonObject): String {
 }
 
 /**
- * 通过库判断ModLoader信息：ModLoader名称、版本
- * @param versionJson 版本json对象
+ * 通过库收集已安装的全部ModLoader信息
+ * @return 按 [VersionInfo.PRIMARY_PRIORITY] 优先级排序的加载器列表
  */
-private fun detectModLoader(versionJson: JsonObject): VersionInfo.LoaderInfo? {
+private fun detectModLoaders(versionJson: JsonObject): List<VersionInfo.LoaderInfo> {
     var hasFabric = false
     var hasLegacyFabric = false
     var hasBabric = false
     var fabricLoaderVer: String? = null
+    val loaderInfos = mutableListOf<VersionInfo.LoaderInfo>()
 
     versionJson.getAsJsonArray("libraries")?.forEach { libElement ->
         val lib = libElement.asJsonObject
@@ -229,7 +230,7 @@ private fun detectModLoader(versionJson: JsonObject): VersionInfo.LoaderInfo? {
                     }
                     else -> version
                 }
-                return VersionInfo.LoaderInfo(ModLoader.FORGE, forgeVersion)
+                loaderInfos.add(VersionInfo.LoaderInfo(ModLoader.FORGE, forgeVersion))
             }
 
             //NeoForge
@@ -238,24 +239,24 @@ private fun detectModLoader(versionJson: JsonObject): VersionInfo.LoaderInfo? {
                     ?.getAsJsonArray("game")
                     ?.findNeoForgeVersion()
                     ?: version
-                return VersionInfo.LoaderInfo(ModLoader.NEOFORGE, neoVersion)
+                loaderInfos.add(VersionInfo.LoaderInfo(ModLoader.NEOFORGE, neoVersion))
             }
 
             //OptiFine
             (group == "optifine" || group == "net.optifine") && artifact == "OptiFine" ->
-                return VersionInfo.LoaderInfo(ModLoader.OPTIFINE, version)
+                loaderInfos.add(VersionInfo.LoaderInfo(ModLoader.OPTIFINE, version))
 
             //Quilt
             group == "org.quiltmc" && artifact == "quilt-loader" ->
-                return VersionInfo.LoaderInfo(ModLoader.QUILT, version)
+                loaderInfos.add(VersionInfo.LoaderInfo(ModLoader.QUILT, version))
 
             //LiteLoader
             group == "com.mumfrey" && artifact == "liteloader" ->
-                return VersionInfo.LoaderInfo(ModLoader.LITE_LOADER, version)
+                loaderInfos.add(VersionInfo.LoaderInfo(ModLoader.LITE_LOADER, version))
 
             //Cleanroom
             group == "com.cleanroommc" && artifact == "cleanroom" ->
-                return VersionInfo.LoaderInfo(ModLoader.CLEANROOM, version)
+                loaderInfos.add(VersionInfo.LoaderInfo(ModLoader.CLEANROOM, version))
         }
     }
 
@@ -269,10 +270,17 @@ private fun detectModLoader(versionJson: JsonObject): VersionInfo.LoaderInfo? {
         } else {
             ModLoader.FABRIC
         }
-        return VersionInfo.LoaderInfo(loader, fabricLoaderVer)
+        loaderInfos.add(VersionInfo.LoaderInfo(loader, fabricLoaderVer ?: ""))
     }
 
-    return null
+    return loaderInfos
+        .distinctBy { it.loader }
+        .sortedBy {
+            VersionInfo.PRIMARY_PRIORITY
+                .indexOf(it.loader)
+                .takeIf { i -> i >= 0 }
+                ?: Int.MAX_VALUE
+        }
 }
 
 /**

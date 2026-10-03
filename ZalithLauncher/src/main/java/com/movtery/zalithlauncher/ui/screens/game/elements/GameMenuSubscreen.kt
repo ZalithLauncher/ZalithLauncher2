@@ -62,6 +62,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
 import com.movtery.zalithlauncher.setting.enums.MemoryDisplayMode
@@ -354,6 +355,22 @@ private fun GameActionContent(
                 color = color,
                 contentColor = contentColor,
                 enabled = AllSettings.showMenuBall.state
+            )
+        }
+        //帧率显示模式
+        item {
+            MenuListLayout(
+                modifier = Modifier.fillMaxWidth(),
+                title = stringResource(R.string.game_menu_option_fps_display_mode),
+                items = FpsDisplayMode.entries,
+                currentItem = AllSettings.fpsDisplayMode.state,
+                onItemChange = { mode ->
+                    AllSettings.fpsDisplayMode.save(mode)
+                },
+                getItemText = { stringResource(it.nameRes) },
+                color = color,
+                contentColor = contentColor,
+                enabled = AllSettings.showMenuBall.state && AllSettings.showFPS.state
             )
         }
         //内存显示

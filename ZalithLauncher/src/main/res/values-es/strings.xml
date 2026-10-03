@@ -608,14 +608,6 @@
     <string name="versions_config_failed_to_save">Error al guardar los ajustes</string>
     <string name="versions_config_microphone_check_title">Comprobar micrófono</string>
     <string name="versions_config_microphone_check_summary">Comprueba si el micrófono del sistema está disponible o confirma que se ha concedido permiso de micrófono al launcher. Esta comprobación asegura que puedes usar mods como Simple Voice Chat que requieren un micrófono.</string>
-    <string name="versions_update_loader">Actualizar cargador</string>
-    <string name="versions_update_loader_waiting_for_others">Esperando a que otros elementos terminen de cargarse</string>
-    <string name="versions_update_loader_diff_message">¿Seguro que deseas cambiar el cargador del juego actual?</string>
-    <string name="versions_update_loader_diff_change">Cambiar: %1$s %2$s → %3$s</string>
-    <string name="versions_update_loader_diff_remove">Eliminar: %s</string>
-    <string name="versions_update_loader_diff_load">Cargar: %1$s %2$s</string>
-    <string name="versions_update_loader_error_message">Ocurrió un error al instalar el cargador:</string>
-    <string name="versions_update_loader_success_message">¡La versión del cargador del juego se ha actualizado correctamente!</string>
     <string name="manage_only_show_valid">Disponible</string>
     <string name="manage_delete_all">Eliminar todo</string>
     <string name="manage_delete_all_message">¿Seguro que deseas eliminar todos los archivos de recursos seleccionados? Esta acción no se puede deshacer. Por favor, procede con precaución.</string>
@@ -1035,4 +1027,29 @@
     <string name="crash_link_share_failed_link_not_found">No se encontró un enlace disponible. Por favor, inténtelo de nuevo más tarde.</string>
     <string name="error_bad_request">(%s) El servidor no pudo entender la petición</string>
     <string name="error_forbidden">(%s) No tienes permisos para acceder a este recurso</string>
+
+    <string name="guide_main_welcome_title">¡Bienvenido a %s!</string>
+    <string name="guide_main_welcome_text">Echemos un vistazo rápido a las funciones de la pantalla principal.</string>
+    <string name="guide_main_account">Toca aquí para abrir la gestión de cuentas, donde puedes agregar o administrar tus cuentas de Minecraft</string>
+    <string name="guide_main_version_list">Toca aquí para abrir la lista de versiones: todas las versiones del juego que instales se mostrarán aquí</string>
+    <string name="guide_main_card_drag_title">¿No te gusta dónde está el menú de acciones?</string>
+    <string name="guide_main_card_drag_text">Mantén pulsada la tarjeta para levantarla, arrástrala y suéltala para acoplarla en el otro lado</string>
+    <string name="guide_main_card_tip_title">¿Se ve un poco vacío aquí?</string>
+    <string name="guide_main_card_tip_text">No te preocupes: puedes fijar contenido aquí como tarjetas y organizarlas libremente, siempre que ofrezca la opción “%s”</string>
+    <string name="guide_editor_welcome_title">¡Bienvenido al editor de diseños de control!</string>
+    <string name="guide_editor_welcome_text">Echemos un vistazo rápido a cómo usarlo.</string>
+    <string name="guide_editor_menu_ball_title">Este es el botón del menú flotante del editor de diseños de control</string>
+    <string name="guide_editor_menu_ball_text">¡Arrástralo para cambiar su posición! Tócalo para abrir el menú del editor y la lista de capas de control</string>
+    <string name="guide_editor_layer_list_title">Esta es la lista de capas de control</string>
+    <string name="guide_editor_layer_list_text">Una capa de control funciona como una capa de imagen: es un contenedor que guarda controles. Puedes organizar los controles que añadas en capas separadas</string>
+    <string name="guide_editor_layer_list_note">Todas las capas de control que crees se mostrarán aquí</string>
+    <string name="guide_editor_create_layer">Toca este botón para crear una nueva capa de control</string>
+    <string name="guide_editor_add_widgets_title">¡Añade controles aquí!</string>
+    <string name="guide_editor_add_widgets_text">Una vez seleccionada una capa de control, puedes añadirle cualquier tipo de control</string>
+    <string name="guide_editor_styles_title">¿Quieres cambiar el aspecto de tus controles?</string>
+    <string name="guide_editor_styles_text">Puedes crear aspectos para tus controles y reutilizarlos o cambiar entre ellos rápidamente</string>
+    <string name="guide_editor_preview">Usa el modo de vista previa para probar tu diseño de controles</string>
+    <string name="guide_editor_save">Cuando termines de editar, ¡no olvides guardar el diseño de control!</string>
+    <string name="guide_tip_blank">Toca cualquier zona en blanco para continuar con el siguiente paso</string>
+    <string name="guide_tip_finish">Toca cualquier zona en blanco para finalizar la guía</string>
 </resources>

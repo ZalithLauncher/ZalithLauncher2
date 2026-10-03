@@ -298,6 +298,8 @@ class GameHandler(
                 LWJGLCharSender.sendEnter()
                 return false
             }
+            //输入法产生的字符类按键事件不能转发给游戏
+            if (event.getUnicodeChar() != 0) return true
         }
 
         EfficientAndroidLWJGLKeycode.getIndexByKey(event.keyCode).takeIf { it >= 0 }?.let { index ->

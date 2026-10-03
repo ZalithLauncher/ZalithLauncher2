@@ -36,7 +36,6 @@ import com.movtery.zalithlauncher.game.version.download.filterLibrary
 import com.movtery.zalithlauncher.game.version.download.getLibraryReplacement
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfo
-import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.path.PathManager
@@ -81,6 +80,7 @@ class LaunchArgs(
             argsList.add("$pkg/$pkg=ALL-UNNAMED")
         }
 
+        argsList.add("mio.Wrapper")
         argsList.add(gameManifest.mainClass)
         argsList.addAll(getMinecraftClientArgs())
 
@@ -232,6 +232,9 @@ class LaunchArgs(
 
         argsList.addAll(getCacioJavaArgs(runtime.javaVersion == 8))
 
+        //MioLibPatcher 需作为 JVM 选项注册在 cacio agent 之后、-cp 之前
+        argsList.add("-javaagent:${LibPath.MIO_LIB_PATCHER.absolutePath}")
+
         val configFilePath = version.getVersionPath().child("log4j2.xml")
         if (!configFilePath.exists()) {
             val is7 = (version.getVersionInfo()?.minecraftVersion ?: "0.0").isLowerTo("1.12")
@@ -255,20 +258,22 @@ class LaunchArgs(
     }
 
     private fun getMinecraftJVMArgs(): Array<String> {
-        val gameManifest1 = VersionInfoParser(version).build()
-
 //        // Parse Forge 1.17+ additional JVM Arguments
 //        if (versionInfo.inheritsFrom == null || versionInfo.arguments == null || versionInfo.arguments.jvm == null) {
 //            return emptyArray()
 //        }
 
         val varArgMap: MutableMap<String, String> = android.util.ArrayMap()
-        val launchClassPath = "${getLWJGL3ClassPath()}:${generateLaunchClassPath(gameManifest)}"
+        val launchClassPath = buildList {
+            add(getLWJGL3ClassPath())
+            add(LibPath.MIO_LAUNCH_WRAPPER.absolutePath)
+            putLaunchClassPath(gameManifest)
+        }.joinToString(":")
         var hasClasspath = false //是否已经在jvm参数中包含 ${classpath} 配置
 
         varArgMap["classpath_separator"] = ":"
         varArgMap["library_directory"] = getLibrariesHome(version.getGameHome())
-        varArgMap["version_name"] = gameManifest1.id
+        varArgMap["version_name"] = gameManifest.id
         varArgMap["natives_directory"] = runtimeLibraryPath
         setLauncherInfo(varArgMap)
 
@@ -295,7 +300,7 @@ class LaunchArgs(
             }
         }
 
-        val jvmArgs = gameManifest1.arguments?.jvm
+        val jvmArgs = gameManifest.arguments?.jvm
             ?.mapNotNull { it.processJvmArg() }
             ?.toTypedArray()
             ?: emptyArray()
@@ -312,8 +317,7 @@ class LaunchArgs(
     /**
      * [Modified from PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/blob/a6f3fc0/app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/Tools.java#L572-L592)
      */
-    private fun generateLaunchClassPath(gameManifest: GameManifest): String {
-        val classpathList = mutableListOf<String>()
+    private fun MutableList<String>.putLaunchClassPath(gameManifest: GameManifest) {
         val classpath: Array<String> = generateLibClasspath(gameManifest)
 
         for (jarFile in classpath) {
@@ -322,13 +326,11 @@ class LaunchArgs(
                 Logger.debug(TAG, "Ignored non-exists file: $jarFile")
                 continue
             }
-            classpathList.add(jarFile)
+            add(jarFile)
         }
         if (clientJar.exists()) {
-            classpathList.add(clientJar.absolutePath)
+            add(clientJar.absolutePath)
         }
-
-        return classpathList.joinToString(":")
     }
 
     /**

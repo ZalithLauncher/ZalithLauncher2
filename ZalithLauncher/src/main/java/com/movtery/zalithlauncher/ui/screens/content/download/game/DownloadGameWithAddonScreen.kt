@@ -31,8 +31,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,7 +54,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
@@ -75,8 +72,6 @@ import com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge.NeoFo
 import com.movtery.zalithlauncher.game.addons.modloader.optifine.OptiFineVersion
 import com.movtery.zalithlauncher.game.addons.modloader.optifine.OptiFineVersions
 import com.movtery.zalithlauncher.game.download.game.GameDownloadInfo
-import com.movtery.zalithlauncher.game.version.installed.Version
-import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager.isVersionExists
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedColumn
@@ -85,7 +80,6 @@ import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
-import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.isFilenameInvalid
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -288,7 +282,6 @@ fun DownloadGameWithAddonScreen(
                         GameDownloadInfo(
                             gameVersion = key.gameVersion,
                             customVersionName = customVersionName,
-                            overwrite = isVersionExists(customVersionName, true),
                             optifine = viewModel.currentAddon.optifineVersion.value,
                             forge = viewModel.currentAddon.forgeVersion.value,
                             neoforge = viewModel.currentAddon.neoforgeVersion.value
@@ -603,18 +596,18 @@ private fun ScreenHeader(
             )
 
             val emptyError = stringResource(R.string.generic_cannot_empty)
-            val overwriteMessage = stringResource(R.string.download_game_version_overwrite, nameValue)
+            val existsError = stringResource(R.string.versions_manage_install_exists)
 
             val filenameInvalidMessage = key(nameValue) {
                 isFilenameInvalid(nameValue)
             }
-            val isVersionOverwrite = remember(nameValue) {
-                //如果目标版本存在，则使用覆盖安装的方式进行安装
+            //目标版本已存在时，阻止安装
+            val isVersionExists = remember(nameValue, refreshErrorCheck) {
                 isVersionExists(nameValue, true)
             }
 
             val isError = remember(nameValue, refreshErrorCheck) {
-                nameValue.isEmpty() || filenameInvalidMessage != null
+                nameValue.isEmpty() || filenameInvalidMessage != null || isVersionExists
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -648,80 +641,18 @@ private fun ScreenHeader(
                     }
                 )
 
-                if (isError || isVersionOverwrite) {
-                    val message = if (isError) {
-                        filenameInvalidMessage ?: emptyError
-                    } else {
-                        overwriteMessage
-                    }
+                if (isError) {
+                    val message = filenameInvalidMessage
+                        ?: (if (isVersionExists) existsError else emptyError)
 
                     Text(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp),
                         text = message,
-                        color = if (isError) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        },
+                        color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.labelMedium
                     )
-                }
-            }
-
-            val versions by VersionsManager.versions.collectAsStateWithLifecycle()
-
-            if (versions.isNotEmpty()) {
-                Row {
-                    //不使用viewModel存储，防止版本刷新这里状态不同步
-                    var showMenu by remember { mutableStateOf(false) }
-                    //选择要覆盖安装的版本
-                    IconButton(
-                        onClick = {
-                            showMenu = true
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(
-                                if (showMenu) {
-                                    R.drawable.ic_menu_open
-                                } else {
-                                    R.drawable.ic_menu
-                                }
-                            ),
-                            contentDescription = stringResource(R.string.download_game_version_overwrite_select)
-                        )
-                    }
-
-                    DropdownMenu(
-                        expanded = showMenu,
-                        onDismissRequest = { showMenu = false }
-                    ) {
-                        //一个提醒用的Text
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                            text = stringResource(R.string.download_game_version_overwrite_select_subtitle),
-                            style = MaterialTheme.typography.labelLarge
-                        )
-
-                        versions.forEach { version ->
-                            DropdownMenuItem(
-                                text = {
-                                    CommonVersionInfoLayout(
-                                        modifier = Modifier.weight(1f),
-                                        version = version
-                                    )
-                                },
-                                onClick = {
-                                    showMenu = false
-                                    //直接更新当前编辑的名称
-                                    nameValue = version.getVersionName()
-                                    editedByUser = true //也算是用户编辑了，不过目的是防止选择加载器被覆盖
-                                }
-                            )
-                        }
-                    }
                 }
             }
 

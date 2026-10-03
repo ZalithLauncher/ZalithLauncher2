@@ -369,7 +369,8 @@ private fun <E> AddonListHeader(
                             text = androidText(
                                 R.string.download_game_addon_list_load_error,
                                 state.message
-                            )
+                            ),
+                            style = MaterialTheme.typography.bodySmall
                         )
                     },
                 )

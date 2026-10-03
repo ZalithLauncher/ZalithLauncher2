@@ -1010,7 +1010,7 @@ fun CommonVersionInfoLayout(
                             text = versionInfo.minecraftVersion,
                             style = MaterialTheme.typography.labelSmall,
                         )
-                        versionInfo.loaderInfo?.let { loaderInfo ->
+                        versionInfo.loaderInfos.forEach { loaderInfo ->
                             Text(
                                 text = loaderInfo.loader.displayName,
                                 style = MaterialTheme.typography.labelSmall
@@ -1100,7 +1100,7 @@ fun VersionIconImage(
     refreshKey: Any? = null
 ) {
     val defaultIconRes = remember(version) {
-        version?.let { getLoaderIconRes(it.getVersionInfo()?.loaderInfo?.loader) } ?: R.drawable.img_minecraft
+        version?.let { getLoaderIconRes(it.getVersionInfo()?.primaryLoader?.loader) } ?: R.drawable.img_minecraft
     }
     val defaultIcon = painterResource(defaultIconRes)
 

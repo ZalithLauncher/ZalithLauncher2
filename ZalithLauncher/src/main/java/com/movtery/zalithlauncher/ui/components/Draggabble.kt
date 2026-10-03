@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.onSizeChanged
@@ -95,7 +96,7 @@ fun FloatingBall(
         val parentHeight by rememberUpdatedState(constraints.maxHeight)
 
         Surface(
-            modifier = modifier
+            modifier = Modifier
                 .onSizeChanged { size ->
                     ballSize = size
                     if (isInitialized || currentPosition != Offset.Zero) return@onSizeChanged
@@ -127,10 +128,8 @@ fun FloatingBall(
                             onPositionChanged(Offset(clampedX, clampedY))
                         }
 
-                        // drag() returns true when the pointer is released normally inside this
-                        // gesture handler, or false when the pointer event was consumed/cancelled
-                        // by a child composable (e.g. an IconButton in the recording controls).
-                        val dragCompleted = drag(down.id) { change ->
+                        //drag 返回 false 表示手势被取消，此时不触发点击与保存
+                        val completed = drag(down.id) { change ->
                             val delta = change.positionChange()
                             val distanceFromStart = (change.position - startPosition).getDistance()
 
@@ -153,18 +152,23 @@ fun FloatingBall(
                             change.consume()
                         }
 
-                        if (isDragging) {
-                            currentOnSavePos()
-                        } else if (dragCompleted) {
-                            // Only treat as a click when drag() returned true (pointer released
-                            // normally here). If dragCompleted is false, a child composable
-                            // (e.g. an IconButton inside the ball's content) consumed the pointer
-                            // event, so we must NOT fire onClick — doing so would spuriously open
-                            // the Game Menu whenever a recording-control button is pressed.
-                            currentOnClick()
+                        val upConsumed = if (completed) {
+                            //复核抬起事件是否已被上层消费
+                            awaitPointerEvent(PointerEventPass.Final)
+                                .changes.firstOrNull { it.id == down.id }?.isConsumed ?: true
+                        } else {
+                            true
+                        }
+                        if (!upConsumed) {
+                            if (isDragging) {
+                                currentOnSavePos()
+                            } else {
+                                //非拖动事件，判定为一次点击
+                                currentOnClick()
+                            }
                         }
                     }
-                },
+                }.then(modifier),
             color = color,
             contentColor = contentColor,
             shape = shape

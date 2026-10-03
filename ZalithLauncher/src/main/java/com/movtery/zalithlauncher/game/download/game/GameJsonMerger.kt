@@ -18,10 +18,16 @@
 
 package com.movtery.zalithlauncher.game.download.game
 
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
+import com.google.gson.JsonPrimitive
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.download.game.models.LaunchFor
 import com.movtery.zalithlauncher.game.download.game.models.toLaunchForInfo
+import com.movtery.zalithlauncher.game.download.game.optifine.LAUNCH_WRAPPER_MAIN
+import com.movtery.zalithlauncher.game.download.game.optifine.OPTIFINE_FORGE_TWEAKER
+import com.movtery.zalithlauncher.game.download.game.optifine.OPTIFINE_TWEAKER
+import com.movtery.zalithlauncher.game.download.game.optifine.TRANSFORMER_DISCOVERY_SERVICE_LIB
 import com.movtery.zalithlauncher.utils.GSON
 import com.movtery.zalithlauncher.utils.json.merge
 import com.movtery.zalithlauncher.utils.json.safeGetMember
@@ -32,6 +38,9 @@ import java.io.File
 private const val TAG = "GameJsonMerger"
 
 const val GAME_JSON_MERGER_ID = "GameJsonMerger"
+
+/** ModLauncher 主类，Forge 1.13 ~ 1.16 使用 */
+private const val MOD_LAUNCHER_MAIN = "cpw.mods.modlauncher.Launcher"
 
 /**
  * [Reference PCL2](https://github.com/Hex-Dragon/PCL2/blob/bf6fa718c89e8615b947d1c639ed16a72ce125e0/Plain%20Craft%20Launcher%202/Pages/PageDownload/ModDownloadLib.vb#L2187-L2353)
@@ -108,6 +117,8 @@ fun mergeGameJson(
     // ----------------------------------------------------------
 
     val outputJson = minecraftJson.deepCopy()
+
+    val vanillaLibraries = outputJson.remove("libraries") as? JsonArray
     listOfNotNull(
         optiFineJson,
         forgeJson, neoForgeJson,
@@ -120,6 +131,10 @@ fun mergeGameJson(
         json.remove("time")
         outputJson.merge(json)
     }
+    vanillaLibraries?.let { libs ->
+        (outputJson.get("libraries") as? JsonArray)?.addAll(libs)
+            ?: outputJson.add("libraries", libs)
+    }
 
     if (realArgs.isNotBlank()) {
         outputJson.addProperty("minecraftArguments", realArgs)
@@ -131,6 +146,9 @@ fun mergeGameJson(
 
     //针对 libraries 进行去重
     deduplicateLibraries(outputJson)
+
+    //烘焙 OptiFine 与 Forge 的共存方式
+    bakeOptiFineCompatibility(info, outputJson)
 
     //存入 LaunchFor 信息
     addLaunchForInfo(
@@ -231,13 +249,182 @@ fun deduplicateMinecraftArguments(args: List<String>): List<String> {
 
     //反向遍历，保留首次出现的参数（相当于正向的最后一次出现）
     args.asReversed().forEach { arg ->
-        val key = arg.split(" ").firstOrNull() ?: arg
+        //带值的可重复参数（如 --tweakClass）以完整参数串为键，避免不同 Tweaker 被错误折叠
+        val key = if (arg.startsWith("--tweakClass")) arg else arg.split(" ").firstOrNull() ?: arg
         if (seenKeys.add(key)) {
             result.add(arg)
         }
     }
 
     return result.asReversed()
+}
+
+/**
+ * 将 OptiFine 与 Forge 的共存方式按 Forge 时代烘焙进合并结果
+ * 参考 [FCL MaintainTask](https://github.com/FoldCraftLauncher/FoldCraftLauncher/blob/main/FCL/src/main/java/com/tungsten/fclcore/download/MaintainTask.java)
+ *
+ * - 纯净环境：OptiFine Json 自带的 LaunchWrapper + OptiFineTweaker 直接生效，无需处理
+ * - LaunchWrapper 时代（Forge ≤ 1.12.2）：Tweaker 替换为 OptiFineForgeTweaker 并排在 FMLTweaker 之后，
+ *   OptiFine 以 installer Jar 追加到 classpath 末尾
+ * - ModLauncher 时代（Forge 1.13 ~ 1.16）：OptiFine 移出 classpath，通过 TransformerDiscoveryService 加载
+ * - BootstrapLauncher 时代（Forge/NeoForge 1.17+）：OptiFine 原生兼容，以 installer Jar 追加到 classpath 末尾
+ */
+private fun bakeOptiFineCompatibility(
+    info: GameDownloadInfo,
+    outputJson: JsonObject
+) {
+    if (info.optifine == null) return
+
+    val hasForge = info.forge != null || info.neoforge != null
+    if (!hasForge) return
+
+    val mainClass = outputJson.safeGetMember("mainClass")
+
+    //Forge 存在时 OptiFine 不再以独立 Tweaker 方式加载，先移除其 Tweaker 参数
+    removeTweakArgument(outputJson, OPTIFINE_TWEAKER)
+
+    when (mainClass) {
+        LAUNCH_WRAPPER_MAIN -> {
+            //如果 Forge 或 LiteLoader 已安装，OptiFine 需要 Forge 版 Tweaker，并保证其在 FMLTweaker 之后加载
+            appendMinecraftArgument(outputJson, "--tweakClass $OPTIFINE_FORGE_TWEAKER")
+            adjustOptiFineLibraries(outputJson, replaceWithInstaller = true)
+        }
+        MOD_LAUNCHER_MAIN -> {
+            val optiFineMavenVersion = findOptiFineLibraryVersion(outputJson)
+            adjustOptiFineLibraries(outputJson, replaceWithInstaller = false)
+            optiFineMavenVersion?.let { version ->
+                //通过 JVM 参数让 ModLauncher 的发现服务找到 OptiFine installer
+                addJvmArgument(
+                    outputJson,
+                    "-Dhmcl.transformer.candidates=" +
+                            $$"${library_directory}/optifine/OptiFine/$$version/OptiFine-$$version-installer.jar"
+                )
+                addLibraryIfAbsent(outputJson, TRANSFORMER_DISCOVERY_SERVICE_LIB)
+            }
+        }
+        else -> adjustOptiFineLibraries(outputJson, replaceWithInstaller = true)
+    }
+}
+
+/**
+ * 从 minecraftArguments 与 arguments.game 中移除指定的 Tweaker 参数
+ */
+private fun removeTweakArgument(outputJson: JsonObject, tweaker: String) {
+    //旧格式：minecraftArguments 字符串
+    outputJson.safeGetMinecraftArguments()?.let { args ->
+        val filtered = splitMinecraftArguments(args)
+            .filterNot { it == "--tweakClass $tweaker" }
+            .joinToString(" ")
+        if (filtered.isNotBlank()) {
+            outputJson.addProperty("minecraftArguments", filtered)
+        } else {
+            outputJson.remove("minecraftArguments")
+        }
+    }
+
+    //新格式：arguments.game 数组
+    outputJson.getAsJsonObject("arguments")?.getAsJsonArray("game")?.let { gameArgs ->
+        val cleaned = JsonArray()
+        var index = 0
+        while (index < gameArgs.size()) {
+            val element = gameArgs[index]
+            val isTweakerPair = element.isJsonPrimitive &&
+                    element.asString == "--tweakClass" &&
+                    index + 1 < gameArgs.size() &&
+                    gameArgs[index + 1].isJsonPrimitive &&
+                    gameArgs[index + 1].asString == tweaker
+            if (isTweakerPair) {
+                index += 2
+            } else {
+                cleaned.add(element)
+                index++
+            }
+        }
+        outputJson.getAsJsonObject("arguments").add("game", cleaned)
+    }
+}
+
+/**
+ * 向 minecraftArguments 末尾追加参数
+ */
+private fun appendMinecraftArgument(outputJson: JsonObject, argument: String) {
+    val existing = outputJson.safeGetMinecraftArguments()
+    outputJson.addProperty(
+        "minecraftArguments",
+        existing?.takeIf { it.isNotBlank() }?.let { "$it $argument" } ?: argument
+    )
+}
+
+/**
+ * 向 arguments.jvm 末尾追加参数
+ */
+private fun addJvmArgument(outputJson: JsonObject, argument: String) {
+    val arguments = outputJson.getAsJsonObject("arguments")
+        ?: JsonObject().also { outputJson.add("arguments", it) }
+    val jvm = arguments.getAsJsonArray("jvm") ?: JsonArray().also { arguments.add("jvm", it) }
+    jvm.add(JsonPrimitive(argument))
+}
+
+/**
+ * 查找合并结果中 OptiFine 本体库的 Maven 版本号
+ */
+private fun findOptiFineLibraryVersion(outputJson: JsonObject): String? {
+    return outputJson.getAsJsonArray("libraries")
+        ?.firstOrNull { element ->
+            (element as? JsonObject)?.get("name")?.asString?.startsWith("optifine:OptiFine:") == true
+        }
+        ?.asJsonObject
+        ?.get("name")?.asString
+        ?.split(":")?.getOrNull(2)
+}
+
+/**
+ * 处理合并结果中的 OptiFine 库
+ * @param replaceWithInstaller true 时以 installer Jar 替换本体库并追加到 classpath 末尾（Forge 之后加载）；
+ *                             false 时直接移除本体库（由 TransformerDiscoveryService 加载）；
+ *                             两种情况都会移除与 Forge 自带 launchwrapper 冲突的 optifine:launchwrapper-of
+ */
+private fun adjustOptiFineLibraries(outputJson: JsonObject, replaceWithInstaller: Boolean) {
+    val libraries = outputJson.getAsJsonArray("libraries") ?: return
+
+    var installerEntry: JsonObject? = null
+    val cleaned = JsonArray()
+    libraries.forEach { element ->
+        val name = (element as? JsonObject)?.get("name")?.asString
+        when {
+            //与 Forge/LiteLoader 自带的 launchwrapper 冲突，直接移除
+            name?.startsWith("optifine:launchwrapper-of:") == true -> return@forEach
+            name?.startsWith("optifine:OptiFine:") == true -> {
+                if (replaceWithInstaller && installerEntry == null) {
+                    val version = name.split(":").getOrNull(2)
+                    if (version != null) {
+                        installerEntry = JsonObject().apply {
+                            addProperty("name", "optifine:OptiFine:$version:installer")
+                        }
+                    }
+                }
+                return@forEach
+            }
+            else -> cleaned.add(element)
+        }
+    }
+    //OptiFine 应当在 classpath 末尾，保证在 Forge 之后加载
+    installerEntry?.let { cleaned.add(it) }
+
+    libraries.removeAll { true }
+    cleaned.forEach { libraries.add(it) }
+}
+
+/**
+ * 添加 HMCL TransformerDiscoveryService 库
+ */
+private fun addLibraryIfAbsent(outputJson: JsonObject, libraryName: String) {
+    val libraries = outputJson.getAsJsonArray("libraries")
+        ?: JsonArray().also { outputJson.add("libraries", it) }
+    val exists = libraries.any { (it as? JsonObject)?.get("name")?.asString == libraryName }
+    if (!exists) {
+        libraries.add(JsonObject().apply { addProperty("name", libraryName) })
+    }
 }
 
 /**

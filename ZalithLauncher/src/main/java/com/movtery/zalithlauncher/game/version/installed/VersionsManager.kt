@@ -34,13 +34,14 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.apache.commons.io.FileUtils
 import java.io.File
+import java.util.concurrent.CopyOnWriteArrayList
 
 private const val TAG = "VersionsManager"
 
 object VersionsManager {
     private val scope = CoroutineScope(Dispatchers.IO)
     private val mutex = Mutex()
-    private val listeners: MutableList<suspend () -> Unit> = mutableListOf()
+    private val listeners: MutableList<suspend () -> Unit> = CopyOnWriteArrayList()
 
     /**
      * 注册版本列表刷新监听器
@@ -255,8 +256,13 @@ object VersionsManager {
 
     /**
      * 重命名当前版本，但并不会在这里对即将重命名的名称，进行非法性判断
+     * @param refresh 重命名结束后，是否触发刷新
      */
-    fun renameVersion(version: Version, name: String) {
+    fun renameVersion(
+        version: Version,
+        name: String,
+        refresh: Boolean = true
+    ) {
         val currentVersionName = _currentVersion.value?.getVersionName()
         //如果当前的版本是即将被重命名的版本，那么就把将要重命名的名字设置为当前版本
         val saveToCurrent = version.getVersionName() == currentVersionName
@@ -287,7 +293,7 @@ object VersionsManager {
             saveCurrentVersion(name, refresh = false)
         }
 
-        refresh("VersionsManager.renameVersion")
+        if (refresh) refresh("VersionsManager.renameVersion")
     }
 
     /**

@@ -189,11 +189,27 @@ private class VersionsViewModel : ViewModel() {
     }
 }
 
+/**
+ * 选择 Minecraft 版本屏幕的宿主信息，提供可见性判定所需的导航层级
+ */
+sealed interface SelectGameVersionHost {
+    /** 下载游戏流程 */
+    data class Download(
+        val mainScreenKey: TitledNavKey?,
+        val downloadScreenKey: TitledNavKey?,
+        val downloadGameScreenKey: TitledNavKey?
+    ) : SelectGameVersionHost
+
+    /** 版本设置流程（修改版本） */
+    data class VersionSettings(
+        val mainScreenKey: TitledNavKey?,
+        val versionSettingsScreenKey: TitledNavKey?
+    ) : SelectGameVersionHost
+}
+
 @Composable
 fun SelectGameVersionScreen(
-    mainScreenKey: TitledNavKey?,
-    downloadScreenKey: TitledNavKey?,
-    downloadGameScreenKey: TitledNavKey?,
+    host: SelectGameVersionHost,
     eventViewModel: EventViewModel,
     onVersionSelect: (String) -> Unit = {}
 ) {
@@ -203,79 +219,110 @@ fun SelectGameVersionScreen(
         VersionsViewModel()
     }
 
-    BaseScreen(
-        levels1 = listOf(
-            Pair(NestedNavKey.Download::class.java, mainScreenKey),
-            Pair(NestedNavKey.DownloadGame::class.java, downloadScreenKey)
-        ),
-        Triple(NormalNavKey.DownloadGame.SelectGameVersion, downloadGameScreenKey, false)
-    ) { isVisible ->
-        val yOffset by swapAnimateDpAsState(
-            targetValue = (-40).dp,
-            swapIn = isVisible
-        )
+    when (host) {
+        is SelectGameVersionHost.Download -> BaseScreen(
+            levels1 = listOf(
+                Pair(NestedNavKey.Download::class.java, host.mainScreenKey),
+                Pair(NestedNavKey.DownloadGame::class.java, host.downloadScreenKey)
+            ),
+            Triple(NormalNavKey.DownloadGame.SelectGameVersion, host.downloadGameScreenKey, false)
+        ) { isVisible ->
+            SelectGameVersionContent(
+                isVisible = isVisible,
+                viewModel = viewModel,
+                eventViewModel = eventViewModel,
+                onVersionSelect = onVersionSelect
+            )
+        }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
-        ) {
-            when (val state = viewModel.versionState) {
-                is VersionState.Loading -> {
-                    Box(
-                        Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        LinearWavyProgressIndicator(
-                            modifier = Modifier.width(168.dp),
-                            wavelength = 32.dp
-                        )
-                    }
+        is SelectGameVersionHost.VersionSettings -> BaseScreen(
+            levels1 = listOf(
+                Pair(NestedNavKey.VersionSettings::class.java, host.mainScreenKey)
+            ),
+            Triple(NormalNavKey.Versions.ModifyVersion, host.versionSettingsScreenKey, false)
+        ) { isVisible ->
+            SelectGameVersionContent(
+                isVisible = isVisible,
+                viewModel = viewModel,
+                eventViewModel = eventViewModel,
+                onVersionSelect = onVersionSelect
+            )
+        }
+    }
+}
+
+@Composable
+private fun SelectGameVersionContent(
+    isVisible: Boolean,
+    viewModel: VersionsViewModel,
+    eventViewModel: EventViewModel,
+    onVersionSelect: (String) -> Unit
+) {
+    val yOffset by swapAnimateDpAsState(
+        targetValue = (-40).dp,
+        swapIn = isVisible
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+    ) {
+        when (val state = viewModel.versionState) {
+            is VersionState.Loading -> {
+                Box(
+                    Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LinearWavyProgressIndicator(
+                        modifier = Modifier.width(168.dp),
+                        wavelength = 32.dp
+                    )
                 }
+            }
 
-                is VersionState.Failure -> {
-                    Box(Modifier.fillMaxSize()) {
-                        ScalingLabel(
-                            modifier = Modifier.align(Alignment.Center),
-                            text = {
-                                AndroidStringText(
-                                    text = androidText(
-                                        R.string.download_game_failed_to_get_versions,
-                                        state.message
-                                    )
+            is VersionState.Failure -> {
+                Box(Modifier.fillMaxSize()) {
+                    ScalingLabel(
+                        modifier = Modifier.align(Alignment.Center),
+                        text = {
+                            AndroidStringText(
+                                text = androidText(
+                                    R.string.download_game_failed_to_get_versions,
+                                    state.message
                                 )
-                            },
-                            onClick = {
-                                viewModel.refresh(true)
-                            }
-                        )
-                    }
+                            )
+                        },
+                        onClick = {
+                            viewModel.refresh(true)
+                        }
+                    )
                 }
+            }
 
-                is VersionState.None -> {
-                    Column {
-                        VersionHeader(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp),
-                            versionFilter = viewModel.versionFilter,
-                            onVersionFilterChange = { viewModel.filterWith(it) },
-                            itemContainerColor = cardColor(),
-                            itemContentColor = onCardColor(),
-                            onRefreshClick = {
-                                viewModel.refresh(true)
-                            }
-                        )
+            is VersionState.None -> {
+                Column {
+                    VersionHeader(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp),
+                        versionFilter = viewModel.versionFilter,
+                        onVersionFilterChange = { viewModel.filterWith(it) },
+                        itemContainerColor = cardColor(),
+                        itemContentColor = onCardColor(),
+                        onRefreshClick = {
+                            viewModel.refresh(true)
+                        }
+                    )
 
-                        VersionList(
-                            modifier = Modifier.weight(1f),
-                            versions = state.versions,
-                            onVersionSelect = onVersionSelect,
-                            openLink = { url ->
-                                eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url))
-                            }
-                        )
-                    }
+                    VersionList(
+                        modifier = Modifier.weight(1f),
+                        versions = state.versions,
+                        onVersionSelect = onVersionSelect,
+                        openLink = { url ->
+                            eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url))
+                        }
+                    )
                 }
             }
         }

@@ -102,6 +102,15 @@ class CardGridStateTest {
     }
 
     @Test
+    fun testSeedPreservesVerticalGaps() {
+        val state = seededState(
+            CardRect("A", 0, 0, 4, 4),
+            CardRect("B", 0, 8, 4, 4)
+        )
+        assertEquals(CardRect("B", 0, 8, 4, 4), layoutOf(state, "B"))
+    }
+
+    @Test
     fun testSeedDropsUnknownType() {
         val state = state()
         state.seed(
@@ -200,7 +209,7 @@ class CardGridStateTest {
     }
 
     @Test
-    fun testRemoveCardCompactsAndNotifies() {
+    fun testRemoveCardLeavesHoleAndNotifies() {
         var removed: String? = null
         var committed = false
         val state = seededState(
@@ -213,7 +222,8 @@ class CardGridStateTest {
         state.removeCard("A")
         assertEquals("A", removed)
         assertTrue(committed)
-        assertEquals(CardRect("B", 0, 0, 4, 4), layoutOf(state, "B"))
+        // 其余卡片保持原位，A 留下的空洞不上浮填补
+        assertEquals(CardRect("B", 0, 8, 4, 4), layoutOf(state, "B"))
     }
 
     // ---------- 命中测试 ----------
@@ -266,6 +276,49 @@ class CardGridStateTest {
         assertEquals(CardRect("A", 0, 0, 4, 4), layoutOf(state, "A"))
         assertEquals(CardRect("B", 4, 0, 4, 4), layoutOf(state, "B"))
         assertTrue(state.displaced.isEmpty())
+    }
+
+    @Test
+    fun testDragDirectionLocksWhileCardStaysDisplaced() {
+        // 20 列网格：向右的让位链条有足够的滑动空间，方向差异才能从结果上体现
+        val state = CardGridState(scope)
+        state.updateGeometry(400f, Density(1f))
+        state.seed(
+            types = listOf(testType),
+            seeds = listOf(
+                CardSeed("A", "test", CardRect("A", 0, 0, 4, 4)),
+                CardSeed("B", "test", CardRect("B", 4, 0, 4, 4))
+            ),
+            storedColumns = 20
+        )
+        state.onCardDragStart(state.cards.first { it.id == "A" }, Offset(50f, 50f))
+        // 首帧：指针压在 B 中心左侧 → B 向右滑让位
+        state.onCardDrag(Offset(105f, 50f))
+        assertEquals(CardRect("A", 3, 0, 4, 4), state.dragPreview)
+        assertEquals(mapOf("B" to CardRect("B", 7, 0, 4, 4)), state.displaced)
+
+        // 指针扫过 B 中心右侧：方向已锁定，B 继续向右滑而不是掉头向左
+        state.onCardDrag(Offset(164f, 50f))
+        assertEquals(CardRect("A", 6, 0, 4, 4), state.dragPreview)
+        assertEquals(mapOf("B" to CardRect("B", 10, 0, 4, 4)), state.displaced)
+    }
+
+    @Test
+    fun testDragOpensDoorDownwardWhenHorizontalBlocked() {
+        val state = seededState(
+            CardRect("A", 0, 8, 4, 4),
+            CardRect("B", 0, 0, 4, 4),
+            CardRect("C", 4, 0, 4, 4)
+        )
+        state.onCardDragStart(state.cards.first { it.id == "A" }, Offset(50f, 200f))
+        // 指针压在 B 右半：横向让位两侧都被顶死（B 顶着左缘、C 顶死右缘），垂直轴向下开门
+        state.onCardDrag(Offset(50f, 40f))
+        assertEquals(CardRect("A", 0, 0, 4, 4), state.dragPreview)
+        assertEquals(mapOf("B" to CardRect("B", 0, 4, 4, 4)), state.displaced)
+        state.onCardDragEnd()
+        assertEquals(CardRect("A", 0, 0, 4, 4), layoutOf(state, "A"))
+        assertEquals(CardRect("B", 0, 4, 4, 4), layoutOf(state, "B"))
+        assertEquals(CardRect("C", 4, 0, 4, 4), layoutOf(state, "C"))
     }
 
     // ---------- 缩放会话 ----------

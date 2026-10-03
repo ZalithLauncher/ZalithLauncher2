@@ -29,10 +29,16 @@ import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 class LibSortFix(
     versionInfo: VersionInfo?
 ) {
-    val isCleanroom = versionInfo?.loaderInfo?.loader == ModLoader.CLEANROOM
+    val isCleanroom = versionInfo?.hasLoader(ModLoader.CLEANROOM) == true
 
     private val icu4jLib = "com.ibm.icu:icu4j:"
     private val mojangICU4jLib = "com.ibm.icu:icu4j-core-mojang:"
+    private val cleanroomOshiLibPrefix = "com.github.oshi:"
+    private val vanillaOshiLib = "oshi-project:oshi-core:"
+    private val cleanroomJnaPlatformLib = "net.java.dev.jna:jna-platform:"
+    private val vanillaJnaPlatformLib = "net.java.dev.jna:platform:"
+    private val cleanroomNettyLibPrefix = "io.netty:netty-"
+    private val vanillaNettyAllLib = "io.netty:netty-all:"
 
     /**
      * 检查并插入依赖库
@@ -53,6 +59,24 @@ class LibSortFix(
                 name.startsWith(mojangICU4jLib) -> {
                     insertAfter(libItem, path) { (key, _) ->
                         key.name.startsWith(icu4jLib)
+                    }
+                    return
+                }
+                name.startsWith(cleanroomOshiLibPrefix) -> {
+                    insertBefore(libItem, path) { (key, _) ->
+                        key.name.startsWith(vanillaOshiLib)
+                    }
+                    return
+                }
+                name.startsWith(cleanroomJnaPlatformLib) -> {
+                    insertBefore(libItem, path) { (key, _) ->
+                        key.name.startsWith(vanillaJnaPlatformLib)
+                    }
+                    return
+                }
+                name.startsWith(cleanroomNettyLibPrefix) -> {
+                    insertBefore(libItem, path) { (key, _) ->
+                        key.name.startsWith(vanillaNettyAllLib)
                     }
                     return
                 }

@@ -419,8 +419,6 @@ abstract class Launcher(
         // Overridden by us to specify the exact number of cores that the android system has
         args.purgeArg("-XX:ActiveProcessorCount")
 
-        args.add("-javaagent:${LibPath.MIO_LIB_PATCHER.absolutePath}")
-
         //Add automatically generated args
         val ramAllocationString = ramAllocation.toString()
         args.add("-Xms${ramAllocationString}M")

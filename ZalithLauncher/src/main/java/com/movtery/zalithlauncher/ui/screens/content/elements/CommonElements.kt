@@ -395,32 +395,40 @@ fun TitleTaskFlowDialog(
                 contentColor = onCardColor(),
                 shadowElevation = 6.dp
             ) {
-                if (logOutput == null) {
-                    TaskFlowListColumn(
-                        title = title,
-                        tasks = tasks,
-                        onCancel = onCancel,
-                        onMinimize = onMinimize,
-                        modifier = Modifier.padding(16.dp)
-                    )
-                } else {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    if (logOutput == null) {
                         TaskFlowListColumn(
                             title = title,
                             tasks = tasks,
-                            onCancel = onCancel,
-                            onMinimize = onMinimize,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f, fill = false)
                         )
-                        TaskLogCard(
-                            logOutput = logOutput,
-                            modifier = Modifier
-                                .width(280.dp)
-                                .fillMaxHeight()
-                        )
+                    } else {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            TaskFlowListColumn(
+                                title = title,
+                                tasks = tasks,
+                                modifier = Modifier.weight(1f)
+                            )
+                            TaskLogCard(
+                                logOutput = logOutput,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxHeight()
+                            )
+                        }
+                    }
+
+                    Button(
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onCancel
+                    ) {
+                        MarqueeText(text = stringResource(R.string.generic_cancel))
                     }
                 }
             }
@@ -432,8 +440,6 @@ fun TitleTaskFlowDialog(
 private fun TaskFlowListColumn(
     title: String,
     tasks: List<TitledTask>,
-    onCancel: () -> Unit,
-    onMinimize: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -462,26 +468,6 @@ private fun TaskFlowListColumn(
                     runningIcon = task.runningIcon,
                     task = task.task
                 )
-            }
-        }
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            if (onMinimize != null) {
-                OutlinedButton(
-                    modifier = Modifier.weight(1f),
-                    onClick = onMinimize
-                ) {
-                    MarqueeText(text = stringResource(R.string.generic_minimize))
-                }
-            }
-            Button(
-                modifier = if (onMinimize != null) Modifier.weight(1f) else Modifier.fillMaxWidth(),
-                onClick = onCancel
-            ) {
-                MarqueeText(text = stringResource(R.string.generic_cancel))
             }
         }
     }

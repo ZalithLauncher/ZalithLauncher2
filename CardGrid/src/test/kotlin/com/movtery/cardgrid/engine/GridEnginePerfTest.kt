@@ -80,7 +80,10 @@ class GridEnginePerfTest {
 
         // 预热 JIT
         repeat(50) {
-            GridEngine.resolveDisplacements(mover, columns, others)
+            GridEngine.resolveDisplacements(
+                mover, columns, others,
+                IntOffset(mover.x + mover.width / 2, mover.y + mover.height / 2)
+            )
         }
 
         // 模拟一次贯穿整张网格的拖动：从左上到右下逐步换格
@@ -93,9 +96,12 @@ class GridEnginePerfTest {
                     x = ((columns - mover.width) * t).toInt(),
                     y = ((maxY - mover.height) * t).toInt()
                 )
-                val displaced = GridEngine.resolveDisplacements(preview, columns, others)
-                val relocated = others.map { displaced[it.id] ?: it }
-                assertNoOverlap(relocated + preview)
+                val pointer = IntOffset(preview.x + preview.width / 2, preview.y + preview.height / 2)
+                val displaced = GridEngine.resolveDisplacements(preview, columns, others, pointer)
+                if (displaced != null) {
+                    val relocated = others.map { displaced[it.id] ?: it }
+                    assertNoOverlap(relocated + preview)
+                }
             }
         }
         val perCallMs = warm.toDouble() / steps
@@ -178,7 +184,7 @@ class GridEnginePerfTest {
         assertEquals("Duplicate ids must be dropped", 100, result.size)
         assertNoOverlap(result)
         assertTrue(result.all { GridEngine.isInGrid(it, columns) })
-        assertTrue("Validation result must be compacted", result == GridEngine.compact(result))
+        assertTrue("Validation result must be stable", result == GridEngine.validate(result, columns))
         println("validate: ${elapsed}ms / 100 calls = ${"%.3f".format(elapsed / 100.0)}ms per call (120 dirty cards)")
         assertTrue("validate took too long: ${elapsed / 100.0} ms", elapsed / 100.0 < 50.0)
     }
@@ -201,19 +207,5 @@ class GridEnginePerfTest {
         }
         println("reflow (16->24 + 24->16): ${elapsed}ms / 200 round trips = ${"%.3f".format(elapsed / 400.0)}ms per call (100 cards)")
         assertTrue("reflow took too long: ${elapsed / 400.0} ms", elapsed / 400.0 < 50.0)
-    }
-
-    @Test
-    fun testCompactOnTallGridIsStableAndFast() {
-        val cards = generateGrid(count = 80, columns = 16, seed = 11L)
-        val elapsed = measureMs {
-            repeat(1000) {
-                val once = GridEngine.compact(cards)
-                val twice = GridEngine.compact(once)
-                assertEquals("compact must be idempotent", once, twice)
-            }
-        }
-        println("compact x2 (idempotency): ${elapsed}ms / 1000 iterations (80 cards)")
-        assertTrue("compact took too long: ${elapsed / 1000.0} ms", elapsed / 1000.0 < 20.0)
     }
 }

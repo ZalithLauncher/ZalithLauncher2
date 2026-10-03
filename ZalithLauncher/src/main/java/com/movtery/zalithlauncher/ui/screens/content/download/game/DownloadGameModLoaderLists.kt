@@ -187,6 +187,7 @@ class CurrentAddon {
                         areMutuallyExclusive(
                             currentVersions[thisLoader],
                             thisLoader,
+                            currentVersions[state.loader],
                             state.loader,
                             addonList
                         )
@@ -218,6 +219,7 @@ class CurrentAddon {
                         areMutuallyExclusive(
                             finalVersions[targetState.loader],
                             targetState.loader,
+                            otherVersion,
                             otherLoader,
                             addonList
                         )
@@ -232,24 +234,44 @@ class CurrentAddon {
     }
 
     /**
+     * 检查候选加载器版本是否与当前已选择的其他加载器全部兼容
+     * 用于预选等不经过用户点击的填入场景，避免与用户已做出的选择冲突
+     */
+    fun isCompatibleWithSelection(
+        candidateVersion: AddonVersion?,
+        loader: ModLoader,
+        addonList: AddonList
+    ): Boolean {
+        return allLoaders.all { state ->
+            if (state.loader == loader || state.versionState.value == null) return@all true
+
+            !areMutuallyExclusive(candidateVersion, loader, state.versionState.value, state.loader, addonList)
+        }
+    }
+
+    /**
      * 判断两个加载器之间是否不兼容
      */
     private fun areMutuallyExclusive(
         version: AddonVersion?,
         thisLoader: ModLoader,
+        otherVersion: AddonVersion?,
         otherLoader: ModLoader,
         addonList: AddonList
     ): Boolean {
         if (thisLoader == otherLoader) return false
 
+        //OptiFine 与 Forge 按双方已选版本成对校验，与列表条目的过滤规则保持一致
         if (thisLoader == ModLoader.OPTIFINE && otherLoader == ModLoader.FORGE) {
             val optifine = version as? OptiFineVersion ?: return false
-            return !isOptiFineCompatibleWithForgeList(optifine, addonList.forgeList)
+            val forge = otherVersion as? ForgeVersion ?: return false
+            return !isOptiFineCompatibleWithForge(optifine, forge)
         }
 
         if (thisLoader == ModLoader.FORGE && otherLoader == ModLoader.OPTIFINE) {
             val forge = version as? ForgeVersion ?: return false
-            return !isForgeCompatibleWithOptiFineList(forge, addonList.optifineList)
+            val optifine = otherVersion as? OptiFineVersion ?: return false
+            return !isOptiFineCompatibleWithForge(optifine, forge)
         }
 
         return when {
@@ -816,41 +838,16 @@ fun BabricList(
 }
 
 private fun isOptiFineCompatibleWithForge(
+/**
+ * 判断指定 OptiFine 是否与指定 Forge 兼容
+ */
+fun isOptiFineCompatibleWithForge(
     optifine: OptiFineVersion,
     forge: ForgeVersion
 ): Boolean = optifine.forgeVersion?.let {
     //空字符串表示兼容所有
     it.isEmpty() || forge.forgeBuildVersion.compareOptiFineRequired(it)
 } ?: false //没有声明需要的 Forge 版本，视为不兼容
-
-private fun isOptiFineCompatibleWithForgeList(
-    optifine: OptiFineVersion,
-    forgeList: List<ForgeVersion>?
-): Boolean {
-    //没有声明需要的 Forge 版本，视为不兼容
-    val requiredVersion = optifine.forgeVersion ?: return false
-    return when {
-        requiredVersion.isEmpty() -> true //为空则表示不要求，兼容
-        else -> forgeList?.any {
-            it.forgeBuildVersion.compareOptiFineRequired(requiredVersion)
-        } == true
-    }
-}
-
-private fun isForgeCompatibleWithOptiFineList(
-    forge: ForgeVersion,
-    optifineList: List<OptiFineVersion>?
-): Boolean {
-    val forgeVersion = forge.forgeBuildVersion
-
-    optifineList?.forEach { optifine ->
-        val ofVersion = optifine.forgeVersion ?: return@forEach //null: 不兼容，跳过
-        if (ofVersion.isEmpty()) return true    //空字符串表示兼容所有
-        if (forgeVersion.compareOptiFineRequired(ofVersion)) return true
-    }
-
-    return false //没有匹配项
-}
 
 @Composable
 private fun checkForgeCompatibilityError(

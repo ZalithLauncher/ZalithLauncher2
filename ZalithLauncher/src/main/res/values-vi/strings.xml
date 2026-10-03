@@ -978,19 +978,11 @@
     <string name="notification_data_terracotta_message">Khi chơi mạng, launcher dùng dịch vụ nền để hiện trạng thái, cần quyền thông báo.</string>
     <string name="game_menu_option_menu_ball_opacity">Độ mờ menu thả</string>
     <string name="versions_manage_pin">Ghim</string>
-    <string name="versions_update_loader">Cập nhật loader</string>
-    <string name="versions_update_loader_waiting_for_others">Đợi tác vụ khác</string>
-    <string name="versions_update_loader_diff_message">Đổi loader hả?</string>
-    <string name="versions_update_loader_diff_change">Thay: %1$s %2$s → %3$s</string>
-    <string name="versions_update_loader_diff_load">Thêm: %1$s %2$s</string>
-    <string name="versions_update_loader_error_message">Lỗi:</string>
-    <string name="versions_update_loader_success_message">Đã đổi loader!</string>
     <string name="settings_control_mouse_enable_click_title">Touchpad</string>
     <string name="settings_control_mouse_enable_click_summary">Nhấn màn hình = chuột trái, giữ = giữ trái.</string>
     <string name="settings_launcher_dark_mode_title">Chế độ tối</string>
     <string name="settings_launcher_background_video_volume_title">Âm lượng video nền</string>
     <string name="settings_launcher_background_video_volume_summary">Điều chỉnh âm lượng nếu nền là video</string>
-    <string name="versions_update_loader_diff_remove">Gỡ: %s</string>
     <string name="control_editor_edit_text_size">Cỡ chữ</string>
     <string name="control_editor_edit_text_size_custom">Tùy chỉnh</string>
     <string name="generic_saved">Đã lưu</string>
@@ -1034,8 +1026,6 @@
     <string name="crash_link_share_failed">Tải lên thất bại</string>
     <string name="notification_jvm_running_name">Dịch vụ giữ JVM</string>
     <string name="unpack_screen_jre25">Java 25 (cần cho Minecraft 26.1+)</string>
-    <string name="download_game_version_overwrite">Sẽ ghi đè bản: %s</string>
-    <string name="download_game_version_overwrite_select">Chọn bản bị đè</string>
     <string name="download_game_addon_warning_api">Chưa chọn %s, nhiều mod sẽ không dùng được!</string>
     <string name="download_install_warning_mobile_data">Đang dùng mạng di động, tốn data đó.</string>
     <string name="game_vulkan_check_title">Kiểm tra Vulkan</string>
@@ -1080,7 +1070,6 @@
     <string name="error_gateway_timeout">(%s) Máy chủ đã không nhận được phản hồi kịp thời</string>
     <string name="unpack_screen_jna">Cho phép Minecraft gọi trực tiếp các chức năng cấp thấp của hệ điều hành</string>
     <string name="download_category_by_id">Tìm kiếm theo ID</string>
-    <string name="download_game_version_overwrite_select_subtitle">Chọn phiên bản để ghi đè. Bạn có thể sử dụng tính năng này để nâng cấp/hạ cấp phiên bản đích</string>
     <string name="download_assets_id_holder">ID dự án</string>
     <string name="download_assets_id_tip">Truy xuất dự án tương ứng theo ID dự án một cách nhanh chóng</string>
     <string name="download_assets_id_not_found">Không tìm thấy dự án này!</string>
@@ -1111,7 +1100,6 @@
     <string name="versions_export_alias_config">Thư mục cấu hình mod</string>
     <string name="versions_config_vibrate_kind_title">Loại rung</string>
     <string name="versions_config_vibrate_kind_summary">‐Đặt loại rung khi mod Touch Controller kích hoạt rung</string>
-    <string name="versions_install_loader">Cài đặt trình tải</string>
     <string name="versions_export">Xuất gói mod</string>
     <string name="versions_export_type_mcbbs">Gói mod MCBBS</string>
     <string name="versions_export_type_mcbbs_summary">Có thể nhập bởi %s, HMCL và các launcher khác</string>
@@ -1219,4 +1207,29 @@
     <string name="control_editor_edit_joystick_trigger_mode">Kiểu kích hoạt</string>
     <string name="control_editor_edit_joystick_trigger_mode_drag">Kéo để kích hoạt</string>
     <string name="control_editor_edit_joystick_trigger_mode_touch">Chạm để kích hoạt</string>
+
+    <string name="guide_main_welcome_title">Chào mừng đến với %s!</string>
+    <string name="guide_main_welcome_text">Cùng xem nhanh các tính năng của màn hình chính nhé.</string>
+    <string name="guide_main_account">Chạm vào đây để mở trình quản lý tài khoản, nơi bạn có thể thêm hoặc quản lý tài khoản Minecraft</string>
+    <string name="guide_main_version_list">Chạm vào đây để mở danh sách phiên bản, nơi mọi phiên bản game bạn cài đặt sẽ được liệt kê</string>
+    <string name="guide_main_card_drag_title">Không thích vị trí của menu thao tác à?</string>
+    <string name="guide_main_card_drag_text">Nhấn giữ thẻ để nhấc nó lên, sau đó kéo và thả để ghim sang phía bên kia</string>
+    <string name="guide_main_card_tip_title">Chỗ này trông hơi trống trải?</string>
+    <string name="guide_main_card_tip_text">Đừng lo, bạn có thể ghim nội dung vào đây dưới dạng thẻ và sắp xếp tự do, miễn là nó cung cấp tùy chọn “%s”</string>
+    <string name="guide_editor_welcome_title">Chào mừng đến với trình chỉnh sửa bố cục điều khiển!</string>
+    <string name="guide_editor_welcome_text">Cùng tìm hiểu nhanh cách sử dụng nhé.</string>
+    <string name="guide_editor_menu_ball_title">Đây là nút menu nổi của trình chỉnh sửa bố cục điều khiển</string>
+    <string name="guide_editor_menu_ball_text">Kéo để thay đổi vị trí! Chạm để mở menu trình chỉnh sửa và danh sách layer</string>
+    <string name="guide_editor_layer_list_title">Đây là danh sách layer</string>
+    <string name="guide_editor_layer_list_text">Layer hoạt động giống như layer đồ họa: là nơi chứa các nút điều khiển. Bạn có thể phân các nút điều khiển đã thêm vào từng layer riêng để quản lý</string>
+    <string name="guide_editor_layer_list_note">Mọi layer bạn tạo sẽ được liệt kê tại đây</string>
+    <string name="guide_editor_create_layer">Chạm vào nút này để tạo layer mới</string>
+    <string name="guide_editor_add_widgets_title">Thêm nút điều khiển tại đây!</string>
+    <string name="guide_editor_add_widgets_text">Sau khi chọn layer, bạn có thể thêm nút điều khiển thuộc bất kỳ loại nào vào đó</string>
+    <string name="guide_editor_styles_title">Muốn thay đổi giao diện của nút điều khiển?</string>
+    <string name="guide_editor_styles_text">Bạn có thể tạo các giao diện cho nút điều khiển để tái sử dụng và chuyển đổi nhanh chóng</string>
+    <string name="guide_editor_preview">Bạn có thể dùng chế độ xem trước để thử bố cục điều khiển</string>
+    <string name="guide_editor_save">Sau khi chỉnh sửa xong, đừng quên lưu bố cục điều khiển!</string>
+    <string name="guide_tip_blank">Chạm vào vùng trống để chuyển sang bước tiếp theo</string>
+    <string name="guide_tip_finish">Chạm vào vùng trống để kết thúc hướng dẫn</string>
 </resources>

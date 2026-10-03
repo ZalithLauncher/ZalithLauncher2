@@ -110,7 +110,13 @@ class GameLauncher(
             version.getInheritedClientJar(inheritsFrom)
         } ?: version.getClientJar()
 
-        gameManifest = VersionInfoParser(version)
+        gameManifest = version.launchManifest?.let { json ->
+            runCatching {
+                GSON.fromJson(json, GameManifest::class.java)
+            }.onFailure {
+                Logger.warning(TAG, "Failed to parse the carried launch manifest", it)
+            }.getOrNull()
+        } ?: VersionInfoParser(version)
             .setManifest(manifest)
             .setInheriting()
             .build()
@@ -125,6 +131,12 @@ class GameLauncher(
         }?.takeIf { it.exists() }
 
         CallbackBridge.nativeSetUseInputStackQueue(gameManifest.arguments != null)
+        //Cleanroom 的 LWJGLXX 桥需要字符事件补全暂存的按键事件，见 CallbackBridge.setControlKeyCharPairing
+        CallbackBridge.setControlKeyCharPairing(
+            version.getVersionInfo()?.loaderInfos?.any { info ->
+                info.loader == ModLoader.CLEANROOM
+            } == true
+        )
 
         val customArgs = version.getJvmArgs().takeIf { it.isNotBlank() } ?: AllSettings.jvmArgs.getValue()
         val javaRuntime = getRuntime()
@@ -148,7 +160,7 @@ class GameLauncher(
         val versionInfo = version.getVersionInfo()
         //Fix Forge 1.7.2
         val is172 = (versionInfo?.minecraftVersion ?: "0.0").isEqualTo("1.7.2")
-        if (is172 && (versionInfo?.loaderInfo?.loader == ModLoader.FORGE)) {
+        if (is172 && versionInfo?.hasLoader(ModLoader.FORGE) == true) {
             Logger.debug(TAG, "Is Forge 1.7.2, use the patched sorting method.")
             put("sort.patch", "true")
         }
@@ -174,8 +186,10 @@ class GameLauncher(
         envMap["DRIVER_PATH"] = DriverPluginManager.getDriver(version.getDriver()).path
 
         checkAndUsedJSPH(envMap, runtime)
-        version.getVersionInfo()?.loaderInfo?.getLoaderEnvKey()?.let { loaderKey ->
-            envMap[loaderKey] = "1"
+        version.getVersionInfo()?.loaderInfos?.forEach { info ->
+            info.getLoaderEnvKey()?.let { loaderKey ->
+                envMap[loaderKey] = "1"
+            }
         }
         if (Renderers.isCurrentRendererValid()) {
             setRendererEnv(envMap)
@@ -186,6 +200,14 @@ class GameLauncher(
             envMap["ALSOFT_LOGLEVEL"] = "3"
         }
 
+
+        //lwjgl3ify 实例：注入 XDG 数据目录兜底，避免其向不存在的 ~/.local/share
+        //写桌面快捷方式时抛出异常杀死 RFB 主线程，导致游戏静默退出
+        if (File(version.getGameDir(), "config/lwjgl3ify.cfg").isFile()) {
+            val xdgDataHome = File(version.getGameDir(), ".local/share")
+            if (!xdgDataHome.isDirectory) xdgDataHome.mkdirs()
+            envMap["XDG_DATA_HOME"] = xdgDataHome.absolutePath
+        }
         return envMap
     }
 
@@ -343,7 +365,7 @@ class GameLauncher(
         val pickedRuntime = RuntimesManager.loadRuntime(runtime)
 
         if (AllSettings.autoPickJavaRuntime.getValue()) {
-            val loaderInfo = version.getVersionInfo()?.loaderInfo
+            val loaderInfo = version.getVersionInfo()?.primaryLoader
             //开启了自动选择，根据游戏需求的版本做选择
             val targetJavaVersion = when (loaderInfo?.loader) {
                 ModLoader.BABRIC -> 17 //Babric 推荐使用 17

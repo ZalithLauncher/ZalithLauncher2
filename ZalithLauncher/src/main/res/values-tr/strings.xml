@@ -985,14 +985,6 @@
     <string name="versions_config_control">Kontrol Düzeni</string>
     <string name="versions_config_microphone_check_title">Mikrofonu Kontrol Et</string>
     <string name="versions_config_microphone_check_summary">Sistem mikrofonunun kullanılabilir olup olmadığını kontrol edin veya başlatıcıya mikrofon izni verildiğinden emin olun. Bu kontrol, Simple Voice Chat gibi mikrofon gerektiren modları kullanabilmenizi sağlar.</string>
-    <string name="versions_update_loader">Yükleyiciler</string>
-    <string name="versions_update_loader_waiting_for_others">Diğer işlerin bitmesini bekleniyor</string>
-    <string name="versions_update_loader_diff_message">Mevcut oyunun yükleyicisini değiştirmek istediğinizden emin misiniz?</string>
-    <string name="versions_update_loader_diff_change">Değiştir: %1$s %2$s → %3$s</string>
-    <string name="versions_update_loader_diff_remove">Kaldır: %s</string>
-    <string name="versions_update_loader_diff_load">Yükle: %1$s %2$s</string>
-    <string name="versions_update_loader_error_message">Yükleyiciyi kurarken bir hata oluştu:</string>
-    <string name="versions_update_loader_success_message">Oyunun yükleyici sürümü başarıyla güncellendi!</string>
     <string name="manage_only_show_valid">Mevcut</string>
     <string name="manage_delete_all">Tümünü Sil</string>
     <string name="manage_delete_all_message">Seçili tüm kaynak dosyalarını silmek istediğinizden emin misiniz? Bu işlem geri alınamaz. Lütfen dikkatli ilerleyin.</string>
@@ -1296,7 +1288,6 @@
     <string name="files_importing">Dosyalar Aktarılıyor</string>
     <string name="files_delete_file">%s\'ı silmek istediğinizden emin misiniz?</string>
     <string name="version_summary_fools_2_0">Onları güncellemeyeceğiz! Eğer bir hata bulursanız, şansızsınız demektir! XD</string>
-    <string name="versions_install_loader">Yükleyiciyi Yükle</string>
     <string name="versions_export_type_curseforge">CurseForge Mod Paketi</string>
     <string name="versions_export_tip_1">Mod paketini dışarıya aktarmadan önce, sürümünüzün düzgün bir şekilde başlatılabildiğinden emin olun.</string>
     <string name="versions_export_tip_2">Minecraft\'ınızın yayınlanmış bir sürüm olduğundan (mod yükleyicilerine izin verilir), anlık test sürümü (snapshot) veya üçüncü taraf istemci olmadığından emin olun.</string>
@@ -1364,9 +1355,6 @@
     <string name="vibrate_kind_double_click">Çift Tıklama</string>
     <string name="vibrate_kind_heavy_click">Ağır Tıklama</string>
     <string name="vibrate_kind_tick">Tik</string>
-    <string name="download_game_version_overwrite">Mevcut sürümün üzerine yazılacak: %s</string>
-    <string name="download_game_version_overwrite_select">Üzerine yazılacak sürüm</string>
-    <string name="download_game_version_overwrite_select_subtitle">Üzerine yazılacak sürümü seçin. Bu özelliği hedef sürümü yükseltmek/düşürmek için kullanabilirsiniz.</string>
     <string name="plugin_download_title">Eklentileri İndir</string>
     <string name="plugin_download_summary">Eklentiyi indirin ve uygulama olarak yükleyin. Başlatıcıyı yeniden açmanız yeterli, otomatik olarak yüklenecektir!</string>
     <string name="settings_game_graphics_api_default_opengl">Yalnızca ilk çalıştırmada OpenGL olarak ayarlanmıştır</string>
@@ -1599,4 +1587,29 @@
     <string name="recorder_notification_text">Oyun sesi ve ekranı kaydediliyor</string>
     <string name="page_title_stats">İstatistikler</string>
     <string name="page_title_game_log">Oyun Günlüğü</string>
+
+    <string name="guide_main_welcome_title">%s uygulamasına hoş geldiniz!</string>
+    <string name="guide_main_welcome_text">Ana ekranın işlevlerine hızlıca bir göz atalım.</string>
+    <string name="guide_main_account">Hesap yöneticisini açmak için buraya dokunun; Minecraft hesaplarınızı buradan ekleyebilir veya yönetebilirsiniz</string>
+    <string name="guide_main_version_list">Sürüm listesini açmak için buraya dokunun, kurduğunuz tüm oyun sürümleri burada listelenecek</string>
+    <string name="guide_main_card_drag_title">İşlem menüsünün konumu hoşunuza gitmiyor mu?</string>
+    <string name="guide_main_card_drag_text">Kartı kaldırmak için uzun basın, ardından diğer tarafa yuvalamak için sürükleyip bırakın</string>
+    <string name="guide_main_card_tip_title">Burası biraz boş mu görünüyor?</string>
+    <string name="guide_main_card_tip_text">Endişelenmeyin, “%s” seçeneğini sunan içerikleri buraya kart olarak sabitleyip dilediğiniz gibi düzenleyebilirsiniz</string>
+    <string name="guide_editor_welcome_title">Kontrol düzeni düzenleyicisine hoş geldiniz!</string>
+    <string name="guide_editor_welcome_text">Nasıl kullanılacağına hızlıca bir göz atalım.</string>
+    <string name="guide_editor_menu_ball_title">Bu, kontrol düzeni düzenleyicisinin yüzen menü düğmesidir</string>
+    <string name="guide_editor_menu_ball_text">Konumunu değiştirmek için sürükleyin! Düzenleyici menüsünü ve kontrol katmanları listesini açmak için dokunun</string>
+    <string name="guide_editor_layer_list_title">Bu, kontrol katmanları listesidir</string>
+    <string name="guide_editor_layer_list_text">Kontrol katmanı bir grafik katmanı gibi çalışır: kontrolleri barındıran bir kapsayıcıdır. Eklediğiniz kontrolleri ayrı katmanlara dağıtarak yönetebilirsiniz</string>
+    <string name="guide_editor_layer_list_note">Oluşturduğunuz tüm kontrol katmanları burada listelenir</string>
+    <string name="guide_editor_create_layer">Yeni bir kontrol katmanı oluşturmak için bu düğmeye dokunun</string>
+    <string name="guide_editor_add_widgets_title">Kontrolleri buraya ekleyin!</string>
+    <string name="guide_editor_add_widgets_text">Bir kontrol katmanı seçtikten sonra içine her türden kontrol ekleyebilirsiniz</string>
+    <string name="guide_editor_styles_title">Kontrollerinizin görünümünü değiştirmek ister misiniz?</string>
+    <string name="guide_editor_styles_text">Kontroller için görünümler oluşturabilir; bunları hızlıca yeniden kullanıp aralarında geçiş yapabilirsiniz</string>
+    <string name="guide_editor_preview">Kontrol düzenini test etmek için önizleme modunu kullanabilirsin</string>
+    <string name="guide_editor_save">Düzenlemeyi bitirdiğinde kontrol düzenini kaydetmeyi unutma!</string>
+    <string name="guide_tip_blank">Sonraki adıma geçmek için boş bir yere dokunun</string>
+    <string name="guide_tip_finish">Rehberi tamamlamak için boş bir yere dokunun</string>
 </resources>

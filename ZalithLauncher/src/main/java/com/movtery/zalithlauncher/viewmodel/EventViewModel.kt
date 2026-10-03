@@ -26,6 +26,7 @@ import androidx.lifecycle.viewModelScope
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.control.input.TextInputMode
+import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -128,6 +129,13 @@ class EventViewModel : ViewModel() {
             val rootPath: String,
             val currentPath: String? = null,
         ) : Event
+
+        sealed interface Guide : Event {
+            /** 启动一组引导 */
+            data class StartGuide(val group: GuideKeys.Keys) : Guide
+            /** 仅启动一组引导一次 */
+            data class StartGuideOnce(val group: GuideKeys.Keys) : Guide
+        }
     }
 }
 

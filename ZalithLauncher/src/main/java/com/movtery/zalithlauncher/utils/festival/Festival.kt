@@ -158,6 +158,54 @@ enum class Festival(
         ): Boolean {
             return date.checkDateRange(12, 24..25)
         }
+    },
+
+    /**
+     * 万圣节
+     */
+    HALLOWEEN(
+        isChinese = false,
+        isInternational = true,
+        textRes = R.string.festivals_halloween
+    ) {
+        override fun isToday(
+            date: LocalDate,
+            lunarCalendar: LunarCalendar
+        ): Boolean {
+            return date.checkDate(10, 31)
+        }
+    },
+
+    /**
+     * 情人节
+     */
+    VALENTINES(
+        isChinese = false,
+        isInternational = true,
+        textRes = R.string.festivals_valentines
+    ) {
+        override fun isToday(
+            date: LocalDate,
+            lunarCalendar: LunarCalendar
+        ): Boolean {
+            return date.checkDate(2, 14)
+        }
+    },
+
+    /**
+     * 七夕
+     */
+    QIXI(
+        isChinese = true,
+        isInternational = false,
+        textRes = R.string.festivals_qixi
+    ) {
+        override fun isToday(
+            date: LocalDate,
+            lunarCalendar: LunarCalendar
+        ): Boolean {
+            return lunarCalendar.checkDate(7, 7)
+        }
     };
 
     abstract fun isToday(date: LocalDate, lunarCalendar: LunarCalendar): Boolean

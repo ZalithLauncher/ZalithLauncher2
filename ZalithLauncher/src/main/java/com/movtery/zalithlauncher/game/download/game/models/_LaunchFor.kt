@@ -28,7 +28,7 @@ import com.movtery.zalithlauncher.game.addons.modloader.optifine.OptiFineVersion
  */
 fun OptiFineVersion.toLaunchForInfo(): LaunchFor.Info {
     return LaunchFor.Info(
-        version = this.realVersion,
+        version = this.version, // 存储规范版本串，便于修改版本时匹配
         name = ModLoader.OPTIFINE.displayName
     )
 }

@@ -57,6 +57,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.movtery.guide.guideLazyList
+import com.movtery.guide.guideNode
 import com.movtery.layer_controller.data.HideLayerWhen
 import com.movtery.layer_controller.data.JoystickTriggerMode
 import com.movtery.layer_controller.data.VisibilityType
@@ -81,6 +83,7 @@ import com.movtery.zalithlauncher.ui.components.MenuSwitchButton
 import com.movtery.zalithlauncher.ui.components.MenuTextButton
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.lazyScrollWithBar
+import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import sh.calvin.reorderable.ReorderableItem
@@ -183,12 +186,14 @@ fun JoystickTriggerMode.getTriggerModeText(): String {
 
 @Composable
 fun MenuBox(
+    modifier: Modifier = Modifier,
     position: Offset,
     onPositionChanged: (Offset) -> Unit,
     opened: Boolean,
     onClick: () -> Unit
 ) {
     FloatingBall(
+        modifier = modifier,
         position = position,
         onPositionChanged = onPositionChanged,
         onClick = onClick
@@ -342,15 +347,30 @@ private fun EditorMenuContent(
 ) {
     val listState = rememberLazyListState()
     LazyColumn(
-        modifier = modifier.lazyScrollWithBar(listState),
+        modifier = modifier
+            .guideLazyList(listState) { key ->
+                when (key) {
+                    GuideKeys.Editor.Step.CreateLayer -> "add_button"
+                    GuideKeys.Editor.Step.AddStyles -> "joystick_style_list"
+                    GuideKeys.Editor.Step.Preview -> "using_gamepad"
+                    GuideKeys.Editor.Step.Save -> "save_and_exit"
+                    else -> null
+                }
+            }
+            .lazyScrollWithBar(listState),
         state = listState,
         contentPadding = PaddingValues(all = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         //添加按钮
-        item {
+        item(key = "add_button") {
             MenuTextButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .guideNode(
+                        key = GuideKeys.Editor.Step.AddButtons,
+                        holeRadius = 16.dp
+                    )
+                    .fillMaxWidth(),
                 enabled = isPreviewMode.not(),
                 text = stringResource(R.string.control_editor_menu_new_widget_button),
                 onClick = addNewButton,
@@ -360,9 +380,14 @@ private fun EditorMenuContent(
         }
 
         //添加文本框
-        item {
+        item(key = "add_textbox") {
             MenuTextButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .guideNode(
+                        key = GuideKeys.Editor.Step.AddButtons,
+                        holeRadius = 16.dp
+                    )
+                    .fillMaxWidth(),
                 enabled = isPreviewMode.not(),
                 text = stringResource(R.string.control_editor_menu_new_widget_text),
                 onClick = addNewText,
@@ -372,9 +397,14 @@ private fun EditorMenuContent(
         }
 
         //添加摇杆
-        item {
+        item(key = "add_joystick") {
             MenuTextButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .guideNode(
+                        key = GuideKeys.Editor.Step.AddButtons,
+                        holeRadius = 16.dp
+                    )
+                    .fillMaxWidth(),
                 enabled = isPreviewMode.not(),
                 text = stringResource(R.string.control_editor_menu_new_widget_joystick),
                 onClick = addNewJoystick,
@@ -384,9 +414,14 @@ private fun EditorMenuContent(
         }
 
         //控件外观列表
-        item {
+        item(key = "control_appearance_list") {
             MenuTextButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .guideNode(
+                        key = GuideKeys.Editor.Step.AddStyles,
+                        holeRadius = 16.dp
+                    )
+                    .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_edit_style_config),
                 enabled = isPreviewMode.not(),
                 onClick = {
@@ -399,9 +434,14 @@ private fun EditorMenuContent(
         }
 
         //摇杆样式列表
-        item {
+        item(key = "joystick_style_list") {
             MenuTextButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .guideNode(
+                        key = GuideKeys.Editor.Step.AddStyles,
+                        holeRadius = 16.dp
+                    )
+                    .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_edit_joystick_style_list),
                 enabled = isPreviewMode.not(),
                 onClick = {
@@ -418,9 +458,14 @@ private fun EditorMenuContent(
         }
 
         //预览控制布局
-        item {
+        item(key = "preview_control_layout") {
             MenuSwitchButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .guideNode(
+                        key = GuideKeys.Editor.Step.Preview,
+                        holeRadius = 16.dp
+                    )
+                    .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_preview_mode),
                 switch = isPreviewMode,
                 onSwitch = { onPreviewChanged(it) },
@@ -430,9 +475,14 @@ private fun EditorMenuContent(
         }
 
         //预览场景
-        item {
+        item(key = "preview_scenario") {
             MenuListLayout(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .guideNode(
+                        key = GuideKeys.Editor.Step.Preview,
+                        holeRadius = 16.dp
+                    )
+                    .fillMaxWidth(),
                 title = stringResource(R.string.control_editor_menu_preview_mode_scenario),
                 items = PreviewScenario.entries,
                 currentItem = previewScenario,
@@ -447,9 +497,14 @@ private fun EditorMenuContent(
         }
 
         //正在使用实体鼠标
-        item {
+        item(key = "using_physical_mouse") {
             MenuSwitchButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .guideNode(
+                        key = GuideKeys.Editor.Step.Preview,
+                        holeRadius = 16.dp
+                    )
+                    .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_preview_is_mouse),
                 switch = previewHideLayerWhen == HideLayerWhen.WhenMouse,
                 onSwitch = { value ->
@@ -465,9 +520,14 @@ private fun EditorMenuContent(
         }
 
         //正在使用手柄
-        item {
+        item(key = "using_gamepad") {
             MenuSwitchButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .guideNode(
+                        key = GuideKeys.Editor.Step.Preview,
+                        holeRadius = 16.dp
+                    )
+                    .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_preview_is_gamepad),
                 switch = previewHideLayerWhen == HideLayerWhen.WhenGamepad,
                 onSwitch = { value ->
@@ -535,9 +595,14 @@ private fun EditorMenuContent(
         }
 
         //保存
-        item {
+        item(key = "save") {
             MenuTextButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .guideNode(
+                        key = GuideKeys.Editor.Step.Save,
+                        holeRadius = 16.dp
+                    )
+                    .fillMaxWidth(),
                 text = stringResource(R.string.generic_save),
                 onClick = onSave,
                 color = color,
@@ -546,9 +611,14 @@ private fun EditorMenuContent(
         }
 
         //保存并退出
-        item {
+        item(key = "save_and_exit") {
             MenuTextButton(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .guideNode(
+                        key = GuideKeys.Editor.Step.Save,
+                        holeRadius = 16.dp
+                    )
+                    .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_save_and_exit),
                 onClick = saveAndExit,
                 color = color,
@@ -557,7 +627,7 @@ private fun EditorMenuContent(
         }
 
         //直接退出
-        item {
+        item(key = "exit_directly") {
             MenuTextButton(
                 modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.control_editor_exit_confirm),
@@ -615,6 +685,7 @@ private fun ColumnScope.ControlLayerMenu(
 
     LazyColumn(
         modifier = Modifier
+            .guideNode(GuideKeys.Editor.Step.LayerList)
             .weight(1f)
             .lazyScrollWithBar(lazyListState),
         state = lazyListState,
@@ -655,8 +726,11 @@ private fun ColumnScope.ControlLayerMenu(
     }
     ScalingActionButton(
         modifier = Modifier
-            .padding(horizontal = 8.dp)
-            .padding(bottom = 4.dp)
+            .guideNode(
+                key = GuideKeys.Editor.Step.CreateLayer,
+                holeRadius = 50.dp
+            )
+            .padding(horizontal = 8.dp, vertical = 4.dp)
             .fillMaxWidth(),
         onClick = createLayer
     ) {

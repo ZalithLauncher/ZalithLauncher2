@@ -179,4 +179,29 @@
     <string name="settings_renderer_resolution_custom_summary">Renderizza il gioco a una larghezza e altezza esatte; l\'immagine viene ridimensionata per adattarsi allo schermo</string>
     <string name="settings_renderer_resolution_custom_width">Larghezza</string>
     <string name="settings_renderer_resolution_custom_height">Altezza</string>
+
+    <string name="guide_main_welcome_title">Benvenuto in %s!</string>
+    <string name="guide_main_welcome_text">Diamo una rapida occhiata alle funzioni della schermata principale.</string>
+    <string name="guide_main_account">Tocca qui per aprire la gestione degli account, dove puoi aggiungere o gestire i tuoi account Minecraft</string>
+    <string name="guide_main_version_list">Tocca qui per aprire l\'elenco delle versioni: tutte le versioni del gioco che installerai saranno elencate qui</string>
+    <string name="guide_main_card_drag_title">Non ti piace la posizione del menu azioni?</string>
+    <string name="guide_main_card_drag_text">Tieni premuta la scheda per sollevarla, poi trascinala e rilasciala per ancorarla sul lato opposto</string>
+    <string name="guide_main_card_tip_title">Qui sembra un po\' vuoto?</string>
+    <string name="guide_main_card_tip_text">Non preoccuparti: puoi fissare i contenuti qui come schede e disporli liberamente, purché offra l\'opzione “%s”</string>
+    <string name="guide_editor_welcome_title">Benvenuto nell\'editor dei layout di controllo!</string>
+    <string name="guide_editor_welcome_text">Diamo una rapida occhiata a come si usa.</string>
+    <string name="guide_editor_menu_ball_title">Questo è il pulsante del menu fluttuante dell\'editor dei layout di controllo</string>
+    <string name="guide_editor_menu_ball_text">Trascinalo per cambiarne la posizione! Toccalo per aprire il menu dell\'editor e l\'elenco dei livelli di controllo</string>
+    <string name="guide_editor_layer_list_title">Questo è l\'elenco dei livelli di controllo</string>
+    <string name="guide_editor_layer_list_text">Un livello di controllo funziona come un livello grafico: è un contenitore che raccoglie i controlli. Puoi organizzare i controlli che aggiungi su livelli separati</string>
+    <string name="guide_editor_layer_list_note">Tutti i livelli di controllo che crei verranno elencati qui</string>
+    <string name="guide_editor_create_layer">Tocca questo pulsante per creare un nuovo livello di controllo</string>
+    <string name="guide_editor_add_widgets_title">Aggiungi controlli qui!</string>
+    <string name="guide_editor_add_widgets_text">Una volta selezionato un livello di controllo, puoi aggiungergli qualsiasi tipo di controllo</string>
+    <string name="guide_editor_styles_title">Vuoi cambiare l\'aspetto dei tuoi controlli?</string>
+    <string name="guide_editor_styles_text">Puoi creare aspetti per i tuoi controlli, da riutilizzare e cambiare rapidamente</string>
+    <string name="guide_editor_preview">Usa la modalità di anteprima per provare il tuo layout di controlli</string>
+    <string name="guide_editor_save">Quando hai finito di modificare, non dimenticare di salvare il layout di controlli!</string>
+    <string name="guide_tip_blank">Tocca un punto vuoto per passare al passaggio successivo</string>
+    <string name="guide_tip_finish">Tocca un punto vuoto per terminare la guida</string>
 </resources>

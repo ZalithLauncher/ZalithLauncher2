@@ -37,18 +37,11 @@ import java.io.File
 
 const val OPTIFINE_DOWNLOAD_ID = "Download.OptiFine"
 
-fun targetTempOptiFineInstaller(tempGameDir: File, tempMinecraftDir: File, fileName: String, isNewVersion: Boolean): File {
-    return if (isNewVersion) File(tempGameDir, ".temp/OptiFine.jar")
-    else {
-        val nameFileCleaned = fileName
-            .replace("OptiFine_", "")
-            .replace(".jar", "")
-            .replace("preview_", "")
-        val nameFileFormatted = fileName
-            .replace("OptiFine_", "OptiFine-")
-            .replace("preview_", "")
-        File(tempMinecraftDir, "libraries/optifine/OptiFine/$nameFileCleaned/$nameFileFormatted")
-    }
+/**
+ * OptiFine installer 的临时下载路径
+ */
+fun targetTempOptiFineInstaller(tempGameDir: File): File {
+    return File(tempGameDir, ".temp/OptiFine.jar")
 }
 
 fun getOptiFineDownloadTask(

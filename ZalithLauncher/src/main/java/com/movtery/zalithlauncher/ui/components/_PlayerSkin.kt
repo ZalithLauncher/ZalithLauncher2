@@ -22,6 +22,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.util.Base64
 import android.util.Log
+import android.view.MotionEvent
+import android.view.ViewGroup
 import android.webkit.ConsoleMessage
 import android.webkit.JsResult
 import android.webkit.WebChromeClient
@@ -29,8 +31,23 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.FrameLayout
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.LoadingIndicator
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color.Companion.Transparent
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.webkit.WebViewAssetLoader
 import com.movtery.zalithlauncher.game.account.wardrobe.EmptyCape
 import com.movtery.zalithlauncher.game.account.wardrobe.SkinModelType
@@ -258,6 +275,14 @@ class PlayerSkin(
     }
 
     /**
+     * 设置预览交互开关
+     * 关闭后 WebView 不再响应触摸（视角旋转等），仅作展示
+     */
+    fun setInteractionEnabled(enabled: Boolean) {
+        webview?.evaluateJavascript("setInteractionEnabled($enabled)", null)
+    }
+
+    /**
      * 销毁 WebView 并释放资源
      * 应在包含该组件的 Composable 离开组合树时调用
      */
@@ -289,6 +314,96 @@ enum class ModelAnimation {
     Wave,
     Crouch,
     Hit
+}
+
+/**
+ * 3D 玩家皮肤预览：基于 skinview3d 的 WebView 渲染正面立绘与待机动画
+ *
+ * @param skinFile 皮肤文件，null 时展示默认皮肤
+ * @param capeFile 披风文件，null 时移除披风
+ * @param modelType 皮肤模型类型，null 时自动检测
+ * @param animation 预览动画
+ * @param azimuth 水平视角（度）
+ * @param pitch 俯仰视角（度）
+ * @param interactionEnabled 是否允许触摸交互（拖拽旋转视角）；
+ * 关闭时触摸不进入 WebView，交还给上层手势处理
+ * @param refreshKey 变化时重新加载皮肤与披风
+ */
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+fun SkinPreview3D(
+    skinFile: File?,
+    capeFile: File?,
+    modelType: SkinModelType?,
+    modifier: Modifier = Modifier,
+    animation: ModelAnimation = ModelAnimation.NewIdle,
+    azimuth: Int = -35,
+    pitch: Int = 10,
+    interactionEnabled: Boolean = true,
+    refreshKey: Any? = null,
+) {
+    val context = LocalContext.current
+    val playerSkin = remember { PlayerSkin(context) }
+    var pageFinished by remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            playerSkin.destroy()
+        }
+    }
+
+    Box(modifier = modifier) {
+        AndroidView(
+            modifier = Modifier.matchParentSize(),
+            factory = { context ->
+                TouchGateLayout(context).apply {
+                    addView(
+                        playerSkin.loadWebView(context) { pageFinished = true },
+                        ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                    )
+                }
+            },
+            update = { container ->
+                container.gateOpen = interactionEnabled
+            }
+        )
+
+        LaunchedEffect(pageFinished, animation, azimuth, pitch) {
+            if (!pageFinished) return@LaunchedEffect
+            playerSkin.startAnim(animation)
+            playerSkin.setAzimuthAndPitch(azimuth, pitch)
+        }
+        LaunchedEffect(pageFinished, interactionEnabled) {
+            if (!pageFinished) return@LaunchedEffect
+            playerSkin.setInteractionEnabled(interactionEnabled)
+        }
+        LaunchedEffect(pageFinished, skinFile, capeFile, modelType, refreshKey) {
+            if (!pageFinished) return@LaunchedEffect
+            runCatching {
+                skinFile?.inputStream().use { playerSkin.loadSkin(it, modelType) }
+                capeFile?.inputStream().use { playerSkin.loadCape(it) }
+            }
+        }
+
+        if (!pageFinished) {
+            LoadingIndicator(modifier = Modifier.align(Alignment.Center))
+        }
+    }
+}
+
+/**
+ * 触摸门控容器：gateOpen 为 false 时拦截全部发往子 View 的触摸，
+ * 且自身不消费，手势继续交还上层处理
+ */
+private class TouchGateLayout(context: Context) : FrameLayout(context) {
+    var gateOpen: Boolean = true
+
+    override fun onInterceptTouchEvent(ev: MotionEvent): Boolean = !gateOpen
+
+    override fun onTouchEvent(ev: MotionEvent): Boolean = false
 }
 
 private class AssetsUrlBuilder {

@@ -1,3 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="guide_main_welcome_title">Tere tulemast rakendusse %s!</string>
+    <string name="guide_main_welcome_text">Vaadake lühidalt üle peaekraani funktsioonid.</string>
+    <string name="guide_main_account">Puudutage siin, et avada kontode haldus, kus saate Minecrafti kontosid lisada või hallata</string>
+    <string name="guide_main_version_list">Puudutage siin, et avada versioonide loend, kus kuvatakse kõik installitud mänguversioonid</string>
+    <string name="guide_main_card_drag_title">Ei meeldi toimingumenüü asukoht?</string>
+    <string name="guide_main_card_drag_text">Vajutage kaardile pikalt, et see üles tõsta, ning lohistage ja pange see teisele küljele</string>
+    <string name="guide_main_card_tip_title">Kas siin on veidi tühi?</string>
+    <string name="guide_main_card_tip_text">Ärge muretsege, saate sisu siia kaartidena kinnitada ja vabalt korraldada, kui see pakub valikut „%s“</string>
+    <string name="guide_editor_welcome_title">Tere tulemast juhtimispaigutuste redaktorisse!</string>
+    <string name="guide_editor_welcome_text">Vaatame kiiresti, kuidas seda kasutada.</string>
+    <string name="guide_editor_menu_ball_title">See on juhtimispaigutuste redaktori hõljukmenüü nupp</string>
+    <string name="guide_editor_menu_ball_text">Lohista seda selle asukoha muutmiseks! Puuduta seda menüü ja juhtimiskihtide loendi avamiseks</string>
+    <string name="guide_editor_layer_list_title">See on juhtimiskihtide loend</string>
+    <string name="guide_editor_layer_list_text">Juhtimiskiht toimib nagu graafikakiht: see on konteiner, mis hoiab juhtimiselemente. Saad lisatud juhtimiselemendid jaotada eraldi kihtide vahel</string>
+    <string name="guide_editor_layer_list_note">Kõik loodud juhtimiskihid kuvatakse siin</string>
+    <string name="guide_editor_create_layer">Puuduta seda nuppu uue juhtimiskihi loomiseks</string>
+    <string name="guide_editor_add_widgets_title">Lisa juhtimiselemendid siin!</string>
+    <string name="guide_editor_add_widgets_text">Kui juhtimiskiht on valitud, saad sellele lisada mis tahes tüüpi juhtimiselemente</string>
+    <string name="guide_editor_styles_title">Kas soovid juhtimiselementide välimust muuta?</string>
+    <string name="guide_editor_styles_text">Saad luua juhtimiselementidele välimusi, et neid kiiresti taaskasutada ja vahetada</string>
+    <string name="guide_editor_preview">Testi oma juhtimispaigutust eelvaate režiimis</string>
+    <string name="guide_editor_save">Kui redigeerimine on lõpetatud, ära unusta juhtimispaigutust salvestada!</string>
+    <string name="guide_tip_blank">Puuduta mõnda tühja kohta, et liikuda järgmisele sammule</string>
+    <string name="guide_tip_finish">Puuduta mõnda tühja kohta, et lõpetada juhend</string>
 </resources>

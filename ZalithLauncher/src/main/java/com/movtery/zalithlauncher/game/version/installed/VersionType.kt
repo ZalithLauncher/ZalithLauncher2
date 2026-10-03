@@ -49,14 +49,10 @@ private val loaders = ModLoader.entries.filter { it.isLoader }
  * 通过版本信息，尝试识别版本类型
  */
 fun VersionInfo?.getVersionType(): VersionType {
+    val loader = this?.primaryLoader
     return when {
-        this != null -> {
-            when {
-                loaderInfo == null || loaderInfo.loader == ModLoader.OPTIFINE -> VANILLA
-                loaderInfo.loader in loaders -> MODLOADERS
-                else -> UNKNOWN
-            }
-        }
+        loader == null || loader.loader == ModLoader.OPTIFINE -> VANILLA
+        loader.loader in loaders -> MODLOADERS
         else -> UNKNOWN
     }
 }

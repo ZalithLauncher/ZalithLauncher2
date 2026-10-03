@@ -525,7 +525,8 @@ private class ModsUpdaterViewModel(
         onStop: () -> Unit = {}
     ) {
         val minecraftVer = version.getVersionInfo()!!.minecraftVersion
-        val modLoader = version.getVersionInfo()!!.loaderInfo!!.loader
+        //模组更新按主加载器过滤
+        val modLoader = version.getVersionInfo()!!.primaryLoader?.loader ?: ModLoader.UNKNOWN
 
         modsUpdater = ModUpdater(
             mods = mods,
@@ -621,7 +622,7 @@ fun ModsManagerScreen(
 
     //是否拥有模组加载器
     val hasModLoader = remember(version) {
-        version.getVersionInfo()?.loaderInfo?.loader?.isLoader == true
+        version.getVersionInfo()?.loaderInfos?.any { it.loader.isLoader } == true
     }
     val modsDir = remember(version) {
         VersionFolders.MOD.getDir(version.getGameDir())

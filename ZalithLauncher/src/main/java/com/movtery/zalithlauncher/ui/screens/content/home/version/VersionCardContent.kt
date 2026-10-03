@@ -23,6 +23,7 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -46,12 +47,16 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.takeOrElse
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.cardgrid.model.CardInteraction
 import com.movtery.cardgrid.model.CardSize
@@ -66,6 +71,13 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 val LocalHomeCardLauncher = staticCompositionLocalOf<(Version) -> Unit> { {} }
 /** 版本卡片打开版本设置屏的回调 */
 val LocalHomeCardVersionSettings = staticCompositionLocalOf<(Version) -> Unit> { {} }
+
+/** 版本描述移入头行下方空白区的高度跨度 */
+private const val DESCRIPTION_START_SPAN = 9
+/** 头行与图标下方描述文本之间的间距 */
+private val DetailTopGap = 4.dp
+/** 详情文本行之间的间距 */
+private val DetailItemGap = 2.dp
 
 /**
  * 版本卡片内容
@@ -84,8 +96,7 @@ fun CardState.VersionCardContent(cardId: String) {
     val currentVersion by rememberUpdatedState(version)
     val currentInteraction by rememberUpdatedState(interaction)
 
-    //文本显示门槛
-    val showSummary = sizeClass.height >= CardSizeClass.LARGE
+    //版本详细信息的显示门槛
     val showDetails = sizeClass.height >= CardSizeClass.MEDIUM
     val iconSize = iconSizeFor(sizeClass)
 
@@ -101,29 +112,39 @@ fun CardState.VersionCardContent(cardId: String) {
     ) {
         when {
             sizeClass.width >= CardSizeClass.MEDIUM &&
-                    sizeClass.height >= CardSizeClass.LARGE -> HeroContent(
+                    sizeClass.height >= CardSizeClass.LARGE -> TallContent(
                 card = card,
                 version = version,
                 iconSize = enlargedIconSize(sizeClass.width),
-                showSummary = showSummary,
+                spanHeight = spanHeight,
                 showDetails = showDetails
-            )
-            sizeClass.width <= CardSizeClass.SMALL -> NarrowContent(
+            ) {
+                if (version != null) TextLaunchButton(version)
+            }
+            sizeClass.width <= CardSizeClass.SMALL &&
+                    sizeClass.height > CardSizeClass.SMALL -> TallContent(
+                card = card,
+                version = version,
+                iconSize = enlargedIconSize(sizeClass.height),
+                spanHeight = spanHeight,
+                showDetails = showDetails
+            ) {
+                if (version != null) {
+                    CompactLaunchButton(
+                        version = version,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(30.dp)
+                    )
+                }
+            }
+            else -> RowContent(
                 card = card,
                 version = version,
                 iconSize = iconSize,
-                headerIconSize = enlargedIconSize(sizeClass.height),
-                showSummary = showSummary,
                 showDetails = showDetails,
-                tall = sizeClass.height > CardSizeClass.SMALL,
-            )
-            else -> WideContent(
-                card = card,
-                version = version,
-                iconSize = iconSize,
-                showSummary = showSummary,
-                showDetails = showDetails,
-                textButton = sizeClass.width >= CardSizeClass.LARGE
+                textButton = sizeClass.width >= CardSizeClass.LARGE,
+                spacing = if (sizeClass.width <= CardSizeClass.SMALL) 6.dp else 12.dp
             )
         }
     }
@@ -145,10 +166,11 @@ private fun enlargedIconSize(sizeClass: CardSizeClass): Dp = when (sizeClass) {
     else -> 64.dp
 }
 
-/**
- * 卡身点按手势：点按全程不消费指针事件，与网格的长按、拖动手势互不干扰；
- * 按压超过长按时长或移动超出触摸斜率均不视为点按。
- */
+@Composable
+private fun lineHeightDp(style: TextStyle): Dp = with(LocalDensity.current) {
+    style.lineHeight.takeOrElse { style.fontSize }.toDp()
+}
+
 private fun Modifier.homeCardTap(onTap: () -> Unit): Modifier = pointerInput(Unit) {
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
@@ -172,183 +194,154 @@ private fun Modifier.homeCardTap(onTap: () -> Unit): Modifier = pointerInput(Uni
 }
 
 /**
- * 大卡片
+ * 纵向布局
  */
 @Composable
-private fun HeroContent(
+private fun TallContent(
     card: VersionCardState?,
     version: Version?,
     iconSize: Dp,
-    showSummary: Boolean,
-    showDetails: Boolean
+    spanHeight: Int,
+    showDetails: Boolean,
+    button: @Composable () -> Unit
 ) {
-    val onLaunch = LocalHomeCardLauncher.current
-
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        //头行占用按钮之外的剩余空间；按钮非加权、先行测量，任何高度下都不会被挤压
-        CardHeader(
-            modifier = Modifier.weight(1f),
-            iconSize = iconSize,
-            card = card,
-            version = version,
-            showSummary = showSummary,
-            showDetails = showDetails,
-            multiline = true
-        )
+        BoxWithConstraints(
+            modifier = Modifier
+                .weight(1f)
+                .clipToBounds()
+        ) {
+            //头行高度即图标高度（名称、信息行与状态标签不会超过图标），扣除后即图标下方的空白
+            val blank = maxHeight - iconSize - DetailTopGap
+            val summaryLine = lineHeightDp(MaterialTheme.typography.labelMedium)
+            val summaryValid = version?.isSummaryValid() == true
+            //空白区文本：版本描述优先，缺失时由版本详细信息充当；达到高度门槛且放得下一行时显示
+            val blankText = version
+                ?.takeIf {
+                    spanHeight >= DESCRIPTION_START_SPAN &&
+                            blank >= summaryLine &&
+                            (summaryValid || it.getVersionInfo() != null)
+                }
+                ?.getVersionSummary()
+            //描述行的行数与空白高度一致，未容纳的文本以省略号收尾
+            val blankMaxLines = (blank.value / summaryLine.value).toInt()
+
+            Column(modifier = Modifier.fillMaxSize()) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    VersionIconImage(
+                        modifier = Modifier.size(iconSize),
+                        version = version
+                    )
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(DetailItemGap)
+                    ) {
+                        CardNameText(card = card, version = version)
+                        //信息位于名称下方；版本缺失描述时，信息自门槛起下移充当描述行，不再显示于此
+                        if (showDetails && version != null && (summaryValid || blankText == null)) {
+                            InfoRow(version = version)
+                        }
+                        when (card?.status) {
+                            is VersionCardStatus.Deleted -> StatusPlaceholder(
+                                text = stringResource(R.string.home_version_card_deleted)
+                            )
+                            is VersionCardStatus.Inaccessible -> StatusPlaceholder(
+                                text = stringResource(R.string.home_version_card_inaccessible)
+                            )
+                            else -> Unit
+                        }
+                    }
+                }
+                if (blankText != null) {
+                    //描述行以高度权重填满头行下方的剩余空白，超出部分以省略号收尾
+                    Text(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(top = DetailTopGap),
+                        maxLines = blankMaxLines,
+                        overflow = TextOverflow.Ellipsis,
+                        text = blankText,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+            }
+        }
+        //按钮区占用固有高度，上方文本区加权，任何高度下都不会被挤压
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
-            if (version != null) {
-                Button(onClick = { onLaunch(version) }) {
-                    Icon(
-                        modifier = Modifier.size(16.dp),
-                        painter = painterResource(R.drawable.ic_play_arrow_filled),
-                        contentDescription = null
-                    )
-                    Text(
-                        modifier = Modifier.padding(start = 6.dp),
-                        text = stringResource(R.string.main_launch_game)
-                    )
-                }
-            }
+            button()
         }
     }
 }
 
+/** 版本信息 */
 @Composable
-private fun CardHeader(
-    modifier: Modifier = Modifier,
-    iconSize: Dp,
-    card: VersionCardState?,
-    version: Version?,
-    showSummary: Boolean,
-    showDetails: Boolean,
-    multiline: Boolean
-) {
+private fun InfoRow(version: Version) {
+    val versionInfo = version.getVersionInfo()
     Row(
-        modifier = modifier,
+        modifier = Modifier
+            .alpha(0.7f)
+            .basicMarquee(iterations = Int.MAX_VALUE),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        VersionIconImage(
-            modifier = Modifier.size(iconSize),
-            version = version
+        Text(
+            text = versionInfo?.minecraftVersion ?: "",
+            style = MaterialTheme.typography.labelSmall
         )
-        CardTexts(
-            modifier = Modifier.weight(1f),
-            card = card,
-            version = version,
-            showSummary = showSummary,
-            showDetails = showDetails,
-            multiline = multiline
+        versionInfo?.loaderInfos?.forEach { loaderInfo ->
+            Text(
+                text = loaderInfo.loader.displayName,
+                style = MaterialTheme.typography.labelSmall
+            )
+            Text(
+                text = loaderInfo.version,
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+    }
+}
+
+/** 版本名称 */
+@Composable
+private fun CardNameText(
+    modifier: Modifier = Modifier,
+    card: VersionCardState?,
+    version: Version?
+) {
+    card?.record?.versionName?.let { name ->
+        Text(
+            modifier = modifier
+                .basicMarquee(iterations = Int.MAX_VALUE)
+                .then(if (version == null) Modifier.alpha(0.55f) else Modifier),
+            maxLines = 1,
+            text = name,
+            style = MaterialTheme.typography.labelLarge
         )
     }
 }
 
 /**
- * 窄宽卡片
+ * 横排布局
  */
 @Composable
-private fun NarrowContent(
+private fun RowContent(
     card: VersionCardState?,
     version: Version?,
     iconSize: Dp,
-    headerIconSize: Dp,
-    showSummary: Boolean,
     showDetails: Boolean,
-    tall: Boolean,
+    textButton: Boolean,
+    spacing: Dp
 ) {
-    val onLaunch = LocalHomeCardLauncher.current
-
-    if (tall) {
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            CardHeader(
-                modifier = Modifier.weight(1f),
-                iconSize = headerIconSize,
-                card = card,
-                version = version,
-                showSummary = showSummary,
-                showDetails = showDetails,
-                multiline = false
-            )
-            if (version != null) {
-                Button(
-                    onClick = { onLaunch(version) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(30.dp),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Icon(
-                        modifier = Modifier.size(14.dp),
-                        painter = painterResource(R.drawable.ic_play_arrow_filled),
-                        contentDescription = null
-                    )
-                    Text(
-                        modifier = Modifier.padding(start = 4.dp),
-                        text = stringResource(R.string.main_launch_game),
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            }
-        }
-    } else {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            VersionIconImage(
-                modifier = Modifier.size(iconSize),
-                version = version
-            )
-            CardTexts(
-                modifier = Modifier.weight(1f),
-                card = card,
-                version = version,
-                showSummary = showSummary,
-                showDetails = showDetails
-            )
-            if (version != null) {
-                Button(
-                    onClick = { onLaunch(version) },
-                    shape = CircleShape,
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Icon(
-                        modifier = Modifier.size(14.dp),
-                        painter = painterResource(R.drawable.ic_play_arrow_filled),
-                        contentDescription = stringResource(R.string.main_launch_game)
-                    )
-                }
-            }
-        }
-    }
-}
-
-/**
- * 宽卡片
- */
-@Composable
-private fun WideContent(
-    card: VersionCardState?,
-    version: Version?,
-    iconSize: Dp,
-    showSummary: Boolean,
-    showDetails: Boolean,
-    textButton: Boolean
-) {
-    val onLaunch = LocalHomeCardLauncher.current
-
     Row(
         modifier = Modifier.fillMaxSize(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(spacing),
         verticalAlignment = Alignment.CenterVertically
     ) {
         VersionIconImage(
@@ -359,34 +352,13 @@ private fun WideContent(
             modifier = Modifier.weight(1f),
             card = card,
             version = version,
-            showSummary = showSummary,
             showDetails = showDetails
         )
         if (version != null) {
             if (textButton) {
-                Button(onClick = { onLaunch(version) }) {
-                    Icon(
-                        modifier = Modifier.size(16.dp),
-                        painter = painterResource(R.drawable.ic_play_arrow_filled),
-                        contentDescription = null
-                    )
-                    Text(
-                        modifier = Modifier.padding(start = 6.dp),
-                        text = stringResource(R.string.main_launch_game)
-                    )
-                }
+                TextLaunchButton(version)
             } else {
-                Button(
-                    onClick = { onLaunch(version) },
-                    shape = CircleShape,
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Icon(
-                        modifier = Modifier.size(14.dp),
-                        painter = painterResource(R.drawable.ic_play_arrow_filled),
-                        contentDescription = stringResource(R.string.main_launch_game)
-                    )
-                }
+                IconLaunchButton(version)
             }
         }
     }
@@ -398,40 +370,13 @@ private fun CardTexts(
     modifier: Modifier = Modifier,
     card: VersionCardState?,
     version: Version?,
-    showSummary: Boolean,
-    showDetails: Boolean,
-    multiline: Boolean = false
+    showDetails: Boolean
 ) {
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(2.dp)
+        verticalArrangement = Arrangement.spacedBy(DetailItemGap)
     ) {
-        //版本名称
-        card?.record?.versionName?.let { name ->
-            Text(
-                modifier = Modifier
-                    .basicMarquee(iterations = Int.MAX_VALUE)
-                    .then(if (version == null) Modifier.alpha(0.55f) else Modifier),
-                maxLines = 1,
-                text = name,
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
-
-        if (version != null && showSummary && version.isSummaryValid()) {
-            //版本描述：多行模式放开行数并以省略号收尾，否则单行跑马灯
-            Text(
-                modifier = if (multiline) {
-                    Modifier
-                } else {
-                    Modifier.basicMarquee(iterations = Int.MAX_VALUE)
-                },
-                maxLines = if (multiline) 3 else 1,
-                overflow = TextOverflow.Ellipsis,
-                text = version.getVersionSummary(),
-                style = MaterialTheme.typography.labelMedium
-            )
-        }
+        CardNameText(card = card, version = version)
 
         when (val status = card?.status) {
             is VersionCardStatus.Available -> if (showDetails) {
@@ -440,13 +385,13 @@ private fun CardTexts(
                 FlowRow(
                     modifier = Modifier.alpha(0.7f),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(DetailItemGap)
                 ) {
                     Text(
                         text = versionInfo?.minecraftVersion ?: "",
                         style = MaterialTheme.typography.labelSmall
                     )
-                    versionInfo?.loaderInfo?.let { loaderInfo ->
+                    versionInfo?.loaderInfos?.forEach { loaderInfo ->
                         Text(
                             text = loaderInfo.loader.displayName,
                             style = MaterialTheme.typography.labelSmall
@@ -467,6 +412,63 @@ private fun CardTexts(
             )
             null, VersionCardStatus.Loading -> Unit
         }
+    }
+}
+
+/** 带文字的启动按钮 */
+@Composable
+private fun TextLaunchButton(version: Version, modifier: Modifier = Modifier) {
+    val onLaunch = LocalHomeCardLauncher.current
+    Button(onClick = { onLaunch(version) }, modifier = modifier) {
+        Icon(
+            modifier = Modifier.size(16.dp),
+            painter = painterResource(R.drawable.ic_play_arrow_filled),
+            contentDescription = null
+        )
+        Text(
+            modifier = Modifier.padding(start = 6.dp),
+            text = stringResource(R.string.main_launch_game)
+        )
+    }
+}
+
+/** 通栏紧凑启动按钮 */
+@Composable
+private fun CompactLaunchButton(version: Version, modifier: Modifier = Modifier) {
+    val onLaunch = LocalHomeCardLauncher.current
+    Button(
+        onClick = { onLaunch(version) },
+        modifier = modifier,
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+    ) {
+        Icon(
+            modifier = Modifier.size(14.dp),
+            painter = painterResource(R.drawable.ic_play_arrow_filled),
+            contentDescription = null
+        )
+        Text(
+            modifier = Modifier.padding(start = 4.dp),
+            text = stringResource(R.string.main_launch_game),
+            style = MaterialTheme.typography.labelSmall
+        )
+    }
+}
+
+/** 仅图标的圆形启动按钮 */
+@Composable
+private fun IconLaunchButton(version: Version, modifier: Modifier = Modifier) {
+    val onLaunch = LocalHomeCardLauncher.current
+    Button(
+        onClick = { onLaunch(version) },
+        modifier = modifier,
+        shape = CircleShape,
+        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+    ) {
+        Icon(
+            modifier = Modifier.size(14.dp),
+            painter = painterResource(R.drawable.ic_play_arrow_filled),
+            contentDescription = stringResource(R.string.main_launch_game)
+        )
     }
 }
 

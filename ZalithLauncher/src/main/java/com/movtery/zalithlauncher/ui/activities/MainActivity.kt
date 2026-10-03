@@ -25,11 +25,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,6 +46,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.delay
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.movtery.guide.GuideHost
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
 import com.movtery.zalithlauncher.coroutine.Task
@@ -71,6 +72,8 @@ import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.base.ObserveFullScreenSetting
 import com.movtery.zalithlauncher.ui.buildAppendedText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
+import com.movtery.zalithlauncher.ui.guide.NextTipLabel
+import com.movtery.zalithlauncher.ui.guide.rememberAppGuides
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.Background
@@ -83,7 +86,8 @@ import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenu
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenuOperation
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.ShareLinkOperation
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
-import com.movtery.zalithlauncher.ui.theme.feativals.FestivalEffects
+import com.movtery.zalithlauncher.ui.theme.festivals.FestivalEffects
+import com.movtery.zalithlauncher.ui.theme.festivals.FestivalTapObserver
 import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.ui.vulkan_checker.VCOperation
@@ -108,6 +112,8 @@ import com.movtery.zalithlauncher.viewmodel.LauncherUpgradeOperation
 import com.movtery.zalithlauncher.viewmodel.LauncherUpgradeViewModel
 import com.movtery.zalithlauncher.viewmodel.LogShareViewModel
 import com.movtery.zalithlauncher.viewmodel.LogsUploadViewModel
+import com.movtery.zalithlauncher.viewmodel.ModifyVersionOperation
+import com.movtery.zalithlauncher.viewmodel.ModifyVersionViewModel
 import com.movtery.zalithlauncher.viewmodel.ModpackConfirmUseMobileDataOperation
 import com.movtery.zalithlauncher.viewmodel.ModpackImportOperation
 import com.movtery.zalithlauncher.viewmodel.ModpackImportViewModel
@@ -126,6 +132,11 @@ private const val TAG = "MainActivity"
 @AndroidEntryPoint
 class MainActivity : BaseAppCompatActivity() {
     override fun isIgnoreNotch(): Boolean = AllSettings.launcherFullScreen.getValue()
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        FestivalTapObserver.observe(event)
+        return super.dispatchTouchEvent(event)
+    }
 
     /**
      * 屏幕堆栈管理ViewModel
@@ -156,6 +167,11 @@ class MainActivity : BaseAppCompatActivity() {
      * 整合包导入 ViewModel
      */
     val modpackImportViewModel: ModpackImportViewModel by viewModels()
+
+    /**
+     * 版本修改 ViewModel
+     */
+    private val modifyVersionViewModel: ModifyVersionViewModel by viewModels()
 
     /**
      * 启动器更新状态 ViewModel
@@ -312,7 +328,12 @@ class MainActivity : BaseAppCompatActivity() {
                 festivals = festivals
             ) {
                 ObserveFullScreenSetting(AllSettings.launcherFullScreen.state)
-                Box {
+
+                val guides = rememberAppGuides(eventViewModel)
+                GuideHost(
+                    guides.mainScreen,
+                    nextTip = { NextTipLabel(it) }
+                ) {
                     Background(
                         modifier = Modifier.fillMaxSize(),
                         viewModel = backgroundViewModel
@@ -322,6 +343,7 @@ class MainActivity : BaseAppCompatActivity() {
                         screenBackStackModel = screenBackStackModel,
                         eventViewModel = eventViewModel,
                         modpackImportViewModel = modpackImportViewModel,
+                        modifyVersionViewModel = modifyVersionViewModel,
                         submitError = {
                             errorViewModel.showError(it)
                         }
@@ -481,6 +503,21 @@ class MainActivity : BaseAppCompatActivity() {
                         AllSettings.lastIgnoredVersion.save(ver)
                     },
                     onLinkClick = { eventViewModel.sendEvent(EventViewModel.Event.OpenLink(it)) }
+                )
+
+                //版本修改操作流程
+                ModifyVersionOperation(
+                    operation = modifyVersionViewModel.installOperation,
+                    changeOperation = { modifyVersionViewModel.installOperation = it },
+                    installer = modifyVersionViewModel.installer,
+                    onModify = { payload ->
+                        modifyVersionViewModel.modify(this@MainActivity, payload)
+                        //任务开始执行，立刻返回主界面，不停留在可能失效的版本设置屏幕
+                        screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain)
+                    },
+                    onCancel = {
+                        modifyVersionViewModel.cancel()
+                    }
                 )
 
                 val vcOperation by vulkanCheckerViewModel.vcOperation.collectAsStateWithLifecycle()

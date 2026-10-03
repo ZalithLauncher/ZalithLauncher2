@@ -256,4 +256,29 @@
     <string name="settings_renderer_resolution_custom_summary">I-render ang game gamit ang eksaktong lapad at taas; isescale ang larawan para umangkop sa screen</string>
     <string name="settings_renderer_resolution_custom_width">Lapad</string>
     <string name="settings_renderer_resolution_custom_height">Taas</string>
+
+    <string name="guide_main_welcome_title">Maligayang pagdating sa %s!</string>
+    <string name="guide_main_welcome_text">Tingnan natin nang mabilis ang mga feature ng main screen.</string>
+    <string name="guide_main_account">I-tap dito para buksan ang account manager, kung saan maaari mong idagdag o ipamahala ang mga Minecraft account</string>
+    <string name="guide_main_version_list">I-tap dito para buksan ang listahan ng bersyon, doon makikita ang lahat ng game version na iyong i-install</string>
+    <string name="guide_main_card_drag_title">Ayaw mo ba ang lokasyon ng action menu?</string>
+    <string name="guide_main_card_drag_text">Pindutin nang matagal ang card para itaas ito, saka i-drag at i-drop para ilagay sa kabilang gilid</string>
+    <string name="guide_main_card_tip_title">Mukhang medyo walang laman dito?</string>
+    <string name="guide_main_card_tip_text">Huwag mag-alala, maaari mong i-pin ang mga nilalaman dito bilang card at ayusin ang mga ito nang malaya, kapag mayroon itong “%s” na opsyon</string>
+    <string name="guide_editor_welcome_title">Maligayang pagdating sa control layout editor!</string>
+    <string name="guide_editor_welcome_text">Tingnan natin nang mabilis kung paano ito gamitin.</string>
+    <string name="guide_editor_menu_ball_title">Ito ang floating menu button ng control layout editor</string>
+    <string name="guide_editor_menu_ball_text">I-drag ito para ilipat! I-tap ito para buksan ang editor menu at ang listahan ng mga control layer</string>
+    <string name="guide_editor_layer_list_title">Ito ang listahan ng mga control layer</string>
+    <string name="guide_editor_layer_list_text">Gumagana ang control layer na parang graphics layer: ito ang lalagyan ng mga control. Maaari mong ayusin ang mga control na idadagdag mo sa hiwalay na mga layer</string>
+    <string name="guide_editor_layer_list_note">Lahat ng control layer na gagawin mo ay makikita rito</string>
+    <string name="guide_editor_create_layer">I-tap ang button na ito para gumawa ng bagong control layer</string>
+    <string name="guide_editor_add_widgets_title">Magdagdag ng mga control dito!</string>
+    <string name="guide_editor_add_widgets_text">Kapag nakapili na ng control layer, maaari kang magdagdag dito ng anumang uri ng control</string>
+    <string name="guide_editor_styles_title">Gusto mo bang baguhin ang itsura ng mga control?</string>
+    <string name="guide_editor_styles_text">Maaari kang gumawa ng mga itsura para sa mga control para madaling magamit muli at mapalitan</string>
+    <string name="guide_editor_preview">Gamitin ang preview mode para subukan ang control layout mo</string>
+    <string name="guide_editor_save">Kapag tapos nang mag-edit, huwag kalimutang i-save ang control layout!</string>
+    <string name="guide_tip_blank">I-tap ang anumang walang lamang bahagi para tumuloy sa susunod na hakbang</string>
+    <string name="guide_tip_finish">I-tap ang anumang walang lamang bahagi para matapos ang gabay</string>
 </resources>

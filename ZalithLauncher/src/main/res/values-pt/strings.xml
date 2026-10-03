@@ -850,8 +850,6 @@
     <string name="unpack_screen_jre25">Ambiente Java 25 (necessário para Minecraft 26.1+)</string>
     <string name="unpack_screen_jna">Permite que o Minecraft chame diretamente funções de baixo nível do OS</string>
     <string name="download_category_by_id">Pesquisar por ID</string>
-    <string name="download_game_version_overwrite">Isso irá sobrescrever a versão existente: %s</string>
-    <string name="download_game_version_overwrite_select">Versão para sobrescrever</string>
     <string name="download_game_addon_warning_api">%s não está selecionado. Sem instalá-lo, a maioria dos mods não funcionará!</string>
     <string name="download_install_warning_mobile_data">Está a usar dados móveis. Continuar a descarga consumirá os seus dados.</string>
     <string name="download_assets_loading_dep_project">A carregar e armazenar no cache a dependência projeto, ID: %s</string>
@@ -943,15 +941,6 @@
     <string name="versions_config_vibrate_kind_title">Tipo de Vibração</string>
     <string name="versions_config_vibrate_kind_summary">Defina o tipo de vibração quando o mod Touch Controller acionar a vibração</string>
     <string name="versions_config_microphone_check_summary">Verifique se o microfone do sistema está disponível ou confirme se o Launcher recebeu permissão para usar o microfone. Esta verificação garante que possa usar mods como o Simple Voice Chat, que exigem um microfone.</string>
-    <string name="versions_install_loader">Instalar Loader</string>
-    <string name="versions_update_loader">Atualizar o Loader</string>
-    <string name="versions_update_loader_waiting_for_others">A aguardar a conclusão de outras tarefas</string>
-    <string name="versions_update_loader_diff_message">Tem certeza que deseja alterar o loader do jogo atual?</string>
-    <string name="versions_update_loader_diff_change">Alterar: %1$s %2$s → %3$s</string>
-    <string name="versions_update_loader_diff_remove">Remover: %s</string>
-    <string name="versions_update_loader_diff_load">Carregar: %1$s %2$s</string>
-    <string name="versions_update_loader_error_message">Ocorreu um erro ao instalar o carregador:</string>
-    <string name="versions_update_loader_success_message">A versão do carregador do jogo foi atualizada com sucesso!</string>
     <string name="versions_export">Exportar Modpack</string>
     <string name="versions_export_type_mcbbs_summary">Pode ser importado por %s, HMCL e outros launchers</string>
     <string name="versions_export_type_modrinth">Modpack Modrinth</string>
@@ -1184,7 +1173,6 @@
     <string name="festivals_new_year">Feliz Ano Novo!</string>
     <string name="festivals_april_fools">Feliz Dia da Mentira!</string>
     <string name="festivals_christmas">Feliz Natal!</string>
-    <string name="download_game_version_overwrite_select_subtitle">Selecione a versão a sobrescrever. Pode usar este recurso para atualizar/re-descarregar a versão selecionada</string>
     <string name="game_menu_option_replacement_control">Substituir layout de controlo</string>
     <string name="game_menu_option_show_menu_hided">O menu flutuante foi desativada. Pode abrir a interface novamente a usar o botão de voltar do sistema do seu dispositivo</string>
     <string name="versions_export_type_mcbbs">Modpack do MCBBS</string>
@@ -1199,4 +1187,29 @@
     <string name="settings_gamepad_config_summary">Selecione o mapeamento do gamepad configuração a ser usada</string>
     <string name="versions_export_pack_min_memory">Memória mínima alocada</string>
     <string name="versions_export_pack_max_memory">Memória máxima alocada</string>
+
+    <string name="guide_main_welcome_title">Bem-vindo ao %s!</string>
+    <string name="guide_main_welcome_text">Vamos dar uma vista de olhos rápida às funções do ecrã principal.</string>
+    <string name="guide_main_account">Toque aqui para abrir o gestor de contas, onde pode adicionar ou gerir as suas contas do Minecraft</string>
+    <string name="guide_main_version_list">Toque aqui para abrir a lista de versões, onde todas as versões do jogo que instalar serão listadas</string>
+    <string name="guide_main_card_drag_title">Não gosta de onde o menu de ações está?</string>
+    <string name="guide_main_card_drag_text">Mantenha o cartão premido para o levantar, depois arraste e largue para o encaixar do outro lado</string>
+    <string name="guide_main_card_tip_title">Parece um pouco vazio por aqui?</string>
+    <string name="guide_main_card_tip_text">Não se preocupe, pode fixar conteúdos aqui como cartões e organizá-los livremente, desde que ofereça a opção “%s”</string>
+    <string name="guide_editor_welcome_title">Bem-vindo ao editor de layouts de controlo!</string>
+    <string name="guide_editor_welcome_text">Vamos ver rapidamente como o utilizar.</string>
+    <string name="guide_editor_menu_ball_title">Este é o botão do menu flutuante do editor de layouts de controlo</string>
+    <string name="guide_editor_menu_ball_text">Arraste-o para alterar a posição! Toque nele para abrir o menu do editor e a lista de camadas de controlo</string>
+    <string name="guide_editor_layer_list_title">Esta é a lista de camadas de controlo</string>
+    <string name="guide_editor_layer_list_text">Uma camada de controlo funciona como uma camada de imagem: é um contentor que guarda controlos. Pode organizar os controlos que adicionar em camadas separadas</string>
+    <string name="guide_editor_layer_list_note">Todas as camadas de controlo que criar serão listadas aqui</string>
+    <string name="guide_editor_create_layer">Toque neste botão para criar uma nova camada de controlo</string>
+    <string name="guide_editor_add_widgets_title">Adicione controlos aqui!</string>
+    <string name="guide_editor_add_widgets_text">Depois de selecionar uma camada de controlo, pode adicionar-lhe qualquer tipo de controlo</string>
+    <string name="guide_editor_styles_title">Quer alterar o aspeto dos seus controlos?</string>
+    <string name="guide_editor_styles_text">Pode criar aspetos para os seus controlos, para os reutilizar e alternar entre eles rapidamente</string>
+    <string name="guide_editor_preview">Utilize o modo de pré-visualização para testar o seu layout de controlos</string>
+    <string name="guide_editor_save">Quando terminar de editar, não se esqueça de guardar o layout de controlo!</string>
+    <string name="guide_tip_blank">Toque em qualquer zona em branco para avançar para o passo seguinte</string>
+    <string name="guide_tip_finish">Toque em qualquer zona em branco para terminar o guia</string>
 </resources>

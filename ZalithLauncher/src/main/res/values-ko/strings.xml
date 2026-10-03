@@ -154,9 +154,6 @@
     <string name="download_game_type_old_alpha">알파 버전</string>
     <string name="download_game_type_old_beta">베타 버전</string>
     <string name="download_game_version_name">버전 이름</string>
-    <string name="download_game_version_overwrite">기존 버전을 덮어씁니다: %s</string>
-    <string name="download_game_version_overwrite_select">덮어쓸 버전</string>
-    <string name="download_game_version_overwrite_select_subtitle">덮어쓸 버전을 선택하세요. 이 기능을 통해 대상 버전을 업그레이드하거나 다운그레이드할 수 있습니다</string>
     <string name="download_game_addon_list_load_error">목록을 불러오지 못했습니다: %s</string>
     <string name="download_game_addon_available">사용 가능</string>
     <string name="download_game_addon_unavailable">사용 불가능</string>
@@ -628,15 +625,6 @@
     <string name="versions_config_failed_to_save">설정을 저장하지 못했습니다</string>
     <string name="versions_config_microphone_check_title">마이크 확인</string>
     <string name="versions_config_microphone_check_summary">시스템 마이크가 사용 가능한지 확인하거나 런처에 마이크 권한이 허용되었는지 확인합니다. 이 점검을 통해 Simple Voice Chat과 같이 마이크가 필요한 모드를 정상적으로 사용할 수 있습니다.</string>
-    <string name="versions_install_loader">로더 설치</string>
-    <string name="versions_update_loader">로더 업데이트</string>
-    <string name="versions_update_loader_waiting_for_others">다른 작업이 완료될 때까지 기다리는 중</string>
-    <string name="versions_update_loader_diff_message">정말로 현재 로더를 변경하시겠습니까?</string>
-    <string name="versions_update_loader_diff_change">변경: %1$s %2$s → %3$s</string>
-    <string name="versions_update_loader_diff_remove">제거: %s</string>
-    <string name="versions_update_loader_diff_load">불러오기:%1$s %2$s</string>
-    <string name="versions_update_loader_error_message">로더 설치 중 오류가 발생했습니다:</string>
-    <string name="versions_update_loader_success_message">게임 로더 버전을 성공적으로 업데이트했습니다!</string>
     <string name="versions_export">모드팩 내보내기</string>
     <string name="versions_export_type_mcbbs">MCBBS 모드팩</string>
     <string name="versions_export_type_mcbbs_summary">%s, HMCL 및 기타 런처에서 불러올 수 있습니다</string>
@@ -1018,4 +1006,29 @@
     <string name="control_editor_edit_style_config_delete">정말 컨트롤 외관 \'%s\'을(를) 삭제하시겠습니까?</string>
     <string name="about_acknowledgements_pojav_text">%s은(는) PojavLauncher의 실행 백엔드를 사용합니다</string>
     <string name="vibrate_kind_one_shot">상수</string>
+
+    <string name="guide_main_welcome_title">%s에 오신 것을 환영합니다!</string>
+    <string name="guide_main_welcome_text">메인 화면의 기능을 간단히 살펴볼게요.</string>
+    <string name="guide_main_account">여기를 눌러 계정 관리 화면을 여세요. Minecraft 계정을 추가하거나 관리할 수 있습니다</string>
+    <string name="guide_main_version_list">여기를 눌러 버전 목록을 열어 보세요. 설치한 모든 게임 버전이 여기에 표시됩니다</string>
+    <string name="guide_main_card_drag_title">작업 메뉴 위치가 마음에 들지 않으신가요?</string>
+    <string name="guide_main_card_drag_text">카드를 길게 눌러 들어올린 뒤, 드래그해서 반대쪽에 놓을 수 있어요</string>
+    <string name="guide_main_card_tip_title">여기가 좀 텅 빈 것 같나요?</string>
+    <string name="guide_main_card_tip_text">걱정 마세요. “%s” 옵션이 있는 콘텐츠는 카드로 여기에 자유롭게 배치할 수 있어요</string>
+    <string name="guide_editor_welcome_title">컨트롤 레이아웃 편집기에 오신 것을 환영합니다!</string>
+    <string name="guide_editor_welcome_text">간단한 사용 방법을 알아보겠습니다.</string>
+    <string name="guide_editor_menu_ball_title">이것은 컨트롤 레이아웃 편집기의 플로팅 메뉴 버튼입니다</string>
+    <string name="guide_editor_menu_ball_text">드래그하여 위치를 변경할 수 있습니다! 탭하면 메뉴와 컨트롤 레이어 목록이 열립니다</string>
+    <string name="guide_editor_layer_list_title">이것은 컨트롤 레이어 목록입니다</string>
+    <string name="guide_editor_layer_list_text">컨트롤 레이어는 그래픽 레이어와 같은 것으로, 컨트롤을 담는 그릇입니다. 컨트롤을 레이어별로 나누어 관리할 수 있습니다</string>
+    <string name="guide_editor_layer_list_note">추가한 모든 컨트롤 레이어가 여기에 표시됩니다</string>
+    <string name="guide_editor_create_layer">이 버튼을 탭하여 새 컨트롤 레이어를 만드세요</string>
+    <string name="guide_editor_add_widgets_title">여기서 컨트롤을 추가하세요!</string>
+    <string name="guide_editor_add_widgets_text">컨트롤 레이어를 선택한 후 원하는 유형의 컨트롤을 추가할 수 있습니다</string>
+    <string name="guide_editor_styles_title">컨트롤의 모양을 바꾸고 싶으신가요?</string>
+    <string name="guide_editor_styles_text">컨트롤의 외관을 만들어 두면 빠르게 재사용하고 전환할 수 있습니다</string>
+    <string name="guide_editor_preview">미리보기 기능으로 컨트롤 레이아웃을 테스트해 보세요!</string>
+    <string name="guide_editor_save">편집을 마쳤다면 컨트롤 레이아웃 저장을 잊지 마세요!</string>
+    <string name="guide_tip_blank">빈 화면을 탭하면 다음으로 넘어갑니다</string>
+    <string name="guide_tip_finish">빈 화면을 탭하면 가이드가 종료됩니다</string>
 </resources>

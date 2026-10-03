@@ -1,0 +1,36 @@
+name: Remove plus tab
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: Mirai-launcher
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Remove the plus tab
+        run: |
+          python3 - << 'PY'
+          from pathlib import Path
+          p = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MiraiNavigationRail.kt")
+          s = p.read_text()
+          old = """            LauncherSectionItem(
+                          icon = R.drawable.ic_add,
+                          label = stringResource(R.string.home_new_instance),
+                          selected = false,
+                          highlighted = true,
+                          onClick = onCreateInstance
+                      )
+          """
+          if old not in s:
+              raise SystemExit("plus tab not found")
+          p.write_text(s.replace(old, "", 1))
+          PY
+          git config user.name entitybrian69-bit
+          git config user.email entitybrian69@gmail.com
+          git add ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MiraiNavigationRail.kt
+          git commit -m "Remove the plus tab from the rail"
+          git push origin HEAD:Mirai-launcher

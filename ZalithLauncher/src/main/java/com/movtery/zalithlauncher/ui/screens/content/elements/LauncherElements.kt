@@ -76,6 +76,7 @@ import com.movtery.zalithlauncher.game.plugin.ApkPlugin
 import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
+import com.movtery.zalithlauncher.game.renderer.RendererPicker
 import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.hasVulkanBackend
@@ -303,7 +304,15 @@ fun LaunchGameOperation(
                     return@LaunchedEffect
                 }
 
-                Renderers.setCurrentRenderer(version.getRenderer())
+                // Falling back to the first loaded renderer for every instance meant the
+                // wrapper never matched the version being launched. Ask the picker first,
+                // which only returns an answer when it knows the Minecraft version and an
+                // instance renderer the user set themselves still takes priority.
+                val manualRenderer = version.getRenderer()
+                val pickerVersion = version.getVersionInfo()?.minecraftVersion.orEmpty()
+                Renderers.setCurrentRenderer(
+                    RendererPicker.resolve(pickerVersion, manualRenderer) ?: manualRenderer
+                )
                 val currentRenderer = Renderers.getCurrentRenderer()
 
                 val mcVer = version.getVersionInfo()!!.minecraftVersion

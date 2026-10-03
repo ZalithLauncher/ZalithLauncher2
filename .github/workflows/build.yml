@@ -162,7 +162,7 @@ jobs:
             "$apksigner" verify --verbose "$apk"
           done
 
-      - name: Verify LTW native libraries in the APK
+      - name: Verify LTW and LTW Legacy native libraries in the APK
         run: |
           if [[ "${{ inputs.variant }}" == "Release" ]]; then
             apk_dir="ZalithLauncher/build/outputs/apk/release"
@@ -172,13 +172,26 @@ jobs:
           python3 .github/scripts/verify_ltw_apk.py "${{ matrix.arch }}" "$apk_dir"
 
       - name: Test renderer wiring and source policy
+        id: unit-tests
         if: inputs.variant == 'Debug' && matrix.arch == 'all'
         run: |
+          set -uo pipefail
+          test_log="${RUNNER_TEMP}/mirai-unit-tests.log"
           ./gradlew ZalithLauncher:testDebugUnitTest \
             --tests "com.movtery.zalithlauncher.game.renderer.LTWRendererTest" \
+            --tests "com.movtery.zalithlauncher.game.renderer.LTWLegacyRendererTest" \
+            --tests "com.movtery.zalithlauncher.game.renderer.RendererPickerTest" \
             --tests "com.movtery.zalithlauncher.game.addons.mirror.MirrorPreferencesTest" \
             --tests "com.movtery.zalithlauncher.game.account.wardrobe.FileReplacementTest" \
-            -Darch=all
+            -Darch=all --console=plain 2>&1 | tee "$test_log"
+          exit "${PIPESTATUS[0]}"
+
+      - name: Publish unit test failures
+        if: ${{ always() && steps.unit-tests.outcome == 'failure' }}
+        env:
+          MIRAI_TEST_REPORT_DIR: ZalithLauncher/build/test-results/testDebugUnitTest
+          MIRAI_TEST_LOG: ${{ runner.temp }}/mirai-unit-tests.log
+        run: python3 .github/scripts/publish_unit_test_failures.py
 
       - name: Upload Mirai Release APK for ${{ matrix.arch }}
         if: inputs.variant == 'Release'

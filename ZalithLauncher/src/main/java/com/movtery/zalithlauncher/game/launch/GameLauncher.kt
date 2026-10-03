@@ -43,6 +43,7 @@ import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.LTWLegacyRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
 import com.movtery.zalithlauncher.game.support.touch_controller.ControllerProxy
@@ -417,9 +418,11 @@ private fun setRendererEnv(envMap: MutableMap<String, String>) {
 
     if (RendererPluginManager.selectedRendererPlugin != null) return
 
-    // LTW is its own GLES-backed core-profile wrapper; forcing the Zink/Mesa
-    // renderer path here would load the wrong GL implementation beside libltw.
-    if (renderer != GL4ESRenderer && renderer != NGGL4ESRenderer && renderer != LTWRenderer) {
+    // LTW and LTW Legacy are self-contained GLES-backed wrappers that bring their own GL
+    // implementation. Forcing the Zink/Mesa path here would load a second GL implementation
+    // beside libltw/libltwlegacy and the game would render through the wrong one.
+    if (renderer != GL4ESRenderer && renderer != NGGL4ESRenderer &&
+        renderer != LTWRenderer && renderer != LTWLegacyRenderer) {
         envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
         envMap["MESA_GLSL_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
         envMap["MESA_GL_VERSION_OVERRIDE"] = "4.6"

@@ -51,7 +51,7 @@ fun PlayerSkinStage(modifier: Modifier = Modifier) {
             overflow = TextOverflow.Ellipsis
         )
         Text(
-            text = account?.let(::getAccountTypeName) ?: "Add an account",
+            text = if (account != null) getAccountTypeName(account) else "Add an account",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.labelLarge,
             maxLines = 1,

@@ -31,7 +31,11 @@ jobs:
           s = screen.read_text()
           s = s.replace("text = stringResource(R.string.launcher_brand_name),", "text = \"\",", 1)
           s = s.replace("text = stringResource(R.string.app_unofficial_modified),", "text = \"\",", 1)
-          s = s.replace("painter = painterResource(R.drawable.ic_mirai_mark),", "painter = painterResource(R.drawable.ic_mirai_mark),\n                                modifier = Modifier.size(0.dp),", 1)
+          s = s.replace(
+              "painter = painterResource(R.drawable.ic_mirai_mark),\n                                contentDescription = null,\n                                tint = Color.Unspecified,\n                                modifier = Modifier.size(25.dp)",
+              "painter = painterResource(R.drawable.ic_mirai_mark),\n                                contentDescription = null,\n                                tint = Color.Unspecified,\n                                modifier = Modifier.size(0.dp)",
+              1,
+          )
           screen.write_text(s)
           PY
           git config user.name entitybrian69-bit

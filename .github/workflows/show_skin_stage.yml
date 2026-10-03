@@ -1,0 +1,43 @@
+name: Show player skin stage
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: Mirai-launcher
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Replace Jump in and Library with the skin stage
+        run: |
+          python3 - << 'PY'
+          from pathlib import Path
+          p = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/LauncherScreen.kt")
+          s = p.read_text()
+          s = s.replace(
+              "import com.movtery.zalithlauncher.ui.screens.content.home.MiraiHomeDashboard",
+              "import com.movtery.zalithlauncher.ui.screens.content.home.PlayerSkinStage",
+              1,
+          )
+          old = """            MiraiHomeDashboard(
+                          modifier = Modifier.fillMaxSize(),
+                          gridState = gridState,
+                          onLaunch = onLaunchGame,
+                          onExploreContent = onExploreContent,
+                          onCreateInstance = onCreateInstance,
+                          onManageVersions = onManageVersions,
+                          onOpenVersionSettings = onOpenVersionSettings
+                      )"""
+          new = """            PlayerSkinStage(modifier = Modifier.fillMaxSize())"""
+          if old not in s:
+              raise SystemExit("dashboard call not found")
+          p.write_text(s.replace(old, new, 1))
+          PY
+          git config user.name entitybrian69-bit
+          git config user.email entitybrian69@gmail.com
+          git add ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/LauncherScreen.kt
+          git commit -m "Replace Jump in and Library with the player skin"
+          git push origin HEAD:Mirai-launcher

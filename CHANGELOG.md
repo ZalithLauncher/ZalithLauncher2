@@ -38,6 +38,20 @@ Versions follow the `launcher_version_code` / `launcher_version_name` pair in
 - `GameLauncher.setRendererEnv` no longer applies the Zink/Mesa overrides to `LTWLegacyRenderer`,
   which would have loaded a second GL implementation alongside `libltwlegacy.so`.
 
+### Fixed
+
+- **`GameVersionNumber` could not be used in a plain JVM unit test.** Its static initialiser
+  opens the version list with `Class.getResourceAsStream("/assets/game/versions.txt")`. On a
+  device the class loader finds that file inside the APK, but a JVM test has no APK, the stream
+  came back `null`, and the initialiser threw. Every later call to compare two game versions
+  then failed with `NoClassDefFoundError`. A missing stream now degrades to an empty version
+  list, which is a no-op on a device and makes the version-comparison stack testable off it.
+  This is why `RendererPickerTest` could never run in CI before.
+- A failing unit test reported only "Process completed with exit code 1".
+  `.github/scripts/publish_unit_test_failures.py` now publishes each failing test, its assertion
+  message and its stack trace as check annotations, and falls back to the Gradle log when the
+  test source set fails to compile.
+
 ### Verified in CI
 
 - `verify_ltw_apk.py` now checks **both** `libltw.so` and `libltwlegacy.so` for every requested

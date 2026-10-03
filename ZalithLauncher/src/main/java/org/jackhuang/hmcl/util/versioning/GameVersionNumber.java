@@ -24,7 +24,9 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
@@ -854,8 +856,15 @@ public abstract sealed class GameVersionNumber implements Comparable<GameVersion
             List<LegacySnapshot> snapshots = new ArrayList<>(1024);
             List<Release> snapshotPrev = new ArrayList<>(1024);
 
-            //noinspection DataFlowIssue
-            try (var reader = new BufferedReader(new InputStreamReader(GameVersionNumber.class.getResourceAsStream("/assets/game/versions.txt"), StandardCharsets.US_ASCII))) {
+            // The version list ships as an Android asset. On a device the class loader finds it
+            // inside the APK, but a plain JVM unit test has no APK and the stream comes back
+            // null. Fall back to an empty stream rather than throwing, because a failed class
+            // initialisation here surfaces as NoClassDefFoundError from every later call to
+            // compare two game versions.
+            InputStream versionsStream = GameVersionNumber.class.getResourceAsStream("/assets/game/versions.txt");
+            try (var reader = new BufferedReader(new InputStreamReader(
+                    versionsStream != null ? versionsStream : new ByteArrayInputStream(new byte[0]),
+                    StandardCharsets.US_ASCII))) {
                 Release currentRelease = null;
                 GameVersionNumber prev = null;
 
@@ -890,8 +899,11 @@ public abstract sealed class GameVersionNumber implements Comparable<GameVersion
                 throw new AssertionError(e);
             }
 
-            //noinspection DataFlowIssue
-            try (var reader = new BufferedReader(new InputStreamReader(GameVersionNumber.class.getResourceAsStream("/assets/game/version-alias.csv"), StandardCharsets.US_ASCII))) {
+            // Same asset-based lookup as the version list above.
+            InputStream aliasStream = GameVersionNumber.class.getResourceAsStream("/assets/game/version-alias.csv");
+            try (var reader = new BufferedReader(new InputStreamReader(
+                    aliasStream != null ? aliasStream : new ByteArrayInputStream(new byte[0]),
+                    StandardCharsets.US_ASCII))) {
                 for (String line; (line = reader.readLine()) != null; ) {
                     if (line.isEmpty())
                         continue;

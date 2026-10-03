@@ -1,0 +1,36 @@
+name: Fix top back button
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: Mirai-launcher
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Send the top back button to the dashboard
+        run: |
+          python3 - << 'PY'
+          from pathlib import Path
+          p = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
+          text = p.read_text()
+          old = """onClick = {
+                                              if (!inLauncherScreen) {
+                                                  backDispatcher?.onBackPressed() ?: onScreenBack()
+                                              }
+                                          }"""
+          new = """onClick = {
+                                              if (!inLauncherScreen) toMainScreen()
+                                          }"""
+          if old not in text:
+              raise SystemExit("back button pattern not found")
+          p.write_text(text.replace(old, new, 1))
+          PY
+          git config user.name entitybrian69-bit
+          git config user.email entitybrian69@gmail.com
+          git add ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt
+          git commit -m "Send the top back button to the game dashboard"
+          git push origin HEAD:Mirai-launcher

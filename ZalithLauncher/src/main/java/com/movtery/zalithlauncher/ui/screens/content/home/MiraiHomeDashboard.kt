@@ -119,8 +119,8 @@ private val DefaultAvailableRenderers = setOf(
 )
 
 fun resolveRendererShortLabel(version: Version?): String {
-    val mcVer = version?.getVersionInfo()?.minecraftVersion
-    val manual = version?.getRenderer()?.takeIf { it.isNotBlank() }
+    val mcVer = version?.getVersionInfo()?.minecraftVersion.orEmpty()
+    val manual = version?.getRenderer().orEmpty()
     val choice = RendererPicker.pick(mcVer, manual, DefaultAvailableRenderers)
     return when {
         choice.identifier.contains("Legacy", ignoreCase = true) -> "LTW Legacy"
@@ -133,8 +133,8 @@ fun resolveRendererShortLabel(version: Version?): String {
 }
 
 fun resolveRendererBadgeDetail(version: Version?): String {
-    val mcVer = version?.getVersionInfo()?.minecraftVersion
-    val manual = version?.getRenderer()?.takeIf { it.isNotBlank() }
+    val mcVer = version?.getVersionInfo()?.minecraftVersion.orEmpty()
+    val manual = version?.getRenderer().orEmpty()
     val choice = RendererPicker.pick(mcVer, manual, DefaultAvailableRenderers)
     return when {
         choice.identifier.contains("Legacy", ignoreCase = true) -> "Renderer: LTW Legacy (1.8–1.16.5)"

@@ -103,11 +103,11 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCa
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SwitchSettingsCard
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 import com.movtery.zalithlauncher.utils.customResolutionRange
-import com.movtery.zalithlauncher.utils.device.PhysicalMemoryUtils
 import com.movtery.zalithlauncher.utils.device.checkVulkanSupport
 import com.movtery.zalithlauncher.utils.ensureCustomResolutionInitialized
 import com.movtery.zalithlauncher.utils.getRealScreenSize
 import com.movtery.zalithlauncher.utils.isAdrenoGPU
+import com.movtery.zalithlauncher.utils.platform.getMaxMemoryForSettings
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.sendDLPlugin
 import kotlin.math.roundToInt
@@ -440,7 +440,6 @@ fun RendererSettingsScreen(
                             items = ResolutionRule.entries,
                             title = stringResource(R.string.settings_renderer_resolution_rule_title),
                             summary = stringResource(R.string.settings_renderer_resolution_rule_summary),
-                            getItemId = { it.name },
                             getItemText = { stringResource(it.nameRes) },
                             onValueChange = { rule ->
                                 if (rule == ResolutionRule.CUSTOM) {
@@ -499,11 +498,9 @@ fun RendererSettingsScreen(
             // 3. Memory & Java Runtime Quick Hub (Mockup #6 middle card)
             AnimatedItem(scope) { yOffset ->
                 val runtimes = remember { RuntimesManager.getRuntimes() }
-                val totalRamMb = remember {
-                    (PhysicalMemoryUtils.getTotalMemory(context) / (1024 * 1024)).toInt().coerceAtLeast(2048)
-                }
-                val maxAllocMb = remember(totalRamMb) {
-                    (totalRamMb * 0.85f).roundToInt().coerceAtLeast(1024)
+                val maxAllocMb = getMaxMemoryForSettings(context).coerceAtLeast(1024)
+                val totalRamMb = remember(maxAllocMb) {
+                    (maxAllocMb / 0.85f).roundToInt().coerceAtLeast(2048)
                 }
 
                 Surface(

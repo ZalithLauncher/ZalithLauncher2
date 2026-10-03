@@ -244,15 +244,15 @@ private fun AccountManageContent(
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 14.dp, vertical = 10.dp),
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Left Pane: Accounts Manager (Mockup #5)
+        // Left Pane: Accounts Manager (Mockup #6)
         AccountsLayout(
             isVisible = isVisible,
             modifier = Modifier
                 .fillMaxHeight()
-                .weight(5.5f),
+                .weight(5.8f),
             accounts = profileUiState.accounts,
             currentAccount = profileUiState.currentAccount,
             isOffline = profileUiState.isOffline,
@@ -263,12 +263,12 @@ private fun AccountManageContent(
             actions = actions
         )
 
-        // Right Pane: 3D Skin & Cape Wardrobe (Mockup #5)
+        // Right Pane: 3D Skin & Cape Wardrobe (Mockup #6)
         ActionsLayout(
             isVisible = isVisible,
             modifier = Modifier
                 .fillMaxHeight()
-                .weight(4.5f),
+                .weight(4.2f),
             currentAccount = profileUiState.currentAccount,
             actions = actions
         )
@@ -322,61 +322,88 @@ private fun ActionsLayout(
         }
     }
 
-    BackgroundCard(
+    Surface(
         modifier = modifier
             .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
             .fillMaxHeight(),
-        shape = MaterialTheme.shapes.extraLarge
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF21242B),
+        border = BorderStroke(1.dp, Color(0xFF2E333E))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Header
+            // Header + Wide/Slim Toggle Pill (Mockup #6)
+            val isSlim = currentAccount?.skinModelType?.name?.contains("SLIM", ignoreCase = true) == true
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
-                    Text(
-                        text = "3D Skin & Cape Wardrobe",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = currentAccount?.let { "Equipped on ${it.username}" } ?: "Select an account to customize",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF9CA3AF)
-                    )
-                }
+                Text(
+                    text = "Skin & Cape Wardrobe",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                )
 
                 Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = Color(0xFF143825),
-                    border = BorderStroke(1.dp, Color(0xFF1BD96A).copy(alpha = 0.5f))
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color(0xFF16181D),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    onClick = {
+                        currentAccount?.let { acc ->
+                            actions.onIntent(
+                                AccountManageIntent.UpdateAccountSkinOp(
+                                    AccountSkinOperation.ChangeSkin(acc)
+                                )
+                            )
+                        }
+                    }
                 ) {
-                    Text(
-                        text = "360° Interactive",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1BD96A)
-                    )
+                    Row(
+                        modifier = Modifier.padding(2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (!isSlim) Color(0xFF1BD96A) else Color.Transparent
+                        ) {
+                            Text(
+                                text = "Wide (4px)",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (!isSlim) Color(0xFF06210F) else Color(0xFF9CA3AF)
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSlim) Color(0xFF1BD96A) else Color.Transparent
+                        ) {
+                            Text(
+                                text = "Slim (3px)",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSlim) Color(0xFF06210F) else Color(0xFF9CA3AF)
+                            )
+                        }
+                    }
                 }
             }
 
-            // 3D Model Stage with Grass Block Pedestal
+            // 3D Model Stage with Grass Block Pedestal (animation = null to prevent continuous WebGL repaints)
             val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
             Surface(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                color = Color(0xFF15181F),
+                shape = RoundedCornerShape(14.dp),
+                color = Color(0xFF17191E),
                 border = BorderStroke(1.dp, Color(0xFF282C36))
             ) {
                 Box(
@@ -387,102 +414,43 @@ private fun ActionsLayout(
                         painter = painterResource(R.drawable.img_old_grass_block),
                         contentDescription = null,
                         modifier = Modifier
-                            .size(72.dp)
+                            .size(64.dp)
                             .align(Alignment.BottomCenter)
-                            .offset(y = (-14).dp),
+                            .offset(y = (-12).dp),
                         alpha = 0.85f
                     )
                     SkinPreview3D(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = 22.dp),
+                            .padding(bottom = 18.dp),
                         skinFile = remember(currentAccount, refreshWardrobe) {
                             currentAccount?.getSkinFile()?.takeIf { it.exists() }
                         },
                         capeFile = remember(currentAccount, refreshWardrobe) {
                             currentAccount?.getCapeFile()?.takeIf { it.exists() }
                         },
-                        modelType = currentAccount?.skinModelType
+                        modelType = currentAccount?.skinModelType,
+                        animation = null
                     )
                 }
             }
 
-            // Model Arm Type Pill Row (Classic Wide vs Slim Arms)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                val isSlim = currentAccount?.skinModelType?.name?.contains("SLIM", ignoreCase = true) == true
-                Surface(
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(10.dp),
-                    color = if (!isSlim) Color(0xFF143825) else Color(0xFF1E2128),
-                    border = BorderStroke(1.dp, if (!isSlim) Color(0xFF1BD96A) else Color(0xFF2D313B)),
-                    onClick = {
-                        currentAccount?.let { acc ->
-                            actions.onIntent(
-                                AccountManageIntent.UpdateAccountSkinOp(
-                                    AccountSkinOperation.ChangeSkin(acc)
-                                )
-                            )
-                        }
-                    }
-                ) {
-                    Box(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Classic (Wide)",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = if (!isSlim) Color(0xFF1BD96A) else Color(0xFFD1D5DB)
-                        )
-                    }
-                }
-
-                Surface(
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(10.dp),
-                    color = if (isSlim) Color(0xFF143825) else Color(0xFF1E2128),
-                    border = BorderStroke(1.dp, if (isSlim) Color(0xFF1BD96A) else Color(0xFF2D313B)),
-                    onClick = {
-                        currentAccount?.let { acc ->
-                            actions.onIntent(
-                                AccountManageIntent.UpdateAccountSkinOp(
-                                    AccountSkinOperation.ChangeSkin(acc)
-                                )
-                            )
-                        }
-                    }
-                ) {
-                    Box(
-                        modifier = Modifier.padding(vertical = 8.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "Slim (Alex)",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isSlim) Color(0xFF1BD96A) else Color(0xFFD1D5DB)
-                        )
-                    }
-                }
-            }
-
-            // Bottom Wardrobe Action Buttons (Mockup #5: Equip Skin, Equip Cape, Saved Outfits)
+            // Bottom Wardrobe Action Buttons (Mockup #6: Change Skin + Equip Cape)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Button(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp),
                     enabled = currentAccount != null,
-                    shape = RoundedCornerShape(11.dp),
+                    shape = RoundedCornerShape(19.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF1BD96A),
                         contentColor = Color(0xFF06210F)
                     ),
+                    contentPadding = PaddingValues(horizontal = 8.dp),
                     onClick = {
                         skinPicker.launch(arrayOf("image/png"))
                     }
@@ -490,20 +458,23 @@ private fun ActionsLayout(
                     Icon(
                         painter = painterResource(R.drawable.ic_checkroom),
                         contentDescription = null,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                     Spacer(Modifier.width(5.dp))
                     Text(
-                        text = "Equip Skin",
+                        text = "Change Skin",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.ExtraBold
                     )
                 }
 
-                OutlinedButton(
-                    modifier = Modifier.weight(1f),
-                    enabled = currentAccount != null,
-                    shape = RoundedCornerShape(11.dp),
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp),
+                    shape = RoundedCornerShape(19.dp),
+                    color = Color(0xFF181A20),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
                     onClick = {
                         if (currentAccount?.isLocalAccount() == true) {
                             capePicker.launch(arrayOf("image/png"))
@@ -516,17 +487,25 @@ private fun ActionsLayout(
                         }
                     }
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_upload),
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(5.dp))
-                    Text(
-                        text = "Equip Cape",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_upload),
+                            contentDescription = null,
+                            tint = Color(0xFFE5E7EB),
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(Modifier.width(5.dp))
+                        Text(
+                            text = "Equip Cape",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
@@ -823,63 +802,30 @@ private fun AccountsLayout(
         actions = actions
     )
 
-    BackgroundCard(
+    Column(
         modifier = modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-        shape = MaterialTheme.shapes.extraLarge
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        // Unified Single-Row Header + Quick Add Pills (Mockup #6)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Header Row (Mockup #5)
+            Text(
+                text = "Accounts",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+
             Row(
-                modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Column {
-                    Text(
-                        text = "Accounts Manager",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "Microsoft OAuth, Offline & Yggdrasil Auth Server accounts",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF9CA3AF)
-                    )
-                }
-
                 Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = Color(0xFF232730)
-                ) {
-                    Text(
-                        text = "${accounts.size} Saved",
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1BD96A)
-                    )
-                }
-            }
-
-            // Quick Add Account Buttons Row (Mockup #5: + Microsoft Login, + Offline Account, + Auth Server)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1BD96A),
-                        contentColor = Color(0xFF06210F)
-                    ),
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF1BD96A),
                     onClick = {
                         if (!isMicrosoftLogging()) {
                             actions.onIntent(
@@ -890,82 +836,50 @@ private fun AccountsLayout(
                         }
                     }
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_add),
-                        contentDescription = null,
-                        modifier = Modifier.size(15.dp)
-                    )
-                    Spacer(Modifier.width(4.dp))
                     Text(
-                        text = "Microsoft Login",
-                        style = MaterialTheme.typography.labelMedium,
+                        text = "+ Microsoft",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.ExtraBold,
-                        maxLines = 1
+                        color = Color(0xFF06210F)
                     )
                 }
 
                 Surface(
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(10.dp),
-                    color = Color(0xFF1E2128),
-                    border = BorderStroke(1.dp, Color(0xFF2E323C)),
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF21242B),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
                     onClick = {
                         actions.onIntent(AccountManageIntent.UpdateLocalLoginOp(LocalLoginOperation.Edit))
                     }
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 9.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_add),
-                            contentDescription = null,
-                            tint = Color(0xFFD1D5DB),
-                            modifier = Modifier.size(15.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            text = "Offline Account",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            maxLines = 1
-                        )
-                    }
+                    Text(
+                        text = "+ Offline",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 }
 
                 Surface(
-                    modifier = Modifier.weight(1f),
-                    shape = RoundedCornerShape(10.dp),
-                    color = Color(0xFF1E2128),
-                    border = BorderStroke(1.dp, Color(0xFF2E323C)),
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF21242B),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
                     onClick = {
                         actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
                     }
                 ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 9.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_add),
-                            contentDescription = null,
-                            tint = Color(0xFF1BD96A),
-                            modifier = Modifier.size(15.dp)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            text = "Auth Server",
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            maxLines = 1
-                        )
-                    }
+                    Text(
+                        text = "+ Auth Server",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                 }
             }
+        }
 
             if (accounts.isNotEmpty()) {
                 val scrollState = rememberLazyListState()
@@ -1017,15 +931,6 @@ private fun AccountsLayout(
                                     )
                                 }
                             )
-
-                            if (account.isLocalAccount() &&
-                                (isOffline || account.uniqueUUID == currentAccount?.uniqueUUID)
-                            ) {
-                                LocalAccountWardrobeActions(
-                                    account = account,
-                                    onIntent = actions.onIntent
-                                )
-                            }
                         }
                     }
                 }
@@ -1041,7 +946,6 @@ private fun AccountsLayout(
                     )
                 }
             }
-        }
     }
 }
 

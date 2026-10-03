@@ -162,9 +162,9 @@ private fun TabMenu(
     val scrollState = rememberScrollState()
     Surface(
         modifier = modifier
-            .width(195.dp)
+            .width(156.dp)
             .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(14.dp),
         color = Color(0xFF1A1D24),
         border = BorderStroke(1.dp, Color(0xFF2B2F3A))
     ) {
@@ -173,76 +173,50 @@ private fun TabMenu(
                 .fillMaxHeight()
                 .fadeEdge(scrollState)
                 .verticalScroll(scrollState)
-                .padding(horizontal = 10.dp, vertical = 12.dp),
+                .padding(horizontal = 8.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
-            Text(
-                text = "Global Settings",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.ExtraBold,
-                color = Color.White,
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-            )
-            HorizontalDivider(
-                color = Color(0xFF282C36),
-                modifier = Modifier.padding(bottom = 4.dp)
-            )
-
             settingItems.forEach { item ->
                 if (item.division) {
                     HorizontalDivider(
-                        modifier = Modifier.padding(vertical = 4.dp),
+                        modifier = Modifier.padding(vertical = 3.dp),
                         color = Color(0xFF282C36)
                     )
                 }
 
                 val selected = settingsScreenKey === item.key
                 val bgColor by animateColorAsState(
-                    targetValue = if (selected) Color(0xFF143825) else Color.Transparent,
-                    animationSpec = tween(200),
+                    targetValue = if (selected) Color(0xFF1BD96A) else Color.Transparent,
+                    animationSpec = tween(160),
                     label = "settingsTabBg"
                 )
                 val fgColor by animateColorAsState(
-                    targetValue = if (selected) Color(0xFF1BD96A) else Color(0xFFD1D5DB),
-                    animationSpec = tween(200),
+                    targetValue = if (selected) Color(0xFF06210F) else Color(0xFFD1D5DB),
+                    animationSpec = tween(160),
                     label = "settingsTabFg"
-                )
-                val indicatorHeight by animateDpAsState(
-                    targetValue = if (selected) 18.dp else 0.dp,
-                    animationSpec = tween(200),
-                    label = "settingsTabIndicator"
                 )
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(38.dp)
+                        .height(34.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .background(bgColor)
                         .clickable { navigateTo(item.key) }
                         .padding(horizontal = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(9.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (indicatorHeight > 0.dp) {
-                        Box(
-                            modifier = Modifier
-                                .width(3.dp)
-                                .height(indicatorHeight)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(Color(0xFF1BD96A))
-                        )
-                    }
                     Icon(
                         painter = painterResource(item.iconRes),
                         contentDescription = null,
                         tint = fgColor,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                     Text(
                         text = stringResource(item.textRes),
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
                         color = fgColor,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis

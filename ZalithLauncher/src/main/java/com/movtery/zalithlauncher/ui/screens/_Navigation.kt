@@ -127,31 +127,21 @@ fun <T : Any> rememberTransitionSpec(): AnimatedContentTransitionScope<Scene<T>>
     val type = AllSettings.launcherSwapAnimateType.state
     val speed = AllSettings.launcherAnimateSpeed.state
     return remember(type, speed) {
-        val duration = ((getAnimateSpeed() / 5) * 2).coerceIn(180, 420)
-        val floatSpec: FiniteAnimationSpec<Float> = when (type) {
+        val duration = ((getAnimateSpeed() / 5) * 2).coerceIn(110, 180)
+        val enterSpec: FiniteAnimationSpec<Float> = when (type) {
             TransitionAnimationType.CLOSE -> snap()
             else -> tween(durationMillis = duration, easing = FastOutSlowInEasing)
         }
-        val offsetSpec: FiniteAnimationSpec<IntOffset> = when (type) {
+        val exitSpec: FiniteAnimationSpec<Float> = when (type) {
             TransitionAnimationType.CLOSE -> snap()
-            else -> tween(durationMillis = duration, easing = FastOutSlowInEasing)
+            else -> tween(durationMillis = (duration * 0.75f).toInt().coerceAtLeast(80), easing = FastOutSlowInEasing)
         }
 
         {
-            if (type == TransitionAnimationType.CLOSE) {
-                ContentTransform(
-                    fadeIn(animationSpec = floatSpec),
-                    fadeOut(animationSpec = floatSpec),
-                )
-            } else {
-                ContentTransform(
-                    targetContentEnter = fadeIn(animationSpec = floatSpec) +
-                        scaleIn(initialScale = 0.965f, animationSpec = floatSpec) +
-                        slideInVertically(animationSpec = offsetSpec) { fullHeight -> fullHeight / 28 },
-                    initialContentExit = fadeOut(animationSpec = floatSpec) +
-                        scaleOut(targetScale = 0.985f, animationSpec = floatSpec)
-                )
-            }
+            ContentTransform(
+                targetContentEnter = fadeIn(animationSpec = enterSpec),
+                initialContentExit = fadeOut(animationSpec = exitSpec)
+            )
         }
     }
 }

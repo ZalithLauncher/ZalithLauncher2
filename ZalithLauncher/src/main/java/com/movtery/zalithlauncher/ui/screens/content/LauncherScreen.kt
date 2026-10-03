@@ -94,6 +94,7 @@ import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.account.getAccountTypeName
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.path.URL_RELEASES
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.ActionMenuSide
@@ -169,7 +170,7 @@ fun LauncherScreen(
                 }
         ) {
             val parentWidthPx = constraints.maxWidth.toFloat()
-            val showActionMenu = maxWidth >= 680.dp
+            val showActionMenu = maxWidth >= 500.dp
             LaunchedEffect(showActionMenu) {
                 if (!showActionMenu) dragState.onDragCancel()
             }
@@ -238,7 +239,14 @@ fun LauncherScreen(
                         onCreateInstance = {
                             backStackViewModel.navigateToDownload(backStackViewModel.downloadGameScreen)
                         },
-                        onManageVersions = toVersionManageScreen
+                        onManageVersions = toVersionManageScreen,
+                        onOpenFileManager = {
+                            backStackViewModel.mainScreen.backStack.navigateToFileSelector(
+                                startPath = PathManager.DIR_FILES_EXTERNAL.absolutePath,
+                                selectFile = false,
+                                saveKey = NormalNavKey.LauncherMain
+                            ) {}
+                        }
                     )
                 }
 
@@ -292,6 +300,7 @@ private fun ContentMenu(
     onExploreContent: () -> Unit,
     onCreateInstance: () -> Unit,
     onManageVersions: () -> Unit,
+    onOpenFileManager: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val yOffset by swapAnimateDpAsState(
@@ -315,6 +324,7 @@ private fun ContentMenu(
                 onExploreContent = onExploreContent,
                 onCreateInstance = onCreateInstance,
                 onManageVersions = onManageVersions,
+                onOpenFileManager = onOpenFileManager,
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -436,70 +446,57 @@ private fun VersionsContent(
     var versionManagerRow by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
     val rendererBadgeText = remember(version) { resolveRendererBadgeDetail(version) }
-    val rendererShortText = remember(version) { resolveRendererShortLabel(version) }
-    val loaderText = remember(version) {
-        val info = version?.getVersionInfo()
-        val loader = info?.loaderInfo?.loader?.displayName
-        val loaderVer = info?.loaderInfo?.version
-        when {
-            loader != null && !loaderVer.isNullOrBlank() -> "$loader $loaderVer"
-            loader != null -> loader
-            else -> "Vanilla"
-        }
-    }
 
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Selected Instance Selector Box
+        // Compact 2-line Instance + Renderer Pill (Mockup #1: "Cobblemon Official / • LTW 1.17+")
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = Color(0xFF1E2128),
-            border = BorderStroke(1.dp, Color(0xFF2E323C))
+                .padding(horizontal = 10.dp)
+                .onGloballyPositioned { coordinates ->
+                    versionManagerRow = coordinates
+                }
+                .clip(RoundedCornerShape(14.dp))
+                .clickable {
+                    if (version != null) showList = true else toVersionManageScreen()
+                }
+                .guideNode(
+                    key = GuideKeys.Main.Step.VersionList,
+                    preferSide = GuideSide.Above,
+                ),
+            shape = RoundedCornerShape(14.dp),
+            color = Color(0xFF171A20),
+            border = BorderStroke(1.dp, Color(0xFF2E333E))
         ) {
             Box(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp, vertical = 7.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .onGloballyPositioned { coordinates ->
-                                versionManagerRow = coordinates
-                            }
-                    ) {
-                        VersionManagerLayout(
-                            isRefreshing = isRefreshing,
-                            version = version,
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .fillMaxWidth(),
-                            swapToVersionManage = {
-                                if (version != null) showList = true else toVersionManageScreen()
-                            },
-                            openListMenu = { showList = true },
-                        )
-                    }
-                    version?.takeIf { !isRefreshing && it.isValid() }?.let {
-                        IconButton(
-                            modifier = Modifier
-                                .padding(end = 4.dp)
-                                .size(32.dp),
-                            onClick = toVersionSettingsScreen
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_settings_filled),
-                                contentDescription = stringResource(R.string.versions_manage_settings),
-                                tint = Color(0xFF9CA3AF),
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
+                    Text(
+                        text = if (isRefreshing) {
+                            "Loading..."
+                        } else {
+                            version?.getVersionName() ?: stringResource(R.string.versions_manage_no_versions)
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = "• $rendererBadgeText",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF1BD96A),
+                        maxLines = 1
+                    )
                 }
 
                 val menuAnchor = versionManagerRow
@@ -510,7 +507,7 @@ private fun VersionsContent(
                 DropdownMenu(
                     expanded = showList && menuAnchor != null,
                     onDismissRequest = { showList = false },
-                    modifier = Modifier.width(260.dp),
+                    modifier = Modifier.width(240.dp),
                     offset = DpOffset(
                         x = with(LocalDensity.current) { menuAnchorX.toDp() },
                         y = with(LocalDensity.current) { (-menuAnchorHeight).toDp() } - 8.dp
@@ -528,7 +525,7 @@ private fun VersionsContent(
                                     CommonVersionInfoLayout(
                                         modifier = Modifier.weight(1f),
                                         version = version0,
-                                        iconSize = 28.dp
+                                        iconSize = 26.dp
                                     )
                                     IconButton(
                                         onClick = {
@@ -568,63 +565,20 @@ private fun VersionsContent(
             }
         }
 
-        // Renderer Badge Pill (Mockup #1: "Renderer: LTW (1.17+)")
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Surface(
-                shape = RoundedCornerShape(999.dp),
-                color = Color(0xFF143825),
-                border = BorderStroke(1.dp, Color(0xFF1BD96A).copy(alpha = 0.65f))
-            ) {
-                Text(
-                    text = rendererBadgeText,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1BD96A),
-                    maxLines = 1
-                )
-            }
-        }
-
-        // Instance Quick Details Box (Mockup #1)
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 10.dp),
-            shape = RoundedCornerShape(10.dp),
-            color = Color(0xFF15181E),
-            border = BorderStroke(1.dp, Color(0xFF252932))
-        ) {
-            Column(
-                modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                QuickLaunchDetailRow("Instance", version?.getVersionName() ?: "None selected")
-                QuickLaunchDetailRow("Renderer", rendererShortText)
-                QuickLaunchDetailRow("Loader", loaderText)
-                QuickLaunchDetailRow("Multiplayer", "Ready (Terracotta P2P)")
-            }
-        }
-
-        // Vibrant Emerald-Green PLAY Button (Mockup #1)
+        // Vibrant Pill PLAY Button (Mockup #1)
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 10.dp)
                 .padding(bottom = 10.dp)
-                .height(44.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .height(42.dp)
+                .clip(RoundedCornerShape(21.dp))
                 .combinedClickable(
                     role = Role.Button,
                     onClick = { onLaunchGame(null) },
                     onLongClick = { showPick = true }
                 ),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(21.dp),
             color = Color(0xFF1BD96A),
             contentColor = Color(0xFF06210F)
         ) {
@@ -635,16 +589,16 @@ private fun VersionsContent(
             ) {
                 Text(
                     text = "PLAY",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color(0xFF06210F)
                 )
-                Spacer(Modifier.width(6.dp))
+                Spacer(Modifier.width(4.dp))
                 Icon(
                     painter = painterResource(R.drawable.ic_play_arrow_filled),
                     contentDescription = stringResource(R.string.main_launch_game),
                     tint = Color(0xFF06210F),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(18.dp)
                 )
             }
         }
@@ -694,28 +648,6 @@ private fun VersionsContent(
 }
 
 @Composable
-private fun QuickLaunchDetailRow(label: String, value: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "$label:",
-            style = MaterialTheme.typography.labelSmall,
-            color = Color(0xFF9CA3AF)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = FontWeight.SemiBold,
-            color = Color(0xFFE5E7EB),
-            maxLines = 1
-        )
-    }
-}
-
-@Composable
 private fun ActionMenuCardContent(
     modifier: Modifier = Modifier,
     account: Account?,
@@ -732,110 +664,54 @@ private fun ActionMenuCardContent(
         account?.getCapeFile()?.takeIf { it.exists() }
     }
 
-    BackgroundCard(
+    Surface(
         modifier = Modifier
             .actionMenuDragAnchor()
             .guideNode(GuideKeys.Main.Step.CardDrag)
             .then(modifier),
-        shape = MaterialTheme.shapes.extraLarge
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF1E2128),
+        border = BorderStroke(1.dp, Color(0xFF2C303A))
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // Top Account Selector + 3D Skin Stage on Grass Block Pedestal
-            Column(
+            // 3D Skin & Cape Stage on Dark Pedestal (Mockup #1)
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 8.dp, start = 10.dp, end = 10.dp)
+                    .weight(1f)
+                    .padding(top = 6.dp, start = 8.dp, end = 8.dp)
                     .guideNode(
                         key = GuideKeys.Main.Step.Account,
                         preferSide = GuideSide.Below
-                    ),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    )
+                    .clickable(onClick = toAccountManageScreen),
+                contentAlignment = Alignment.Center
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(10.dp),
-                    color = Color(0xFF1E2128),
-                    border = BorderStroke(1.dp, Color(0xFF2D313B)),
-                    onClick = toAccountManageScreen
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (account != null) {
-                            PlayerFace(
-                                account = account,
-                                avatarSize = 24.dp,
-                                refreshKey = refreshWardrobe
-                            )
-                        } else {
-                            Icon(
-                                modifier = Modifier.size(20.dp),
-                                painter = painterResource(R.drawable.ic_add),
-                                contentDescription = null,
-                                tint = Color(0xFF1BD96A)
-                            )
-                        }
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = account?.username ?: stringResource(R.string.account_add_new_account),
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White,
-                                maxLines = 1
-                            )
-                            Text(
-                                text = if (account != null) getAccountTypeName(account) else "Tap to manage accounts",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = Color(0xFF9CA3AF),
-                                maxLines = 1
-                            )
-                        }
-                        Icon(
-                            painter = painterResource(R.drawable.ic_arrow_right_rounded),
-                            contentDescription = null,
-                            tint = Color(0xFF9CA3AF),
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-
-                // 3D Skin & Cape Stage + Grass Block Pedestal
+                // Dark 3D Pedestal Block at bottom of stage
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .clickable(onClick = toAccountManageScreen),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.img_old_grass_block),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(58.dp)
-                            .align(Alignment.BottomCenter)
-                            .offset(y = (-4).dp),
-                        alpha = 0.85f
-                    )
-                    SkinPreview3D(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(132.dp)
-                            .align(Alignment.TopCenter),
-                        skinFile = skinFile,
-                        capeFile = capeFile,
-                        modelType = account?.skinModelType,
-                        interactionEnabled = false,
-                        azimuth = 32,
-                    )
-                }
+                        .width(78.dp)
+                        .height(22.dp)
+                        .align(Alignment.BottomCenter)
+                        .offset(y = (-6).dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color(0xFF13151A))
+                )
+                SkinPreview3D(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 10.dp),
+                    skinFile = skinFile,
+                    capeFile = capeFile,
+                    modelType = account?.skinModelType,
+                    animation = null,
+                    interactionEnabled = true,
+                    azimuth = 28,
+                )
             }
 
             VersionsContent(

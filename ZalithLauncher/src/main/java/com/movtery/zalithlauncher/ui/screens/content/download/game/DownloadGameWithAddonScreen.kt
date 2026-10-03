@@ -31,6 +31,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -51,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -694,16 +698,24 @@ private fun ScreenHeader(
                 }
             }
 
-            IconButton(
+            Button(
                 onClick = {
                     if (!isError) {
                         onInstall(nameValue)
                     }
-                }
+                },
+                enabled = !isError,
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1BD96A),
+                    contentColor = Color(0xFF06210F)
+                ),
+                modifier = Modifier.padding(start = 6.dp)
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_download_2_filled),
-                    contentDescription = stringResource(R.string.download_install)
+                Text(
+                    text = "Create & Install Instance",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.ExtraBold
                 )
             }
         }

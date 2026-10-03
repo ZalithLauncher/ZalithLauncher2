@@ -560,181 +560,129 @@ private fun VersionsLayout(
             )
 
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                val columns = when {
-                    maxWidth >= 700.dp -> 3
-                    maxWidth >= 460.dp -> 2
-                    else -> 1
-                }
+                val columns = if (maxWidth >= 440.dp) 2 else 1
 
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(horizontal = 14.dp, vertical = 10.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    // Top Modrinth Library Toolbar (Mockup #2)
+                    // Top Mobile Library Toolbar (Mockup #2: Search + Sort Icon + New Instance CTA)
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            ModrinthCompactSearchField(
-                                value = searchQuery,
-                                onValueChange = { searchQuery = it },
-                                placeholder = "Search instances, versions, modpacks...",
-                                modifier = Modifier.width(250.dp)
-                            )
+                        ModrinthCompactSearchField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = "Search instances...",
+                            modifier = Modifier.weight(1f)
+                        )
 
-                            Box {
-                                Surface(
-                                    shape = RoundedCornerShape(10.dp),
-                                    color = Color(0xFF1E2128),
-                                    border = BorderStroke(1.dp, Color(0xFF2E323C)),
-                                    onClick = { showSortMenu = true }
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 11.dp, vertical = 7.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.ic_sort),
-                                            contentDescription = null,
-                                            tint = Color(0xFF9CA3AF),
-                                            modifier = Modifier.size(15.dp)
-                                        )
-                                        Text(
-                                            text = sortMode.label,
-                                            style = MaterialTheme.typography.labelMedium,
-                                            color = Color(0xFFE5E7EB)
-                                        )
-                                    }
+                        Box {
+                            Surface(
+                                modifier = Modifier.size(36.dp),
+                                shape = RoundedCornerShape(10.dp),
+                                color = Color(0xFF21242B),
+                                border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                                onClick = { showSortMenu = true }
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_sort),
+                                        contentDescription = "Sort",
+                                        tint = Color(0xFFD1D5DB),
+                                        modifier = Modifier.size(18.dp)
+                                    )
                                 }
-                                DropdownMenu(
-                                    expanded = showSortMenu,
-                                    onDismissRequest = { showSortMenu = false }
-                                ) {
-                                    LibrarySortMode.entries.forEach { mode ->
-                                        DropdownMenuItem(
-                                            text = { Text(mode.label) },
-                                            onClick = {
-                                                sortMode = mode
-                                                showSortMenu = false
-                                            }
-                                        )
-                                    }
+                            }
+                            DropdownMenu(
+                                expanded = showSortMenu,
+                                onDismissRequest = { showSortMenu = false }
+                            ) {
+                                LibrarySortMode.entries.forEach { mode ->
+                                    DropdownMenuItem(
+                                        text = { Text(mode.label) },
+                                        onClick = {
+                                            sortMode = mode
+                                            showSortMenu = false
+                                        }
+                                    )
                                 }
                             }
                         }
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        Surface(
+                            modifier = Modifier.size(36.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (showGamePathDrawer) Color(0xFF143825) else Color(0xFF21242B),
+                            border = BorderStroke(
+                                1.dp,
+                                if (showGamePathDrawer) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                            ),
+                            onClick = onToggleGamePathDrawer
                         ) {
-                            Surface(
-                                shape = RoundedCornerShape(10.dp),
-                                color = if (showGamePathDrawer) Color(0xFF143825) else Color(0xFF1E2128),
-                                border = BorderStroke(
-                                    1.dp,
-                                    if (showGamePathDrawer) Color(0xFF1BD96A) else Color(0xFF2E323C)
-                                ),
-                                onClick = onToggleGamePathDrawer
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(5.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_folder_filled),
-                                        contentDescription = null,
-                                        tint = if (showGamePathDrawer) Color(0xFF1BD96A) else Color(0xFFD1D5DB),
-                                        modifier = Modifier.size(15.dp)
-                                    )
-                                    Text(
-                                        text = "Directories",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = if (showGamePathDrawer) Color(0xFF1BD96A) else Color(0xFFE5E7EB)
-                                    )
-                                }
-                            }
-
-                            IconButton(
-                                onClick = onRefresh,
-                                modifier = Modifier.size(34.dp)
-                            ) {
+                            Box(contentAlignment = Alignment.Center) {
                                 Icon(
-                                    painter = painterResource(R.drawable.ic_refresh),
-                                    contentDescription = stringResource(R.string.generic_refresh),
-                                    tint = Color(0xFFD1D5DB),
+                                    painter = painterResource(R.drawable.ic_folder_outlined),
+                                    contentDescription = "Directories",
+                                    tint = if (showGamePathDrawer) Color(0xFF1BD96A) else Color(0xFFD1D5DB),
                                     modifier = Modifier.size(18.dp)
                                 )
                             }
+                        }
 
-                            Button(
-                                onClick = onInstall,
-                                shape = RoundedCornerShape(10.dp),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF1BD96A),
-                                    contentColor = Color(0xFF06210F)
-                                ),
-                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_add),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(Modifier.width(5.dp))
-                                Text(
-                                    text = "Create Instance",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.ExtraBold
-                                )
-                            }
+                        Button(
+                            onClick = onInstall,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF1BD96A),
+                                contentColor = Color(0xFF06210F)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
+                            modifier = Modifier.height(36.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_add),
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "New Instance",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.ExtraBold
+                            )
                         }
                     }
 
-                    // Filter Pills Row (Mockup #2)
-                    FlowRow(
+                    // Compact Filter Pills Row (Mockup #2: All, Modpacks, Vanilla, 1.17+ LTW, Legacy)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         LibraryFilterGroup.entries.forEach { group ->
                             val selected = selectedFilter == group
-                            val countSuffix = when (group) {
-                                LibraryFilterGroup.ALL -> " ($allVersionsCount)"
-                                LibraryFilterGroup.MODPACKS -> " ($modloaderVersionsCount)"
-                                LibraryFilterGroup.VANILLA -> " ($vanillaVersionsCount)"
-                                else -> ""
-                            }
-                            FilterChip(
-                                selected = selected,
-                                onClick = { selectedFilter = group },
-                                label = {
-                                    Text(
-                                        text = "${group.label}$countSuffix",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
-                                    )
-                                },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    containerColor = Color(0xFF1E2128),
-                                    labelColor = Color(0xFFD1D5DB),
-                                    selectedContainerColor = Color(0xFF143825),
-                                    selectedLabelColor = Color(0xFF1BD96A)
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = if (selected) Color(0xFF1BD96A) else Color(0xFF21242B),
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (selected) Color(0xFF1BD96A) else Color(0xFF2E333E)
                                 ),
-                                border = FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = selected,
-                                    borderColor = Color(0xFF2D313A),
-                                    selectedBorderColor = Color(0xFF1BD96A)
+                                onClick = { selectedFilter = group }
+                            ) {
+                                Text(
+                                    text = group.label,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
+                                    color = if (selected) Color(0xFF06210F) else Color(0xFFD1D5DB)
                                 )
-                            )
+                            }
                         }
                     }
 
@@ -871,9 +819,8 @@ private fun ModrinthLibraryInstanceCard(
     val info = version.getVersionInfo()
     val mcVer = info?.minecraftVersion ?: "Unknown"
     val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
-    val loaderVer = info?.loaderInfo?.version
-    val loaderBadge = if (!loaderVer.isNullOrBlank()) "$loaderName $loaderVer" else loaderName
     val rendererName = remember(version) { resolveRendererShortLabel(version) }
+    val isLegacy = rendererName.contains("Legacy", ignoreCase = true)
     var menuExpanded by remember { mutableStateOf(false) }
 
     Surface(
@@ -889,7 +836,7 @@ private fun ModrinthLibraryInstanceCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(13.dp),
+                .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
@@ -898,69 +845,95 @@ private fun ModrinthLibraryInstanceCard(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Surface(
-                    shape = RoundedCornerShape(11.dp),
-                    color = Color(0xFF17191E),
-                    border = BorderStroke(1.dp, Color(0xFF2D313B))
+                    shape = RoundedCornerShape(10.dp),
+                    color = Color(0xFF2B2F3A),
+                    border = BorderStroke(1.dp, Color(0xFF343946))
                 ) {
                     VersionIconImage(
                         version = version,
                         modifier = Modifier
-                            .padding(6.dp)
-                            .size(38.dp)
+                            .padding(5.dp)
+                            .size(36.dp)
                     )
                 }
 
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Text(
                         text = version.getVersionName(),
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                         color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Text(
-                        text = if (version.isSummaryValid()) version.getVersionSummary() else "Minecraft $mcVer",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF9CA3AF),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
 
-                IconButton(
-                    onClick = onPinToggle,
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(
-                            if (version.pinnedState) R.drawable.ic_pinned_filled else R.drawable.ic_pinned_outlined
-                        ),
-                        contentDescription = stringResource(R.string.versions_manage_pin),
-                        tint = if (version.pinnedState) Color(0xFF1BD96A) else Color(0xFF9CA3AF),
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-
-                Box {
-                    IconButton(
-                        onClick = { menuExpanded = true },
-                        modifier = Modifier.size(28.dp)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_more_horiz),
-                            contentDescription = stringResource(R.string.generic_more),
-                            tint = Color(0xFF9CA3AF),
-                            modifier = Modifier.size(18.dp)
+                        ModrinthMetaPill(
+                            text = "$loaderName $mcVer",
+                            backgroundColor = Color(0xFF2C303C),
+                            textColor = Color(0xFFE5E7EB)
+                        )
+                        ModrinthMetaPill(
+                            text = rendererName,
+                            backgroundColor = if (isLegacy) Color(0xFF9A6712) else Color(0xFF1BD96A),
+                            textColor = if (isLegacy) Color(0xFFFEF3C7) else Color(0xFF06210F)
                         )
                     }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Left: Overflow Options Gear Button (Mockup #2)
+                Box {
+                    Surface(
+                        shape = RoundedCornerShape(9.dp),
+                        color = Color(0xFF282C36),
+                        border = BorderStroke(1.dp, Color(0xFF343946)),
+                        contentColor = Color(0xFFD1D5DB),
+                        onClick = { menuExpanded = true }
+                    ) {
+                        Box(
+                            modifier = Modifier.size(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_more_horiz),
+                                contentDescription = stringResource(R.string.generic_more),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
                     DropdownMenu(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false }
                     ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.versions_manage_pin)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(
+                                        if (version.pinnedState) R.drawable.ic_pinned_filled else R.drawable.ic_pinned_outlined
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onPinToggle()
+                            }
+                        )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.generic_rename)) },
                             leadingIcon = {
@@ -1025,41 +998,41 @@ private fun ModrinthLibraryInstanceCard(
                         )
                     }
                 }
-            }
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ModrinthMetaPill(text = loaderBadge)
-                ModrinthMetaPill(text = mcVer)
-                ModrinthMetaPill(text = rendererName, highlighted = true)
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = if (selected) "● Selected Instance" else "Ready to launch",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (selected) Color(0xFF1BD96A) else Color(0xFF9CA3AF),
-                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-                )
-
+                // Right: Settings Gear + Emerald '▶ Play' Pill Button (Mockup #2)
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Surface(
                         shape = RoundedCornerShape(9.dp),
-                        color = if (selected) Color(0xFF1BD96A) else Color(0xFF2B303C),
-                        contentColor = if (selected) Color(0xFF06210F) else Color.White,
+                        color = Color(0xFF282C36),
+                        border = BorderStroke(1.dp, Color(0xFF343946)),
+                        contentColor = Color(0xFFD1D5DB),
+                        onClick = onSettingsClick
+                    ) {
+                        Box(
+                            modifier = Modifier.size(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_settings_filled),
+                                contentDescription = stringResource(R.string.versions_manage_settings),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = Color(0xFF1BD96A),
+                        contentColor = Color(0xFF06210F),
                         onClick = onPlayClick
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 11.dp, vertical = 6.dp),
+                            modifier = Modifier
+                                .height(32.dp)
+                                .padding(horizontal = 14.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
@@ -1071,25 +1044,7 @@ private fun ModrinthLibraryInstanceCard(
                             Text(
                                 text = "Play",
                                 style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
-
-                    Surface(
-                        shape = RoundedCornerShape(9.dp),
-                        color = Color(0xFF282C36),
-                        contentColor = Color(0xFFD1D5DB),
-                        onClick = onSettingsClick
-                    ) {
-                        Box(
-                            modifier = Modifier.size(30.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_settings_filled),
-                                contentDescription = stringResource(R.string.versions_manage_settings),
-                                modifier = Modifier.size(16.dp)
+                                fontWeight = FontWeight.ExtraBold
                             )
                         }
                     }

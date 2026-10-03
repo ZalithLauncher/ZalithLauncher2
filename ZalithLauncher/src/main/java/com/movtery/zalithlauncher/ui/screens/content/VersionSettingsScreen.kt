@@ -268,17 +268,15 @@ fun VersionSettingsScreen(
                 .fillMaxSize()
                 .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
                 .padding(horizontal = 14.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // 1. Modrinth Instance Hero Banner (Mockup #3)
+            // 1. Compact Mobile Instance Header Row (Mockup #3)
             ModrinthInstanceHeroBanner(
                 version = key.version,
+                onBack = backToMainScreen,
                 onPlay = {
                     VersionsManager.saveVersion(key.version)
                     eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(key.version))
-                },
-                onOpenConfig = {
-                    key.backStack.navigateOnce(NormalNavKey.Versions.Config)
                 },
                 onOpenFolder = {
                     eventViewModel.sendEvent(
@@ -289,7 +287,7 @@ fun VersionSettingsScreen(
                 }
             )
 
-            // 2. Horizontal Sub-Navigation Tabs (Mockup #3)
+            // 2. Horizontal Pill Tabs (Mockup #3: Mods, Resource Packs, Shaders, Worlds, Settings)
             ModrinthInstanceSubTabs(
                 backStack = key.backStack,
                 versionsScreenKey = key.currentKey,
@@ -319,167 +317,123 @@ fun VersionSettingsScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ModrinthInstanceHeroBanner(
     version: Version,
+    onBack: () -> Unit,
     onPlay: () -> Unit,
-    onOpenConfig: () -> Unit,
     onOpenFolder: () -> Unit
 ) {
     val context = LocalContext.current
     val info = version.getVersionInfo()
     val mcVer = info?.minecraftVersion ?: "Unknown"
     val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
-    val loaderVer = info?.loaderInfo?.version
-    val loaderBadge = if (!loaderVer.isNullOrBlank()) "$loaderName $loaderVer" else loaderName
     val rendererName = remember(version) { resolveRendererShortLabel(version) }
     val ramMb = remember(version) { version.getRamAllocation(context) }
 
-    Surface(
+    Row(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF1F232B),
-        border = BorderStroke(1.dp, Color(0xFF2E333E))
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Image(
-                painter = painterResource(R.drawable.mirai_hero_bg),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.matchParentSize()
-            )
+        // Back Arrow Button
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = Color(0xFF21242B),
+            border = BorderStroke(1.dp, Color(0xFF2E333E)),
+            contentColor = Color.White,
+            onClick = onBack
+        ) {
             Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        Brush.horizontalGradient(
-                            colors = listOf(
-                                Color(0xFF181B22).copy(alpha = 0.94f),
-                                Color(0xFF1F232B).copy(alpha = 0.85f),
-                                Color(0xFF181B22).copy(alpha = 0.94f)
-                            )
-                        )
-                    )
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                modifier = Modifier.size(34.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Surface(
-                    shape = RoundedCornerShape(14.dp),
-                    color = Color(0xFF14161B),
-                    border = BorderStroke(1.dp, Color(0xFF333845))
-                ) {
-                    VersionIconImage(
-                        version = version,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .size(48.dp)
-                    )
-                }
-
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = version.getVersionName(),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        ModrinthMetaPill(text = loaderBadge)
-                        ModrinthMetaPill(text = "Minecraft $mcVer")
-                        ModrinthMetaPill(text = "Renderer: $rendererName (GLES 3.2)", highlighted = true)
-                        ModrinthMetaPill(text = "RAM: $ramMb MB")
-                    }
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = onPlay,
-                        shape = RoundedCornerShape(11.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF1BD96A),
-                            contentColor = Color(0xFF06210F)
-                        ),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 9.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_play_arrow_filled),
-                            contentDescription = stringResource(R.string.main_launch_game),
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(Modifier.width(5.dp))
-                        Text(
-                            text = "Play",
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.ExtraBold
-                        )
-                    }
-
-                    Surface(
-                        shape = RoundedCornerShape(11.dp),
-                        color = Color(0xFF282C36),
-                        border = BorderStroke(1.dp, Color(0xFF363B47)),
-                        contentColor = Color.White,
-                        onClick = onOpenConfig
-                    ) {
-                        Box(
-                            modifier = Modifier.size(38.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_settings_filled),
-                                contentDescription = stringResource(R.string.versions_settings_config),
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    }
-
-                    Surface(
-                        shape = RoundedCornerShape(11.dp),
-                        color = Color(0xFF282C36),
-                        border = BorderStroke(1.dp, Color(0xFF363B47)),
-                        contentColor = Color.White,
-                        onClick = onOpenFolder
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_folder_filled),
-                                contentDescription = null,
-                                tint = Color(0xFFD1D5DB),
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = "Open Folder",
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = Color(0xFFE5E7EB)
-                            )
-                        }
-                    }
-                }
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_back),
+                    contentDescription = stringResource(R.string.generic_back),
+                    modifier = Modifier.size(18.dp)
+                )
             }
+        }
+
+        // Instance Icon
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = Color(0xFF21242B),
+            border = BorderStroke(1.dp, Color(0xFF2E333E))
+        ) {
+            VersionIconImage(
+                version = version,
+                modifier = Modifier
+                    .padding(5.dp)
+                    .size(28.dp)
+            )
+        }
+
+        // Title + Inline Subtitle ("Fabric 1.21.1 • LTW • 4096 MB")
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
+        ) {
+            Text(
+                text = version.getVersionName(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "$loaderName $mcVer • $rendererName • $ramMb MB",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFF9CA3AF),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        // Open Folder Button
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = Color(0xFF21242B),
+            border = BorderStroke(1.dp, Color(0xFF2E333E)),
+            contentColor = Color(0xFFE5E7EB),
+            onClick = onOpenFolder
+        ) {
+            Box(
+                modifier = Modifier.size(34.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_folder_outlined),
+                    contentDescription = "Folder",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+
+        // Emerald '▶ Play' Button
+        Button(
+            onClick = onPlay,
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF1BD96A),
+                contentColor = Color(0xFF06210F)
+            ),
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+            modifier = Modifier.height(34.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_play_arrow_filled),
+                contentDescription = stringResource(R.string.main_launch_game),
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = "Play",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.ExtraBold
+            )
         }
     }
 }
@@ -493,96 +447,66 @@ private fun ModrinthInstanceSubTabs(
 ) {
     val tabs = remember(canUpdateLoader, isUpdateLoader) {
         buildList {
-            add(ModrinthSubTabItem(NormalNavKey.Versions.ModsManager, "Content (Mods)", R.drawable.ic_extension_outlined))
+            add(ModrinthSubTabItem(NormalNavKey.Versions.ModsManager, "Mods", R.drawable.ic_extension_outlined))
             add(ModrinthSubTabItem(NormalNavKey.Versions.ResourcePackManager, "Resource Packs", R.drawable.ic_format_paint_outlined))
             add(ModrinthSubTabItem(NormalNavKey.Versions.ShadersManager, "Shaders", R.drawable.ic_lightbulb))
             add(ModrinthSubTabItem(NormalNavKey.Versions.SavesManager, "Worlds", R.drawable.ic_public))
-            add(ModrinthSubTabItem(NormalNavKey.Versions.OverView, "Logs & Overview", R.drawable.ic_dashboard_outlined))
-            add(ModrinthSubTabItem(NormalNavKey.Versions.Config, "Instance Settings", R.drawable.ic_build_outlined))
+            add(ModrinthSubTabItem(NormalNavKey.Versions.Config, "Settings", R.drawable.ic_build_outlined))
+            add(ModrinthSubTabItem(NormalNavKey.Versions.OverView, "Overview", R.drawable.ic_dashboard_outlined))
             if (canUpdateLoader) {
                 add(ModrinthSubTabItem(NormalNavKey.Versions.UpdateLoader, if (isUpdateLoader) "Update Loader" else "Install Loader", R.drawable.ic_update))
             }
-            add(ModrinthSubTabItem(NormalNavKey.Versions.ScreenshotsManager, "Screenshots", R.drawable.ic_photo_library_outlined))
-            add(ModrinthSubTabItem(NormalNavKey.Versions.ServerList, "Servers", R.drawable.ic_dns_outlined))
         }
     }
 
     val scrollState = rememberScrollState()
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .horizontalScroll(scrollState),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            tabs.forEach { tab ->
-                val selected = versionsScreenKey === tab.key
-                val textColor by animateColorAsState(
-                    targetValue = if (selected) Color(0xFF1BD96A) else Color(0xFFD1D5DB),
-                    animationSpec = tween(200),
-                    label = "subTabText"
-                )
-                val bgColor by animateColorAsState(
-                    targetValue = if (selected) Color(0xFF143825) else Color(0xFF1C1F26),
-                    animationSpec = tween(200),
-                    label = "subTabBg"
-                )
-                val underlineWidth by animateDpAsState(
-                    targetValue = if (selected) 28.dp else 0.dp,
-                    animationSpec = tween(220),
-                    label = "subTabUnderline"
-                )
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(scrollState),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        tabs.forEach { tab ->
+            val selected = versionsScreenKey === tab.key
+            val bgColor by animateColorAsState(
+                targetValue = if (selected) Color(0xFF1BD96A) else Color(0xFF21242B),
+                animationSpec = tween(160),
+                label = "subTabBg"
+            )
+            val textColor by animateColorAsState(
+                targetValue = if (selected) Color(0xFF06210F) else Color(0xFFE5E7EB),
+                animationSpec = tween(160),
+                label = "subTabText"
+            )
 
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(bgColor)
-                        .clickable {
-                            if (tab.key == NormalNavKey.Versions.UpdateLoader) {
-                                if (isUpdateLoader) {
-                                    NormalNavKey.Versions.UpdateLoader.title = androidText(R.string.versions_update_loader)
-                                } else {
-                                    NormalNavKey.Versions.UpdateLoader.title = androidText(R.string.versions_install_loader)
-                                }
-                            }
-                            backStack.navigateOnce(tab.key)
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = bgColor,
+                border = BorderStroke(
+                    1.dp,
+                    if (selected) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                ),
+                onClick = {
+                    if (tab.key == NormalNavKey.Versions.UpdateLoader) {
+                        if (isUpdateLoader) {
+                            NormalNavKey.Versions.UpdateLoader.title = androidText(R.string.versions_update_loader)
+                        } else {
+                            NormalNavKey.Versions.UpdateLoader.title = androidText(R.string.versions_install_loader)
                         }
-                        .padding(horizontal = 12.dp, vertical = 7.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(tab.iconRes),
-                            contentDescription = null,
-                            tint = textColor,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = tab.label,
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                            color = textColor
-                        )
                     }
-                    if (underlineWidth > 0.dp) {
-                        Spacer(Modifier.height(3.dp))
-                        Box(
-                            modifier = Modifier
-                                .width(underlineWidth)
-                                .height(2.dp)
-                                .clip(RoundedCornerShape(2.dp))
-                                .background(Color(0xFF1BD96A))
-                        )
-                    }
+                    backStack.navigateOnce(tab.key)
                 }
+            ) {
+                Text(
+                    text = tab.label,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
+                    color = textColor
+                )
             }
         }
-        Spacer(Modifier.height(4.dp))
-        HorizontalDivider(color = Color(0xFF282C36))
     }
 }
 

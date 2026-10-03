@@ -128,122 +128,101 @@ private fun NavigationUI(
         DiscoverCategoryItem("Resource Packs", R.drawable.ic_format_paint_outlined, backScreenViewModel.downloadResourcePackScreen),
         DiscoverCategoryItem("Shaders", R.drawable.ic_lightbulb, backScreenViewModel.downloadShadersScreen),
         DiscoverCategoryItem("Worlds", R.drawable.ic_public, backScreenViewModel.downloadSavesScreen),
-        DiscoverCategoryItem("Install Vanilla / Modloader", R.drawable.ic_videogame_asset_outlined, backScreenViewModel.downloadGameScreen),
+        DiscoverCategoryItem("Install Vanilla", R.drawable.ic_videogame_asset_outlined, backScreenViewModel.downloadGameScreen),
         DiscoverCategoryItem("Favorites", R.drawable.ic_favorite_filled, backScreenViewModel.downloadFavoritesScreen)
     )
 
+    val isCreateInstanceScreen = stackTopKey is NestedNavKey.DownloadGame
+
     Column(
-        modifier = modifier.padding(horizontal = 14.dp, vertical = 8.dp),
+        modifier = modifier.padding(horizontal = 12.dp, vertical = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Modrinth Discover Header + Horizontal Category Switcher (Mockup #4)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
+        if (!isCreateInstanceScreen) {
+            // Modrinth Discover Top Category Pill Bar (Mockup #4)
             Row(
-                modifier = Modifier
-                    .weight(1f)
-                    .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                categories.forEach { cat ->
-                    val selected = stackTopKey?.javaClass == cat.target.javaClass
-                    val bgColor by animateColorAsState(
-                        targetValue = if (selected) Color(0xFF1BD96A) else Color(0xFF1E2128),
-                        animationSpec = tween(200),
-                        label = "discoverCatBg"
-                    )
-                    val fgColor by animateColorAsState(
-                        targetValue = if (selected) Color(0xFF06210F) else Color(0xFFE5E7EB),
-                        animationSpec = tween(200),
-                        label = "discoverCatFg"
-                    )
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    categories.forEach { cat ->
+                        val selected = stackTopKey?.javaClass == cat.target.javaClass
+                        val bgColor by animateColorAsState(
+                            targetValue = if (selected) Color(0xFF1BD96A) else Color(0xFF21242B),
+                            animationSpec = tween(160),
+                            label = "discoverCatBg"
+                        )
+                        val fgColor by animateColorAsState(
+                            targetValue = if (selected) Color(0xFF06210F) else Color(0xFFE5E7EB),
+                            animationSpec = tween(160),
+                            label = "discoverCatFg"
+                        )
 
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .background(bgColor)
-                            .clickable {
+                        Surface(
+                            shape = RoundedCornerShape(18.dp),
+                            color = bgColor,
+                            border = BorderStroke(
+                                1.dp,
+                                if (selected) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                            ),
+                            onClick = {
                                 backScreenViewModel.navigateToDownload(cat.target)
                             }
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(cat.iconRes),
-                            contentDescription = null,
-                            tint = fgColor,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = cat.label,
-                            style = MaterialTheme.typography.labelLarge,
-                            fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.SemiBold,
-                            color = fgColor
-                        )
-                    }
-                }
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 8.dp)
-            ) {
-                // Direct ID / URL Search Button
-                val inSearchId = stackTopKey is NormalNavKey.SearchId
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = if (inSearchId) Color(0xFF143825) else Color(0xFF1E2128),
-                    border = BorderStroke(1.dp, if (inSearchId) Color(0xFF1BD96A) else Color(0xFF2D313B)),
-                    onClick = { backStack.navigateOnce(NormalNavKey.SearchId) }
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_search),
-                            contentDescription = null,
-                            tint = Color(0xFF1BD96A),
-                            modifier = Modifier.size(15.dp)
-                        )
-                        Text(
-                            text = "ID / URL",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = Color(0xFFE5E7EB)
-                        )
+                        ) {
+                            Text(
+                                text = cat.label,
+                                modifier = Modifier.padding(horizontal = 13.dp, vertical = 6.dp),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
+                                color = fgColor
+                            )
+                        }
                     }
                 }
 
-                // Modrinth / CurseForge Source Pill
+                // Right: Modrinth • CurseForge Segmented Pill (Mockup #4)
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = Color(0xFF143825),
-                    border = BorderStroke(1.dp, Color(0xFF1BD96A).copy(alpha = 0.5f))
+                    modifier = Modifier.padding(start = 8.dp),
+                    shape = RoundedCornerShape(18.dp),
+                    color = Color(0xFF1A1D23),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E))
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 3.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(Color(0xFF1BD96A))
+                                .padding(horizontal = 10.dp, vertical = 4.dp)
+                        ) {
+                            Text(
+                                text = "Modrinth",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = Color(0xFF06210F)
+                            )
+                        }
                         Text(
-                            text = "Modrinth • CurseForge",
+                            text = "• CurseForge",
+                            modifier = Modifier.padding(end = 8.dp),
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFF1BD96A)
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color(0xFFE5E7EB)
                         )
                     }
                 }
             }
         }
-
-        HorizontalDivider(color = Color(0xFF282C36))
 
         if (backStack.isNotEmpty()) {
             NavDisplay(

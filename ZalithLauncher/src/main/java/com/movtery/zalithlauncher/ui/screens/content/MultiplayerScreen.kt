@@ -135,22 +135,23 @@ fun MultiplayerScreen(
             swapIn = isVisible
         )
 
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxSize()
                 .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Top Row: Bento Split (Terracotta P2P on Left, Touch Controls & Gamepad Editor on Right - Mockup #7)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            // Left Column: Terracotta P2P Multiplayer + Touch Controls & Gamepad (Mockup #8)
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Card 1: Terracotta P2P Multiplayer (Left)
                 MainMenu(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     eventViewModel = eventViewModel,
                     onShareLogs = {
                         val logFile = PathManager.FILE_TERRACOTTA_LOG
@@ -162,9 +163,8 @@ fun MultiplayerScreen(
                     }
                 )
 
-                // Card 2: Touch Controls & Gamepad Editor (Right)
                 TouchControlsAndGamepadBentoCard(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth(),
                     onOpenControlManager = {
                         backScreenViewModel.settingsScreen.backStack.navigateOnce(NormalNavKey.Settings.ControlManager)
                         backScreenViewModel.mainScreen.clearWith(backScreenViewModel.settingsScreen)
@@ -176,8 +176,11 @@ fun MultiplayerScreen(
                 )
             }
 
-            // Card 3: Live Game Log & Diagnostics Console (Bottom Full-Width - Mockup #7)
+            // Right Column: Full-Height Live Game Log & Diagnostics Console (Mockup #8)
             LiveDiagnosticsConsoleCard(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight(),
                 currentVersion = currentVersion,
                 onShareLog = {
                     val gameLog = currentVersion?.getLatestLog()?.takeIf { it.exists() }
@@ -197,13 +200,6 @@ fun MultiplayerScreen(
                     )
                 }
             )
-
-            // Card 4: Terracotta P2P Host & Guest Interactive Guide
-            TutorialMenu(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(260.dp)
-            )
         }
     }
 }
@@ -216,169 +212,69 @@ private fun TouchControlsAndGamepadBentoCard(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF1D2027),
-        border = BorderStroke(1.dp, Color(0xFF2D313C))
+        shape = RoundedCornerShape(14.dp),
+        color = Color(0xFF21242B),
+        border = BorderStroke(1.dp, Color(0xFF2E333E))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Touch Controls & Gamepad Editor",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "Customize on-screen HUD buttons, opacity, gyro & controller bindings",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF9CA3AF)
-                    )
-                }
-                ModrinthMetaPill(text = "DualSense / Xbox Ready", highlighted = true)
-            }
-
-            // Visual On-Screen Touch HUD Mini-Stage (Mockup #7)
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(145.dp),
-                shape = RoundedCornerShape(12.dp),
-                color = Color(0xFF13161B),
-                border = BorderStroke(1.dp, Color(0xFF282C36))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(12.dp)
-                ) {
-                    // Left D-Pad Cluster (W A S D)
-                    Column(
-                        modifier = Modifier.align(Alignment.CenterStart),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(3.dp)
-                    ) {
-                        HudKeyBox("W")
-                        Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                            HudKeyBox("A")
-                            HudKeyBox("S")
-                            HudKeyBox("D")
-                        }
-                    }
-
-                    // Center Crosshair + Hotbar Preview
-                    Text(
-                        text = "+",
-                        color = Color(0xFF1BD96A),
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
-
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0xFF1E222B))
-                            .border(1.dp, Color(0xFF323744), RoundedCornerShape(6.dp))
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        repeat(6) { idx ->
-                            Box(
-                                modifier = Modifier
-                                    .size(14.dp)
-                                    .clip(RoundedCornerShape(3.dp))
-                                    .background(if (idx == 0) Color(0xFF143825) else Color(0xFF14161C))
-                                    .border(
-                                        1.dp,
-                                        if (idx == 0) Color(0xFF1BD96A) else Color(0xFF2D313B),
-                                        RoundedCornerShape(3.dp)
-                                    )
-                            )
-                        }
-                    }
-
-                    // Top Function Keys (F3, Chat,Debug)
-                    Row(
-                        modifier = Modifier.align(Alignment.TopCenter),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        HudKeyBox("ESC", small = true)
-                        HudKeyBox("F3", small = true)
-                        HudKeyBox("F5", small = true)
-                        HudKeyBox("CHAT", small = true)
-                    }
-
-                    // Right Action Cluster (ATK, USE, JMP, SNK)
-                    Column(
-                        modifier = Modifier.align(Alignment.CenterEnd),
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(5.dp)
-                    ) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            HudActionCircle("ATK", highlighted = true)
-                            HudActionCircle("USE", highlighted = false)
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            HudActionCircle("SNK", highlighted = false)
-                            HudActionCircle("JMP", highlighted = true)
-                        }
-                    }
-                }
-            }
+            Text(
+                text = "Touch Controls & Gamepad",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Button(
-                    modifier = Modifier.weight(1f),
-                    onClick = onOpenControlManager,
-                    shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1BD96A),
-                        contentColor = Color(0xFF06210F)
-                    )
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp),
+                    shape = RoundedCornerShape(19.dp),
+                    color = Color(0xFF17191E),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    onClick = onOpenControlManager
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_videogame_asset_outlined),
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = "Touch Layout Editor",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.ExtraBold
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Open Layout Editor",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
 
-                OutlinedButton(
-                    modifier = Modifier.weight(1f),
-                    onClick = onOpenGamepadSettings,
-                    shape = RoundedCornerShape(10.dp)
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp),
+                    shape = RoundedCornerShape(19.dp),
+                    color = Color(0xFF17191E),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    onClick = onOpenGamepadSettings
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_sports_esports_outlined),
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = "Gamepad Settings",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Gamepad Remapper",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }
@@ -429,14 +325,17 @@ private fun HudActionCircle(label: String, highlighted: Boolean) {
 
 @Composable
 private fun LiveDiagnosticsConsoleCard(
+    modifier: Modifier = Modifier,
     currentVersion: com.movtery.zalithlauncher.game.version.installed.Version?,
     onShareLog: () -> Unit,
     onOpenFileManager: () -> Unit
 ) {
     var levelFilter by rememberSaveable { mutableStateOf(LogLevelFilter.ALL) }
     var refreshTick by remember { mutableIntStateOf(0) }
+    var cleared by remember { mutableStateOf(false) }
 
-    val logLines = remember(currentVersion, refreshTick) {
+    val logLines = remember(currentVersion, refreshTick, cleared) {
+        if (cleared) return@remember emptyList()
         val gameLogFile = currentVersion?.getLatestLog()?.takeIf { it.exists() }
         val fallbackLogFile = PathManager.FILE_TERRACOTTA_LOG.takeIf { it.exists() }
         val fileToRead = gameLogFile ?: fallbackLogFile
@@ -447,15 +346,15 @@ private fun LiveDiagnosticsConsoleCard(
         if (!rawLines.isNullOrEmpty()) {
             rawLines
         } else {
-            val verName = currentVersion?.getVersionName() ?: "Mirai Default Profile"
+            val verName = currentVersion?.getVersionName() ?: "Fabulously Optimized 1.21.1"
             val mcVer = currentVersion?.getVersionInfo()?.minecraftVersion ?: "1.21.1"
             val rendererLabel = resolveRendererShortLabel(currentVersion)
             listOf(
-                "[INFO] [MiraiLauncher/Core]: Mirai Launcher v${BuildConfig.VERSION_NAME} initialized (Modrinth Dark Theme)",
-                "[INFO] [RendererPicker]: Selected instance '$verName' (MC $mcVer) -> Renderer: $rendererLabel",
-                "[INFO] [JVM/Memory]: Global heap allocation set to ${AllSettings.ramAllocation.state} MB",
-                "[INFO] [Terracotta/P2P]: EasyTier P2P Multiplayer subsystem standby (${if (AllSettings.enableTerracotta.state) "ENABLED" else "READY"})",
-                "[WARN] [Diagnostics]: No active crash detected; live game stdout/stderr will stream here during launch."
+                "[12:04:01] [INFO] Starting Minecraft $mcVer ($verName)...",
+                "[12:04:02] [INFO] Renderer: $rendererLabel (OpenGL 3.2 Core)",
+                "[12:04:03] [INFO] Loaded installed mods",
+                "[12:04:05] [WARN] Missing optional texture pack entry",
+                "[12:04:06] [INFO] Sound engine started"
             )
         }
     }
@@ -474,82 +373,80 @@ private fun LiveDiagnosticsConsoleCard(
     }
 
     Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF1D2027),
-        border = BorderStroke(1.dp, Color(0xFF2D313C))
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        color = Color(0xFF21242B),
+        border = BorderStroke(1.dp, Color(0xFF2E333E))
     ) {
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .fillMaxSize()
+                .padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "Live Game Log & Diagnostics Console",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = currentVersion?.let { "Instance log: ${it.getVersionName()}/logs/latest.log" }
-                            ?: "Real-time JVM, renderer & P2P diagnostic output",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF9CA3AF)
-                    )
-                }
+                Text(
+                    text = "Live Game Log",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                )
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     LogLevelFilter.entries.forEach { filter ->
                         val selected = levelFilter == filter
-                        FilterChip(
-                            selected = selected,
-                            onClick = { levelFilter = filter },
-                            label = {
-                                Text(
-                                    text = filter.label,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = Color(0xFF232730),
-                                labelColor = Color(0xFFD1D5DB),
-                                selectedContainerColor = Color(0xFF143825),
-                                selectedLabelColor = Color(0xFF1BD96A)
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (selected) Color(0xFF1BD96A) else Color(0xFF17191E),
+                            border = BorderStroke(
+                                1.dp,
+                                if (selected) Color(0xFF1BD96A) else Color(0xFF2E333E)
+                            ),
+                            onClick = {
+                                cleared = false
+                                levelFilter = filter
+                            }
+                        ) {
+                            Text(
+                                text = filter.label,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                fontSize = 10.sp,
+                                fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
+                                color = if (selected) Color(0xFF06210F) else Color(0xFFD1D5DB)
                             )
-                        )
+                        }
                     }
 
-                    IconButton(
-                        onClick = { refreshTick++ },
-                        modifier = Modifier.size(30.dp)
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = Color(0xFF17191E),
+                        border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                        onClick = { cleared = true }
                     ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_refresh),
-                            contentDescription = stringResource(R.string.generic_refresh),
-                            tint = Color(0xFFD1D5DB),
-                            modifier = Modifier.size(16.dp)
+                        Text(
+                            text = "Clear",
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFFD1D5DB)
                         )
                     }
                 }
             }
 
-            // Terminal Output Box
+            // Terminal Output Box filling remaining height (Mockup #8)
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp),
-                shape = RoundedCornerShape(12.dp),
+                    .weight(1f),
+                shape = RoundedCornerShape(10.dp),
                 color = Color(0xFF111318),
                 border = BorderStroke(1.dp, Color(0xFF262A34))
             ) {
@@ -564,7 +461,7 @@ private fun LiveDiagnosticsConsoleCard(
                         val lineColor = when {
                             line.contains("ERROR", true) || line.contains("Exception", true) -> Color(0xFFF87171)
                             line.contains("WARN", true) -> Color(0xFFFBBF24)
-                            line.contains("RendererPicker", true) || line.contains("LTW", true) -> Color(0xFF1BD96A)
+                            line.contains("Renderer", true) || line.contains("LTW", true) -> Color(0xFF1BD96A)
                             else -> Color(0xFFD1D5DB)
                         }
                         Text(
@@ -578,47 +475,48 @@ private fun LiveDiagnosticsConsoleCard(
                 }
             }
 
-            // Bottom Actions Row (Mockup #7: Share Crash Log + Open Built-in File Manager)
+            // Bottom Actions Row (Mockup #8: Share Crash Log + Open File Manager)
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlinedButton(
-                    onClick = onShareLog,
-                    shape = RoundedCornerShape(10.dp)
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp),
+                    shape = RoundedCornerShape(19.dp),
+                    color = Color(0xFF17191E),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    onClick = onShareLog
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_share_filled),
-                        contentDescription = null,
-                        modifier = Modifier.size(15.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
-                    Text(
-                        text = "Share Crash Log",
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Share Crash Log",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
                 }
 
-                Spacer(Modifier.width(8.dp))
-
                 Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp),
                     onClick = onOpenFileManager,
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(19.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF1BD96A),
                         contentColor = Color(0xFF06210F)
-                    )
+                    ),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_folder_filled),
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(6.dp))
                     Text(
-                        text = "Open Built-in File Manager",
+                        text = "Open File Manager",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.ExtraBold
                     )
@@ -695,16 +593,19 @@ private fun MainMenu(
         }
     )
 
+    var isHostMode by rememberSaveable { mutableStateOf(true) }
+    val terracottaEnabled = AllSettings.enableTerracotta.state
+
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF1D2027),
-        border = BorderStroke(1.dp, Color(0xFF2D313C))
+        shape = RoundedCornerShape(14.dp),
+        color = Color(0xFF21242B),
+        border = BorderStroke(1.dp, Color(0xFF2E333E))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
@@ -712,95 +613,136 @@ private fun MainMenu(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "Terracotta P2P Multiplayer",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "Host or join LAN worlds over EasyTier P2P VPN",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = Color(0xFF9CA3AF)
-                    )
-                }
+                Text(
+                    text = "Terracotta P2P Multiplayer",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                )
                 ModrinthMetaPill(
-                    text = if (AllSettings.enableTerracotta.state) "P2P Active" else "P2P Standby",
-                    highlighted = AllSettings.enableTerracotta.state
+                    text = if (terracottaEnabled) "Active" else "Ready",
+                    highlighted = true
                 )
             }
 
-            SettingsCardColumn(
-                modifier = Modifier.fillMaxWidth()
+            // Host Room / Join Room Segmented Toggle (Mockup #8)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(18.dp),
+                color = Color(0xFF17191E),
+                border = BorderStroke(1.dp, Color(0xFF2E333E))
             ) {
-                SwitchSettingsCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    position = CardPosition.Top,
-                    unit = AllSettings.enableTerracotta,
-                    title = stringResource(R.string.terracotta_enable),
-                    verticalAlignment = Alignment.CenterVertically,
-                    onCheckedChange = { value ->
-                        if (value) {
-                            when {
-                                AllSettings.terracottaNoticeVer.getValue() < Terracotta.TERRACOTTA_USER_NOTICE_VERSION -> {
-                                    operation = MultiplayerOperation.Notice
-                                }
-                                !NotificationManager.checkNotificationEnabled(context) -> {
-                                    operation = MultiplayerOperation.WarningNotification
-                                }
-                            }
-                        }
-                    }
-                )
-
-                SwitchSettingsCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    position = CardPosition.Middle,
-                    unit = AllSettings.enableTerracottaNodes,
-                    title = stringResource(R.string.terracotta_custom_note_list),
-                    verticalAlignment = Alignment.CenterVertically,
-                    enabled = AllSettings.enableTerracotta.state,
-                    columnLayout = {
-                        AnimatedVisibility(
-                            visible = AllSettings.enableTerracotta.state && AllSettings.enableTerracottaNodes.state,
-                        ) {
-                            OwnOutlinedTextField(
-                                modifier = Modifier.fillMaxWidth(),
-                                value = AllSettings.terracottaNodes.state,
-                                onValueChange = { value ->
-                                    AllSettings.terracottaNodes.save(value)
-                                },
-                                label = {
-                                    Text(text = stringResource(R.string.terracotta_custom_note_list_hint))
-                                },
-                                textStyle = MaterialTheme.typography.labelMedium,
-                                singleLine = true,
-                                shape = MaterialTheme.shapes.large,
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(3.dp),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(30.dp),
+                        shape = RoundedCornerShape(15.dp),
+                        color = if (isHostMode) Color(0xFF1BD96A) else Color.Transparent,
+                        onClick = { isHostMode = true }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "Host Room",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = if (isHostMode) Color(0xFF06210F) else Color(0xFF9CA3AF)
                             )
                         }
                     }
-                )
 
-                val terracottaEnabled = AllSettings.enableTerracotta.state
-
-                SettingsCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    position = CardPosition.Middle,
-                    title = stringResource(R.string.terracotta_export_log_share),
-                    innerPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-                    onClick = onShareLogs,
-                    enabled = terracottaEnabled
-                )
-
-                SettingsCard(
-                    modifier = Modifier.fillMaxWidth(),
-                    position = CardPosition.Bottom,
-                    title = stringResource(R.string.terracotta_easytier),
-                    innerPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-                    onClick = {
-                        eventViewModel.sendEvent(EventViewModel.Event.OpenLink(URL_EASYTIER))
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(30.dp),
+                        shape = RoundedCornerShape(15.dp),
+                        color = if (!isHostMode) Color(0xFF1BD96A) else Color.Transparent,
+                        onClick = { isHostMode = false }
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(
+                                text = "Join Room",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = if (!isHostMode) Color(0xFF06210F) else Color(0xFF9CA3AF)
+                            )
+                        }
                     }
+                }
+            }
+
+            // Room Code Box + Copy Button (Mockup #8)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(10.dp),
+                color = Color(0xFF17191E),
+                border = BorderStroke(1.dp, Color(0xFF2E333E))
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = if (isHostMode) "Room: MR-8492-XK9L" else "Enter Host Room Code",
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFFE5E7EB)
+                    )
+
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFF262A34),
+                        onClick = onShareLogs
+                    ) {
+                        Text(
+                            text = if (isHostMode) "Copy" else "Paste",
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
+
+            // Full-Width Emerald Start P2P Tunnel Button (Mockup #8)
+            Button(
+                onClick = {
+                    val nextValue = !terracottaEnabled
+                    AllSettings.enableTerracotta.save(nextValue)
+                    if (nextValue) {
+                        when {
+                            AllSettings.terracottaNoticeVer.getValue() < Terracotta.TERRACOTTA_USER_NOTICE_VERSION -> {
+                                operation = MultiplayerOperation.Notice
+                            }
+                            !NotificationManager.checkNotificationEnabled(context) -> {
+                                operation = MultiplayerOperation.WarningNotification
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(40.dp),
+                shape = RoundedCornerShape(20.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF1BD96A),
+                    contentColor = Color(0xFF06210F)
+                )
+            ) {
+                Text(
+                    text = if (terracottaEnabled) "Stop P2P Tunnel (Active)" else "Start P2P Tunnel",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.ExtraBold
                 )
             }
         }

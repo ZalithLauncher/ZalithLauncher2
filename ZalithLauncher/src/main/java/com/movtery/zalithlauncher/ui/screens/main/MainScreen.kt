@@ -205,72 +205,62 @@ fun MainScreen(
                     }
                 )
 
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxHeight()
                         .weight(1f)
                 ) {
-                    TopBar(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(50.dp),
-                        mainScreenKey = mainScreenKey,
-                        inLauncherScreen = inLauncherScreen,
-                        activeTasksCount = tasks.size,
-                        taskRunning = tasks.isEmpty(),
-                        isTasksExpanded = isTaskMenuExpanded,
-                        contentColor = onBackgroundColor(),
-                        onScreenBack = {
-                            onBack(screenBackStackModel.mainScreen.backStack)
-                        },
+                    NavigationUI(
+                        modifier = Modifier.fillMaxSize(),
+                        screenBackStackModel = screenBackStackModel,
                         toMainScreen = toMainScreen,
-                        toSettingsScreen = {
-                            screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
-                        },
-                        toDownloadScreen = {
-                            screenBackStackModel.downloadScreen.clearWith(screenBackStackModel.downloadGameScreen)
-                            screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
-                        },
-                        toMultiplayerScreen = {
-                            screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer)
-                        },
-                        openFileManager = {
-                            eventViewModel.sendEvent(
-                                EventViewModel.Event.OpenFileManager(
-                                    rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath
-                                )
-                            )
-                        },
-                        changeExpandedState = {
-                            changeTasksExpandedState()
-                        },
+                        eventViewModel = eventViewModel,
+                        modpackImportViewModel = modpackImportViewModel,
+                        submitError = submitError
                     )
 
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                    ) {
-                        NavigationUI(
-                            modifier = Modifier.fillMaxSize(),
-                            screenBackStackModel = screenBackStackModel,
-                            toMainScreen = toMainScreen,
-                            eventViewModel = eventViewModel,
-                            modpackImportViewModel = modpackImportViewModel,
-                            submitError = submitError
-                        )
-
-                        TaskMenu(
-                            tasks = tasks,
-                            isExpanded = isTaskMenuExpanded,
+                    if (tasks.isNotEmpty() && !inLauncherScreen && !isTaskMenuExpanded) {
+                        Surface(
                             modifier = Modifier
-                                .fillMaxHeight()
-                                .fillMaxWidth(0.34f)
-                                .align(Alignment.CenterEnd)
-                                .padding(all = 8.dp)
+                                .align(Alignment.TopEnd)
+                                .padding(top = 8.dp, end = 12.dp)
+                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                                .clickable { changeTasksExpandedState() },
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                            color = Color(0xFF143825),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF1BD96A))
                         ) {
-                            changeTasksExpandedState()
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_download),
+                                    contentDescription = null,
+                                    tint = Color(0xFF1BD96A),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "${tasks.size} Tasks",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1BD96A)
+                                )
+                            }
                         }
+                    }
+
+                    TaskMenu(
+                        tasks = tasks,
+                        isExpanded = isTaskMenuExpanded,
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(0.36f)
+                            .align(Alignment.CenterEnd)
+                            .padding(all = 8.dp)
+                    ) {
+                        changeTasksExpandedState()
                     }
                 }
             }

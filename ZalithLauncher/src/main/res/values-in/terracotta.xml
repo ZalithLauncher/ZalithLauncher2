@@ -36,4 +36,17 @@
     <string name="terracotta_status_host_scanning_desc">Buka dunia, tekan ESC, pilih Open to LAN, lalu pilih Start LAN World.</string>
     <string name="terracotta_status_host_scanning_back">Ini juga akan menghentikan pemindaian dunia LAN.</string>
     <string name="terracotta_status_exception_desc_ping_server_rst">Room ditutup: Anda keluar dari dunia game, room ditutup secara</string>
+    <string name="terracotta_tutorial_host_step_open_lan">- Masuk ke dunia Anda dan aktifkan Open to LAN di menu jeda</string>
+    <string name="terracotta_status_waiting_guest_prompt_title">Silakan masukkan kode undangan dari host</string>
+    <string name="terracotta_status_waiting_guest_prompt_invalid">Kode undangan tidak valid</string>
+    <string name="terracotta_status_waiting_guest_prompt_terracotta_legacy">Kode Undangan Terracotta Versi Lama</string>
+    <string name="terracotta_status_waiting_guest_prompt_pcl2ce">Kode Undangan PCL CE Versi Lama</string>
+    <string name="terracotta_status_waiting_guest_prompt_scaffolding">Kode Undangan Scaffolding</string>
+    <string name="terracotta_status_host_starting">Room sedang dibuat</string>
+    <string name="terracotta_status_host_starting_back">Ini akan menghentikan proses pembuatan room.</string>
+    <string name="terracotta_status_host_ok">Room berhasil dibuat</string>
+    <string name="terracotta_status_host_ok_code">Kode undangan (Disalin):</string>
+    <string name="terracotta_status_host_ok_code_copy">Salin kode undangan</string>
+    <string name="terracotta_status_host_ok_code_copy_toast">Kode undangan telah disalin ke clipboard</string>
+    <string name="terracotta_status_host_ok_code_desc">Ingatkan teman Anda untuk memilih mode aja Guest di fitur Multiplayer dan memasukkan kode undangan ini.</string>
 </resources>

@@ -241,8 +241,9 @@ private fun AccountAvatarRailButton(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val activeAccent = MiraiThemeManager.currentAccent()
     val ringColor by animateColorAsState(
-        targetValue = if (selected) ModrinthEmerald else Color(0xFF2D323E),
+        targetValue = if (selected) activeAccent else Color(0xFF2D323E),
         animationSpec = tween(150),
         label = "accountAvatarRing"
     )

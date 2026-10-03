@@ -222,7 +222,7 @@ private fun MiraiQuickOverlayPillContent(
             ) {
                 Icon(
                     painter = painterResource(
-                        if (hudExpanded) R.drawable.ic_expand_less else R.drawable.ic_expand_more
+                        if (hudExpanded) R.drawable.ic_keyboard_arrow_up else R.drawable.ic_keyboard_arrow_down
                     ),
                     contentDescription = "Quick HUD",
                     tint = Color.White,

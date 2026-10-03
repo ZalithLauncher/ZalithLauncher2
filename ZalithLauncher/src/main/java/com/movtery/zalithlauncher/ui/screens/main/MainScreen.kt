@@ -188,13 +188,13 @@ fun MainScreen(
                             }
                             LauncherSection.LIBRARY -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager)
                             LauncherSection.WALLPAPERS -> {
-                                screenBackStackModel.settingsScreen.backStack.clearWith(NormalNavKey.Settings.Wallpapers)
+                                screenBackStackModel.settingsScreen.clearWith(NormalNavKey.Settings.Wallpapers)
                                 screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
                             }
                             LauncherSection.MULTIPLAYER -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer)
                             LauncherSection.SETTINGS -> {
                                 if (screenBackStackModel.settingsScreen.currentKey === NormalNavKey.Settings.Wallpapers) {
-                                    screenBackStackModel.settingsScreen.backStack.clearWith(NormalNavKey.Settings.Renderer)
+                                    screenBackStackModel.settingsScreen.clearWith(NormalNavKey.Settings.Renderer)
                                 }
                                 screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
                             }

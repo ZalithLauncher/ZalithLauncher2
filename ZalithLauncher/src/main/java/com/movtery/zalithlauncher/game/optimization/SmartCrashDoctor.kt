@@ -90,7 +90,7 @@ object SmartCrashDoctor {
 
     suspend fun analyze(
         explicitLogFile: File? = null,
-        version: Version? = VersionsManager.currentVersion
+        version: Version? = VersionsManager.currentVersion.value
     ): CrashDiagnosis = withContext(Dispatchers.IO) {
         val candidateFiles = buildList {
             if (explicitLogFile != null && explicitLogFile.exists()) add(explicitLogFile)
@@ -241,12 +241,12 @@ object SmartCrashDoctor {
 
     suspend fun applyFix(
         diagnosis: CrashDiagnosis,
-        version: Version? = VersionsManager.currentVersion
+        version: Version? = VersionsManager.currentVersion.value
     ): String = withContext(Dispatchers.IO) {
         when (diagnosis.category) {
             CrashCategory.OUT_OF_MEMORY -> {
                 withContext(Dispatchers.Main) {
-                    val currentRam = AllSettings.ramAllocation.state
+                    val currentRam = AllSettings.ramAllocation.state ?: 2048
                     val safeRam = if (currentRam < 2048) 2560 else (currentRam + 512).coerceAtMost(3584)
                     AllSettings.ramAllocation.save(safeRam)
                 }

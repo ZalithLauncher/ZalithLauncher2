@@ -14,28 +14,24 @@ jobs:
       - name: Remove the debug warning and home title
         run: |
           python3 - << 'PY'
+          import re
           from pathlib import Path
           cards = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/home/HomeCards.kt")
           text = cards.read_text()
-          old = """    fun systemCards(): List<SystemCard> = buildList {
-            if (BuildConfig.DEBUG) {
-                add(debugWarningCard())
-            }
-          }"""
-          new = """    fun systemCards(): List<SystemCard> = emptyList()"""
-          if old not in text:
+          updated, n = re.subn(
+              r"fun systemCards\(\): List<SystemCard> = buildList \{[\s\S]*?\n    \}",
+              "fun systemCards(): List<SystemCard> = emptyList()",
+              text,
+              count=1,
+          )
+          if n != 1:
               raise SystemExit("warning card pattern not found")
-          cards.write_text(text.replace(old, new, 1))
-
+          cards.write_text(updated)
           screen = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
           s = screen.read_text()
           s = s.replace("text = stringResource(R.string.launcher_brand_name),", "text = \"\",", 1)
           s = s.replace("text = stringResource(R.string.app_unofficial_modified),", "text = \"\",", 1)
-          s = s.replace(
-              "painter = painterResource(R.drawable.ic_mirai_mark),\n                                contentDescription = null,\n                                tint = Color.Unspecified,\n                                modifier = Modifier.size(25.dp)",
-              "painter = painterResource(R.drawable.ic_mirai_mark),\n                                contentDescription = null,\n                                tint = Color.Unspecified,\n                                modifier = Modifier.size(0.dp)",
-              1,
-          )
+          s = s.replace("modifier = Modifier.size(25.dp)", "modifier = Modifier.size(0.dp)", 1)
           screen.write_text(s)
           PY
           git config user.name entitybrian69-bit

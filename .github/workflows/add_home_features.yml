@@ -7,15 +7,5 @@ jobs:
   add:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: Mirai-launcher
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Wire the renderer picker
-        run: |
-          python3 scripts/wire_renderer_picker.py
-          git config user.name entitybrian69-bit
-          git config user.email entitybrian69@gmail.com
-          git add -A
-          git commit -m "Select an existing renderer by Minecraft version"
-          git push origin HEAD:Mirai-launcher
+      - name: Do not force a renderer
+        run: echo "Renderer choice stays manual. LTW is already a selectable option."

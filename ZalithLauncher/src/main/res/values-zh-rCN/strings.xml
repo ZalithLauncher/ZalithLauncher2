@@ -1120,6 +1120,13 @@
     <string name="control_manage_import">导入控制布局</string>
     <string name="control_manage_import_failed">导入控制布局文件失败</string>
     <string name="control_manage_import_failed_to_parse">控制布局格式错误，启动器无法识别它！</string>
+    <string name="control_share_method_title">选择分享方式</string>
+    <string name="control_share_as_zl2">分享为 ZL2 控制布局</string>
+    <string name="control_share_as_fcl">分享为 FCL 控制布局</string>
+    <string name="control_share_fcl_confirm_message1">在导出前，您需要理解，ZL2 与 FCL 的控制布局系统实现逻辑存在较大差异，因此在导出后，部分控制布局中的控件可能会出现样式错位、显示异常或其他问题。</string>
+    <string name="control_share_fcl_confirm_message2">这些问题通常并非导出器本身能够解决的问题，您需要自行检查并根据实际情况进行调整或修复。</string>
+    <string name="control_share_fcl_confirm_message3">您要继续此操作吗？</string>
+    <string name="control_share_fcl_confirm_export">导出</string>
     <string name="control_editor_menu_title">编辑器菜单</string>
     <string name="control_editor_menu_new_widget_button">添加按钮</string>
     <string name="control_editor_menu_new_widget_text">添加文本框</string>

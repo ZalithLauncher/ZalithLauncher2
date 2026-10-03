@@ -36,8 +36,8 @@ object LTWRenderer : RendererInterface {
     override fun getRendererSummary(): String =
         "Incomplete OpenGL 3.2 core wrapper on OpenGL ES; game, mod, and device compatibility varies."
 
-    /** LTW is requested for Minecraft versions above 1.17. */
-    override fun getMinMCVersion(): String = "1.18"
+    /** LTW is available for Minecraft 1.17 and newer. */
+    override fun getMinMCVersion(): String = "1.17"
 
     override fun getRendererEnv(): Lazy<Map<String, String>> = lazy {
         mapOf("LIBGL_ES" to "3")

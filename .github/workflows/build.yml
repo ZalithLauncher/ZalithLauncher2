@@ -120,11 +120,11 @@ jobs:
                   r"(^\s*(?:e:|w:)\s|error:|fatal error:|CMake Error|"
                   r"Execution failed for task|Could not (?:resolve|find)|"
                   r"No space left|UnknownHostException|OutOfMemoryError|"
-                  r"FAILED|failed to run|undefined reference|ninja:)",
+                  r"FAILED|failed to run|undefined reference)",
                   re.IGNORECASE,
               )
               diagnostics = [line for line in lines[:failure_index] if diagnostic_pattern.search(line)][-60:]
-              diagnostic_text = section("Relevant compiler/build output:", diagnostics, 1350)
+              diagnostic_text = section("Relevant compiler/build output:", diagnostics, 2500)
               stack = section("Stack trace ending:", lines[-12:], 350)
               excerpt = "\n\n".join(part for part in (summary, diagnostic_text, stack) if part)
           else:

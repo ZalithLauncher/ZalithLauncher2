@@ -54,9 +54,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ExpandLess
-import androidx.compose.material.icons.outlined.ExpandMore
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
@@ -113,10 +110,18 @@ private val ModrinthEmerald = Color(0xFF1BD96A)
 private val ModrinthEmeraldDark = Color(0xFF143825)
 private val ModrinthOnEmerald = Color(0xFF06210F)
 
+private val DefaultAvailableRenderers = setOf(
+    RendererPicker.LTW,
+    RendererPicker.LTW_LEGACY,
+    RendererPicker.ZINK,
+    RendererPicker.VIRGL,
+    RendererPicker.GL4ES
+)
+
 fun resolveRendererShortLabel(version: Version?): String {
     val mcVer = version?.getVersionInfo()?.minecraftVersion
     val manual = version?.getRenderer()?.takeIf { it.isNotBlank() }
-    val choice = RendererPicker.pick(mcVer, manual)
+    val choice = RendererPicker.pick(mcVer, manual, DefaultAvailableRenderers)
     return when {
         choice.identifier.contains("Legacy", ignoreCase = true) -> "LTW Legacy"
         choice.identifier.contains("LTW", ignoreCase = true) -> "LTW"
@@ -130,7 +135,7 @@ fun resolveRendererShortLabel(version: Version?): String {
 fun resolveRendererBadgeDetail(version: Version?): String {
     val mcVer = version?.getVersionInfo()?.minecraftVersion
     val manual = version?.getRenderer()?.takeIf { it.isNotBlank() }
-    val choice = RendererPicker.pick(mcVer, manual)
+    val choice = RendererPicker.pick(mcVer, manual, DefaultAvailableRenderers)
     return when {
         choice.identifier.contains("Legacy", ignoreCase = true) -> "Renderer: LTW Legacy (1.8–1.16.5)"
         choice.identifier.contains("LTW", ignoreCase = true) -> "Renderer: LTW (1.17+)"
@@ -227,7 +232,9 @@ fun MiraiHomeDashboard(
                                 color = Color.White
                             )
                             Icon(
-                                imageVector = if (jumpBackInExpanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                                painter = painterResource(
+                                    if (jumpBackInExpanded) R.drawable.ic_arrow_drop_up_rounded else R.drawable.ic_arrow_drop_down_rounded
+                                ),
                                 contentDescription = null,
                                 tint = Color(0xFF9CA3AF),
                                 modifier = Modifier.size(20.dp)

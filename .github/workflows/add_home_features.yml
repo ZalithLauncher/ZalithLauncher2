@@ -1,0 +1,237 @@
+name: Add home features
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  add:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: Mirai-launcher
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Add quiet mode, renderer memory, night, and hold launch
+        run: |
+          python3 - << 'PY'
+          from pathlib import Path
+
+          settings = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/setting/AllSettings.kt")
+          text = settings.read_text()
+          needle = "    val searchShadersPlatform = enumSetting(\"searchShadersPlatform\", Platform.CURSEFORGE)\n}"
+          insert = """    val searchShadersPlatform = enumSetting(\"searchShadersPlatform\", Platform.CURSEFORGE)
+              val miraiQuietMode = boolSetting(\"miraiQuietMode\", false)
+              val miraiVulkanFailCount = intSetting(\"miraiVulkanFailCount\", 0)
+          }"""
+          if needle not in text:
+              raise SystemExit("settings anchor missing")
+          settings.write_text(text.replace(needle, insert, 1))
+
+          buttons = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/components/Buttons.kt")
+          b = buttons.read_text()
+          b = b.replace(
+              "fun ScalingActionButton(\n              onClick: () -> Unit,",
+              "fun ScalingActionButton(\n              onClick: () -> Unit,\n              onLongClick: (() -> Unit)? = null,",
+              1,
+          )
+          if "LaunchedEffect(isPressed, onLongClick)" not in b:
+              b = b.replace(
+                  "    Button(\n              onClick = onClick,",
+                  """    var longHandled by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+              androidx.compose.runtime.LaunchedEffect(isPressed, onLongClick) {
+                  if (isPressed && onLongClick != null) {
+                      kotlinx.coroutines.delay(480)
+                      if (isPressed) {
+                          longHandled = true
+                          onLongClick()
+                      }
+                  }
+              }
+              Button(
+                  onClick = {
+                      if (longHandled) longHandled = false else onClick()
+                  },""",
+                  1,
+              )
+          buttons.write_text(b)
+
+          rail = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MiraiNavigationRail.kt")
+          r = rail.read_text()
+          if "miraiQuietMode" not in r:
+              r = r.replace(
+                  "import com.movtery.zalithlauncher.R\n",
+                  "import com.movtery.zalithlauncher.R\nimport com.movtery.zalithlauncher.setting.AllSettings\n",
+                  1,
+              )
+              r = r.replace(
+                  "import androidx.compose.foundation.clickable\n",
+                  "import androidx.compose.foundation.clickable\nimport androidx.compose.foundation.combinedClickable\n",
+                  1,
+              )
+              r = r.replace(
+                  "    val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()\n",
+                  "    val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()\n    val quiet = AllSettings.miraiQuietMode.state\n",
+                  1,
+              )
+              r = r.replace(
+                  "            Box(\n                          modifier = Modifier\n                              .fillMaxWidth()\n                              .height(40.dp),",
+                  """            Box(
+                          modifier = Modifier
+                              .fillMaxWidth()
+                              .height(40.dp)
+                              .combinedClickable(
+                                  onClick = {},
+                                  onLongClick = { AllSettings.miraiQuietMode.save(!quiet) }
+                              ),""",
+                  1,
+              )
+              r = r.replace(
+                  "            LauncherSectionItem(\n                          icon = R.drawable.ic_search,",
+                  "            if (!quiet) LauncherSectionItem(\n                          icon = R.drawable.ic_search,",
+                  1,
+              )
+              r = r.replace(
+                  "            LauncherSectionItem(\n                          icon = R.drawable.ic_dashboard_filled,",
+                  "            if (!quiet) LauncherSectionItem(\n                          icon = R.drawable.ic_dashboard_filled,",
+                  1,
+              )
+              r = r.replace(
+                  "            LauncherSectionItem(\n                          icon = R.drawable.ic_group_filled,",
+                  "            if (!quiet) LauncherSectionItem(\n                          icon = R.drawable.ic_group_filled,",
+                  1,
+              )
+              r = r.replace(
+                  "            LauncherSectionItem(\n                          icon = R.drawable.ic_settings_filled,",
+                  "            if (!quiet) LauncherSectionItem(\n                          icon = R.drawable.ic_settings_filled,",
+                  1,
+              )
+              r = r.replace(
+                  "            AccountShortcut(account = account, onClick = onAccountClick)\n",
+                  "            if (!quiet) AccountShortcut(account = account, onClick = onAccountClick)\n",
+                  1,
+              )
+          rail.write_text(r)
+
+          screen = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
+          m = screen.read_text()
+          if "LocalTime.now" not in m:
+              m = m.replace(
+                  "    Surface(\n              modifier = Modifier.fillMaxSize(),\n              color = backgroundColor,\n              contentColor = onBackgroundColor()\n          ) {\n              Column(",
+                  """    val night = java.time.LocalTime.now().hour.let { it >= 19 || it < 6 }
+              Surface(
+                  modifier = Modifier.fillMaxSize(),
+                  color = backgroundColor,
+                  contentColor = onBackgroundColor()
+              ) {
+                  Box(Modifier.fillMaxSize()) {
+                  Column(""",
+                  1,
+              )
+              m = m.replace(
+                  "                }\n              }\n          }\n      }\n  }\n}\n\nprivate fun TitledNavKey?.toLauncherSection()",
+                  """                }
+                      }
+                      if (night) {
+                          Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.34f)))
+                      }
+                  }
+              }
+          }
+      }
+  }
+
+private fun TitledNavKey?.toLauncherSection()""",
+                  1,
+              )
+          screen.write_text(m)
+
+          launch = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/LauncherScreen.kt")
+          l = launch.read_text()
+          if "onLongClick = { showPick = true }" not in l:
+              l = l.replace(
+                  "import androidx.compose.material3.TextButton\n",
+                  "import androidx.compose.material3.TextButton\nimport androidx.compose.material3.AlertDialog\n",
+                  1,
+              )
+              l = l.replace(
+                  "    var showList by remember { mutableStateOf(false) }\n",
+                  "    var showList by remember { mutableStateOf(false) }\n    var showPick by remember { mutableStateOf(false) }\n    val launchedAt = remember { androidx.compose.runtime.mutableLongStateOf(0L) }\n",
+                  1,
+              )
+              l = l.replace(
+                  "            onClick = {\n                          onLaunchGame(null)\n                      },",
+                  """            onClick = {
+                          launchedAt.longValue = System.currentTimeMillis()
+                          onLaunchGame(null)
+                      },
+                      onLongClick = { showPick = true },""",
+                  1,
+              )
+              l = l.replace(
+                  "        )\n    }\n}\n\n@Composable\nprivate fun ActionMenuCardContent(",
+                  """        )
+              if (showPick) {
+                  AlertDialog(
+                      onDismissRequest = { showPick = false },
+                      title = { Text(\"Choose before launch\") },
+                      text = {
+                          Column {
+                              Text(\"Version: ${version?.versionName ?: \"None\"}\")
+                              Text(\"Long press chose this panel. Tap a version in the list, or switch renderer.\")
+                              TextButton(onClick = {
+                                  AllSettings.graphicsApi.save(com.movtery.zalithlauncher.game.version.installed.GraphicsApi.DEFAULT_OPENGL)
+                                  AllSettings.miraiVulkanFailCount.save(0)
+                                  showPick = false
+                              }) { Text(\"Use OpenGL\") }
+                              TextButton(onClick = {
+                                  val vulkan = com.movtery.zalithlauncher.game.version.installed.GraphicsApi.entries.firstOrNull { it.name.contains(\"VULKAN\") }
+                                  if (vulkan != null) AllSettings.graphicsApi.save(vulkan)
+                                  showPick = false
+                              }) { Text(\"Use Vulkan\") }
+                              TextButton(onClick = { toVersionManageScreen(); showPick = false }) { Text(\"Pick a version\") }
+                          }
+                      },
+                      confirmButton = {
+                          TextButton(onClick = {
+                              launchedAt.longValue = System.currentTimeMillis()
+                              showPick = false
+                              onLaunchGame(null)
+                          }) { Text(\"Launch\") }
+                      }
+                  )
+              }
+              if (AllSettings.miraiVulkanFailCount.state >= 2 && AllSettings.graphicsApi.state.name.contains(\"VULKAN\")) {
+                  AlertDialog(
+                      onDismissRequest = { AllSettings.miraiVulkanFailCount.save(0) },
+                      title = { Text(\"Vulkan crashed twice\") },
+                      text = { Text(\"Switch the next launch to OpenGL?\") },
+                      confirmButton = {
+                          TextButton(onClick = {
+                              AllSettings.graphicsApi.save(com.movtery.zalithlauncher.game.version.installed.GraphicsApi.DEFAULT_OPENGL)
+                              AllSettings.miraiVulkanFailCount.save(0)
+                          }) { Text(\"Use OpenGL\") }
+                      },
+                      dismissButton = {
+                          TextButton(onClick = { AllSettings.miraiVulkanFailCount.save(0) }) { Text(\"Keep Vulkan\") }
+                      }
+                  )
+              }
+          }
+      }
+
+@Composable
+private fun ActionMenuCardContent(""",
+                  1,
+              )
+              l = l.replace(
+                  "import com.movtery.zalithlauncher.setting.AllSettings\n",
+                  "import com.movtery.zalithlauncher.setting.AllSettings\n",
+                  1,
+              )
+          launch.write_text(l)
+          PY
+          git config user.name entitybrian69-bit
+          git config user.email entitybrian69@gmail.com
+          git add ZalithLauncher/src/main/java/com/movtery/zalithlauncher/setting/AllSettings.kt ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/components/Buttons.kt ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MiraiNavigationRail.kt ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/LauncherScreen.kt
+          git commit -m "Add quiet mode, night background, hold launch, and renderer memory"
+          git push origin HEAD:Mirai-launcher

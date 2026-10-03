@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.game.account.AccountsManager
+import com.movtery.zalithlauncher.game.account.getAccountTypeName
 import com.movtery.zalithlauncher.ui.components.SkinPreview3D
 
 @Composable
@@ -46,6 +47,13 @@ fun PlayerSkinStage(modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = account?.let(::getAccountTypeName) ?: "Add an account",
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.labelLarge,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )

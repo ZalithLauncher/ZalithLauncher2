@@ -32,8 +32,8 @@ class LTWRendererTest {
     }
 
     @Test
-    fun rendererAdvertisesMinecraftVersionsStartingAtOneEighteen() {
-        assertEquals("1.18", LTWRenderer.getMinMCVersion())
+    fun rendererAdvertisesMinecraftVersionsStartingAtOneSeventeen() {
+        assertEquals("1.17", LTWRenderer.getMinMCVersion())
         assertEquals(null, LTWRenderer.getMaxMCVersion())
     }
 }

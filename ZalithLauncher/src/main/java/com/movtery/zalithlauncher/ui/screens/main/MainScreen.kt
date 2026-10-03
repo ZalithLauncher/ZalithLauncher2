@@ -334,9 +334,7 @@ private fun <E: TitledNavKey> TopBar(
                             IconButton(
                                 modifier = Modifier.fillMaxHeight(),
                                 onClick = {
-                                    if (!inLauncherScreen) {
-                                        backDispatcher?.onBackPressed() ?: onScreenBack()
-                                    }
+                                    if (!inLauncherScreen) toMainScreen()
                                 }
                             ) {
                                 Icon(

@@ -138,4 +138,6 @@ object AllSettings : SettingsRegistry() {
     val searchModpackPlatform = enumSetting("searchModpackPlatform", Platform.CURSEFORGE)
     val searchResourcePackPlatform = enumSetting("searchResourcePackPlatform", Platform.CURSEFORGE)
     val searchShadersPlatform = enumSetting("searchShadersPlatform", Platform.CURSEFORGE)
+    val miraiQuietMode = boolSetting("miraiQuietMode", false)
+    val miraiVulkanFailCount = intSetting("miraiVulkanFailCount", 0)
 }

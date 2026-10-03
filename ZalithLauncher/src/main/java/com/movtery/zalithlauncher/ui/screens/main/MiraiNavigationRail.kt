@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.ui.screens.main
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -48,6 +49,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
@@ -70,6 +72,7 @@ fun MiraiNavigationRail(
     modifier: Modifier = Modifier
 ) {
     val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
+    val quiet = AllSettings.miraiQuietMode.state
 
     Surface(
         modifier = modifier
@@ -87,7 +90,11 @@ fun MiraiNavigationRail(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp),
+                    .height(40.dp)
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = { AllSettings.miraiQuietMode.save(!quiet) }
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -108,19 +115,19 @@ fun MiraiNavigationRail(
                 selected = selectedSection == LauncherSection.HOME,
                 onClick = { onNavigate(LauncherSection.HOME) }
             )
-            LauncherSectionItem(
+            if (!quiet) LauncherSectionItem(
                 icon = R.drawable.ic_search,
                 label = stringResource(R.string.generic_download),
                 selected = selectedSection == LauncherSection.DISCOVER,
                 onClick = { onNavigate(LauncherSection.DISCOVER) }
             )
-            LauncherSectionItem(
+            if (!quiet) LauncherSectionItem(
                 icon = R.drawable.ic_dashboard_filled,
                 label = stringResource(R.string.page_title_version_list),
                 selected = selectedSection == LauncherSection.LIBRARY,
                 onClick = { onNavigate(LauncherSection.LIBRARY) }
             )
-            LauncherSectionItem(
+            if (!quiet) LauncherSectionItem(
                 icon = R.drawable.ic_group_filled,
                 label = stringResource(R.string.terracotta),
                 selected = selectedSection == LauncherSection.MULTIPLAYER,
@@ -129,7 +136,7 @@ fun MiraiNavigationRail(
 
             Spacer(Modifier.weight(1f))
 
-            LauncherSectionItem(
+            if (!quiet) LauncherSectionItem(
                 icon = R.drawable.ic_settings_filled,
                 label = stringResource(R.string.generic_setting),
                 selected = selectedSection == LauncherSection.SETTINGS,
@@ -139,7 +146,7 @@ fun MiraiNavigationRail(
             Spacer(Modifier.height(6.dp))
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
             Spacer(Modifier.height(6.dp))
-            AccountShortcut(account = account, onClick = onAccountClick)
+            if (!quiet) AccountShortcut(account = account, onClick = onAccountClick)
         }
     }
 }

@@ -166,11 +166,13 @@ fun MainScreen(
         backgroundColor().copy(alpha = launcherBackgroundOpacity)
     } else backgroundColor()
 
+    val night = java.time.LocalTime.now().hour.let { it >= 19 || it < 6 }
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = backgroundColor,
         contentColor = onBackgroundColor()
     ) {
+        Box(Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -268,6 +270,10 @@ fun MainScreen(
                     }
                 }
             }
+        }
+        if (night) {
+            Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.34f)))
+        }
         }
     }
 }

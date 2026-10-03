@@ -49,6 +49,7 @@ import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -419,6 +420,7 @@ private fun VersionsContent(
     val isRefreshing by VersionsManager.isRefreshing.collectAsStateWithLifecycle()
 
     var showList by remember { mutableStateOf(false) }
+    var showPick by remember { mutableStateOf(false) }
     var versionManagerRow by remember { mutableStateOf<LayoutCoordinates?>(null) }
     Column(modifier = modifier) {
         Box(
@@ -519,10 +521,52 @@ private fun VersionsContent(
             onClick = {
                 onLaunchGame(null)
             },
+            onLongClick = { showPick = true },
             content = {
                 MarqueeText(text = stringResource(R.string.main_launch_game))
             }
         )
+        if (showPick) {
+            AlertDialog(
+                onDismissRequest = { showPick = false },
+                title = { Text("Choose before launch") },
+                text = {
+                    Column {
+                        Text("Version: ${version?.versionName ?: "None selected"}")
+                        TextButton(onClick = {
+                            AllSettings.graphicsApi.save(com.movtery.zalithlauncher.game.version.installed.GraphicsApi.DEFAULT_OPENGL)
+                            AllSettings.miraiVulkanFailCount.save(0)
+                            showPick = false
+                        }) { Text("Use OpenGL") }
+                        TextButton(onClick = {
+                            val vulkan = com.movtery.zalithlauncher.game.version.installed.GraphicsApi.entries.firstOrNull { it.name.contains("VULKAN") }
+                            if (vulkan != null) AllSettings.graphicsApi.save(vulkan)
+                            showPick = false
+                        }) { Text("Use Vulkan") }
+                        TextButton(onClick = { toVersionManageScreen(); showPick = false }) { Text("Pick a version") }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showPick = false; onLaunchGame(null) }) { Text("Launch") }
+                }
+            )
+        }
+        if (AllSettings.miraiVulkanFailCount.state >= 2 && AllSettings.graphicsApi.state.name.contains("VULKAN")) {
+            AlertDialog(
+                onDismissRequest = { AllSettings.miraiVulkanFailCount.save(0) },
+                title = { Text("Vulkan crashed twice") },
+                text = { Text("Switch the next launch to OpenGL?") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        AllSettings.graphicsApi.save(com.movtery.zalithlauncher.game.version.installed.GraphicsApi.DEFAULT_OPENGL)
+                        AllSettings.miraiVulkanFailCount.save(0)
+                    }) { Text("Use OpenGL") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { AllSettings.miraiVulkanFailCount.save(0) }) { Text("Keep Vulkan") }
+                }
+            )
+        }
     }
 }
 

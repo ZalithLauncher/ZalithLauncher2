@@ -69,11 +69,7 @@ object HomeCards {
     val userCardTypes: List<CardType> = listOf(versionCardType)
 
     /** 系统卡片（不可变更） */
-    fun systemCards(): List<SystemCard> = buildList {
-        if (BuildConfig.DEBUG) {
-            add(debugWarningCard())
-        }
-    }
+    fun systemCards(): List<SystemCard> = emptyList()
 
     /**
      * debug版本关不掉的警告，防止有人把测试版当正式版用 XD

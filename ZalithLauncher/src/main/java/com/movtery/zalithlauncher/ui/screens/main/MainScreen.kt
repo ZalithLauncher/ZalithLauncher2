@@ -380,21 +380,21 @@ private fun <E: TitledNavKey> TopBar(
                                 painter = painterResource(R.drawable.ic_mirai_mark),
                                 contentDescription = null,
                                 tint = Color.Unspecified,
-                                modifier = Modifier.size(25.dp)
+                                modifier = Modifier.size(0.dp)
                             )
                             Column(
                                 modifier = Modifier.widthIn(max = 170.dp),
                                 verticalArrangement = Arrangement.spacedBy(0.dp)
                             ) {
                                 Text(
-                                    text = stringResource(R.string.launcher_brand_name),
+                                    text = "",
                                     style = style,
                                     fontWeight = FontWeight.SemiBold,
                                     maxLines = 1,
                                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                                 )
                                 Text(
-                                    text = stringResource(R.string.app_unofficial_modified),
+                                    text = "",
                                     style = MaterialTheme.typography.labelSmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,

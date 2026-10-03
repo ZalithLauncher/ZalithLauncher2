@@ -130,13 +130,6 @@ fun MiraiNavigationRail(
             Spacer(Modifier.weight(1f))
 
             LauncherSectionItem(
-                icon = R.drawable.ic_add,
-                label = stringResource(R.string.home_new_instance),
-                selected = false,
-                highlighted = true,
-                onClick = onCreateInstance
-            )
-            LauncherSectionItem(
                 icon = R.drawable.ic_settings_filled,
                 label = stringResource(R.string.generic_setting),
                 selected = selectedSection == LauncherSection.SETTINGS,

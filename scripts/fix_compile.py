@@ -2,19 +2,7 @@ from pathlib import Path
 
 buttons = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/components/Buttons.kt")
 b = buttons.read_text()
-old = """fun ScalingActionButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,"""
-new = """fun ScalingActionButton(
-    onClick: () -> Unit,
-    onLongClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier,"""
-if old not in b:
-    raise SystemExit("button signature missing")
-b = b.replace(old, new, 1)
-old_button = """    Button(
-        onClick = onClick,"""
-new_button = """    var longHandled by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+old = """    var longHandled by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     androidx.compose.runtime.LaunchedEffect(isPressed, onLongClick) {
         if (isPressed && onLongClick != null) {
             kotlinx.coroutines.delay(480)
@@ -28,12 +16,31 @@ new_button = """    var longHandled by androidx.compose.runtime.remember { andro
         onClick = {
             if (longHandled) longHandled = false else onClick()
         },"""
-if old_button not in b:
-    raise SystemExit("button body missing")
-buttons.write_text(b.replace(old_button, new_button, 1))
+new = """    val longHandled = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(isPressed, onLongClick) {
+        if (isPressed && onLongClick != null) {
+            kotlinx.coroutines.delay(480)
+            if (isPressed) {
+                longHandled.value = true
+                onLongClick()
+            }
+        }
+    }
+    Button(
+        onClick = {
+            if (longHandled.value) longHandled.value = false else onClick()
+        },"""
+if old not in b:
+    raise SystemExit("button block missing")
+buttons.write_text(b.replace(old, new, 1))
 
-launch = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/LauncherScreen.kt")
-l = launch.read_text()
-l = l.replace("version?.versionName", "version?.getVersionName()", 1)
-launch.write_text(l)
+screen = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
+m = screen.read_text()
+if "import androidx.compose.foundation.background" not in m:
+    m = m.replace(
+        "import androidx.compose.foundation.clickable\n",
+        "import androidx.compose.foundation.background\nimport androidx.compose.foundation.clickable\n",
+        1,
+    )
+    screen.write_text(m)
 print("fixed")

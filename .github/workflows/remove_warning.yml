@@ -29,15 +29,9 @@ jobs:
 
           screen = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
           s = screen.read_text()
-          start = s.find("if (inLauncherScreen) {")
-          if start < 0:
-              raise SystemExit("home title not found")
-          end = s.find("FestivalTitleText(", start)
-          if end < 0:
-              raise SystemExit("title end not found")
-          end = s.find(")", s.find(")", end) + 1) + 1
-          # Drop the home brand block through the festival title call.
-          s = s[:start] + "Unit" + s[end:]
+          s = s.replace("text = stringResource(R.string.launcher_brand_name),", "text = \"\",", 1)
+          s = s.replace("text = stringResource(R.string.app_unofficial_modified),", "text = \"\",", 1)
+          s = s.replace("painter = painterResource(R.drawable.ic_mirai_mark),", "painter = painterResource(R.drawable.ic_mirai_mark),\n                                modifier = Modifier.size(0.dp),", 1)
           screen.write_text(s)
           PY
           git config user.name entitybrian69-bit

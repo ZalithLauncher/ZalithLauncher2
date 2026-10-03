@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.game.renderer
 import com.movtery.zalithlauncher.game.renderer.renderers.FreedrenoRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.KopperZinkRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.LTWLegacyRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.PanfrostRenderer
@@ -33,6 +34,28 @@ private const val TAG = "Renderers"
  * 启动器所有渲染器总管理者，启动器内置的渲染器与渲染器插件加载的渲染器，都会加载到这里
  */
 object Renderers {
+    /**
+     * The renderers Mirai ships with, in the order they are offered to the user.
+     *
+     * This is the single source of truth for built-in renderers. [init] loads it, and
+     * [RendererPicker] reads each entry's declared Minecraft version range from it, so a
+     * renderer's compatibility window never has to be written down twice.
+     *
+     * Constructing this list is side-effect free: renderer environment maps are `lazy`, so
+     * nothing here touches the filesystem or the Android framework until a launch actually
+     * reads a value. That is what lets the renderer unit tests run on a plain JVM.
+     */
+    val BUILT_IN: List<RendererInterface> = listOf(
+        NGGL4ESRenderer,
+        GL4ESRenderer,
+        LTWLegacyRenderer,
+        LTWRenderer,
+        KopperZinkRenderer,
+        VirGLRenderer,
+        FreedrenoRenderer,
+        PanfrostRenderer
+    )
+
     private val renderers: MutableList<RendererInterface> = mutableListOf()
     private var currentRenderer: RendererInterface? = null
     private var isInitialized: Boolean = false
@@ -48,15 +71,7 @@ object Renderers {
             currentRenderer = null
         }
 
-        addRenderers(
-            NGGL4ESRenderer,
-            GL4ESRenderer,
-            LTWRenderer,
-            KopperZinkRenderer,
-            VirGLRenderer,
-            FreedrenoRenderer,
-            PanfrostRenderer
-        )
+        addRenderers(*BUILT_IN.toTypedArray())
     }
 
     /**

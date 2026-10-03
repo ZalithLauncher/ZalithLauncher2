@@ -269,6 +269,7 @@ dependencies {
     implementation(project(":InputMap"))
     implementation(project(":Guide"))
     implementation(project(":ltw"))
+    implementation(project(":ltwlegacy"))
     //Utils
     implementation(libs.bytehook)
     implementation(libs.gson)

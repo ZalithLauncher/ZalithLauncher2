@@ -162,7 +162,7 @@ jobs:
             "$apksigner" verify --verbose "$apk"
           done
 
-      - name: Verify LTW native libraries in the APK
+      - name: Verify LTW and LTW Legacy native libraries in the APK
         run: |
           if [[ "${{ inputs.variant }}" == "Release" ]]; then
             apk_dir="ZalithLauncher/build/outputs/apk/release"
@@ -176,6 +176,8 @@ jobs:
         run: |
           ./gradlew ZalithLauncher:testDebugUnitTest \
             --tests "com.movtery.zalithlauncher.game.renderer.LTWRendererTest" \
+            --tests "com.movtery.zalithlauncher.game.renderer.LTWLegacyRendererTest" \
+            --tests "com.movtery.zalithlauncher.game.renderer.RendererPickerTest" \
             --tests "com.movtery.zalithlauncher.game.addons.mirror.MirrorPreferencesTest" \
             --tests "com.movtery.zalithlauncher.game.account.wardrobe.FileReplacementTest" \
             -Darch=all

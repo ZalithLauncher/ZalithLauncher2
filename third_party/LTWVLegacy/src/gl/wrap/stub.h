@@ -1,0 +1,40 @@
+#include "../gles.h"
+
+//GLint APIENTRY_GL4ES gl4es_glRenderMode(GLenum mode);
+//void APIENTRY_GL4ES gl4es_glBlendEquationSeparate(GLenum modeRGB, GLenum modeAlpha);
+void APIENTRY_GL4ES gl4es_glBlendEquationSeparatei(GLuint buf, GLenum modeRGB, GLenum modeAlpha);
+//void APIENTRY_GL4ES gl4es_glBlendFuncSeparate(GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
+void APIENTRY_GL4ES gl4es_glBlendFuncSeparatei(GLuint buf, GLenum srcRGB, GLenum dstRGB, GLenum srcAlpha, GLenum dstAlpha);
+//void APIENTRY_GL4ES gl4es_glColorMaterial(GLenum face, GLenum mode);
+void APIENTRY_GL4ES gl4es_glCopyPixels(GLint x, GLint y, GLsizei width, GLsizei height, GLenum type);
+void APIENTRY_GL4ES gl4es_glDrawBuffer(GLenum mode);
+void APIENTRY_GL4ES gl4es_glEdgeFlag(GLboolean flag);
+//void APIENTRY_GL4ES gl4es_glFogCoordd(GLdouble coord);
+//void APIENTRY_GL4ES gl4es_glFogCoorddv(const GLdouble *coord);
+//void APIENTRY_GL4ES gl4es_glFogCoordf(GLfloat coord);
+//void APIENTRY_GL4ES gl4es_glFogCoordfv(const GLfloat *coord);
+//void APIENTRY_GL4ES gl4es_glGetTexImage(GLenum target, GLint level, GLenum format, GLenum type, GLvoid * img);
+//void APIENTRY_GL4ES gl4es_glGetTexLevelParameterfv(GLenum target, GLint level, GLenum pname, GLfloat *params);
+//void APIENTRY_GL4ES gl4es_glGetTexLevelParameteriv(GLenum target, GLint level, GLenum pname, GLint *params);
+void APIENTRY_GL4ES gl4es_glIndexf(GLfloat c);
+void APIENTRY_GL4ES gl4es_glLightModeli(GLenum pname, GLint param);
+void APIENTRY_GL4ES gl4es_glPolygonStipple(const GLubyte *mask);
+void APIENTRY_GL4ES gl4es_glReadBuffer(GLenum mode);
+void APIENTRY_GL4ES gl4es_glSecondaryColor3f(GLfloat r, GLfloat g, GLfloat b);
+void APIENTRY_GL4ES gl4es_glColorTable (GLenum target, GLenum internalformat, GLsizei width, GLenum format, GLenum type, const GLvoid *table);
+//void APIENTRY_GL4ES gl4es_glIndexPointer(GLenum  type,  GLsizei  stride,  const GLvoid *  pointer);
+
+void APIENTRY_GL4ES gl4es_glAccum(GLenum op, GLfloat value);
+void APIENTRY_GL4ES gl4es_glPrioritizeTextures(GLsizei n, const GLuint *textures, const GLclampf *priorities);
+void APIENTRY_GL4ES gl4es_glPixelMapfv(GLenum map, GLsizei mapsize, const GLfloat *values);
+void APIENTRY_GL4ES gl4es_glPixelMapuiv(GLenum map,GLsizei mapsize, const GLuint *values);
+void APIENTRY_GL4ES gl4es_glPixelMapusv(GLenum map,GLsizei mapsize, const GLushort *values);
+void APIENTRY_GL4ES gl4es_glPassThrough(GLfloat token);
+void APIENTRY_GL4ES gl4es_glIndexMask(GLuint mask);
+void APIENTRY_GL4ES gl4es_glGetPixelMapfv(GLenum map, GLfloat *data);
+void APIENTRY_GL4ES gl4es_glGetPixelMapuiv(GLenum map, GLuint *data);
+void APIENTRY_GL4ES gl4es_glGetPixelMapusv(GLenum map, GLushort *data);
+void APIENTRY_GL4ES gl4es_glClearIndex(GLfloat c);
+void APIENTRY_GL4ES gl4es_glGetPolygonStipple(GLubyte *pattern);
+void APIENTRY_GL4ES gl4es_glFeedbackBuffer(GLsizei size, GLenum type, GLfloat *buffer);
+void APIENTRY_GL4ES gl4es_glEdgeFlagv(GLboolean *flag);

@@ -20,6 +20,8 @@ static const char* g_LogTag = "GLBridge";
 static __thread gl_render_window_t* currentBundle;
 static EGLDisplay g_EglDisplay;
 
+static void gl4esi_get_display_dimensions(int* width, int* height);
+
 bool gl_init() {
     dlsym_EGL();
     g_EglDisplay = eglGetDisplay_p(EGL_DEFAULT_DISPLAY);
@@ -36,6 +38,14 @@ bool gl_init() {
                             eglGetError_p());
         return false;
     }
+
+    void (*set_getmainfbsize)(void (*new_getMainFBSize)(int* width, int* height)) =
+            (void (*)(void (*)(int*, int*)))dlsym(RTLD_DEFAULT, "set_getmainfbsize");
+    if (set_getmainfbsize != NULL) {
+        __android_log_print(ANDROID_LOG_INFO, g_LogTag, "GL4ES/VGPU internals initialized dimension callback in gl_init");
+        set_getmainfbsize(gl4esi_get_display_dimensions);
+    }
+
     return true;
 }
 

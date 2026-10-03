@@ -77,6 +77,11 @@ import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer_v2.RendererV2Data
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
 import com.movtery.zalithlauncher.game.renderer.Renderers
+import com.movtery.zalithlauncher.game.renderer.renderers.KopperZinkRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.LTWLegacyRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.VGPU1368Renderer
+import com.movtery.zalithlauncher.game.renderer.renderers.VGPURenderer
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.path.URL_CLOUD_DRIVE_DRIVER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_CLOUD_RENDERER_PLUGINS
@@ -126,6 +131,18 @@ private val rendererStackOptions = listOf(
         title = "Auto (Smart Pick)",
         badge = "RECOMMENDED",
         description = "Auto-picks LTW for 1.17+ and LTW Legacy for 1.8–1.16.5."
+    ),
+    RendererStackOption(
+        keyMatch = "VGPU_FAST",
+        title = "vgpu - (up to 1.16.5, fast)",
+        badge = "1.16.5 FAST",
+        description = "Pojav Glow-Worm VGPU 1.4.0 for 1.16.5 Fabric + Sodium & shaders."
+    ),
+    RendererStackOption(
+        keyMatch = "VGPU_1368",
+        title = "VGPU 1.3.6β",
+        badge = "SHADERCONV",
+        description = "Pojav Glow-Worm VGPU 1.3.6β with built-in shaderconv for 1.16.5 & shaders."
     ),
     RendererStackOption(
         keyMatch = "LTW",
@@ -194,15 +211,20 @@ fun RendererSettingsScreen(
                                 val matchedRenderer = remember(option, allRenderers) {
                                     when (option.keyMatch) {
                                         "AUTO" -> null
+                                        "VGPU_FAST" -> allRenderers.firstOrNull {
+                                            it.getUniqueIdentifier() == VGPURenderer.getUniqueIdentifier()
+                                        }
+                                        "VGPU_1368" -> allRenderers.firstOrNull {
+                                            it.getUniqueIdentifier() == VGPU1368Renderer.getUniqueIdentifier()
+                                        }
                                         "LTW" -> allRenderers.firstOrNull {
-                                            it.getUniqueIdentifier().contains("LTW", ignoreCase = true) &&
-                                                !it.getUniqueIdentifier().contains("Legacy", ignoreCase = true)
+                                            it.getUniqueIdentifier() == LTWRenderer.getUniqueIdentifier()
                                         }
                                         "Legacy" -> allRenderers.firstOrNull {
-                                            it.getUniqueIdentifier().contains("Legacy", ignoreCase = true)
+                                            it.getUniqueIdentifier() == LTWLegacyRenderer.getUniqueIdentifier()
                                         }
                                         "Zink" -> allRenderers.firstOrNull {
-                                            it.getUniqueIdentifier().contains("Zink", ignoreCase = true)
+                                            it.getUniqueIdentifier() == KopperZinkRenderer.getUniqueIdentifier()
                                         }
                                         else -> allRenderers.firstOrNull()
                                     }

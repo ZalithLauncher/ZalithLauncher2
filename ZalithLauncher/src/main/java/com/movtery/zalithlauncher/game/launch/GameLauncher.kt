@@ -46,6 +46,8 @@ import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWLegacyRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.VGPU1368Renderer
+import com.movtery.zalithlauncher.game.renderer.renderers.VGPURenderer
 import com.movtery.zalithlauncher.game.support.touch_controller.ControllerProxy
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
@@ -235,6 +237,7 @@ class GameLauncher(
         val gameDirPath = version.getGameDir()
 
         disableSplash(gameDirPath)
+        configureVgpuAndLegacyCompatibility(gameDirPath)
 
         //初始化运行环境
         this.runtime = runtime
@@ -373,6 +376,106 @@ class GameLauncher(
             }
         }
     }
+
+    /**
+     * Ensures 1.16.5 + Fabric + Sodium and OptiFine/Iris shaderpacks run smoothly without errors
+     * on VGPU (`libvgpu.so` / `libvgpu_1368.so`) and GL4ES-based legacy renderers:
+     * 1. Sets `use_chunk_multidraw = false` in `config/sodium-options.json` so Sodium 1.16.5 uses
+     *    the Oneshot (`gl4es_glMultiDrawArrays`) chunk backend instead of calling
+     *    `glMultiDrawArraysIndirect(GL_QUADS)` on OpenGL ES.
+     * 2. Disables OptiFine `ofFastRender` / `ofAaLevel` in `optionsof.txt` if present so FBO
+     *    shaderpacks render cleanly.
+     * 3. Downgrades `graphicsMode:2` (Fabulous) to `graphicsMode:1` (Fancy) in `options.txt` if
+     *    present so vanilla Fabulous depth-layer FBOs do not conflict with VGPU/shaders.
+     */
+    private fun configureVgpuAndLegacyCompatibility(dir: File) {
+        if (!Renderers.isCurrentRendererValid()) return
+        val renderer = Renderers.getCurrentRenderer()
+        val isVgpuOrLegacyGles = renderer == VGPURenderer ||
+            renderer == VGPU1368Renderer ||
+            renderer == LTWLegacyRenderer ||
+            renderer == GL4ESRenderer ||
+            renderer == NGGL4ESRenderer
+        if (!isVgpuOrLegacyGles) return
+
+        runCatching {
+            val configDir = File(dir, "config")
+            if (configDir.ensureDirectorySilently()) {
+                val sodiumOptionsFile = configDir.child("sodium-options.json")
+                if (sodiumOptionsFile.exists() && sodiumOptionsFile.isFile) {
+                    var content = sodiumOptionsFile.readText()
+                    var modified = false
+                    if (content.contains(Regex(""""use_chunk_multidraw"\s*:\s*true"""))) {
+                        content = content.replace(
+                            Regex(""""use_chunk_multidraw"\s*:\s*true"""),
+                            """"use_chunk_multidraw": false"""
+                        )
+                        modified = true
+                    }
+                    if (content.contains(Regex(""""chunk_renderer_backend"\s*:\s*"GL43""""))) {
+                        content = content.replace(
+                            Regex(""""chunk_renderer_backend"\s*:\s*"GL43""""),
+                            """"chunk_renderer_backend": "GL30""""
+                        )
+                        modified = true
+                    }
+                    if (modified) {
+                        sodiumOptionsFile.writeText(content)
+                    }
+                } else {
+                    sodiumOptionsFile.writeText(
+                        """
+                        {
+                          "quality": {
+                            "cloud_quality": "FAST",
+                            "weather_quality": "DEFAULT",
+                            "enable_vignette": false,
+                            "enable_clouds": true,
+                            "smooth_lighting": "HIGH"
+                          },
+                          "advanced": {
+                            "use_vertex_array_objects": true,
+                            "use_chunk_multidraw": false,
+                            "animate_only_visible_textures": true,
+                            "use_entity_culling": true,
+                            "use_particle_culling": true,
+                            "use_fog_occlusion": true,
+                            "use_compact_vertex_format": true,
+                            "use_block_face_culling": true,
+                            "allow_direct_memory_access": true,
+                            "ignore_driver_blacklist": false
+                          },
+                          "notifications": {
+                            "hide_donation_button": true
+                          }
+                        }
+                        """.trimIndent() + "\n"
+                    )
+                }
+            }
+
+            val optionsOfFile = File(dir, "optionsof.txt")
+            if (optionsOfFile.exists() && optionsOfFile.isFile) {
+                val ofText = optionsOfFile.readText()
+                val updatedOfText = ofText
+                    .replace("ofFastRender:true", "ofFastRender:false")
+                    .replace(Regex("ofAaLevel:[1-9]\\d*"), "ofAaLevel:0")
+                if (updatedOfText != ofText) {
+                    optionsOfFile.writeText(updatedOfText)
+                }
+            }
+
+            val optionsFile = File(dir, "options.txt")
+            if (optionsFile.exists() && optionsFile.isFile) {
+                val text = optionsFile.readText()
+                if (text.contains("graphicsMode:2")) {
+                    optionsFile.writeText(text.replace("graphicsMode:2", "graphicsMode:1"))
+                }
+            }
+        }.onFailure {
+            Logger.warning(TAG, "Failed to apply VGPU/Sodium compatibility configuration", it)
+        }
+    }
 }
 
 private fun checkAndUsedJSPH(envMap: MutableMap<String, String>, runtime: Runtime) {
@@ -418,11 +521,12 @@ private fun setRendererEnv(envMap: MutableMap<String, String>) {
 
     if (RendererPluginManager.selectedRendererPlugin != null) return
 
-    // LTW and LTW Legacy are self-contained GLES-backed wrappers that bring their own GL
+    // LTW, LTW Legacy, and VGPU are self-contained GLES-backed wrappers that bring their own GL
     // implementation. Forcing the Zink/Mesa path here would load a second GL implementation
-    // beside libltw/libltwlegacy and the game would render through the wrong one.
+    // beside libltw/libltwlegacy/libvgpu and the game would render through the wrong one.
     if (renderer != GL4ESRenderer && renderer != NGGL4ESRenderer &&
-        renderer != LTWRenderer && renderer != LTWLegacyRenderer) {
+        renderer != LTWRenderer && renderer != LTWLegacyRenderer &&
+        renderer != VGPURenderer && renderer != VGPU1368Renderer) {
         envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
         envMap["MESA_GLSL_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
         envMap["MESA_GL_VERSION_OVERRIDE"] = "4.6"

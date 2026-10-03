@@ -33,9 +33,8 @@ ELF_ABI = {
     "x86": (1, 3),  # ELFCLASS32, EM_386
     "x86_64": (2, 62),  # ELFCLASS64, EM_X86_64
 }
-# Libraries built from source in this repository. A prebuilt library that is only
-# committed to jniLibs (libgl4es_114.so and friends) is not listed here.
-BUILT_FROM_SOURCE_LIBRARIES = ("libltw.so", "libltwlegacy.so")
+# Native renderer libraries that must be verified in every built APK.
+BUILT_FROM_SOURCE_LIBRARIES = ("libltw.so", "libltwlegacy.so", "libvgpu.so", "libvgpu_1368.so")
 
 
 def expected_abis(arch: str) -> tuple[str, ...]:

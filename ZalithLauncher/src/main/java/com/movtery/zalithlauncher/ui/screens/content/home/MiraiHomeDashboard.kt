@@ -85,6 +85,8 @@ private val ModrinthAmberFg = Color(0xFFFEF3C7)
 private val DefaultAvailableRenderers = setOf(
     RendererPicker.LTW,
     RendererPicker.LTW_LEGACY,
+    RendererPicker.VGPU,
+    RendererPicker.VGPU_1368,
     RendererPicker.ZINK,
     RendererPicker.VIRGL,
     RendererPicker.GL4ES
@@ -95,11 +97,13 @@ fun resolveRendererShortLabel(version: Version?): String {
     val manual = version?.getRenderer().orEmpty()
     val choice = RendererPicker.pick(mcVer, manual, DefaultAvailableRenderers)
     return when {
-        choice.identifier.contains("Legacy", ignoreCase = true) -> "LTW Legacy"
-        choice.identifier.contains("LTW", ignoreCase = true) -> "LTW"
-        choice.identifier.contains("Zink", ignoreCase = true) -> "Kopper Zink"
-        choice.identifier.contains("VirGL", ignoreCase = true) -> "VirGL"
-        choice.identifier.contains("GL4ES", ignoreCase = true) -> "GL4ES"
+        choice.identifier == RendererPicker.VGPU -> "vgpu"
+        choice.identifier == RendererPicker.VGPU_1368 -> "VGPU 1.3.6β"
+        choice.identifier == RendererPicker.LTW_LEGACY || choice.identifier.contains("Legacy", ignoreCase = true) -> "LTW Legacy"
+        choice.identifier == RendererPicker.LTW || choice.identifier.contains("LTW", ignoreCase = true) -> "LTW"
+        choice.identifier == RendererPicker.ZINK || choice.identifier.contains("Zink", ignoreCase = true) -> "Kopper Zink"
+        choice.identifier == RendererPicker.VIRGL || choice.identifier.contains("VirGL", ignoreCase = true) -> "VirGL"
+        choice.identifier == RendererPicker.GL4ES || choice.identifier.contains("GL4ES", ignoreCase = true) -> "GL4ES"
         else -> "LTW"
     }
 }
@@ -109,11 +113,13 @@ fun resolveRendererBadgeDetail(version: Version?): String {
     val manual = version?.getRenderer().orEmpty()
     val choice = RendererPicker.pick(mcVer, manual, DefaultAvailableRenderers)
     return when {
-        choice.identifier.contains("Legacy", ignoreCase = true) -> "LTW Legacy 1.8–1.16.5"
-        choice.identifier.contains("LTW", ignoreCase = true) -> "LTW 1.17+"
-        choice.identifier.contains("Zink", ignoreCase = true) -> "Kopper Zink"
-        choice.identifier.contains("VirGL", ignoreCase = true) -> "VirGL"
-        choice.identifier.contains("GL4ES", ignoreCase = true) -> "GL4ES"
+        choice.identifier == RendererPicker.VGPU -> "vgpu - (up to 1.16.5, fast)"
+        choice.identifier == RendererPicker.VGPU_1368 -> "VGPU 1.3.6β"
+        choice.identifier == RendererPicker.LTW_LEGACY || choice.identifier.contains("Legacy", ignoreCase = true) -> "LTW Legacy 1.8–1.16.5"
+        choice.identifier == RendererPicker.LTW || choice.identifier.contains("LTW", ignoreCase = true) -> "LTW 1.17+"
+        choice.identifier == RendererPicker.ZINK || choice.identifier.contains("Zink", ignoreCase = true) -> "Kopper Zink"
+        choice.identifier == RendererPicker.VIRGL || choice.identifier.contains("VirGL", ignoreCase = true) -> "VirGL"
+        choice.identifier == RendererPicker.GL4ES || choice.identifier.contains("GL4ES", ignoreCase = true) -> "GL4ES"
         else -> "LTW 1.17+"
     }
 }

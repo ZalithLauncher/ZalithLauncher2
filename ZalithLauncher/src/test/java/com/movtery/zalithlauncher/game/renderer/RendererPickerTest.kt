@@ -105,4 +105,17 @@ class RendererPickerTest {
     fun resolveLeavesUnknownVersionsToTheCaller() {
         assertEquals(null, RendererPicker.resolve("", RendererPicker.GL4ES))
     }
+
+    @Test
+    fun vgpuOverrideWinsOn1165() {
+        val withVgpu = allWithLtwLegacy + RendererPicker.VGPU + RendererPicker.VGPU_1368
+
+        val fastChoice = RendererPicker.pick("1.16.5", RendererPicker.VGPU, withVgpu)
+        assertEquals(RendererPicker.VGPU, fastChoice.identifier)
+        assertEquals(false, fastChoice.automatic)
+
+        val betaChoice = RendererPicker.pick("1.16.5", RendererPicker.VGPU_1368, withVgpu)
+        assertEquals(RendererPicker.VGPU_1368, betaChoice.identifier)
+        assertEquals(false, betaChoice.automatic)
+    }
 }

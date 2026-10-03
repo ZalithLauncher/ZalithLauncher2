@@ -189,6 +189,44 @@ object MobileFpsBooster {
         }
 
         optionsFile.writeText(newLines.joinToString("\n") + "\n")
+
+        // Ensure Sodium (1.16.5+) options are tuned for mobile VGPU/GLES renderers
+        runCatching {
+            val configDir = File(gameDir, "config")
+            if (!configDir.exists()) configDir.mkdirs()
+            val sodiumFile = File(configDir, "sodium-options.json")
+            val smoothLighting = if (preset == FpsBoostPreset.BALANCED_MOBILE) "LOW" else "OFF"
+            val enableClouds = preset == FpsBoostPreset.BALANCED_MOBILE
+            sodiumFile.writeText(
+                """
+                {
+                  "quality": {
+                    "cloud_quality": "FAST",
+                    "weather_quality": "FAST",
+                    "enable_vignette": false,
+                    "enable_clouds": $enableClouds,
+                    "smooth_lighting": "$smoothLighting"
+                  },
+                  "advanced": {
+                    "use_vertex_array_objects": true,
+                    "use_chunk_multidraw": false,
+                    "animate_only_visible_textures": true,
+                    "use_entity_culling": true,
+                    "use_particle_culling": true,
+                    "use_fog_occlusion": true,
+                    "use_compact_vertex_format": true,
+                    "use_block_face_culling": true,
+                    "allow_direct_memory_access": true,
+                    "ignore_driver_blacklist": false
+                  },
+                  "notifications": {
+                    "hide_donation_button": true
+                  }
+                }
+                """.trimIndent() + "\n"
+            )
+        }
+
         withContext(Dispatchers.Main) {
             AllSettings.resolutionRatio.save(preset.renderScale)
         }

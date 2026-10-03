@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.ui.components.SkinPreview3D
@@ -37,7 +36,7 @@ fun PlayerSkinStage(modifier: Modifier = Modifier) {
             capeFile = capeFile,
             modelType = account?.skinModelType,
             interactionEnabled = true,
-            azimuth = 18f,
+            azimuth = 18,
         )
         Text(
             text = account?.username ?: "No account",

@@ -532,7 +532,7 @@ private fun VersionsContent(
                 title = { Text("Choose before launch") },
                 text = {
                     Column {
-                        Text("Version: ${version?.versionName ?: "None selected"}")
+                        Text("Version: ${version?.getVersionName() ?: "None selected"}")
                         TextButton(onClick = {
                             AllSettings.graphicsApi.save(com.movtery.zalithlauncher.game.version.installed.GraphicsApi.DEFAULT_OPENGL)
                             AllSettings.miraiVulkanFailCount.save(0)

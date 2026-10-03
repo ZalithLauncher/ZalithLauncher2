@@ -80,6 +80,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun ScalingActionButton(
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     shape: Shape = ButtonDefaults.shape,
@@ -97,8 +98,20 @@ fun ScalingActionButton(
         label = "ButtonScale"
     )
 
+    var longHandled by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(isPressed, onLongClick) {
+        if (isPressed && onLongClick != null) {
+            kotlinx.coroutines.delay(480)
+            if (isPressed) {
+                longHandled = true
+                onLongClick()
+            }
+        }
+    }
     Button(
-        onClick = onClick,
+        onClick = {
+            if (longHandled) longHandled = false else onClick()
+        },
         modifier = modifier.graphicsLayer {
             scaleX = scale.value
             scaleY = scale.value

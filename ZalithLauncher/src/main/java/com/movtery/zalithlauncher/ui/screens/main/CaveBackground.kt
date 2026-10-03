@@ -19,7 +19,8 @@ import androidx.compose.ui.platform.LocalContext
 fun CaveBackground(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val context = LocalContext.current
     val file = wallpaperFile(context)
-    val image = remember(file.exists(), file.lastModified()) {
+    val revision = wallpaperRevision
+    val image = remember(revision, file.exists(), file.lastModified()) {
         val bytes = if (file.exists()) file.readBytes() else runCatching {
             val encoded = listOf("cave-a.b64", "cave-b.b64", "cave-c.b64").joinToString("") {
                 context.assets.open("wallpapers/$it").bufferedReader().readText()

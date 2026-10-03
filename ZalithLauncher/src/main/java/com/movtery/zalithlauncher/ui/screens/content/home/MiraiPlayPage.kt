@@ -40,6 +40,7 @@ fun MiraiPlayPage(
     onLaunch: (Version?) -> Unit,
     onExploreContent: () -> Unit,
     onCreateInstance: () -> Unit,
+    onAddAccount: () -> Unit,
     onManageVersions: () -> Unit,
     onOpenVersionSettings: (Version) -> Unit,
     modifier: Modifier = Modifier,
@@ -63,12 +64,14 @@ fun MiraiPlayPage(
                     }
                 }
             }
+            Button(onClick = onAddAccount, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = glass) { Text("Add Account", fontWeight = FontWeight.SemiBold) }
+            Spacer(Modifier.height(8.dp))
             Button(onClick = onCreateInstance, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = glass) { Text("Create instance", fontWeight = FontWeight.SemiBold) }
         }
         Column(modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(22.dp)).background(Color(0x66161618)).padding(24.dp)) {
             Text(selected?.getVersionName() ?: "Pick or create an instance", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Spacer(Modifier.height(8.dp))
-            Text("Install a version, then play it from the button under the account. Skins, servers, and settings stay in the sidebar.", color = Color(0xFFD7CFC8))
+            Text("Add an account here, then install a version and play it from the rail.", color = Color(0xFFD7CFC8))
             if (selected != null) {
                 Spacer(Modifier.height(12.dp))
                 Text("Add content", color = Color(0xFF1BD96A), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable(onClick = onExploreContent))

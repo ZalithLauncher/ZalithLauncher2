@@ -241,18 +241,14 @@ private fun AccountManageContent(
     operationUiState: AccountManageViewModel.OperationUiState,
     actions: AccountActions,
 ) {
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
-        // Left Pane: Accounts Manager (Mockup #6)
         AccountsLayout(
             isVisible = isVisible,
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(5.8f),
+            modifier = Modifier.fillMaxSize(),
             accounts = profileUiState.accounts,
             currentAccount = profileUiState.currentAccount,
             isOffline = profileUiState.isOffline,
@@ -260,16 +256,6 @@ private fun AccountManageContent(
             accountSkinOperation = operationUiState.accountSkinOp,
             accountSkinDialogState = operationUiState.accountSkinDialogState,
             accountCapes = profileUiState.accountCapeOpMap,
-            actions = actions
-        )
-
-        // Right Pane: 3D Skin & Cape Wardrobe (Mockup #6)
-        ActionsLayout(
-            isVisible = isVisible,
-            modifier = Modifier
-                .fillMaxHeight()
-                .weight(4.2f),
-            currentAccount = profileUiState.currentAccount,
             actions = actions
         )
     }

@@ -467,15 +467,6 @@ fun SelectGameVersionScreen(
                                 ) { ver ->
                                     val verId = ver.version.id
                                     val isSelected = verId == selectedVersionId
-                                    val isVerLegacy = verId.startsWith("1.8") ||
-                                        verId.startsWith("1.9") ||
-                                        verId.startsWith("1.10") ||
-                                        verId.startsWith("1.11") ||
-                                        verId.startsWith("1.12") ||
-                                        verId.startsWith("1.13") ||
-                                        verId.startsWith("1.14") ||
-                                        verId.startsWith("1.15") ||
-                                        verId.startsWith("1.16")
 
                                     Surface(
                                         modifier = Modifier.fillMaxWidth(),
@@ -497,11 +488,7 @@ fun SelectGameVersionScreen(
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
                                             Text(
-                                                text = if (isVerLegacy) {
-                                                    "Minecraft $verId (LTW Legacy)"
-                                                } else {
-                                                    "Minecraft $verId"
-                                                },
+                                                text = "Minecraft $verId",
                                                 fontSize = 13.sp,
                                                 fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
                                                 color = Color.White,
@@ -515,7 +502,7 @@ fun SelectGameVersionScreen(
                                                     color = Color(0xFF1F4732)
                                                 ) {
                                                     Text(
-                                                        text = if (isVerLegacy) "Selected • LTW Legacy" else "Recommended • LTW",
+                                                        text = "Selected",
                                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                                                         fontSize = 10.sp,
                                                         fontWeight = FontWeight.Bold,
@@ -529,7 +516,7 @@ fun SelectGameVersionScreen(
                             }
                         }
 
-                        // RIGHT PANE: Modloader 2x3 Grid + Auto-Renderer Preview + Create CTA (Mockup #5)
+                        // RIGHT PANE: Modloader 2x3 Grid + Create CTA
                         Column(
                             modifier = Modifier
                                 .weight(1f)
@@ -592,33 +579,6 @@ fun SelectGameVersionScreen(
                                             }
                                         }
                                     }
-                                }
-
-                                Text(
-                                    text = "Smart Renderer auto-pick preview",
-                                    fontSize = 13.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White,
-                                    modifier = Modifier.padding(top = 4.dp)
-                                )
-
-                                Surface(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    shape = RoundedCornerShape(10.dp),
-                                    color = Color(0xFF21242B),
-                                    border = BorderStroke(1.dp, Color(0xFF2E333E))
-                                ) {
-                                    Text(
-                                        text = if (isLegacySelected) {
-                                            "Auto Renderer: LTW Legacy (OpenGL 1.x/2.1)"
-                                        } else {
-                                            "Auto Renderer: LTW (OpenGL 3.2 Core)"
-                                        },
-                                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-                                        fontSize = 12.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFFE5E7EB)
-                                    )
                                 }
                             }
 

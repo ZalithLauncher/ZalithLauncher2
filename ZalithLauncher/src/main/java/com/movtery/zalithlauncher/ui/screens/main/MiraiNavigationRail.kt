@@ -145,16 +145,9 @@ fun MiraiNavigationRail(
                         selected = selectedSection == LauncherSection.DISCOVER,
                         onClick = { onNavigate(LauncherSection.DISCOVER) }
                     )
-
-                    RailIconItem(
-                        iconRes = R.drawable.ic_group_filled,
-                        label = "Multiplayer",
-                        selected = selectedSection == LauncherSection.MULTIPLAYER,
-                        onClick = { onNavigate(LauncherSection.MULTIPLAYER) }
-                    )
                 }
 
-                // Bottom: Settings Gear + Circular Player Avatar
+                // Bottom: Settings Gear
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -169,12 +162,6 @@ fun MiraiNavigationRail(
                         label = "Settings",
                         selected = selectedSection == LauncherSection.SETTINGS,
                         onClick = { onNavigate(LauncherSection.SETTINGS) }
-                    )
-
-                    AccountAvatarRailButton(
-                        account = account,
-                        selected = selectedSection == LauncherSection.ACCOUNTS,
-                        onClick = onAccountClick
                     )
                 }
             }

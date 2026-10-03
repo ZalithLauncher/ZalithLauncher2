@@ -142,27 +142,13 @@ fun MultiplayerScreen(
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Left Column: Terracotta P2P Multiplayer + Touch Controls & Gamepad (Mockup #8)
+            // Left Column: Touch Controls & Gamepad
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxHeight()
-                    .verticalScroll(rememberScrollState()),
+                    .fillMaxHeight(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                MainMenu(
-                    modifier = Modifier.fillMaxWidth(),
-                    eventViewModel = eventViewModel,
-                    onShareLogs = {
-                        val logFile = PathManager.FILE_TERRACOTTA_LOG
-                        if (logFile.exists()) {
-                            shareFile(context, logFile)
-                        } else {
-                            eventViewModel.sendToast(androidText(R.string.terracotta_export_log_share_null))
-                        }
-                    }
-                )
-
                 TouchControlsAndGamepadBentoCard(
                     modifier = Modifier.fillMaxWidth(),
                     onOpenControlManager = {
@@ -176,10 +162,10 @@ fun MultiplayerScreen(
                 )
             }
 
-            // Right Column: Full-Height Live Game Log & Diagnostics Console (Mockup #8)
+            // Right Column: Full-Height Live Game Log & Diagnostics Console
             LiveDiagnosticsConsoleCard(
                 modifier = Modifier
-                    .weight(1f)
+                    .weight(1.3f)
                     .fillMaxHeight(),
                 currentVersion = currentVersion,
                 onShareLog = {
@@ -346,12 +332,10 @@ private fun LiveDiagnosticsConsoleCard(
         if (!rawLines.isNullOrEmpty()) {
             rawLines
         } else {
-            val verName = currentVersion?.getVersionName() ?: "Fabulously Optimized 1.21.1"
+            val verName = currentVersion?.getVersionName() ?: "Minecraft Profile"
             val mcVer = currentVersion?.getVersionInfo()?.minecraftVersion ?: "1.21.1"
-            val rendererLabel = resolveRendererShortLabel(currentVersion)
             listOf(
                 "[12:04:01] [INFO] Starting Minecraft $mcVer ($verName)...",
-                "[12:04:02] [INFO] Renderer: $rendererLabel (OpenGL 3.2 Core)",
                 "[12:04:03] [INFO] Loaded installed mods",
                 "[12:04:05] [WARN] Missing optional texture pack entry",
                 "[12:04:06] [INFO] Sound engine started"
@@ -414,12 +398,14 @@ private fun LiveDiagnosticsConsoleCard(
                                 levelFilter = filter
                             }
                         ) {
-                            Text(
+                                Text(
                                 text = filter.label,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
                                 fontSize = 10.sp,
                                 fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
-                                color = if (selected) Color(0xFF06210F) else Color(0xFFD1D5DB)
+                                color = if (selected) Color(0xFF06210F) else Color(0xFFD1D5DB),
+                                maxLines = 1,
+                                softWrap = false
                             )
                         }
                     }
@@ -432,10 +418,12 @@ private fun LiveDiagnosticsConsoleCard(
                     ) {
                         Text(
                             text = "Clear",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp),
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Medium,
-                            color = Color(0xFFD1D5DB)
+                            color = Color(0xFFD1D5DB),
+                            maxLines = 1,
+                            softWrap = false
                         )
                     }
                 }

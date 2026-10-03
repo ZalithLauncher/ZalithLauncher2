@@ -129,8 +129,6 @@ private enum class LibraryFilterGroup(val label: String) {
     ALL("All"),
     MODPACKS("Modpacks"),
     VANILLA("Vanilla"),
-    LTW_MODERN("1.17+ LTW"),
-    LTW_LEGACY("1.8–1.16.5 Legacy"),
     PINNED("Pinned")
 }
 
@@ -517,14 +515,11 @@ private fun VersionsLayout(
             val info = version.getVersionInfo()
             val mcVer = info?.minecraftVersion.orEmpty()
             val loader = info?.loaderInfo?.loader?.displayName.orEmpty()
-            val rendererLabel = resolveRendererShortLabel(version)
 
             val matchesFilter = when (selectedFilter) {
                 LibraryFilterGroup.ALL -> true
                 LibraryFilterGroup.MODPACKS -> info?.loaderInfo != null
                 LibraryFilterGroup.VANILLA -> info?.loaderInfo == null
-                LibraryFilterGroup.LTW_MODERN -> rendererLabel == "LTW"
-                LibraryFilterGroup.LTW_LEGACY -> rendererLabel == "LTW Legacy"
                 LibraryFilterGroup.PINNED -> version.pinnedState
             }
             val matchesQuery = q.isEmpty() ||
@@ -820,8 +815,6 @@ private fun ModrinthLibraryInstanceCard(
     val info = version.getVersionInfo()
     val mcVer = info?.minecraftVersion ?: "Unknown"
     val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
-    val rendererName = remember(version) { resolveRendererShortLabel(version) }
-    val isLegacy = rendererName.contains("Legacy", ignoreCase = true)
     var menuExpanded by remember { mutableStateOf(false) }
 
     Surface(
@@ -879,11 +872,6 @@ private fun ModrinthLibraryInstanceCard(
                             text = "$loaderName $mcVer",
                             backgroundColor = Color(0xFF2C303C),
                             textColor = Color(0xFFE5E7EB)
-                        )
-                        ModrinthMetaPill(
-                            text = rendererName,
-                            backgroundColor = if (isLegacy) Color(0xFF9A6712) else Color(0xFF1BD96A),
-                            textColor = if (isLegacy) Color(0xFFFEF3C7) else Color(0xFF06210F)
                         )
                     }
                 }

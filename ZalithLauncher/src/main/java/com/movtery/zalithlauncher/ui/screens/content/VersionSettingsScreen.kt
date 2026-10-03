@@ -328,7 +328,6 @@ private fun ModrinthInstanceHeroBanner(
     val info = version.getVersionInfo()
     val mcVer = info?.minecraftVersion ?: "Unknown"
     val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
-    val rendererName = remember(version) { resolveRendererShortLabel(version) }
     val ramMb = remember(version) { version.getRamAllocation(context) }
 
     Row(
@@ -384,7 +383,7 @@ private fun ModrinthInstanceHeroBanner(
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text = "$loaderName $mcVer • $rendererName • $ramMb MB",
+                text = "$loaderName $mcVer • $ramMb MB",
                 style = MaterialTheme.typography.labelSmall,
                 color = Color(0xFF9CA3AF),
                 maxLines = 1,

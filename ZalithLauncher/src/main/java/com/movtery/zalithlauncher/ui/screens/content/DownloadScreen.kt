@@ -186,41 +186,6 @@ private fun NavigationUI(
                         }
                     }
                 }
-
-                // Right: Modrinth • CurseForge Segmented Pill (Mockup #4)
-                Surface(
-                    modifier = Modifier.padding(start = 8.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    color = Color(0xFF1A1D23),
-                    border = BorderStroke(1.dp, Color(0xFF2E333E))
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 3.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(Color(0xFF1BD96A))
-                                .padding(horizontal = 10.dp, vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = "Modrinth",
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = Color(0xFF06210F)
-                            )
-                        }
-                        Text(
-                            text = "• CurseForge",
-                            modifier = Modifier.padding(end = 8.dp),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color(0xFFE5E7EB)
-                        )
-                    }
-                }
             }
         }
 

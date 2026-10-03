@@ -376,8 +376,6 @@ private fun JumpBackInMobileCard(
     val info = version.getVersionInfo()
     val mcVer = info?.minecraftVersion ?: "Unknown"
     val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
-    val rendererLabel = remember(version) { resolveRendererShortLabel(version) }
-    val isLegacy = rendererLabel.contains("Legacy", ignoreCase = true)
 
     Surface(
         modifier = modifier
@@ -432,21 +430,6 @@ private fun JumpBackInMobileCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-
-                // Renderer Pill (Emerald for LTW, Amber for LTW Legacy)
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .background(if (isLegacy) ModrinthAmberBg else ModrinthEmerald)
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = rendererLabel,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = if (isLegacy) ModrinthAmberFg else ModrinthOnEmerald
-                    )
-                }
             }
 
             // Circular Emerald Play Button
@@ -479,8 +462,6 @@ private fun RecentInstanceMobileRow(
     val info = version.getVersionInfo()
     val mcVer = info?.minecraftVersion ?: "Unknown"
     val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
-    val rendererLabel = remember(version) { resolveRendererShortLabel(version) }
-    val isLegacy = rendererLabel.contains("Legacy", ignoreCase = true)
 
     Surface(
         modifier = Modifier
@@ -509,30 +490,14 @@ private fun RecentInstanceMobileRow(
             )
 
             Text(
-                text = "${version.getVersionName()} • $loaderName $mcVer •",
+                text = "${version.getVersionName()} • $loaderName $mcVer",
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color(0xFFE5E7EB),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false)
+                modifier = Modifier.weight(1f)
             )
-
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(10.dp))
-                    .background(if (isLegacy) ModrinthAmberBg else ModrinthEmerald)
-                    .padding(horizontal = 8.dp, vertical = 2.dp)
-            ) {
-                Text(
-                    text = rendererLabel,
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = if (isLegacy) ModrinthAmberFg else ModrinthOnEmerald
-                )
-            }
-
-            Spacer(Modifier.weight(1f))
 
             IconButton(
                 onClick = onSettings,

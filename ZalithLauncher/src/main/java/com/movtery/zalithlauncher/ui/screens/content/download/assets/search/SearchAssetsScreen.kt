@@ -349,6 +349,7 @@ fun SearchAssetsScreen(
         var showLoaderMenu by remember { mutableStateOf(false) }
         var showSortMenu by remember { mutableStateOf(false) }
         var showPlatformMenu by remember { mutableStateOf(false) }
+        var showCategoryMenu by remember { mutableStateOf(false) }
 
         Column(
             modifier = Modifier
@@ -356,11 +357,11 @@ fun SearchAssetsScreen(
                 .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Compact Horizontal Search & Filter Bar (Mockup #4)
+            // Compact Horizontal Search & Filter Bar (Mockup #4 + Category Dropdown)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 // Search Box ("Search Modrinth & CurseForge...")
                 Row(
@@ -370,9 +371,9 @@ fun SearchAssetsScreen(
                         .clip(RoundedCornerShape(10.dp))
                         .background(Color(0xFF21242B))
                         .border(1.dp, Color(0xFF2E333E), RoundedCornerShape(10.dp))
-                        .padding(horizontal = 12.dp),
+                        .padding(horizontal = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_search),
@@ -388,7 +389,7 @@ fun SearchAssetsScreen(
                     ) {
                         if (viewModel.searchFilter.searchName.isEmpty()) {
                             Text(
-                                text = "Search Modrinth & CurseForge...",
+                                text = "Search...",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = Color(0xFF8A909E),
                                 maxLines = 1,
@@ -448,6 +449,65 @@ fun SearchAssetsScreen(
                                             )
                                             onPlatformChange(platform)
                                         }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Category Dropdown Pill ("Category: All ▾")
+                if (categories.isNotEmpty()) {
+                    Box {
+                        val selectedCats = viewModel.searchFilter.categories
+                        val catLabel = when {
+                            selectedCats.isEmpty() -> "All"
+                            selectedCats.size == 1 -> stringResource(selectedCats.first().getDisplayName())
+                            else -> "${selectedCats.size} Selected"
+                        }
+                        DiscoverFilterDropdownPill(
+                            label = "Category: $catLabel",
+                            onClick = { showCategoryMenu = true }
+                        )
+                        DropdownMenu(
+                            expanded = showCategoryMenu,
+                            onDismissRequest = { showCategoryMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = "All Categories",
+                                        fontWeight = if (selectedCats.isEmpty()) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (selectedCats.isEmpty()) Color(0xFF1BD96A) else Color.Unspecified
+                                    )
+                                },
+                                onClick = {
+                                    showCategoryMenu = false
+                                    viewModel.researchWithFilter(
+                                        viewModel.searchFilter.copy(categories = emptyList())
+                                    )
+                                }
+                            )
+                            categories.forEach { cat ->
+                                val isCatSelected = selectedCats.contains(cat)
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = stringResource(cat.getDisplayName()),
+                                            fontWeight = if (isCatSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isCatSelected) Color(0xFF1BD96A) else Color.Unspecified
+                                        )
+                                    },
+                                    onClick = {
+                                        val nextCats = if (isCatSelected) {
+                                            selectedCats - cat
+                                        } else {
+                                            listOf(cat)
+                                        }
+                                        showCategoryMenu = false
+                                        viewModel.researchWithFilter(
+                                            viewModel.searchFilter.copy(categories = nextCats)
+                                        )
                                     }
                                 )
                             }

@@ -445,13 +445,22 @@ private fun VersionsContent(
     var showPick by remember { mutableStateOf(false) }
     var versionManagerRow by remember { mutableStateOf<LayoutCoordinates?>(null) }
 
-    val rendererBadgeText = remember(version) { resolveRendererBadgeDetail(version) }
+    val versionSubtitle = remember(version) {
+        val info = version?.getVersionInfo()
+        val mcVer = info?.minecraftVersion
+        val loader = info?.loaderInfo?.loader?.displayName
+        when {
+            loader != null && mcVer != null -> "$loader $mcVer"
+            mcVer != null -> "Minecraft $mcVer"
+            else -> "Select Instance"
+        }
+    }
 
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        // Compact 2-line Instance + Renderer Pill (Mockup #1: "Cobblemon Official / • LTW 1.17+")
+        // Compact 2-line Instance Selector Pill
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
@@ -491,7 +500,7 @@ private fun VersionsContent(
                         maxLines = 1
                     )
                     Text(
-                        text = "• $rendererBadgeText",
+                        text = versionSubtitle,
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
                         color = Color(0xFF1BD96A),

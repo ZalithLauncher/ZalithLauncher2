@@ -24,9 +24,10 @@ import com.movtery.zalithlauncher.ui.components.SkinPreview3D
 @Composable
 fun PlayerSkinStage(modifier: Modifier = Modifier) {
     val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
+    val currentAccount = account
     val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
-    val skinFile = remember(account, refreshWardrobe) { account?.getSkinFile()?.takeIf { it.exists() } }
-    val capeFile = remember(account, refreshWardrobe) { account?.getCapeFile()?.takeIf { it.exists() } }
+    val skinFile = remember(currentAccount, refreshWardrobe) { currentAccount?.getSkinFile()?.takeIf { it.exists() } }
+    val capeFile = remember(currentAccount, refreshWardrobe) { currentAccount?.getCapeFile()?.takeIf { it.exists() } }
 
     Column(
         modifier = modifier.fillMaxSize(),
@@ -37,13 +38,13 @@ fun PlayerSkinStage(modifier: Modifier = Modifier) {
             modifier = Modifier.width(180.dp).height(240.dp),
             skinFile = skinFile,
             capeFile = capeFile,
-            modelType = account?.skinModelType,
+            modelType = currentAccount?.skinModelType,
             interactionEnabled = true,
             azimuth = 18,
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            text = account?.username ?: "No account",
+            text = currentAccount?.username ?: "No account",
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.SemiBold,
@@ -51,7 +52,7 @@ fun PlayerSkinStage(modifier: Modifier = Modifier) {
             overflow = TextOverflow.Ellipsis
         )
         Text(
-            text = if (account != null) getAccountTypeName(account) else "Add an account",
+            text = if (currentAccount != null) getAccountTypeName(currentAccount) else "Add an account",
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.labelLarge,
             maxLines = 1,

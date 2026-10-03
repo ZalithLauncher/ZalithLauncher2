@@ -289,6 +289,7 @@
     <string name="download_modpack_install_overrides">提取整合包文件</string>
     <string name="download_modpack_download">下载整合包所需内容</string>
     <string name="download_modpack_download_mods">下载所有模组 (%1$d/%2$d, %3$s)</string>
+    <string name="download_modpack_download_mods_retry">重试下载所有模组 (%1$d/%2$d, %3$s)</string>
     <string name="download_modpack_get_loaders">获取加载器信息</string>
     <string name="download_modpack_final_move">迁移整合包文件中</string>
     <!-- 资源类别 -->

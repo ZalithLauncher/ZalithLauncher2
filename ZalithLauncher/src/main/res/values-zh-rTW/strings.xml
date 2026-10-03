@@ -246,6 +246,7 @@
     <string name="download_modpack_install_overrides">解壓模組包檔案</string>
     <string name="download_modpack_download">下載模組包所需內容</string>
     <string name="download_modpack_download_mods">下載所有模組 (%1$d/%2$d, %3$s)</string>
+    <string name="download_modpack_download_mods_retry">重試下載所有模組 (%1$d/%2$d, %3$s)</string>
     <string name="download_modpack_get_loaders">取得載入器資訊</string>
     <string name="download_modpack_final_move">正在移動模組包檔案</string>
     <!--  資源類別  -->

@@ -58,6 +58,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.libsdl.app.SDLActivity
+import kotlin.math.hypot
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -517,7 +518,85 @@ private fun SimpleMouseCapture(
         syncCaptureState()
 
         if (enabled) {
+            //触控板事件的 x/y 是手指在触控板表面的绝对坐标，不能直接当作位移；
+            //未提供相对位移轴时，改用相邻两次位置的差值来计算位移
+            var touchpadLastPos: Offset? = null
+            val twoFingerGesture = TouchpadTwoFingerGesture()
+            //触摸流式触控板以 DOWN/UP 报告板面接触，接触期间视同左键按下
+            var touchpadLeftPressed = false
+            //双指手势开始时若已补偿过左键抬起，则吞掉手势结束时对应的左键抬起
+            var touchpadLeftSuppressed = false
+
             val pointerListener = View.OnCapturedPointerListener { _, event ->
+                val isTouchpad = event.isFromSource(InputDevice.SOURCE_TOUCHPAD)
+
+                //手指按下、抬起会让触控板坐标跳变，位移差值的基准需要随之重建
+                if (isTouchpad) {
+                    when (event.actionMasked) {
+                        MotionEvent.ACTION_DOWN,
+                        MotionEvent.ACTION_POINTER_DOWN,
+                        MotionEvent.ACTION_HOVER_ENTER -> touchpadLastPos = Offset(event.x, event.y)
+
+                        MotionEvent.ACTION_UP,
+                        MotionEvent.ACTION_POINTER_UP,
+                        MotionEvent.ACTION_HOVER_EXIT -> touchpadLastPos = null
+                    }
+                }
+
+                //触控板双指手势兜底：固件未合成滚轮/右键事件时，从原始双指
+                //触摸流中识别拖动（滚轮）与点按（右键）；原生手势事件不经
+                //此识别，仍按原样转发
+                if (isTouchpad) {
+                    when (event.actionMasked) {
+                        MotionEvent.ACTION_POINTER_DOWN ->
+                            if (event.pointerCount >= 2 && !twoFingerGesture.isActive()) {
+                                twoFingerGesture.start(event)
+                                if (touchpadLeftPressed) {
+                                    //双指落下意味着不是单击：先补上左键抬起，
+                                    //并吞掉手势结束时对应的左键抬起事件
+                                    currentOnMouseButton(MotionEvent.BUTTON_PRIMARY, false)
+                                    touchpadLeftPressed = false
+                                    touchpadLeftSuppressed = true
+                                }
+                            }
+
+                        MotionEvent.ACTION_MOVE ->
+                            if (twoFingerGesture.isActive()) {
+                                if (event.pointerCount >= 2) {
+                                    twoFingerGesture.onMove(event)?.let { notches ->
+                                        if (notches.x != 0f || notches.y != 0f) {
+                                            currentOnMouseScroll(notches)
+                                        }
+                                    }
+                                }
+                                //双指期间的移动折算为滚轮，不再转动视角
+                                return@OnCapturedPointerListener true
+                            }
+
+                        MotionEvent.ACTION_POINTER_UP ->
+                            if (twoFingerGesture.isActive() && twoFingerGesture.onFingerUp(event)) {
+                                currentOnMouseButton(MotionEvent.BUTTON_SECONDARY, true)
+                                currentOnMouseButton(MotionEvent.BUTTON_SECONDARY, false)
+                            }
+
+                        MotionEvent.ACTION_UP ->
+                            if (twoFingerGesture.isActive()) {
+                                twoFingerGesture.end()
+                                if (touchpadLeftSuppressed) {
+                                    touchpadLeftSuppressed = false
+                                    return@OnCapturedPointerListener true
+                                }
+                            }
+
+                        MotionEvent.ACTION_CANCEL ->
+                            if (twoFingerGesture.isActive()) {
+                                twoFingerGesture.end()
+                                touchpadLeftPressed = false
+                                touchpadLeftSuppressed = false
+                            }
+                    }
+                }
+
                 when (event.actionMasked) {
                     MotionEvent.ACTION_HOVER_MOVE, MotionEvent.ACTION_MOVE -> {
                         var deltaX = 0f
@@ -525,8 +604,22 @@ private fun SimpleMouseCapture(
 
                         val relX = event.getAxisValue(MotionEvent.AXIS_RELATIVE_X)
                         val relY = event.getAxisValue(MotionEvent.AXIS_RELATIVE_Y)
-                        deltaX += if (relX != 0f) relX else event.x
-                        deltaY += if (relY != 0f) relY else event.y
+                        if (isTouchpad) {
+                            if (relX != 0f || relY != 0f) {
+                                //相对位移轴可用时直接取轴值
+                                deltaX += relX
+                                deltaY += relY
+                            } else {
+                                touchpadLastPos?.let { last ->
+                                    deltaX += event.x - last.x
+                                    deltaY += event.y - last.y
+                                }
+                                touchpadLastPos = Offset(event.x, event.y)
+                            }
+                        } else {
+                            deltaX += if (relX != 0f) relX else event.x
+                            deltaY += if (relY != 0f) relY else event.y
+                        }
 
                         val historySize = event.historySize
                         for (i in 0 until historySize) {
@@ -548,10 +641,17 @@ private fun SimpleMouseCapture(
                         true
                     }
                     MotionEvent.ACTION_DOWN, MotionEvent.ACTION_BUTTON_PRESS -> {
+                        if (isTouchpad && event.actionMasked == MotionEvent.ACTION_DOWN) {
+                            touchpadLeftPressed = true
+                            touchpadLeftSuppressed = false
+                        }
                         currentOnMouseButton(event.actionButton, true)
                         true
                     }
                     MotionEvent.ACTION_UP, MotionEvent.ACTION_BUTTON_RELEASE -> {
+                        if (isTouchpad && event.actionMasked == MotionEvent.ACTION_UP) {
+                            touchpadLeftPressed = false
+                        }
                         currentOnMouseButton(event.actionButton, false)
                         true
                     }
@@ -568,6 +668,106 @@ private fun SimpleMouseCapture(
             view.viewTreeObserver.removeOnWindowFocusChangeListener(focusListener)
             view.setOnCapturedPointerListener(null)
         }
+    }
+}
+
+/**
+ * 触控板双指手势的兜底识别。
+ * 固件未合成手势事件时，从原始双指触摸流中识别：
+ * 双指拖动 → 滚轮滚动，双指点按 → 右键单击。
+ * 判定阈值与滚轮格数按触控板板面尺寸折算，适配不同分辨率。
+ */
+private class TouchpadTwoFingerGesture {
+    private var active = false
+    private var tapCandidate = true
+    private var downTime = 0L
+    private var startCentroid: Offset? = null
+    private var lastCentroid: Offset? = null
+    private var remainderX = 0f
+    private var remainderY = 0f
+    private var tapSlop = DEFAULT_TAP_SLOP
+    private var scrollNotch = DEFAULT_SCROLL_NOTCH
+
+    fun isActive() = active
+
+    /** 第二根手指落下，开始手势 */
+    fun start(event: MotionEvent) {
+        active = true
+        tapCandidate = true
+        downTime = event.eventTime
+        remainderX = 0f
+        remainderY = 0f
+
+        event.device?.let { device ->
+            device.getMotionRange(MotionEvent.AXIS_X)?.let {
+                val width = it.max - it.min
+                if (width > 0f) tapSlop = width * 0.02f
+            }
+            device.getMotionRange(MotionEvent.AXIS_Y)?.let {
+                val height = it.max - it.min
+                if (height > 0f) scrollNotch = height * 0.12f
+            }
+        }
+
+        startCentroid = centroid(event)
+        lastCentroid = startCentroid
+    }
+
+    /**
+     * 双指移动：仍在点按判定范围内时返回 null；
+     * 超出后转为拖动，返回本次累计的 (水平, 垂直) 滚轮格数。
+     */
+    fun onMove(event: MotionEvent): Offset? {
+        val centroid = centroid(event)
+        val last = lastCentroid
+        lastCentroid = centroid
+        val start = startCentroid
+        if (last == null || start == null) return null
+
+        if (tapCandidate && hypot(centroid.x - start.x, centroid.y - start.y) > tapSlop) {
+            tapCandidate = false
+        }
+        if (tapCandidate) return null
+
+        remainderX += centroid.x - last.x
+        remainderY -= centroid.y - last.y
+        val notchesX = (remainderX / scrollNotch).toInt()
+        val notchesY = (remainderY / scrollNotch).toInt()
+        remainderX -= notchesX * scrollNotch
+        remainderY -= notchesY * scrollNotch
+        return Offset(notchesX.toFloat(), notchesY.toFloat())
+    }
+
+    /** 一根手指抬起：若仍满足点按条件，则判定为双指点按（只判定一次） */
+    fun onFingerUp(event: MotionEvent): Boolean {
+        val isTap = active && tapCandidate && event.eventTime - downTime <= TAP_TIMEOUT_MS
+        if (isTap) tapCandidate = false
+        return isTap
+    }
+
+    /** 双指全部抬起，手势结束 */
+    fun end() {
+        active = false
+        lastCentroid = null
+    }
+
+    private fun centroid(event: MotionEvent): Offset {
+        var x = 0f
+        var y = 0f
+        for (i in 0 until event.pointerCount) {
+            x += event.getX(i)
+            y += event.getY(i)
+        }
+        return Offset(x / event.pointerCount, y / event.pointerCount)
+    }
+
+    companion object {
+        /** 默认的双指点按最大判定位移（板面尺寸不可知时） */
+        private const val DEFAULT_TAP_SLOP = 12f
+        /** 默认的每格滚轮对应的手指移动距离（板面尺寸不可知时） */
+        private const val DEFAULT_SCROLL_NOTCH = 60f
+        /** 双指点按的最大时长 */
+        private const val TAP_TIMEOUT_MS = 300L
     }
 }
 

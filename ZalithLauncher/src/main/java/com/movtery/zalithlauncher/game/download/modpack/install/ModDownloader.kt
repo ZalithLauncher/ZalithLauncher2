@@ -37,6 +37,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.io.FileNotFoundException
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 
 private const val TAG = "ModDownloader"
@@ -54,35 +55,18 @@ class ModDownloader(
 
         val resolvedFailures = AtomicInteger(0)
         val missingMods = AtomicInteger(0)
+        val skippedMods = ConcurrentHashMap.newKeySet<String>()
         val tasks = prepareAll(resolvedFailures, missingMods)
 
         try {
-            task.runBatchDownloads(
-                tasks = tasks,
-                maxConnections = maxDownloadThreads,
-                retryRounds = 1,
-                onSnapshot = { snapshot ->
-                    task.updateSpeed(snapshot.speedBytesPerSec)
-                    task.updateMessage(
-                        androidText(
-                            R.string.download_modpack_download_mods,
-                            snapshot.downloadedFiles + missingMods.get(),
-                            snapshot.totalFiles + missingMods.get(),
-                            formatFileSize(snapshot.downloadedBytes)
-                        )
-                    )
-                },
-                acceptFailure = { _, error ->
-                    val code = error.findHttpCode()
-                    val skipped = error is FileNotFoundException || error is NotFoundException || code == 404
-                    if (skipped) missingMods.incrementAndGet()
-                    skipped
-                }
-            )
+            runBatch(task, tasks, R.string.download_modpack_download_mods, missingMods, skippedMods)
         } catch (e: CancellationException) {
             throw e
-        } catch (e: Exception) {
-            Logger.error(TAG, "Some mods failed to download", e)
+        } catch (e: DownloadFailedException) {
+            // 第一轮有文件下载失败
+            // 等整批结束后再对未完成的文件重试一轮
+            Logger.error(TAG, "Some mods failed to download, retrying failed mods", e)
+            runBatch(task, tasks, R.string.download_modpack_download_mods_retry, missingMods, skippedMods)
         }
 
         if (resolvedFailures.get() > 0) {
@@ -91,6 +75,41 @@ class ModDownloader(
 
         task.updateProgress(1f)
         task.updateMessage(null)
+    }
+
+    /** 执行一轮批量下载，本地已校验可复用的文件由引擎自动跳过 */
+    private suspend fun runBatch(
+        task: Task,
+        tasks: List<DownloadTask>,
+        messageRes: Int,
+        missingMods: AtomicInteger,
+        skippedMods: MutableSet<String>
+    ) {
+        task.runBatchDownloads(
+            tasks = tasks,
+            maxConnections = maxDownloadThreads,
+            retryRounds = 1,
+            onSnapshot = { snapshot ->
+                task.updateSpeed(snapshot.speedBytesPerSec)
+                task.updateMessage(
+                    androidText(
+                        messageRes,
+                        snapshot.downloadedFiles + missingMods.get(),
+                        snapshot.totalFiles + missingMods.get(),
+                        formatFileSize(snapshot.downloadedBytes)
+                    )
+                )
+            },
+            acceptFailure = { downloadTask, error ->
+                val code = error.findHttpCode()
+                val skipped = error is FileNotFoundException || error is NotFoundException || code == 404
+                // 跨轮次按目标文件判重，避免同一 404 文件在重试轮被重复计数
+                if (skipped && skippedMods.add(downloadTask.targetFile.absolutePath)) {
+                    missingMods.incrementAndGet()
+                }
+                skipped
+            }
+        )
     }
 
     /** 并发解析全部模组的下载信息，解析失败的记入失败计数 */

@@ -133,13 +133,13 @@ fun MiraiHomeDashboard(
     val tasks by TaskSystem.tasksFlow.collectAsStateWithLifecycle()
     val activeAccent = MiraiThemeManager.currentAccent()
 
-    var showFpsBoosterFor by remember { mutableStateOf<Version?>(null) }
+    var showFpsBooster by remember { mutableStateOf(false) }
     var showCrashDoctor by remember { mutableStateOf(false) }
 
-    showFpsBoosterFor?.let { targetVer ->
+    if (showFpsBooster) {
         MobileFpsBoosterDialog(
-            version = targetVer,
-            onDismiss = { showFpsBoosterFor = null }
+            version = currentVersion ?: versions.firstOrNull(),
+            onDismiss = { showFpsBooster = false }
         )
     }
 
@@ -187,29 +187,32 @@ fun MiraiHomeDashboard(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // 1-Tap Mobile FPS Booster Pill
-                    val boostTarget = currentVersion ?: versions.firstOrNull()
-                    if (boostTarget != null) {
-                        Surface(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(18.dp))
-                                .clickable { showFpsBoosterFor = boostTarget },
-                            shape = RoundedCornerShape(18.dp),
-                            color = activeAccent.copy(alpha = 0.16f),
-                            border = BorderStroke(1.dp, activeAccent.copy(alpha = 0.7f))
+                    // 1-Tap Mobile FPS Booster Pill (Always visible on dashboard)
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(18.dp))
+                            .clickable { showFpsBooster = true },
+                        shape = RoundedCornerShape(18.dp),
+                        color = activeAccent.copy(alpha = 0.18f),
+                        border = BorderStroke(1.dp, activeAccent.copy(alpha = 0.75f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
-                            Row(
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
-                            ) {
-                                Text(
-                                    text = "⚡ Boost FPS",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = activeAccent
-                                )
-                            }
+                            Icon(
+                                painter = painterResource(R.drawable.ic_rocket_launch_filled),
+                                contentDescription = "Boost FPS",
+                                tint = activeAccent,
+                                modifier = Modifier.size(13.dp)
+                            )
+                            Text(
+                                text = "Boost FPS",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = activeAccent
+                            )
                         }
                     }
 

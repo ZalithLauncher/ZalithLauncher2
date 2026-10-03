@@ -100,83 +100,73 @@ fun MiraiNavigationRail(
                     .verticalScroll(scrollState)
                     .padding(vertical = 10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceBetween
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Top: M Logo + Primary Nav Icons (Home, Library, Discover, Wallpapers)
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                // Mirai 'M' Logo Button
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(11.dp))
+                        .clickable(role = Role.Button) { onNavigate(LauncherSection.HOME) }
+                        .semantics { contentDescription = "Mirai Home" },
+                    contentAlignment = Alignment.Center
                 ) {
-                    // Mirai 'M' Logo Button
-                    Box(
-                        modifier = Modifier
-                            .size(38.dp)
-                            .clip(RoundedCornerShape(11.dp))
-                            .clickable(role = Role.Button) { onNavigate(LauncherSection.HOME) }
-                            .semantics { contentDescription = "Mirai Home" },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_mirai_mark),
-                            contentDescription = "Mirai",
-                            tint = activeAccent,
-                            modifier = Modifier.size(26.dp)
-                        )
-                    }
-
-                    Spacer(Modifier.height(2.dp))
-
-                    RailIconItem(
-                        iconRes = R.drawable.ic_home_filled,
-                        label = "Home",
-                        selected = selectedSection == LauncherSection.HOME,
-                        accentColor = activeAccent,
-                        onClick = { onNavigate(LauncherSection.HOME) }
-                    )
-
-                    RailIconItem(
-                        iconRes = R.drawable.ic_dashboard_filled,
-                        label = "Library",
-                        selected = selectedSection == LauncherSection.LIBRARY,
-                        accentColor = activeAccent,
-                        onClick = { onNavigate(LauncherSection.LIBRARY) }
-                    )
-
-                    RailIconItem(
-                        iconRes = R.drawable.ic_public,
-                        label = "Discover",
-                        selected = selectedSection == LauncherSection.DISCOVER,
-                        accentColor = activeAccent,
-                        onClick = { onNavigate(LauncherSection.DISCOVER) }
-                    )
-
-                    RailIconItem(
-                        iconRes = R.drawable.ic_format_paint_outlined,
-                        label = "Wallpapers",
-                        selected = selectedSection == LauncherSection.WALLPAPERS,
-                        accentColor = activeAccent,
-                        onClick = { onNavigate(LauncherSection.WALLPAPERS) }
+                    Icon(
+                        painter = painterResource(R.drawable.ic_mirai_mark),
+                        contentDescription = "Mirai",
+                        tint = activeAccent,
+                        modifier = Modifier.size(26.dp)
                     )
                 }
 
-                // Bottom: Settings Gear
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    HorizontalDivider(
-                        modifier = Modifier.width(28.dp),
-                        color = ModrinthRailDivider
-                    )
+                Spacer(Modifier.height(2.dp))
 
-                    RailIconItem(
-                        iconRes = R.drawable.ic_settings_filled,
-                        label = "Settings",
-                        selected = selectedSection == LauncherSection.SETTINGS,
-                        accentColor = activeAccent,
-                        onClick = { onNavigate(LauncherSection.SETTINGS) }
-                    )
-                }
+                RailIconItem(
+                    iconRes = R.drawable.ic_home_filled,
+                    label = "Home",
+                    selected = selectedSection == LauncherSection.HOME,
+                    accentColor = activeAccent,
+                    onClick = { onNavigate(LauncherSection.HOME) }
+                )
+
+                RailIconItem(
+                    iconRes = R.drawable.ic_dashboard_filled,
+                    label = "Library",
+                    selected = selectedSection == LauncherSection.LIBRARY,
+                    accentColor = activeAccent,
+                    onClick = { onNavigate(LauncherSection.LIBRARY) }
+                )
+
+                RailIconItem(
+                    iconRes = R.drawable.ic_public,
+                    label = "Discover",
+                    selected = selectedSection == LauncherSection.DISCOVER,
+                    accentColor = activeAccent,
+                    onClick = { onNavigate(LauncherSection.DISCOVER) }
+                )
+
+                RailIconItem(
+                    iconRes = R.drawable.ic_format_paint_outlined,
+                    label = "Wallpapers",
+                    selected = selectedSection == LauncherSection.WALLPAPERS,
+                    accentColor = activeAccent,
+                    onClick = { onNavigate(LauncherSection.WALLPAPERS) }
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier
+                        .width(28.dp)
+                        .padding(vertical = 2.dp),
+                    color = ModrinthRailDivider
+                )
+
+                RailIconItem(
+                    iconRes = R.drawable.ic_settings_filled,
+                    label = "Settings",
+                    selected = selectedSection == LauncherSection.SETTINGS,
+                    accentColor = activeAccent,
+                    onClick = { onNavigate(LauncherSection.SETTINGS) }
+                )
             }
         }
 

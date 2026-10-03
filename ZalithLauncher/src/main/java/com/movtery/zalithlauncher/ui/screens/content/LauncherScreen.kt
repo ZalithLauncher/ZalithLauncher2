@@ -192,8 +192,14 @@ fun LauncherScreen(
             val cardHeight = maxHeight - ActionMenuOuterPadding * 2
 
             val toAccountManageScreen: () -> Unit = {
+                val menu = if (AccountsManager.currentAccountFlow.value == null) {
+                    FirstLoginMenu.CHOOSE_LOGIN_TYPE
+                } else {
+                    FirstLoginMenu.NONE
+                }
                 backStackViewModel.mainScreen.navigateTo(
-                    screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE)
+                    screenKey = NormalNavKey.AccountManager(menu),
+                    useClassEquality = true
                 )
             }
             val toVersionManageScreen: () -> Unit = {
@@ -689,39 +695,57 @@ private fun ActionMenuCardContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // 3D Skin & Cape Stage on Dark Pedestal (Mockup #1)
+            // 3D Skin & Cape Stage on Dark Pedestal (Mockup #1) — Tapping opens Account Creation / Management
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
                     .padding(top = 6.dp, start = 8.dp, end = 8.dp)
+                    .actionMenuDragExclusion()
                     .guideNode(
                         key = GuideKeys.Main.Step.Account,
                         preferSide = GuideSide.Below
                     )
+                    .clip(RoundedCornerShape(12.dp))
                     .clickable(onClick = toAccountManageScreen),
                 contentAlignment = Alignment.Center
             ) {
-                // Dark 3D Pedestal Block at bottom of stage
-                Box(
+                // Dark 3D Pedestal Block at bottom of stage with account/create label
+                Surface(
                     modifier = Modifier
-                        .width(78.dp)
-                        .height(22.dp)
                         .align(Alignment.BottomCenter)
-                        .offset(y = (-6).dp)
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(Color(0xFF13151A))
-                )
+                        .offset(y = (-4).dp),
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF13151A),
+                    border = BorderStroke(1.dp, MiraiThemeManager.currentAccent().copy(alpha = 0.45f))
+                ) {
+                    Text(
+                        text = account?.username ?: "+ Add Account",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (account != null) Color.White else MiraiThemeManager.currentAccent(),
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                    )
+                }
+
                 SkinPreview3D(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(bottom = 10.dp),
+                        .padding(bottom = 14.dp),
                     skinFile = skinFile,
                     capeFile = capeFile,
                     modelType = account?.skinModelType,
                     animation = null,
-                    interactionEnabled = true,
+                    interactionEnabled = false,
                     azimuth = 28,
+                )
+
+                // Top-layer transparent touch catcher so WebView never swallows clicks
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(onClick = toAccountManageScreen)
                 )
             }
 

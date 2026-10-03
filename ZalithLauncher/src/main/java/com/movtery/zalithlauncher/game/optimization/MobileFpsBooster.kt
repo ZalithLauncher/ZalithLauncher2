@@ -308,14 +308,14 @@ object MobileFpsBooster {
 
 @Composable
 fun MobileFpsBoosterDialog(
-    version: Version,
+    version: Version?,
     onDismiss: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val accentColor = MiraiThemeManager.currentAccent()
-    val info = remember(version) { version.getVersionInfo() }
+    val info = remember(version) { version?.getVersionInfo() }
     val loaderName = info?.loaderInfo?.loader?.displayName
-    val hasModLoader = loaderName != null && !loaderName.equals("Vanilla", ignoreCase = true)
+    val hasModLoader = version != null && loaderName != null && !loaderName.equals("Vanilla", ignoreCase = true)
 
     var selectedPreset by remember { mutableStateOf(FpsBoostPreset.BALANCED_MOBILE) }
     var tuneOptionsTxt by remember { mutableStateOf(true) }
@@ -364,7 +364,11 @@ fun MobileFpsBoosterDialog(
                             color = Color.White
                         )
                         Text(
-                            text = "Instance: ${version.getVersionName()} (${loaderName ?: "Vanilla"} ${info?.minecraftVersion ?: ""})",
+                            text = if (version != null) {
+                                "Instance: ${version.getVersionName()} (${loaderName ?: "Vanilla"} ${info?.minecraftVersion ?: ""})"
+                            } else {
+                                "Global Mobile FPS Preset (Applies to launcher & instances)"
+                            },
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFF9CA3AF),
                             maxLines = 1,
@@ -529,11 +533,15 @@ fun MobileFpsBoosterDialog(
                                 isRunning = true
                                 scope.launch {
                                     if (tuneOptionsTxt) {
-                                        statusText = "Applying mobile options.txt preset..."
-                                        MobileFpsBooster.applyMobileOptionsTxt(version, selectedPreset)
+                                        statusText = "Applying mobile FPS preset..."
+                                        if (version != null) {
+                                            MobileFpsBooster.applyMobileOptionsTxt(version, selectedPreset)
+                                        } else {
+                                            AllSettings.resolutionRatio.save(selectedPreset.renderScale)
+                                        }
                                     }
                                     var modsInstalled = 0
-                                    if (installFpsMods && hasModLoader) {
+                                    if (installFpsMods && hasModLoader && version != null) {
                                         modsInstalled = MobileFpsBooster.installModrinthOptimizationMods(version) { step ->
                                             statusText = step
                                         }
@@ -542,7 +550,7 @@ fun MobileFpsBoosterDialog(
                                     isDone = true
                                     statusText = buildString {
                                         append("Boost Complete! ")
-                                        if (tuneOptionsTxt) append("options.txt tuned (${selectedPreset.renderScale}% scale). ")
+                                        if (tuneOptionsTxt) append("Mobile render scale set to ${selectedPreset.renderScale}%. ")
                                         if (installFpsMods && hasModLoader) append("$modsInstalled FPS mods ready in mods/.")
                                     }
                                 }

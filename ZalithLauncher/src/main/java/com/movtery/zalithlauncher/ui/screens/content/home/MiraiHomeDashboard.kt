@@ -460,7 +460,7 @@ private fun JumpBackInMobileCard(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_play_arrow_filled),
-                    contentDescription = stringResource(R.string.main_play),
+                    contentDescription = stringResource(R.string.main_launch_game),
                     tint = ModrinthOnEmerald,
                     modifier = Modifier.size(20.dp)
                 )
@@ -552,9 +552,10 @@ private fun RecentInstanceMobileRow(
 @Composable
 fun ModrinthMetaPill(
     text: String,
-    backgroundColor: Color,
-    textColor: Color,
-    borderColor: Color? = null
+    highlighted: Boolean = false,
+    backgroundColor: Color = if (highlighted) Color(0xFF1A3A2A) else Color(0xFF282C36),
+    textColor: Color = if (highlighted) ModrinthEmerald else Color(0xFFD1D5DB),
+    borderColor: Color? = if (highlighted) ModrinthEmerald.copy(alpha = 0.45f) else null
 ) {
     Box(
         modifier = Modifier

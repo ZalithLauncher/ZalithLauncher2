@@ -521,7 +521,7 @@ fun SearchAssetsScreen(
                 // Sort Dropdown Pill ("Sort: Downloads ▾")
                 Box {
                     DiscoverFilterDropdownPill(
-                        label = "Sort: ${stringResource(viewModel.searchFilter.sortField.displayNameRes)}",
+                        label = "Sort: ${viewModel.searchFilter.sortField.getDisplayName()}",
                         onClick = { showSortMenu = true }
                     )
                     DropdownMenu(
@@ -530,7 +530,7 @@ fun SearchAssetsScreen(
                     ) {
                         PlatformSortField.entries.forEach { sort ->
                             DropdownMenuItem(
-                                text = { Text(stringResource(sort.displayNameRes)) },
+                                text = { Text(sort.getDisplayName()) },
                                 onClick = {
                                     showSortMenu = false
                                     viewModel.researchWithFilter(viewModel.searchFilter.copy(sortField = sort))

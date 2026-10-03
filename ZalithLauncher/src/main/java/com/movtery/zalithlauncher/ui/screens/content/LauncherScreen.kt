@@ -192,13 +192,8 @@ fun LauncherScreen(
             val cardHeight = maxHeight - ActionMenuOuterPadding * 2
 
             val toAccountManageScreen: () -> Unit = {
-                val menu = if (AccountsManager.currentAccountFlow.value == null) {
-                    FirstLoginMenu.CHOOSE_LOGIN_TYPE
-                } else {
-                    FirstLoginMenu.NONE
-                }
                 backStackViewModel.mainScreen.navigateTo(
-                    screenKey = NormalNavKey.AccountManager(menu),
+                    screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE),
                     useClassEquality = true
                 )
             }

@@ -105,7 +105,7 @@ import com.movtery.zalithlauncher.ui.screens.content.navigateToDownload
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
-import com.movtery.zalithlauncher.ui.screens.content.home.MiraiHomeDashboard
+import com.movtery.zalithlauncher.ui.screens.content.home.PlayerSkinStage
 import com.movtery.zalithlauncher.ui.screens.content.home.LocalActionMenuDrag
 import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragAnchor
 import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragExclusion
@@ -303,15 +303,7 @@ private fun ContentMenu(
                 .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            MiraiHomeDashboard(
-                modifier = Modifier.fillMaxSize(),
-                gridState = gridState,
-                onLaunch = onLaunchGame,
-                onExploreContent = onExploreContent,
-                onCreateInstance = onCreateInstance,
-                onManageVersions = onManageVersions,
-                onOpenVersionSettings = onOpenVersionSettings
-            )
+            PlayerSkinStage(modifier = Modifier.fillMaxSize())
         }
     }
 }

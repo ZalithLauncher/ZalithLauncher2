@@ -1,6 +1,7 @@
 /*
  * Zalith Launcher 2
  * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2026 Mirai Launcher contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,22 +20,38 @@
 package com.movtery.zalithlauncher.ui.screens.content.settings
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,12 +61,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.multirt.RuntimesManager
 import com.movtery.zalithlauncher.game.plugin.driver.Driver
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer_v2.RendererV2Data
@@ -60,6 +81,7 @@ import com.movtery.zalithlauncher.path.URL_CLOUD_DRIVE_DRIVER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_CLOUD_RENDERER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_GITHUB_DRIVER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_GITHUB_RENDERER_PLUGINS
+import com.movtery.zalithlauncher.path.URL_PROJECT
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import com.movtery.zalithlauncher.setting.unit.floatRange
@@ -72,6 +94,7 @@ import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
+import com.movtery.zalithlauncher.ui.screens.content.home.ModrinthMetaPill
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPosition
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.IntSliderSettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.ListSettingsCard
@@ -80,13 +103,56 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCa
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SwitchSettingsCard
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 import com.movtery.zalithlauncher.utils.customResolutionRange
+import com.movtery.zalithlauncher.utils.device.PhysicalMemoryUtils
 import com.movtery.zalithlauncher.utils.device.checkVulkanSupport
 import com.movtery.zalithlauncher.utils.ensureCustomResolutionInitialized
 import com.movtery.zalithlauncher.utils.getRealScreenSize
 import com.movtery.zalithlauncher.utils.isAdrenoGPU
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.sendDLPlugin
+import kotlin.math.roundToInt
 
+private data class RendererStackOption(
+    val keyMatch: String,
+    val title: String,
+    val badge: String,
+    val description: String
+)
+
+private val rendererStackOptions = listOf(
+    RendererStackOption(
+        keyMatch = "AUTO",
+        title = "Auto (Smart Picker)",
+        badge = "RECOMMENDED",
+        description = "Automatically selects LTW for Minecraft 1.17+ and LTW Legacy for 1.8–1.16.5."
+    ),
+    RendererStackOption(
+        keyMatch = "LTW",
+        title = "LTW (LightThatWay GLES 3.2)",
+        badge = "1.17+ MODERN",
+        description = "High-performance OpenGL ES 3.2 renderer for modern Minecraft 1.17+ & Sodium."
+    ),
+    RendererStackOption(
+        keyMatch = "Legacy",
+        title = "LTW Legacy (1.8–1.16.5)",
+        badge = "1.8–1.16.5 CLASSIC",
+        description = "Dedicated legacy pipeline for classic 1.8.9–1.16.5, Hypixel, Forge & OptiFine."
+    ),
+    RendererStackOption(
+        keyMatch = "Zink",
+        title = "Kopper Zink (Vulkan)",
+        badge = "VULKAN 1.1+",
+        description = "Mesa Gallium3D OpenGL-on-Vulkan translation layer for Turnip / Adreno GPUs."
+    ),
+    RendererStackOption(
+        keyMatch = "GL4ES",
+        title = "GL4ES / VirGL Fallback",
+        badge = "COMPATIBILITY",
+        description = "Broad OpenGL ES 2.0/3.0 compatibility fallback for older mobile GPUs."
+    )
+)
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RendererSettingsScreen(
     key: NestedNavKey.Settings,
@@ -98,6 +164,10 @@ fun RendererSettingsScreen(
         Triple(key, mainScreenKey, false),
         Triple(NormalNavKey.Settings.Renderer, settingsScreenKey, false)
     ) { isVisible ->
+        val context = LocalContext.current
+        val allRenderers = remember { Renderers.getRenderers() }
+        val currentRendererId = AllSettings.renderer.state
+
         AnimatedColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -105,13 +175,153 @@ fun RendererSettingsScreen(
                 .padding(all = 12.dp),
             isVisible = isVisible
         ) { scope ->
+            // 1. Modrinth Renderer Stack & Graphics API Radio Cards (Mockup #6)
+            AnimatedItem(scope) { yOffset ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF1D2027),
+                    border = BorderStroke(1.dp, Color(0xFF2D313C))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Renderer Stack & Graphics API",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = "Choose how Mirai translates desktop OpenGL calls on your Android GPU",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color(0xFF9CA3AF)
+                                )
+                            }
+                            ModrinthMetaPill(text = "Smart Picker Active", highlighted = true)
+                        }
+
+                        rendererStackOptions.forEach { option ->
+                            val matchedRenderer = remember(option, allRenderers) {
+                                when (option.keyMatch) {
+                                    "AUTO" -> null
+                                    "LTW" -> allRenderers.firstOrNull {
+                                        it.getUniqueIdentifier().contains("LTW", ignoreCase = true) &&
+                                            !it.getUniqueIdentifier().contains("Legacy", ignoreCase = true)
+                                    }
+                                    "Legacy" -> allRenderers.firstOrNull {
+                                        it.getUniqueIdentifier().contains("Legacy", ignoreCase = true)
+                                    }
+                                    "Zink" -> allRenderers.firstOrNull {
+                                        it.getUniqueIdentifier().contains("Zink", ignoreCase = true)
+                                    }
+                                    else -> allRenderers.firstOrNull {
+                                        it.getUniqueIdentifier().contains("GL4ES", ignoreCase = true) ||
+                                            it.getUniqueIdentifier().contains("VirGL", ignoreCase = true)
+                                    }
+                                }
+                            }
+
+                            val isSelected = when (option.keyMatch) {
+                                "AUTO" -> currentRendererId.isBlank() || currentRendererId.equals("auto", ignoreCase = true)
+                                else -> matchedRenderer != null && currentRendererId == matchedRenderer.getUniqueIdentifier()
+                            }
+
+                            val borderColor by animateColorAsState(
+                                targetValue = if (isSelected) Color(0xFF1BD96A) else Color(0xFF2E323C),
+                                animationSpec = tween(200),
+                                label = "rendererOptionBorder"
+                            )
+                            val cardBg by animateColorAsState(
+                                targetValue = if (isSelected) Color(0xFF142D20) else Color(0xFF232730),
+                                animationSpec = tween(200),
+                                label = "rendererOptionBg"
+                            )
+
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(12.dp),
+                                color = cardBg,
+                                border = BorderStroke(if (isSelected) 1.5.dp else 1.dp, borderColor),
+                                onClick = {
+                                    if (option.keyMatch == "AUTO") {
+                                        AllSettings.renderer.save("")
+                                    } else if (matchedRenderer != null) {
+                                        AllSettings.renderer.save(matchedRenderer.getUniqueIdentifier())
+                                    }
+                                }
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    RadioButton(
+                                        selected = isSelected,
+                                        onClick = {
+                                            if (option.keyMatch == "AUTO") {
+                                                AllSettings.renderer.save("")
+                                            } else if (matchedRenderer != null) {
+                                                AllSettings.renderer.save(matchedRenderer.getUniqueIdentifier())
+                                            }
+                                        },
+                                        colors = RadioButtonDefaults.colors(
+                                            selectedColor = Color(0xFF1BD96A),
+                                            unselectedColor = Color(0xFF9CA3AF)
+                                        )
+                                    )
+                                    Column(
+                                        modifier = Modifier.weight(1f),
+                                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Text(
+                                                text = option.title,
+                                                style = MaterialTheme.typography.titleSmall,
+                                                fontWeight = FontWeight.Bold,
+                                                color = Color.White
+                                            )
+                                            ModrinthMetaPill(
+                                                text = option.badge,
+                                                highlighted = isSelected || option.keyMatch == "AUTO"
+                                            )
+                                        }
+                                        Text(
+                                            text = option.description,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = Color(0xFF9CA3AF)
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 2. Detailed Renderer, Vulkan Driver & Resolution Settings
             AnimatedItem(scope) { yOffset ->
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
                         .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
                 ) {
-                    val currentRendererId = AllSettings.renderer.state
                     val v2PluginEnvUnits = remember(currentRendererId) {
                         Renderers.getRenderers()
                             .filterIsInstance<RendererV2Data>()
@@ -133,7 +343,6 @@ fun RendererSettingsScreen(
                             RendererSummaryLayout(it)
                         },
                         trailingIcon = {
-                            //选中新一代渲染器插件且存在可配置项时，提供配置入口
                             if (v2PluginEnvUnits != null) {
                                 IconButton(
                                     onClick = { showV2ConfigDialog = true }
@@ -165,7 +374,6 @@ fun RendererSettingsScreen(
                         }
                     )
 
-                    //新一代渲染器插件的环境变量配置对话框
                     if (showV2ConfigDialog && v2PluginEnvUnits != null) {
                         RendererV2ConfigDialog(
                             units = v2PluginEnvUnits,
@@ -208,7 +416,7 @@ fun RendererSettingsScreen(
 
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
+                        position = CardPosition.Middle,
                         unit = AllSettings.graphicsApi,
                         items = GraphicsApi.entries,
                         title = stringResource(R.string.settings_game_graphics_api_title),
@@ -221,39 +429,26 @@ fun RendererSettingsScreen(
                             }
                         }
                     )
-                }
-            }
 
-            AnimatedItem(scope) { yOffset ->
-                SettingsCardColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
-                ) {
-                    val context = LocalContext.current
-
-                    Column(
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        // 分辨率规则
+                    Column(modifier = Modifier.fillMaxWidth()) {
                         val resolutionRule = AllSettings.resolutionRule.state
+
                         ListSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
-                            position = CardPosition.Top,
+                            position = CardPosition.Middle,
                             unit = AllSettings.resolutionRule,
                             items = ResolutionRule.entries,
                             title = stringResource(R.string.settings_renderer_resolution_rule_title),
                             summary = stringResource(R.string.settings_renderer_resolution_rule_summary),
+                            getItemId = { it.name },
                             getItemText = { stringResource(it.nameRes) },
                             onValueChange = { rule ->
-                                // 自定义分辨率尚未初始化时，以屏幕真实宽高填充
                                 if (rule == ResolutionRule.CUSTOM) {
                                     ensureCustomResolutionInitialized(context)
                                 }
                             }
                         )
 
-                        // 百分比分辨率
                         AnimatedVisibility(
                             visible = resolutionRule == ResolutionRule.PERCENTAGE,
                             enter = fadeIn(animationSpec = getAnimateTween()) +
@@ -275,7 +470,6 @@ fun RendererSettingsScreen(
                             )
                         }
 
-                        // 自定义分辨率
                         AnimatedVisibility(
                             visible = resolutionRule == ResolutionRule.CUSTOM,
                             enter = fadeIn(animationSpec = getAnimateTween()) +
@@ -302,6 +496,125 @@ fun RendererSettingsScreen(
                 }
             }
 
+            // 3. Memory & Java Runtime Quick Hub (Mockup #6 middle card)
+            AnimatedItem(scope) { yOffset ->
+                val runtimes = remember { RuntimesManager.getRuntimes() }
+                val totalRamMb = remember {
+                    (PhysicalMemoryUtils.getTotalMemory(context) / (1024 * 1024)).toInt().coerceAtLeast(2048)
+                }
+                val maxAllocMb = remember(totalRamMb) {
+                    (totalRamMb * 0.85f).roundToInt().coerceAtLeast(1024)
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF1D2027),
+                    border = BorderStroke(1.dp, Color(0xFF2D313C))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "Memory & Java Runtime (JRE)",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = "Configure global JVM heap memory and default Java runtime environment",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color(0xFF9CA3AF)
+                                )
+                            }
+                            ModrinthMetaPill(
+                                text = "${AllSettings.ramAllocation.state} MB Allocated",
+                                highlighted = true
+                            )
+                        }
+
+                        IntSliderSettingsCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            position = CardPosition.Single,
+                            unit = AllSettings.ramAllocation,
+                            title = stringResource(R.string.settings_game_java_memory_title),
+                            summary = stringResource(R.string.settings_game_java_memory_summary),
+                            valueRange = 256f..maxAllocMb.toFloat(),
+                            suffix = " MB",
+                            fineTuningControl = true
+                        )
+
+                        Text(
+                            text = "Default Java Runtime (JRE 8 / 17 / 21 / 25)",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            val currentJre = AllSettings.javaRuntime.state
+                            FilterChip(
+                                selected = currentJre.isEmpty(),
+                                onClick = {
+                                    AllSettings.autoPickJavaRuntime.save(true)
+                                    AllSettings.javaRuntime.save("")
+                                },
+                                label = {
+                                    Text(
+                                        text = "Auto (Smart JRE Picker)",
+                                        fontWeight = if (currentJre.isEmpty()) FontWeight.Bold else FontWeight.Medium
+                                    )
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = Color(0xFF232730),
+                                    labelColor = Color(0xFFD1D5DB),
+                                    selectedContainerColor = Color(0xFF143825),
+                                    selectedLabelColor = Color(0xFF1BD96A)
+                                )
+                            )
+
+                            runtimes.forEach { runtime ->
+                                val selected = currentJre == runtime.name
+                                FilterChip(
+                                    selected = selected,
+                                    onClick = {
+                                        AllSettings.autoPickJavaRuntime.save(false)
+                                        AllSettings.javaRuntime.save(runtime.name)
+                                    },
+                                    label = {
+                                        Text(
+                                            text = "${runtime.name} (Java ${runtime.javaVersion})",
+                                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        containerColor = Color(0xFF232730),
+                                        labelColor = Color(0xFFD1D5DB),
+                                        selectedContainerColor = Color(0xFF143825),
+                                        selectedLabelColor = Color(0xFF1BD96A)
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 4. GPU & Zink Tweaks
             AnimatedItem(scope) { yOffset ->
                 SettingsCardColumn(
                     modifier = Modifier
@@ -369,6 +682,99 @@ fun RendererSettingsScreen(
                         title = stringResource(R.string.settings_renderer_shader_dump_title),
                         summary = stringResource(R.string.settings_renderer_shader_dump_summary)
                     )
+                }
+            }
+
+            // 5. About Mirai Launcher & Updater Card (Mockup #6 bottom card: entitybrian + v2.6.1 + Check for Updates)
+            AnimatedItem(scope) { yOffset ->
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF1D2027),
+                    border = BorderStroke(1.dp, Color(0xFF1BD96A).copy(alpha = 0.45f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color(0xFF143825),
+                                border = BorderStroke(1.dp, Color(0xFF1BD96A).copy(alpha = 0.5f))
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_mirai_mark),
+                                    contentDescription = null,
+                                    tint = Color.Unspecified,
+                                    modifier = Modifier
+                                        .padding(8.dp)
+                                        .size(34.dp)
+                                )
+                            }
+                            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    Text(
+                                        text = "Mirai Launcher v${BuildConfig.VERSION_NAME}",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color.White
+                                    )
+                                    ModrinthMetaPill(text = "by entitybrian", highlighted = true)
+                                }
+                                Text(
+                                    text = "Maintained by entitybrian • GitHub Release OTA Updater",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color(0xFF9CA3AF)
+                                )
+                            }
+                        }
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(
+                                onClick = {
+                                    eventViewModel.sendEvent(EventViewModel.Event.OpenLink(URL_PROJECT))
+                                },
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text("GitHub")
+                            }
+                            Button(
+                                onClick = {
+                                    eventViewModel.sendEvent(EventViewModel.Event.CheckUpdate)
+                                },
+                                shape = RoundedCornerShape(10.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF1BD96A),
+                                    contentColor = Color(0xFF06210F)
+                                ),
+                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_update),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(Modifier.width(6.dp))
+                                Text(
+                                    text = "Check for Updates",
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

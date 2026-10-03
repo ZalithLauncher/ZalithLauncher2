@@ -56,6 +56,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -69,6 +71,8 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.nonInteractiveScrollbar
@@ -1003,11 +1007,28 @@ private fun ModsActionsHeader(
                         }
                     )
 
-                    IconTextButton(
+                    Spacer(Modifier.width(4.dp))
+
+                    Button(
                         onClick = swapToDownload,
-                        painter = painterResource(R.drawable.ic_download_2_filled),
-                        text = stringResource(R.string.generic_download)
-                    )
+                        shape = RoundedCornerShape(10.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1BD96A),
+                            contentColor = Color(0xFF06210F)
+                        ),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_add),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            text = "Add Content",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
 
                     IconButton(
                         onClick = refresh
@@ -1287,13 +1308,20 @@ private fun ModItemLayout(
                     }
                 }
 
-                //启用/禁用
-                Checkbox(
+                //启用/禁用 (Modrinth Switch)
+                Switch(
                     checked = mod.localMod.file.isEnabled(),
                     onCheckedChange = { checked ->
                         if (checked) onEnable()
                         else onDisable()
-                    }
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color(0xFF06210F),
+                        checkedTrackColor = Color(0xFF1BD96A),
+                        uncheckedThumbColor = Color(0xFF9CA3AF),
+                        uncheckedTrackColor = Color(0xFF282C36),
+                        uncheckedBorderColor = Color(0xFF3E4452)
+                    )
                 )
 
                 //详细信息展示

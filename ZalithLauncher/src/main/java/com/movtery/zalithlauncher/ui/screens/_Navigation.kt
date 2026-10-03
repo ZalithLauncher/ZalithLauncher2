@@ -20,13 +20,18 @@ package com.movtery.zalithlauncher.ui.screens
 
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.unit.IntOffset
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.scene.Scene
 import com.movtery.zalithlauncher.setting.AllSettings
@@ -122,16 +127,31 @@ fun <T : Any> rememberTransitionSpec(): AnimatedContentTransitionScope<Scene<T>>
     val type = AllSettings.launcherSwapAnimateType.state
     val speed = AllSettings.launcherAnimateSpeed.state
     return remember(type, speed) {
-        val tween: FiniteAnimationSpec<Float> = when (type) {
+        val duration = ((getAnimateSpeed() / 5) * 2).coerceIn(180, 420)
+        val floatSpec: FiniteAnimationSpec<Float> = when (type) {
             TransitionAnimationType.CLOSE -> snap()
-            else -> tween(durationMillis = (getAnimateSpeed() / 5) * 2)
+            else -> tween(durationMillis = duration, easing = FastOutSlowInEasing)
+        }
+        val offsetSpec: FiniteAnimationSpec<IntOffset> = when (type) {
+            TransitionAnimationType.CLOSE -> snap()
+            else -> tween(durationMillis = duration, easing = FastOutSlowInEasing)
         }
 
         {
-            ContentTransform(
-                fadeIn(animationSpec = tween),
-                fadeOut(animationSpec = tween),
-            )
+            if (type == TransitionAnimationType.CLOSE) {
+                ContentTransform(
+                    fadeIn(animationSpec = floatSpec),
+                    fadeOut(animationSpec = floatSpec),
+                )
+            } else {
+                ContentTransform(
+                    targetContentEnter = fadeIn(animationSpec = floatSpec) +
+                        scaleIn(initialScale = 0.965f, animationSpec = floatSpec) +
+                        slideInVertically(animationSpec = offsetSpec) { fullHeight -> fullHeight / 28 },
+                    initialContentExit = fadeOut(animationSpec = floatSpec) +
+                        scaleOut(targetScale = 0.985f, animationSpec = floatSpec)
+                )
+            }
         }
     }
 }

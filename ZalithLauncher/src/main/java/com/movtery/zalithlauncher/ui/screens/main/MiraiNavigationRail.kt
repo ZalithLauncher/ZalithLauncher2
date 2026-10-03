@@ -19,11 +19,24 @@
 
 package com.movtery.zalithlauncher.ui.screens.main
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,27 +44,37 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
 
 /** Primary destinations kept visible while nested launcher screens are open. */
@@ -60,8 +83,14 @@ enum class LauncherSection {
     DISCOVER,
     LIBRARY,
     MULTIPLAYER,
-    SETTINGS
+    SETTINGS,
+    ACCOUNTS
 }
+
+private val ModrinthRailBg = Color(0xFF121418)
+private val ModrinthGreen = Color(0xFF1BD96A)
+private val ModrinthGreenSurface = Color(0xFF163826)
+private val ModrinthOnGreen = Color(0xFF06210F)
 
 @Composable
 fun MiraiNavigationRail(
@@ -73,81 +102,161 @@ fun MiraiNavigationRail(
 ) {
     val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
     val quiet = AllSettings.miraiQuietMode.state
+    val scrollState = rememberScrollState()
 
     Surface(
         modifier = modifier
-            .width(68.dp)
+            .width(142.dp)
             .fillMaxHeight(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        contentColor = MaterialTheme.colorScheme.onSurface
+        color = ModrinthRailBg,
+        contentColor = Color.White,
+        border = BorderStroke(1.dp, Color(0xFF232730))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
-                .padding(horizontal = 8.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .verticalScroll(scrollState)
+                .padding(horizontal = 10.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.Start
         ) {
-            Box(
+            // Mirai Launcher Brand Header
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(40.dp)
+                    .clip(RoundedCornerShape(12.dp))
                     .combinedClickable(
-                        onClick = {},
+                        onClick = { onNavigate(LauncherSection.HOME) },
                         onLongClick = { AllSettings.miraiQuietMode.save(!quiet) }
-                    ),
-                contentAlignment = Alignment.Center
+                    )
+                    .padding(horizontal = 6.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_mirai_mark),
                     contentDescription = stringResource(R.string.launcher_brand_name),
-                    tint = androidx.compose.ui.graphics.Color.Unspecified,
-                    modifier = Modifier.size(32.dp)
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(30.dp)
                 )
+                Column(verticalArrangement = Arrangement.spacedBy((-2).dp)) {
+                    Text(
+                        text = "Mirai",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = "Launcher",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF9CA3AF),
+                        maxLines = 1
+                    )
+                }
             }
 
-            Spacer(Modifier.height(10.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
+            Spacer(Modifier.height(8.dp))
+            HorizontalDivider(color = Color(0xFF232730))
             Spacer(Modifier.height(8.dp))
 
             LauncherSectionItem(
                 icon = R.drawable.ic_home_filled,
-                label = stringResource(R.string.generic_main_menu),
+                label = "Home",
                 selected = selectedSection == LauncherSection.HOME,
                 onClick = { onNavigate(LauncherSection.HOME) }
             )
             if (!quiet) LauncherSectionItem(
                 icon = R.drawable.ic_search,
-                label = stringResource(R.string.generic_download),
+                label = "Discover",
                 selected = selectedSection == LauncherSection.DISCOVER,
                 onClick = { onNavigate(LauncherSection.DISCOVER) }
             )
             if (!quiet) LauncherSectionItem(
                 icon = R.drawable.ic_dashboard_filled,
-                label = stringResource(R.string.page_title_version_list),
+                label = "Library",
                 selected = selectedSection == LauncherSection.LIBRARY,
                 onClick = { onNavigate(LauncherSection.LIBRARY) }
             )
             if (!quiet) LauncherSectionItem(
                 icon = R.drawable.ic_group_filled,
-                label = stringResource(R.string.terracotta),
+                label = "Multiplayer",
                 selected = selectedSection == LauncherSection.MULTIPLAYER,
                 onClick = { onNavigate(LauncherSection.MULTIPLAYER) }
             )
 
             Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(8.dp))
+
+            if (!quiet) {
+                CreateInstanceRailButton(onClick = onCreateInstance)
+                Spacer(Modifier.height(6.dp))
+            }
 
             if (!quiet) LauncherSectionItem(
                 icon = R.drawable.ic_settings_filled,
-                label = stringResource(R.string.generic_setting),
+                label = "Settings",
                 selected = selectedSection == LauncherSection.SETTINGS,
                 onClick = { onNavigate(LauncherSection.SETTINGS) }
             )
 
             Spacer(Modifier.height(6.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
+            HorizontalDivider(color = Color(0xFF232730))
             Spacer(Modifier.height(6.dp))
-            if (!quiet) AccountShortcut(account = account, onClick = onAccountClick)
+            if (!quiet) {
+                AccountShortcut(
+                    account = account,
+                    selected = selectedSection == LauncherSection.ACCOUNTS,
+                    onClick = onAccountClick
+                )
+            }
         }
+    }
+}
+
+@Composable
+private fun CreateInstanceRailButton(onClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "createInstanceScale"
+    )
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(RoundedCornerShape(11.dp))
+            .background(ModrinthGreen)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                role = Role.Button,
+                onClick = onClick
+            )
+            .padding(horizontal = 10.dp, vertical = 9.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_add),
+            contentDescription = null,
+            tint = ModrinthOnGreen,
+            modifier = Modifier.size(16.dp)
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(
+            text = "CREATE\nINSTANCE",
+            color = ModrinthOnGreen,
+            fontSize = 10.sp,
+            lineHeight = 11.sp,
+            fontWeight = FontWeight.ExtraBold,
+            maxLines = 2
+        )
     }
 }
 
@@ -156,37 +265,75 @@ private fun LauncherSectionItem(
     icon: Int,
     label: String,
     selected: Boolean,
-    highlighted: Boolean = false,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(13.dp)
-    val backgroundColor = when {
-        selected -> MaterialTheme.colorScheme.primary
-        highlighted -> MaterialTheme.colorScheme.primaryContainer
-        else -> MaterialTheme.colorScheme.surfaceContainerLow
-    }
-    val iconColor = when {
-        selected -> MaterialTheme.colorScheme.onPrimary
-        highlighted -> MaterialTheme.colorScheme.onPrimaryContainer
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "railItemScale"
+    )
+    val bgColor by animateColorAsState(
+        targetValue = if (selected) ModrinthGreenSurface else Color.Transparent,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "railItemBg"
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (selected) ModrinthGreen else Color(0xFFD1D5DB),
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "railItemFg"
+    )
+    val indicatorHeight by animateDpAsState(
+        targetValue = if (selected) 20.dp else 0.dp,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "railIndicator"
+    )
 
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 3.dp)
-            .height(42.dp)
-            .clip(shape)
-            .background(backgroundColor)
-            .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = label },
-        contentAlignment = Alignment.Center
+            .padding(vertical = 2.dp)
+            .height(40.dp)
+            .graphicsLayer {
+                scaleX = scale
+                scaleY = scale
+            }
+            .clip(RoundedCornerShape(11.dp))
+            .background(bgColor)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                role = Role.Button,
+                onClick = onClick
+            )
+            .semantics { contentDescription = label }
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(9.dp)
     ) {
+        if (indicatorHeight > 0.dp) {
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(indicatorHeight)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(ModrinthGreen)
+            )
+        }
         Icon(
             painter = painterResource(icon),
             contentDescription = null,
-            tint = iconColor,
-            modifier = Modifier.size(21.dp)
+            tint = contentColor,
+            modifier = Modifier.size(19.dp)
+        )
+        Text(
+            text = label,
+            color = if (selected) ModrinthGreen else Color(0xFFE5E7EB),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -194,35 +341,68 @@ private fun LauncherSectionItem(
 @Composable
 private fun AccountShortcut(
     account: Account?,
+    selected: Boolean,
     onClick: () -> Unit
 ) {
     val description = account?.username ?: stringResource(R.string.account_add_new_account)
-    Box(
+    val borderColor by animateColorAsState(
+        targetValue = if (selected) ModrinthGreen else Color(0xFF282C35),
+        animationSpec = tween(220),
+        label = "accountBorder"
+    )
+    val containerColor by animateColorAsState(
+        targetValue = if (selected) ModrinthGreenSurface else Color(0xFF191C22),
+        animationSpec = tween(220),
+        label = "accountBg"
+    )
+
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(44.dp)
-            .clip(RoundedCornerShape(13.dp))
+            .clip(RoundedCornerShape(12.dp))
+            .background(containerColor)
+            .border(1.5.dp, borderColor, RoundedCornerShape(12.dp))
             .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = description },
-        contentAlignment = Alignment.Center
+            .semantics { contentDescription = description }
+            .padding(horizontal = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (account != null) {
-            PlayerFace(account = account, avatarSize = 34.dp)
+            PlayerFace(account = account, avatarSize = 28.dp)
         } else {
             Box(
                 modifier = Modifier
-                    .size(34.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
+                    .size(28.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF262A33)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_person_outlined),
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(19.dp)
+                    tint = Color(0xFF9CA3AF),
+                    modifier = Modifier.size(16.dp)
                 )
             }
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = account?.username ?: "Add Account",
+                color = Color.White,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = if (account != null) "Online / Ready" else "Tap to sign in",
+                color = if (account != null) ModrinthGreen else Color(0xFF9CA3AF),
+                fontSize = 9.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -49,6 +50,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -109,9 +111,16 @@ fun AboutInfoScreen(
                             text = stringResource(R.string.about_launcher_version, BuildConfig.VERSION_NAME),
                             button = {
                                 Button(
-                                    onClick = checkUpdate
+                                    onClick = checkUpdate,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF1BD96A),
+                                        contentColor = Color(0xFF06210F)
+                                    )
                                 ) {
-                                    Text(text = stringResource(R.string.upgrade_title))
+                                    Text(
+                                        text = stringResource(R.string.upgrade_title),
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
                                 }
                                 Button(
                                     onClick = { openLink(URL_PROJECT) }

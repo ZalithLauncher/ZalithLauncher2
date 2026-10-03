@@ -1,6 +1,7 @@
 /*
  * Zalith Launcher 2
  * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2026 Mirai Launcher contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +19,15 @@
 
 package com.movtery.zalithlauncher.ui.screens.content
 
-import androidx.compose.foundation.basicMarquee
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -30,22 +36,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import com.movtery.zalithlauncher.R
@@ -54,8 +68,6 @@ import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
-import com.movtery.zalithlauncher.ui.screens.content.elements.CategoryIcon
-import com.movtery.zalithlauncher.ui.screens.content.elements.CategoryItem
 import com.movtery.zalithlauncher.ui.screens.content.settings.AboutInfoScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.ControlManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.settings.ControlSettingsScreen
@@ -72,6 +84,13 @@ import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 
+private data class ModrinthSettingNavItem(
+    val key: TitledNavKey,
+    val iconRes: Int,
+    val textRes: Int,
+    val division: Boolean = false
+)
+
 @Composable
 fun SettingsScreen(
     key: NestedNavKey.Settings,
@@ -84,8 +103,12 @@ fun SettingsScreen(
         screenKey = key,
         currentKey = backStackViewModel.mainScreen.currentKey
     ) { isVisible ->
-
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             TabMenu(
                 modifier = Modifier.fillMaxHeight(),
                 isVisible = isVisible,
@@ -104,29 +127,31 @@ fun SettingsScreen(
                 openLicenseScreen = openLicenseScreen,
                 eventViewModel = eventViewModel,
                 submitError = submitError,
-                modifier = Modifier.fillMaxHeight()
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .weight(1f)
             )
         }
     }
 }
 
 private val settingItems = listOf(
-    CategoryItem(NormalNavKey.Settings.Renderer, { CategoryIcon(R.drawable.ic_video_settings, R.string.settings_tab_renderer) }, R.string.settings_tab_renderer),
-    CategoryItem(NormalNavKey.Settings.Game, { CategoryIcon(R.drawable.ic_rocket_launch_filled, R.string.settings_tab_game) }, R.string.settings_tab_game),
-    CategoryItem(NormalNavKey.Settings.Control, { CategoryIcon(R.drawable.ic_videogame_asset_outlined, R.string.settings_tab_control) }, R.string.settings_tab_control),
-    CategoryItem(NormalNavKey.Settings.Gamepad, { CategoryIcon(R.drawable.ic_sports_esports_outlined, R.string.settings_tab_gamepad) }, R.string.settings_tab_gamepad),
-    CategoryItem(NormalNavKey.Settings.Launcher, { CategoryIcon(R.drawable.ic_setting_launcher, R.string.settings_tab_launcher) }, R.string.settings_tab_launcher),
-    CategoryItem(NormalNavKey.Settings.JavaManager, { CategoryIcon(R.drawable.ic_java, R.string.settings_tab_java_manage) }, R.string.settings_tab_java_manage, division = true),
-    CategoryItem(NormalNavKey.Settings.ControlManager, { CategoryIcon(R.drawable.ic_videogame_asset_outlined, R.string.settings_tab_control_manage) }, R.string.settings_tab_control_manage),
-    CategoryItem(NormalNavKey.Settings.AboutInfo, { CategoryIcon(R.drawable.ic_info_outlined, R.string.settings_tab_info_about) }, R.string.settings_tab_info_about, division = true)
+    ModrinthSettingNavItem(NormalNavKey.Settings.Renderer, R.drawable.ic_video_settings, R.string.settings_tab_renderer),
+    ModrinthSettingNavItem(NormalNavKey.Settings.Game, R.drawable.ic_rocket_launch_filled, R.string.settings_tab_game),
+    ModrinthSettingNavItem(NormalNavKey.Settings.JavaManager, R.drawable.ic_java, R.string.settings_tab_java_manage),
+    ModrinthSettingNavItem(NormalNavKey.Settings.Launcher, R.drawable.ic_setting_launcher, R.string.settings_tab_launcher, division = true),
+    ModrinthSettingNavItem(NormalNavKey.Settings.Control, R.drawable.ic_videogame_asset_outlined, R.string.settings_tab_control, division = true),
+    ModrinthSettingNavItem(NormalNavKey.Settings.ControlManager, R.drawable.ic_videogame_asset_outlined, R.string.settings_tab_control_manage),
+    ModrinthSettingNavItem(NormalNavKey.Settings.Gamepad, R.drawable.ic_sports_esports_outlined, R.string.settings_tab_gamepad),
+    ModrinthSettingNavItem(NormalNavKey.Settings.AboutInfo, R.drawable.ic_info_outlined, R.string.settings_tab_info_about, division = true)
 )
 
 @Composable
 private fun TabMenu(
-    modifier: Modifier = Modifier,
     isVisible: Boolean,
     settingsScreenKey: TitledNavKey?,
-    navigateTo: (TitledNavKey) -> Unit
+    navigateTo: (TitledNavKey) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val xOffset by swapAnimateDpAsState(
         targetValue = (-40).dp,
@@ -135,46 +160,95 @@ private fun TabMenu(
     )
 
     val scrollState = rememberScrollState()
-    Column(
+    Surface(
         modifier = modifier
-            .fadeEdge(scrollState)
-            .width(IntrinsicSize.Min)
-            .padding(start = 8.dp)
-            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
-            .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .width(195.dp)
+            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF1A1D24),
+        border = BorderStroke(1.dp, Color(0xFF2B2F3A))
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
-        settingItems.forEach { item ->
-            if (item.division) {
-                HorizontalDivider(
-                    modifier = Modifier
-                        .padding(vertical = 12.dp)
-                        .fillMaxWidth(0.4f)
-                        .alpha(0.4f),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            NavigationRailItem(
-                selected = settingsScreenKey == item.key,
-                onClick = {
-                    navigateTo(item.key)
-                },
-                icon = {
-                    item.icon()
-                },
-                label = {
-                    Text(
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                        text = stringResource(item.textRes),
-                        maxLines = 1,
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                }
+        Column(
+            modifier = Modifier
+                .fillMaxHeight()
+                .fadeEdge(scrollState)
+                .verticalScroll(scrollState)
+                .padding(horizontal = 10.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = "Global Settings",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+            HorizontalDivider(
+                color = Color(0xFF282C36),
+                modifier = Modifier.padding(bottom = 4.dp)
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            settingItems.forEach { item ->
+                if (item.division) {
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 4.dp),
+                        color = Color(0xFF282C36)
+                    )
+                }
+
+                val selected = settingsScreenKey === item.key
+                val bgColor by animateColorAsState(
+                    targetValue = if (selected) Color(0xFF143825) else Color.Transparent,
+                    animationSpec = tween(200),
+                    label = "settingsTabBg"
+                )
+                val fgColor by animateColorAsState(
+                    targetValue = if (selected) Color(0xFF1BD96A) else Color(0xFFD1D5DB),
+                    animationSpec = tween(200),
+                    label = "settingsTabFg"
+                )
+                val indicatorHeight by animateDpAsState(
+                    targetValue = if (selected) 18.dp else 0.dp,
+                    animationSpec = tween(200),
+                    label = "settingsTabIndicator"
+                )
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(38.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(bgColor)
+                        .clickable { navigateTo(item.key) }
+                        .padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(9.dp)
+                ) {
+                    if (indicatorHeight > 0.dp) {
+                        Box(
+                            modifier = Modifier
+                                .width(3.dp)
+                                .height(indicatorHeight)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(Color(0xFF1BD96A))
+                        )
+                    }
+                    Icon(
+                        painter = painterResource(item.iconRes),
+                        contentDescription = null,
+                        tint = fgColor,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = stringResource(item.textRes),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                        color = fgColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
         }
     }
 }
@@ -190,7 +264,7 @@ private fun NavigationUI(
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val backStack = key.backStack
+    val backStack: NavBackStack<TitledNavKey> = key.backStack
     val stackTopKey = backStack.lastOrNull()
     LaunchedEffect(stackTopKey) {
         onCurrentKeyChange(stackTopKey)

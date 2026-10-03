@@ -260,20 +260,11 @@ private fun AccountAvatarRailButton(
             .semantics { contentDescription = account?.username ?: "Accounts" },
         contentAlignment = Alignment.Center
     ) {
-        if (account != null) {
-            PlayerFace(
-                modifier = Modifier
-                    .size(30.dp)
-                    .clip(CircleShape),
-                account = account
-            )
-        } else {
-            Icon(
-                painter = painterResource(R.drawable.ic_person),
-                contentDescription = "Accounts",
-                tint = if (selected) ModrinthEmerald else ModrinthRailMuted,
-                modifier = Modifier.size(18.dp)
-            )
-        }
+        PlayerFace(
+            modifier = Modifier
+                .size(30.dp)
+                .clip(CircleShape),
+            account = account
+        )
     }
 }

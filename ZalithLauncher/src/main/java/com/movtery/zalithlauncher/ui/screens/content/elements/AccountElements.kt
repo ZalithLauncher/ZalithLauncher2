@@ -250,7 +250,7 @@ sealed interface OtherLoginOperation {
 @Composable
 fun PlayerFace(
     modifier: Modifier = Modifier,
-    account: Account,
+    account: Account?,
     avatarSize: Dp = 64.dp,
     refreshKey: Any? = null
 ) {
@@ -1678,12 +1678,12 @@ private fun getCapeAvatar(
 
 private fun getSkinAvatarFromAccount(
     context: Context,
-    account: Account,
+    account: Account?,
     size: Dp,
     density: Density
 ): Bitmap {
-    val skin = account.getSkinFile()
-    if (skin.exists()) {
+    val skin = account?.getSkinFile()
+    if (skin != null && skin.exists()) {
         runCatching {
             Files.newInputStream(skin.toPath()).use { stream ->
                 val bitmap = BitmapFactory.decodeStream(stream)

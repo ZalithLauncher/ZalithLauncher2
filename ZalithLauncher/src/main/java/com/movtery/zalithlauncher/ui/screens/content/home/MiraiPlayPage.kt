@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -50,35 +49,25 @@ fun MiraiPlayPage(
     val selected = current ?: versions.firstOrNull()
     val glass = ButtonDefaults.buttonColors(containerColor = Color(0x991BD96A), contentColor = Color(0xFF06210F))
 
-    Row(modifier = modifier.fillMaxSize().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-        Column(modifier = Modifier.fillMaxHeight().weight(1f)) {
-            Text("Instances", color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
-            Spacer(Modifier.height(12.dp))
-            if (versions.isEmpty()) {
-                Text("No instances yet.", color = Color(0xFFD7CFC8))
-                Spacer(Modifier.weight(1f))
-            } else {
-                LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
-                    items(versions, key = { it.getVersionName() }) { version ->
-                        InstanceRow(version, version.getVersionName() == selected?.getVersionName()) { VersionsManager.saveVersion(version) }
+    Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
+        Text("Instances", color = Color.White, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
+        Spacer(Modifier.height(12.dp))
+        if (versions.isEmpty()) {
+            Text("No instances yet.", color = Color(0xFFD7CFC8))
+            Spacer(Modifier.weight(1f))
+        } else {
+            LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(bottom = 12.dp)) {
+                items(versions, key = { it.getVersionName() }) { version ->
+                    InstanceRow(version, version.getVersionName() == selected?.getVersionName()) {
+                        VersionsManager.saveVersion(version)
+                        onOpenVersionSettings(version)
                     }
                 }
             }
-            Button(onClick = onAddAccount, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = glass) { Text("Add Account", fontWeight = FontWeight.SemiBold) }
-            Spacer(Modifier.height(8.dp))
-            Button(onClick = onCreateInstance, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = glass) { Text("Create instance", fontWeight = FontWeight.SemiBold) }
         }
-        Column(modifier = Modifier.weight(1f).fillMaxHeight().clip(RoundedCornerShape(22.dp)).background(Color(0x66161618)).padding(24.dp)) {
-            Text(selected?.getVersionName() ?: "Pick or create an instance", color = Color.White, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Spacer(Modifier.height(8.dp))
-            Text("Add an account here, then install a version and play it from the rail.", color = Color(0xFFD7CFC8))
-            if (selected != null) {
-                Spacer(Modifier.height(12.dp))
-                Text("Add content", color = Color(0xFF1BD96A), fontWeight = FontWeight.SemiBold, modifier = Modifier.clickable(onClick = onExploreContent))
-                Text("Instance settings", color = Color.White, modifier = Modifier.padding(top = 8.dp).clickable { onOpenVersionSettings(selected) })
-            }
-            Spacer(Modifier.weight(1f))
-        }
+        Button(onClick = onAddAccount, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = glass) { Text("Add Account", fontWeight = FontWeight.SemiBold) }
+        Spacer(Modifier.height(8.dp))
+        Button(onClick = onCreateInstance, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(24.dp), colors = glass) { Text("Create instance", fontWeight = FontWeight.SemiBold) }
     }
 }
 

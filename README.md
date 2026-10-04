@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="assets/mirai-logo.png" alt="Mirai Launcher logo" width="160" />
+
 # ✨ 🚀 MIRAI LAUNCHER
 ### The Best Minecraft: Java Edition Launcher for Android
 

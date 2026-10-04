@@ -15,7 +15,7 @@ jobs:
         run: |
           python3 - << 'PY'
           from pathlib import Path
-          p = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/LauncherScreen.kt")
+          p = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/LauncherScreen.kt")
           s = p.read_text()
           s = s.replace(
               "import com.movtery.zalithlauncher.ui.screens.content.home.MiraiHomeDashboard",
@@ -38,6 +38,6 @@ jobs:
           PY
           git config user.name entitybrian69-bit
           git config user.email entitybrian69@gmail.com
-          git add ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/LauncherScreen.kt
+          git add MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/LauncherScreen.kt
           git commit -m "Replace Jump in and Library with the player skin"
           git push origin HEAD:Mirai-launcher

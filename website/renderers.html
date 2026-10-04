@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-accent="violet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Renderers — Mirai Launcher</title>
+<meta name="description" content="Mirai Launcher ships eleven Minecraft renderers, two of them compiled from source, and picks the right one for your version and device automatically.">
+<meta name="theme-color" content="#FAF6F1">
+<link rel="canonical" href="https://entitybrian69-bit.github.io/Mirai-launcher/renderers.html">
+<link rel="icon" href="assets/img/favicon.ico" sizes="any">
+<link rel="icon" href="assets/img/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Renderers — Mirai Launcher">
+<meta property="og:description" content="Eleven wrappers, two built from source, chosen automatically per version.">
+<meta property="og:image" content="https://entitybrian69-bit.github.io/Mirai-launcher/assets/img/mirai-logo.png">
+<script>
+(function(){try{
+  var m=localStorage.getItem('mirai-theme')||'auto';
+  var a=localStorage.getItem('mirai-accent')||'violet';
+  var d=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  document.documentElement.setAttribute('data-theme',m==='auto'?d:m);
+  document.documentElement.setAttribute('data-mode',m);
+  document.documentElement.setAttribute('data-accent',a);
+}catch(e){}})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <nav class="nav" aria-label="Main">
+      <a class="brand" href="index.html">
+        <img src="assets/img/mirai-logo-256.png" alt="" width="30" height="30">
+        <span>Mirai</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="renderers.html" aria-current="page">Renderers</a></li>
+        <li><a href="guide.html">Guide</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+      <div class="nav-actions">
+        <div class="theme-wrap">
+          <button class="icon-btn" id="theme-toggle" aria-expanded="false" aria-haspopup="true" aria-label="Change theme and accent">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          </button>
+          <div class="theme-panel" id="theme-panel" role="dialog" aria-label="Theme settings">
+            <h4 class="panel-title">Appearance</h4>
+            <div class="mode-row">
+              <button class="mode-btn" data-mode-set="light" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Light</button>
+              <button class="mode-btn" data-mode-set="dark" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark</button>
+              <button class="mode-btn" data-mode-set="auto" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>System</button>
+            </div>
+            <h4 class="panel-title">Accent</h4>
+            <div class="swatch-row">
+              <button class="swatch" data-set="violet" aria-label="Violet accent" aria-pressed="true"></button>
+              <button class="swatch" data-set="amber" aria-label="Amber accent" aria-pressed="false"></button>
+              <button class="swatch" data-set="forest" aria-label="Forest accent" aria-pressed="false"></button>
+              <button class="swatch" data-set="ocean" aria-label="Ocean accent" aria-pressed="false"></button>
+              <button class="swatch" data-set="rose" aria-label="Rose accent" aria-pressed="false"></button>
+            </div>
+          </div>
+        </div>
+        <a class="btn btn-primary btn-sm" href="https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest">Download</a>
+        <button class="icon-btn menu-btn" id="menu-toggle" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+      </div>
+    </nav>
+  </div>
+  <div class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="features.html">Features</a></li>
+      <li><a href="renderers.html" aria-current="page">Renderers</a></li>
+      <li><a href="guide.html">Guide</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="changelog.html">Changelog</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="hero" style="padding-block:clamp(2.6rem,6vw,4.2rem) 1rem">
+    <div class="wrap">
+      <p class="eyebrow reveal">Renderers</p>
+      <h1 class="reveal" style="max-width:22ch;margin-inline:auto">The part that decides whether it starts</h1>
+      <p class="lead reveal" style="--d:80ms">Minecraft: Java Edition asks for desktop OpenGL. Your phone speaks OpenGL ES, or Vulkan, or both. Something has to translate — and picking the wrong translator is the most common reason a version refuses to launch.</p>
+    </div>
+  </section>
+
+  <section class="section-tight">
+    <div class="wrap">
+      <div class="callout reveal">
+        <strong>TL;DR</strong>
+        Mirai ships eleven renderers, chooses one automatically from the Minecraft version you are launching, and lets you override that choice per instance.
+      </div>
+    </div>
+  </section>
+
+  <!-- The lineup -->
+  <section>
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">The lineup</p>
+        <h2>What ships in the APK</h2>
+        <p>Every library below is bundled for all four Android ABIs — armeabi-v7a, arm64-v8a, x86 and x86_64.</p>
+      </div>
+      <div class="table-scroll reveal">
+        <table>
+          <caption class="visually-hidden">Renderer libraries bundled with Mirai Launcher and their compatibility</caption>
+          <thead>
+            <tr>
+              <th scope="col">Renderer</th>
+              <th scope="col">Library</th>
+              <th scope="col">Translates</th>
+              <th scope="col">Minecraft versions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>LTW Legacy</strong> <span class="badge">from source</span></td>
+              <td><code>libltwlegacy.so</code></td>
+              <td>OpenGL 1.x / 2.1 → OpenGL ES 2</td>
+              <td>1.8 – 1.16.5</td>
+            </tr>
+            <tr>
+              <td><strong>LTW</strong> <span class="badge">from source</span></td>
+              <td><code>libltw.so</code></td>
+              <td>OpenGL 3.2 core → OpenGL ES 3</td>
+              <td>1.17 and newer</td>
+            </tr>
+            <tr>
+              <td><strong>Krypton Wrapper</strong></td>
+              <td><code>libng_gl4es.so</code></td>
+              <td>OpenGL 3.1 → OpenGL ES 3</td>
+              <td>up to 26.2</td>
+            </tr>
+            <tr>
+              <td><strong>MobileGlues</strong></td>
+              <td><code>libmobileglues.so</code></td>
+              <td>OpenGL → OpenGL ES 3</td>
+              <td>1.17 – 26.3</td>
+            </tr>
+            <tr>
+              <td><strong>GL4ES</strong></td>
+              <td><code>libgl4es_114.so</code></td>
+              <td>OpenGL 1.x / 2.1 → OpenGL ES 2</td>
+              <td>up to 1.21.4</td>
+            </tr>
+            <tr>
+              <td><strong>vgpu</strong> (Glow-Worm)</td>
+              <td><code>libvgpu.so</code></td>
+              <td>OpenGL → OpenGL ES, with a GLSL 120–440 converter</td>
+              <td>1.16.5 and older</td>
+            </tr>
+            <tr>
+              <td><strong>vgpu 1.3.6β</strong></td>
+              <td><code>libvgpu_1368.so</code></td>
+              <td>OpenGL → OpenGL ES</td>
+              <td>1.16.5 and older</td>
+            </tr>
+            <tr>
+              <td><strong>Kopper Zink</strong></td>
+              <td><code>libglxshim.so</code></td>
+              <td>OpenGL → Vulkan, through Mesa</td>
+              <td>fallback</td>
+            </tr>
+            <tr>
+              <td><strong>VirGL</strong></td>
+              <td><code>libOSMesa_2121.so</code></td>
+              <td>OpenGL through Mesa on a virtual GPU</td>
+              <td>fallback</td>
+            </tr>
+            <tr>
+              <td><strong>Freedreno</strong></td>
+              <td><code>libOSMesa_8.so</code></td>
+              <td>Mesa for Adreno GPUs</td>
+              <td>fallback</td>
+            </tr>
+            <tr>
+              <td><strong>Panfrost</strong></td>
+              <td><code>libOSMesa_2300d.so</code></td>
+              <td>Mesa for Mali GPUs</td>
+              <td>fallback</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small muted mt-3 reveal">"From source" means the library is compiled from vendored source in this repository for every ABI, rather than shipped as a binary blob. The rest are bundled unmodified from their upstream projects, with their licences preserved in the APK.</p>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Why two LTWs -->
+  <section>
+    <div class="wrap wrap-narrow">
+      <div class="section-head reveal">
+        <p class="eyebrow">The split</p>
+        <h2>Why there are two LTW renderers</h2>
+        <p>This follows Minecraft's own OpenGL change, not a version number somebody picked.</p>
+      </div>
+      <div class="grid grid-2">
+        <div class="card reveal">
+          <h3>Minecraft 1.8 – 1.16.5</h3>
+          <p>These versions drive <strong>OpenGL 1.x / 2.1</strong>. They use fixed-function state — <code>glAlphaFunc</code>, <code>glShadeModel</code>, the matrix stack — and the legacy client-array draw path.</p>
+          <p class="mt-2"><strong>LTW Legacy</strong> implements exactly that pipeline.</p>
+        </div>
+        <div class="card reveal" style="--d:80ms">
+          <h3>Minecraft 1.17 and newer</h3>
+          <p>1.17 moved the game to the <strong>OpenGL 3.2 core profile</strong>, which removed every one of those fixed-function calls.</p>
+          <p class="mt-2"><strong>LTW</strong> implements the core profile.</p>
+        </div>
+      </div>
+      <div class="callout mt-3 reveal">
+        <strong>Neither can stand in for the other</strong>
+        LTW has no fixed-function emulation at all, so it cannot start 1.16.5. LTW Legacy is not needed once the game is on the core profile. GL4ES covers the same ground as LTW Legacy — that is expected, both are GL 1.x/2.1 translators — and stays selectable as a fallback for devices where the newer upstream revision regresses.
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- How it chooses -->
+  <section>
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Selection</p>
+        <h2>How Mirai picks one</h2>
+        <p>Every renderer declares its own compatibility range. Nothing in the picker hardcodes a version boundary, so a renderer cannot drift out of sync with its own compatibility window.</p>
+      </div>
+      <div class="steps">
+        <div class="step reveal">
+          <span class="step-num" aria-hidden="true"></span>
+          <div>
+            <h3>Your explicit choice wins</h3>
+            <p>If you set a renderer on an instance, that is what runs — as long as it is loaded <em>and</em> it declares support for the version you are launching. An override the version does not support is rejected up front, instead of being honoured and then failing the launcher's own compatibility check seconds later.</p>
+          </div>
+        </div>
+        <div class="step reveal" style="--d:80ms">
+          <span class="step-num" aria-hidden="true"></span>
+          <div>
+            <h3>Otherwise the version decides</h3>
+            <p>1.16.5 and older falls through <strong>LTW Legacy → vgpu → vgpu 1.3.6β → GL4ES → VirGL</strong>, best first. 1.17 and newer falls through <strong>LTW → MobileGlues → Zink</strong>.</p>
+          </div>
+        </div>
+        <div class="step reveal" style="--d:160ms">
+          <span class="step-num" aria-hidden="true"></span>
+          <div>
+            <h3>If nothing matches, it says so</h3>
+            <p>Rather than refusing to launch, Mirai uses the first loaded renderer and records the choice and the reason in the launch log. A surprising pick can always be traced back to a line explaining it.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Built from source -->
+  <section>
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Provenance</p>
+        <h2>Why "built from source" matters</h2>
+        <p>Before this, the legacy renderer path depended on a prebuilt GL4ES binary with no source in the tree. It could not be audited, patched, rebuilt for a new ABI, or updated — and it silently drifted from the NDK and the platform it linked against.</p>
+      </div>
+      <div class="grid grid-2">
+        <div class="card reveal">
+          <h3>LTW Legacy</h3>
+          <p>Built from a vendored snapshot of GL4ES, pinned to an exact upstream commit and version. Mirai supplies its own CMake project, drops upstream's optional EGL wrapper so it never competes for <code>eglGetProcAddress</code>, and renames the output so it can coexist with the other GL4ES builds.</p>
+          <p class="mt-2 small muted">GL4ES is MIT licensed. The upstream licence and copyright notices are preserved.</p>
+        </div>
+        <div class="card reveal" style="--d:80ms">
+          <h3>Checked on every build</h3>
+          <p>A verifier runs against every APK the CI produces. It opens the archive, confirms <code>libltw.so</code>, <code>libltwlegacy.so</code>, <code>libvgpu.so</code> and <code>libvgpu_1368.so</code> are present for the requested ABI, and checks each one is a genuine ELF shared object of the right class and machine.</p>
+          <p class="mt-2 small muted">A missing or wrong-architecture renderer would otherwise stay invisible until somebody launched the matching Minecraft version on a real phone.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="cta-band reveal">
+        <h2>Still not starting?</h2>
+        <p>The FAQ covers the usual suspects, and the Discord is the fastest place to get an answer about your specific device.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="faq.html">Read the FAQ</a>
+          <a class="btn btn-ghost" href="https://discord.gg/RS7q9KaCm6">Ask in Discord</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand"><img src="assets/img/mirai-logo-256.png" alt="" width="26" height="26"><span>Mirai Launcher</span></div>
+        <p>A Minecraft: Java Edition launcher for Android. Open source under GPL-3.0.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Launcher</h4>
+        <ul>
+          <li><a href="features.html">Features</a></li>
+          <li><a href="renderers.html">Renderers</a></li>
+          <li><a href="guide.html">Setup guide</a></li>
+          <li><a href="changelog.html">Changelog</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="https://discord.gg/RS7q9KaCm6">Discord server</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher">GitHub</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Download</h4>
+        <ul>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest">Latest release</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/blob/Mirai-launcher/CHANGELOG.md">Release notes</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/blob/Mirai-launcher/LICENSE">License</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Mirai Launcher. GPL-3.0.</span>
+      <span>Not affiliated with Mojang or Microsoft. Minecraft is a trademark of Mojang Synergies AB.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/site.js"></script>
+</body>
+</html>

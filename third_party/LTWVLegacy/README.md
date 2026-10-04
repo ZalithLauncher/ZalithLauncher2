@@ -26,7 +26,7 @@ The library is built by the `:ltwlegacy` Gradle module as part of the normal APK
 no separate step:
 
 ```
-./gradlew ZalithLauncher:assembleDebug
+./gradlew MiraiLauncher:assembleDebug
 ```
 
 To build only the native library:

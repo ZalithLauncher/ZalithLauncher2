@@ -82,7 +82,7 @@ tasks.jar {
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     archiveBaseName.set("lwjgl-${lwjglVersion}-merged-modules")
-    destinationDirectory.set(file("$rootDir/ZalithLauncher/src/main/assets/app_runtime/lwjgl/${lwjglVersion}"))
+    destinationDirectory.set(file("$rootDir/MiraiLauncher/src/main/assets/app_runtime/lwjgl/${lwjglVersion}"))
 
     from({
         // Ensure that the core lwjgl jar is processed first so duplicates in META-INF from other classes

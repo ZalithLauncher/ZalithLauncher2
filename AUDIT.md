@@ -10,7 +10,7 @@
 ## 1. REPOSITORY STRUCTURE
 
 ### Module Organization
-- **ZalithLauncher**: Main application module (65.6% Kotlin, 22% Java, 12.3% C/C++)
+- **MiraiLauncher**: Main application module (65.6% Kotlin, 22% Java, 12.3% C/C++)
   - **ui/**: Compose-based UI implementation
   - **game/**: Minecraft game management (versions, launch, download)
   - **setting/**: Settings and preferences
@@ -119,7 +119,7 @@
 - Manual "Check for Update" button exists but may need testing
 
 ### BuildConfig Version
-- **File**: `ZalithLauncher/gradle.properties`
+- **File**: `MiraiLauncher/gradle.properties`
 - `launcher_version_name=2.6.1`
 - `launcher_version_code=200043`
 

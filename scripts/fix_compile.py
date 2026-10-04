@@ -1,6 +1,6 @@
 from pathlib import Path
 
-buttons = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/components/Buttons.kt")
+buttons = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/components/Buttons.kt")
 b = buttons.read_text()
 old = """    var longHandled by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
     androidx.compose.runtime.LaunchedEffect(isPressed, onLongClick) {
@@ -34,7 +34,7 @@ if old not in b:
     raise SystemExit("button block missing")
 buttons.write_text(b.replace(old, new, 1))
 
-screen = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
+screen = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
 m = screen.read_text()
 if "import androidx.compose.foundation.background" not in m:
     m = m.replace(

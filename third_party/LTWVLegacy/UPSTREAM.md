@@ -19,7 +19,7 @@ native library, `libltwlegacy.so`.
 ## Why this exists
 
 Before this module, Mirai's legacy (1.8–1.16.4) renderer path depended on
-`ZalithLauncher/src/main/jniLibs/*/libgl4es_114.so` — a **prebuilt binary with no source in
+`MiraiLauncher/src/main/jniLibs/*/libgl4es_114.so` — a **prebuilt binary with no source in
 tree**. That binary is GL4ES **1.1.4**; it cannot be audited, patched, rebuilt for a new ABI, or
 updated, and it silently drifts from the NDK and platform it is linked against.
 

@@ -3,7 +3,7 @@
 All notable changes to Mirai Launcher are recorded here.
 
 Versions follow the `launcher_version_code` / `launcher_version_name` pair in
-`ZalithLauncher/gradle.properties`.
+`MiraiLauncher/gradle.properties`.
 
 ## 1.0.0 - 2026-10-04
 

@@ -25,7 +25,7 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "MiraiLauncher"
-include(":ZalithLauncher")
+include(":MiraiLauncher")
 include(":LWJGL")
 include(":LWJGL:patches")
 project(":LWJGL:patches").projectDir = file("LWJGL/patches")

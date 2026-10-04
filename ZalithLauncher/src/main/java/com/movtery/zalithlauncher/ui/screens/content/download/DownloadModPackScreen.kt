@@ -267,6 +267,8 @@ fun DownloadModPackScreen(
         operation = viewModel.installOperation,
         updateOperation = { viewModel.installOperation = it },
         installer = viewModel.installer,
+        installMinimized = viewModel.installDialogMinimized,
+        onInstallMinimizedChange = { viewModel.installDialogMinimized = it },
         onInstall = { version, iconUrl ->
             viewModel.install(
                 context = context,
@@ -368,7 +370,9 @@ private fun ModPackInstallOperation(
     updateOperation: (ModPackInstallOperation) -> Unit,
     installer: ModPackInstaller?,
     onInstall: (PlatformVersion, iconUrl: String?) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    installMinimized: Boolean,
+    onInstallMinimizedChange: (Boolean) -> Unit
 ) {
     when (operation) {
         is ModPackInstallOperation.None -> {}

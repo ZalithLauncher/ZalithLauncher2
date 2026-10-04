@@ -42,6 +42,7 @@ import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.selects.select
+import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.io.File
@@ -220,14 +221,19 @@ private fun putCachedSearchResult(key: String, result: PlatformSearchResult) {
  *
  * Unlike [mirroredPlatformSearcher] (sequential fallback), a slow-but-alive source
  * never stalls the search: the fastest healthy source wins every time.
+ *
+ * Sources run as supervised children: one source failing must never cancel the
+ * survivors (a plain [coroutineScope] would do exactly that and turn any single
+ * fast failure into a total search failure). External cancellation still aborts
+ * the whole race immediately.
  */
 suspend fun <E : AbstractPlatformSearcher, T> fastestMirroredResult(
     searchers: List<E>,
     block: suspend (E) -> T
-): T = coroutineScope {
+): T = supervisorScope {
     require(searchers.isNotEmpty()) { "Searcher list must not be empty." }
     //Single source runs directly, but off Main so response parsing never drops frames.
-    if (searchers.size == 1) return@coroutineScope withContext(Dispatchers.IO) { block(searchers.first()) }
+    if (searchers.size == 1) return@supervisorScope withContext(Dispatchers.IO) { block(searchers.first()) }
 
     val pending = searchers.associateWith { searcher ->
         async(Dispatchers.IO) { block(searcher) }
@@ -254,7 +260,7 @@ suspend fun <E : AbstractPlatformSearcher, T> fastestMirroredResult(
         pending.entries.firstOrNull { it.value.isCompleted }?.let { (searcher, winner) ->
             pending.values.forEach { deferred -> if (deferred !== winner) deferred.cancel() }
             Logger.debug(TAG, "Search source {${searcher.source}} won the race.")
-            return@coroutineScope winner.await()
+            return@supervisorScope winner.await()
         }
     }
     throw lastError ?: IllegalStateException("All sources failed without reporting an error.")

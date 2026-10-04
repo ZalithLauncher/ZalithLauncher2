@@ -37,10 +37,13 @@ import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.isInterruptedIOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -145,6 +148,91 @@ fun mirroredModrinthSource(
     )
 }
 
+/** How often the source race checks for a winner. Negligible next to network latency. */
+private const val SOURCE_RACE_POLL_MS = 50L
+
+/** Overall wall-clock budget for one interactive search across all queries. */
+private const val SEARCH_OVERALL_TIMEOUT_MS = 20_000L
+
+/** Interactive search responses are tiny; keep the most recent pages in memory. */
+private const val SEARCH_CACHE_MAX_ENTRIES = 16
+
+/** Search cache TTL: mod listings barely change within a minute and a half. */
+private const val SEARCH_CACHE_TTL_MS = 90_000L
+
+private data class CachedSearchResult(
+    val result: PlatformSearchResult,
+    val timestampMs: Long
+)
+
+private val searchCacheLock = Any()
+private val searchCache = object : LinkedHashMap<String, CachedSearchResult>(16, 0.75f, true) {
+    override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CachedSearchResult>): Boolean {
+        return size > SEARCH_CACHE_MAX_ENTRIES
+    }
+}
+
+private fun searchCacheKey(
+    platform: Platform,
+    classes: PlatformClasses,
+    query: String,
+    filter: PlatformSearchFilter
+): String = buildString {
+    append(platform.name).append('|')
+    append(classes.name).append('|')
+    append(AllSettings.assetPlatformSource.getValue()).append('|')
+    append(query).append('|')
+    append(filter.copy(searchName = "").toString())
+}
+
+private fun getCachedSearchResult(key: String): PlatformSearchResult? = synchronized(searchCacheLock) {
+    val cached = searchCache[key] ?: return@synchronized null
+    if (System.currentTimeMillis() - cached.timestampMs > SEARCH_CACHE_TTL_MS) {
+        searchCache.remove(key)
+        return@synchronized null
+    }
+    cached.result
+}
+
+private fun putCachedSearchResult(key: String, result: PlatformSearchResult) {
+    synchronized(searchCacheLock) {
+        searchCache[key] = CachedSearchResult(result, System.currentTimeMillis())
+    }
+}
+
+/**
+ * Runs [block] against every candidate source concurrently and returns the first
+ * successful result, cancelling the slower sources. When every source fails, the
+ * last error is thrown. A single candidate runs directly without extra coroutines.
+ *
+ * Unlike [mirroredPlatformSearcher] (sequential fallback), a slow-but-alive source
+ * never stalls the search: the fastest healthy source wins every time.
+ */
+suspend fun <E, T> fastestMirroredResult(
+    searchers: List<E>,
+    block: suspend (E) -> T
+): T = coroutineScope {
+    require(searchers.isNotEmpty()) { "Searcher list must not be empty." }
+    if (searchers.size == 1) return@coroutineScope block(searchers.first())
+
+    val pending = searchers.map { searcher ->
+        async { block(searcher) }
+    }
+    // Poll for completion: simple, cancellation-safe (delay throws on cancel),
+    // and the 50ms granularity is negligible next to network latency.
+    while (true) {
+        pending.firstOrNull { it.isCompleted && it.getCompletionExceptionOrNull() == null }?.let { winner ->
+            pending.forEach { deferred -> if (deferred !== winner) deferred.cancel() }
+            return@coroutineScope winner.await()
+        }
+        if (pending.all { it.isCompleted }) {
+            val lastError = pending.mapNotNull { it.getCompletionExceptionOrNull() }.lastOrNull()
+            throw lastError ?: IllegalStateException("All sources failed without reporting an error.")
+        }
+        delay(SOURCE_RACE_POLL_MS)
+    }
+}
+
 suspend fun searchAssets(
     searchPlatform: Platform,
     searchFilter: PlatformSearchFilter,
@@ -166,38 +254,52 @@ suspend fun searchAssets(
 
         var lastResult: PlatformSearchResult? = null
         var lastException: Exception? = null
-        for (query in queries) {
-            try {
-                val r = when (searchPlatform) {
-                    Platform.CURSEFORGE -> mirroredPlatformSearcher(
-                        searchers = mirroredCurseForgeSource(),
-                        printLog = false
-                    ) { searcher ->
-                        searcher.searchAssets(
-                            query = query,
-                            searchFilter = searchFilterForQuery,
-                            platformClasses = platformClasses
-                        )
-                    }
-                    Platform.MODRINTH -> mirroredPlatformSearcher(
-                        searchers = mirroredModrinthSource(),
-                        printLog = false
-                    ) { searcher ->
-                        searcher.searchAssets(
-                            query = query,
-                            searchFilter = searchFilterForQuery,
-                            platformClasses = platformClasses
-                        )
+        try {
+            withTimeout(SEARCH_OVERALL_TIMEOUT_MS) {
+                for (query in queries) {
+                    val cacheKey = searchCacheKey(
+                        platform = searchPlatform,
+                        classes = platformClasses,
+                        query = query,
+                        filter = searchFilterForQuery
+                    )
+                    try {
+                        // Serve repeat searches (tab switches, back navigation, retries) instantly.
+                        val cached = getCachedSearchResult(cacheKey)
+                        val r = cached ?: when (searchPlatform) {
+                            Platform.CURSEFORGE -> fastestMirroredResult(
+                                searchers = mirroredCurseForgeSource()
+                            ) { searcher ->
+                                searcher.searchAssets(
+                                    query = query,
+                                    searchFilter = searchFilterForQuery,
+                                    platformClasses = platformClasses
+                                )
+                            }
+                            Platform.MODRINTH -> fastestMirroredResult(
+                                searchers = mirroredModrinthSource()
+                            ) { searcher ->
+                                searcher.searchAssets(
+                                    query = query,
+                                    searchFilter = searchFilterForQuery,
+                                    platformClasses = platformClasses
+                                )
+                            }
+                        }
+                        if (cached == null) putCachedSearchResult(cacheKey, r)
+                        lastResult = r
+                        if (r.hasResults()) break
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (e: Exception) {
+                        //当前关键词搜索失败，记录异常并继续尝试下一个
+                        lastException = e
                     }
                 }
-                lastResult = r
-                if (r.hasResults()) break
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (e: Exception) {
-                //当前关键词搜索失败，记录异常并继续尝试下一个
-                lastException = e
             }
+        } catch (e: TimeoutCancellationException) {
+            // Convert the timeout into a visible error instead of hanging on "Searching".
+            lastException = IOException("Search timed out after ${SEARCH_OVERALL_TIMEOUT_MS / 1000}s", e)
         }
 
         val result = lastResult ?: throw lastException ?: IOException("Failed to search for all queries")

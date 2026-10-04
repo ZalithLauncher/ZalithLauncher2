@@ -32,33 +32,55 @@ Adding an accent means one token block plus one `.swatch` button in each page's 
 Motion is deliberately small: a float on the logo, a fade-up on scroll, and hover lifts. All of
 it is disabled under `prefers-reduced-motion: reduce`.
 
-## First-time setup
+## Deploying
 
-1. **Settings → Pages → Build and deployment → Source → GitHub Actions.**
-   Without this the deploy job fails with a `404` from the Pages API — the site is not
-   registered yet.
-2. Run **Deploy website** once from the Actions tab, or merge something under `website/`.
-3. Under **Custom domain**, enter the domain and save. GitHub writes the CNAME into the
-   published site, so there is no CNAME file here to drift out of sync.
-4. Point DNS at GitHub:
+1. **Settings → Pages → Build and deployment → Source → GitHub Actions.** ✅ already set
+   Without this the deploy job fails with a `404` from the Pages API — Pages is not registered yet.
+2. Run **Deploy website** from the Actions tab, or push a change under `website/` to
+   `Mirai-launcher`. To publish without merging first, choose this branch in the run dialog —
+   `workflow_dispatch` accepts any branch.
+
+## The address
+
+The site lives at:
+
+**<https://entitybrian69-bit.github.io/Mirai-launcher/>**
+
+That is free, permanent, served over HTTPS, and needs no purchase or renewal. Every page's
+`<link rel="canonical">` and Open Graph tags already point at it, so link previews on Discord,
+Twitter and the rest resolve correctly.
+
+### If you ever want a shorter address
+
+A custom domain is optional and can be attached at any time without touching the HTML content —
+only the canonical and OG tags need updating (see below). Free routes that actually work:
+
+| Route | How | Notes |
+| --- | --- | --- |
+| **`<name>.is-a.dev`** | Open a PR adding a JSON file to the [is-a.dev](https://github.com/is-a-dev/register) repo | Free subdomain for developers. Points straight at GitHub Pages. Days, not weeks. |
+| **`<name>.js.org`** | PR to [js.org](https://github.com/js-org/js.org) | Free and well known, but **only for JavaScript projects**. This launcher is Kotlin and Java, so it would be a dishonest fit. |
+| **`<name>.eu.org`** | Application form | Free, but approval is slow and unreliable — often weeks, sometimes never. |
+
+One warning if you go the subdomain route: you are renting the name from someone else's
+repository. If that project ever changes its rules, the address goes away. The
+`github.io` URL above cannot be taken from you, which is why it is the default here.
+
+### Attaching a domain later
+
+1. **Settings → Pages → Custom domain**, enter it and save. GitHub writes the CNAME into the
+   published site itself, so there is no CNAME file in this directory to drift out of sync.
+2. Point DNS at GitHub:
    - apex domain (`example.com`) → four `A` records to `185.199.108.153`, `185.199.109.153`,
      `185.199.110.153`, `185.199.111.153`
-   - `www` or any subdomain → one `CNAME` record to `entitybrian69-bit.github.io`
-5. Wait for the certificate, then tick **Enforce HTTPS**.
-
-### Domain references in the HTML
-
-Each page carries a `<link rel="canonical">` and Open Graph tags pointing at
-`https://YOUR-DOMAIN/`. **These are placeholders.** Once the domain is settled, replace them so
-search engines and link previews resolve properly:
+   - `www`, or any subdomain → one `CNAME` record to `entitybrian69-bit.github.io`
+3. Wait for the certificate, then tick **Enforce HTTPS**.
+4. Update the URLs baked into the HTML:
 
 ```sh
 cd website
-grep -rl 'YOUR-DOMAIN' *.html | xargs sed -i 's|https://YOUR-DOMAIN|https://your.actual.domain|g'
+BASE='https://your.actual.domain'
+sed -i "s|https://entitybrian69-bit.github.io/Mirai-launcher|$BASE|g" *.html
 ```
-
-`og:image` is currently a relative path. Social scrapers generally need it absolute — after
-setting the domain, make it `https://your.actual.domain/assets/img/mirai-logo.png`.
 
 ## Local preview
 

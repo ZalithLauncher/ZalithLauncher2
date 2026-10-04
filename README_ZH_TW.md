@@ -39,7 +39,7 @@ Mirai 將版本、內容、帳號、控制與常用工具整合在一起，重�
 ```bash
 git clone https://github.com/entitybrian69-bit/Mirai-launcher.git
 cd Mirai-launcher
-./gradlew :ZalithLauncher:assembleDebug -Darch=all
+./gradlew :MiraiLauncher:assembleDebug -Darch=all
 ```
 
 將 `all` 替換為 `arm`、`arm64`、`x86` 或 `x86_64` 即可建置指定架構。也可使用 Android Studio 開啟專案並執行 Gradle 建置。
@@ -55,7 +55,7 @@ Mirai Launcher 使用了由 MovTery 與貢獻者為 Zalith Launcher 2 開發的�
 1. 當你分發本程式的修改版本時，必須以合理方式修改該程式的名稱或版本號，以區別於原始版本。（依據 [GPLv3, 7(c)](https://github.com/ZalithLauncher/ZalithLauncher2/blob/969827b/LICENSE#L372-L374)）
     - 修改版本 **不得在名稱中包含原程式名稱「ZalithLauncher」或其縮寫「ZL」，亦不得使用與官方名稱相近、可能造成混淆的名稱**。
     - 所有修改版本 **必須在程式啟動畫面或主介面中以明顯方式標示其為「非官方修改版」**。
-    - 程式的應用名稱可於 [gradle.properties](./ZalithLauncher/gradle.properties) 中進行修改。
+    - 程式的應用名稱可於 [gradle.properties](./MiraiLauncher/gradle.properties) 中進行修改。
 
 2. 你不得移除本程式所顯示的版權聲明。（依據 [GPLv3, 7(b)](https://github.com/ZalithLauncher/ZalithLauncher2/blob/969827b/LICENSE#L368-L370)）
 

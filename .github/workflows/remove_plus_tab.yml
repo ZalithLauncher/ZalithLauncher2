@@ -15,7 +15,7 @@ jobs:
         run: |
           python3 - << 'PY'
           from pathlib import Path
-          p = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MiraiNavigationRail.kt")
+          p = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MiraiNavigationRail.kt")
           s = p.read_text()
           old = """            LauncherSectionItem(
                           icon = R.drawable.ic_add,
@@ -31,6 +31,6 @@ jobs:
           PY
           git config user.name entitybrian69-bit
           git config user.email entitybrian69@gmail.com
-          git add ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MiraiNavigationRail.kt
+          git add MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MiraiNavigationRail.kt
           git commit -m "Remove the plus tab from the rail"
           git push origin HEAD:Mirai-launcher

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-settings = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/setting/AllSettings.kt")
+settings = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/setting/AllSettings.kt")
 text = settings.read_text()
 needle = '    val searchShadersPlatform = enumSetting("searchShadersPlatform", Platform.CURSEFORGE)\n}'
 insert = needle[:-1] + '    val miraiQuietMode = boolSetting("miraiQuietMode", false)\n    val miraiVulkanFailCount = intSetting("miraiVulkanFailCount", 0)\n}'
@@ -9,7 +9,7 @@ if "miraiQuietMode" not in text:
         raise SystemExit("settings anchor missing")
     settings.write_text(text.replace(needle, insert, 1))
 
-buttons = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/components/Buttons.kt")
+buttons = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/components/Buttons.kt")
 b = buttons.read_text()
 if "onLongClick:" not in b:
     b = b.replace(
@@ -37,7 +37,7 @@ if "onLongClick:" not in b:
     )
     buttons.write_text(b)
 
-rail = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MiraiNavigationRail.kt")
+rail = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MiraiNavigationRail.kt")
 r = rail.read_text()
 if "miraiQuietMode" not in r:
     r = r.replace("import com.movtery.zalithlauncher.R\n", "import com.movtery.zalithlauncher.R\nimport com.movtery.zalithlauncher.setting.AllSettings\n", 1)
@@ -75,7 +75,7 @@ if "miraiQuietMode" not in r:
     )
     rail.write_text(r)
 
-screen = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
+screen = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
 m = screen.read_text()
 if "LocalTime.now" not in m:
     m = m.replace(
@@ -111,7 +111,7 @@ if "LocalTime.now" not in m:
         raise SystemExit("main screen close not found")
     screen.write_text(m.replace(old, new, 1))
 
-launch = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/LauncherScreen.kt")
+launch = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/LauncherScreen.kt")
 l = launch.read_text()
 if "onLongClick = { showPick = true }" not in l:
     if "import androidx.compose.material3.AlertDialog" not in l:

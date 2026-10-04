@@ -16,7 +16,7 @@ jobs:
           python3 - << 'PY'
           import re
           from pathlib import Path
-          cards = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/home/HomeCards.kt")
+          cards = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/home/HomeCards.kt")
           text = cards.read_text()
           updated, n = re.subn(
               r"fun systemCards\(\): List<SystemCard> = buildList \{[\s\S]*?\n    \}",
@@ -27,7 +27,7 @@ jobs:
           if n != 1:
               raise SystemExit("warning card pattern not found")
           cards.write_text(updated)
-          screen = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
+          screen = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt")
           s = screen.read_text()
           s = s.replace("text = stringResource(R.string.launcher_brand_name),", "text = \"\",", 1)
           s = s.replace("text = stringResource(R.string.app_unofficial_modified),", "text = \"\",", 1)
@@ -36,6 +36,6 @@ jobs:
           PY
           git config user.name entitybrian69-bit
           git config user.email entitybrian69@gmail.com
-          git add ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/home/HomeCards.kt ZalithLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt
+          git add MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/content/home/HomeCards.kt MiraiLauncher/src/main/java/com/movtery/zalithlauncher/ui/screens/main/MainScreen.kt
           git commit -m "Remove the test warning and home brand title"
           git push origin HEAD:Mirai-launcher

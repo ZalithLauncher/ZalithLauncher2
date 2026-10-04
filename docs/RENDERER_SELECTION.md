@@ -86,7 +86,7 @@ expect — and that is what the version ranges above are about.
 Renderer behaviour is covered by JVM unit tests that run in CI:
 
 ```
-./gradlew ZalithLauncher:testDebugUnitTest \
+./gradlew MiraiLauncher:testDebugUnitTest \
   --tests "com.movtery.zalithlauncher.game.renderer.*"
 ```
 

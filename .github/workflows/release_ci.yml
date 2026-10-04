@@ -56,8 +56,8 @@ jobs:
         id: version
         run: |
           set -euo pipefail
-          version_code="$(sed -n 's/^launcher_version_code=//p' ZalithLauncher/gradle.properties | head -n 1)"
-          version_name="$(sed -n 's/^launcher_version_name=//p' ZalithLauncher/gradle.properties | head -n 1)"
+          version_code="$(sed -n 's/^launcher_version_code=//p' MiraiLauncher/gradle.properties | head -n 1)"
+          version_name="$(sed -n 's/^launcher_version_name=//p' MiraiLauncher/gradle.properties | head -n 1)"
           test -n "$version_code"
           test -n "$version_name"
           echo "code=$version_code" >> "$GITHUB_OUTPUT"

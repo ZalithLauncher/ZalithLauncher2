@@ -64,7 +64,7 @@ jobs:
             echo "::error::Release builds require the STORE_PASSWORD and KEY_PASSWORD repository secrets."
             exit 1
           fi
-          if [[ ! -s "ZalithLauncher/zalith_launcher.jks" ]]; then
+          if [[ ! -s "MiraiLauncher/zalith_launcher.jks" ]]; then
             echo "::error::The tracked Release signing keystore is missing."
             exit 1
           fi
@@ -76,7 +76,7 @@ jobs:
           chmod +x gradlew
           build_log="${RUNNER_TEMP}/mirai-gradle-${{ matrix.arch }}.log"
           set +e
-          ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }} --console=plain --stacktrace 2>&1 | tee "$build_log"
+          ./gradlew MiraiLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }} --console=plain --stacktrace 2>&1 | tee "$build_log"
           gradle_status=${PIPESTATUS[0]}
           exit "$gradle_status"
 
@@ -158,16 +158,16 @@ jobs:
             echo "::error::apksigner was not found in Android SDK build-tools."
             exit 1
           fi
-          for apk in ZalithLauncher/build/outputs/apk/release/*.apk; do
+          for apk in MiraiLauncher/build/outputs/apk/release/*.apk; do
             "$apksigner" verify --verbose "$apk"
           done
 
       - name: Verify LTW and LTW Legacy native libraries in the APK
         run: |
           if [[ "${{ inputs.variant }}" == "Release" ]]; then
-            apk_dir="ZalithLauncher/build/outputs/apk/release"
+            apk_dir="MiraiLauncher/build/outputs/apk/release"
           else
-            apk_dir="ZalithLauncher/build/outputs/apk/debug"
+            apk_dir="MiraiLauncher/build/outputs/apk/debug"
           fi
           python3 .github/scripts/verify_ltw_apk.py "${{ matrix.arch }}" "$apk_dir"
 
@@ -177,7 +177,7 @@ jobs:
         run: |
           set -uo pipefail
           test_log="${RUNNER_TEMP}/mirai-unit-tests.log"
-          ./gradlew ZalithLauncher:testDebugUnitTest \
+          ./gradlew MiraiLauncher:testDebugUnitTest \
             --tests "com.movtery.zalithlauncher.game.renderer.LTWRendererTest" \
             --tests "com.movtery.zalithlauncher.game.renderer.LTWLegacyRendererTest" \
             --tests "com.movtery.zalithlauncher.game.renderer.VGPURendererTest" \
@@ -191,7 +191,7 @@ jobs:
       - name: Publish unit test failures
         if: ${{ always() && steps.unit-tests.outcome == 'failure' }}
         env:
-          MIRAI_TEST_REPORT_DIR: ZalithLauncher/build/test-results/testDebugUnitTest
+          MIRAI_TEST_REPORT_DIR: MiraiLauncher/build/test-results/testDebugUnitTest
           MIRAI_TEST_LOG: ${{ runner.temp }}/mirai-unit-tests.log
         run: python3 .github/scripts/publish_unit_test_failures.py
 
@@ -200,7 +200,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: mirai-release-apk-${{ matrix.arch }}
-          path: ZalithLauncher/build/outputs/apk/release/*.apk
+          path: MiraiLauncher/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
       - name: Upload Release Mapping for ${{ matrix.arch }}
@@ -208,7 +208,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: mirai-release-mapping-${{ matrix.arch }}
-          path: ZalithLauncher/build/outputs/mapping/release/mapping.txt
+          path: MiraiLauncher/build/outputs/mapping/release/mapping.txt
           if-no-files-found: error
 
       - name: Upload Mirai Debug APK for ${{ matrix.arch }}
@@ -216,5 +216,5 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: mirai-debug-apk-${{ matrix.arch }}
-          path: ZalithLauncher/build/outputs/apk/debug/*.apk
+          path: MiraiLauncher/build/outputs/apk/debug/*.apk
           if-no-files-found: error

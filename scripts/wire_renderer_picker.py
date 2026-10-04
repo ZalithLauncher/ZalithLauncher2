@@ -1,21 +1,21 @@
 from pathlib import Path
 
 replacements = {
-    "ZalithLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/renderers/LTWRenderer.kt": [
+    "MiraiLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/renderers/LTWRenderer.kt": [
         ('override fun getRendererName(): String = "LTW (Large Thin Wrapper)"', 'override fun getRendererName(): String = "LTW (OpenGL wrapper)"'),
         ('"Incomplete OpenGL 3.2 core wrapper on OpenGL ES; game, mod, and device compatibility varies."', '"OpenGL wrapper on OpenGL ES. Not a Minecraft renderer. Shader and mod support depends on the game and device."'),
         ('override fun getMinMCVersion(): String = "1.18"', 'override fun getMinMCVersion(): String = "1.17"'),
     ],
-    "ZalithLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/renderers/GL4ESRenderer.kt": [
+    "MiraiLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/renderers/GL4ESRenderer.kt": [
         ('override fun getRendererName(): String = "GL4ES"', 'override fun getRendererName(): String = "GL4ES"'),
     ],
-    "ZalithLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/renderers/VirGLRenderer.kt": [
+    "MiraiLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/renderers/VirGLRenderer.kt": [
         ('override fun getRendererName(): String = "VirGLRenderer"', 'override fun getRendererName(): String = "VirGL"'),
     ],
-    "ZalithLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/renderers/KopperZinkRenderer.kt": [
+    "MiraiLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/renderers/KopperZinkRenderer.kt": [
         ('override fun getRendererName(): String = "Kopper Zink"', 'override fun getRendererName(): String = "Zink"'),
     ],
-    "ZalithLauncher/src/test/java/com/movtery/zalithlauncher/game/renderer/LTWRendererTest.kt": [
+    "MiraiLauncher/src/test/java/com/movtery/zalithlauncher/game/renderer/LTWRendererTest.kt": [
         ('assertEquals("1.18", LTWRenderer.getMinMCVersion())', 'assertEquals("1.17", LTWRenderer.getMinMCVersion())'),
     ],
 }
@@ -28,7 +28,7 @@ for path, pairs in replacements.items():
         text = text.replace(old, new, 1)
     file.write_text(text)
 
-launcher = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/game/launch/GameLauncher.kt")
+launcher = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/game/launch/GameLauncher.kt")
 text = launcher.read_text()
 old = """        if (!Renderers.isCurrentRendererValid()) {
             Renderers.setCurrentRenderer(version.getRenderer())
@@ -58,7 +58,7 @@ if old_info not in text:
     raise SystemExit("renderer log missing")
 launcher.write_text(text.replace(old_info, new_info, 1))
 
-renderers = Path("ZalithLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/Renderers.kt")
+renderers = Path("MiraiLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/Renderers.kt")
 r = renderers.read_text()
 if "lastPickReason" not in r:
     r = r.replace(

@@ -31,10 +31,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -399,14 +402,22 @@ fun JvmGcAutoTunerDialog(
         JvmGcAutoTuner.analyzeDeviceAndInstance(context, version)
     }
 
-    var selectedPreset by remember { mutableStateOf(recommendation.recommendedPreset) }
-    var autoMatchJre by remember { mutableStateOf(true) }
-    var applyOptimalRam by remember { mutableStateOf(true) }
+    // Restore the last selection so reopening the dialog never resets the UI.
+    var selectedPreset by remember {
+        mutableStateOf(
+            GcTuningPreset.entries.firstOrNull { it.name == AllSettings.jvmGcPreset.state }
+                ?: recommendation.recommendedPreset
+        )
+    }
+    var autoMatchJre by remember { mutableStateOf(AllSettings.jvmGcAutoMatchJre.state) }
+    var applyOptimalRam by remember { mutableStateOf(AllSettings.jvmGcApplyOptimalRam.state) }
     var statusMessage by remember { mutableStateOf<String?>(null) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 560.dp),
             shape = RoundedCornerShape(20.dp),
             color = Color(0xFF16181D),
             border = BorderStroke(1.dp, activeAccent.copy(alpha = 0.45f))
@@ -414,8 +425,9 @@ fun JvmGcAutoTunerDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
                     .padding(18.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Header
                 Row(
@@ -489,7 +501,10 @@ fun JvmGcAutoTunerDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .clickable { selectedPreset = preset },
+                            .clickable {
+                                selectedPreset = preset
+                                AllSettings.jvmGcPreset.save(preset.name)
+                            },
                         shape = RoundedCornerShape(12.dp),
                         color = if (isSelected) activeAccent.copy(alpha = 0.14f) else Color(0xFF20232A),
                         border = BorderStroke(
@@ -500,27 +515,27 @@ fun JvmGcAutoTunerDialog(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 9.dp),
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Column(
                                 modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(2.dp)
+                                verticalArrangement = Arrangement.spacedBy(3.dp)
                             ) {
                                 Text(
                                     text = preset.title,
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = if (isSelected) activeAccent else Color.White,
-                                    maxLines = 1,
+                                    maxLines = 2,
                                     overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = preset.subtitle,
                                     style = MaterialTheme.typography.labelSmall,
                                     color = Color(0xFF9CA3AF),
-                                    maxLines = 2,
+                                    maxLines = 3,
                                     overflow = TextOverflow.Ellipsis
                                 )
                             }
@@ -550,7 +565,10 @@ fun JvmGcAutoTunerDialog(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
-                            .clickable { autoMatchJre = !autoMatchJre },
+                            .clickable {
+                                autoMatchJre = !autoMatchJre
+                                AllSettings.jvmGcAutoMatchJre.save(autoMatchJre)
+                            },
                         shape = RoundedCornerShape(10.dp),
                         color = Color(0xFF20232A),
                         border = BorderStroke(1.dp, Color(0xFF2D313B))
@@ -561,7 +579,10 @@ fun JvmGcAutoTunerDialog(
                         ) {
                             Checkbox(
                                 checked = autoMatchJre,
-                                onCheckedChange = { autoMatchJre = it },
+                                onCheckedChange = {
+                                    autoMatchJre = it
+                                    AllSettings.jvmGcAutoMatchJre.save(it)
+                                },
                                 colors = CheckboxDefaults.colors(
                                     checkedColor = activeAccent,
                                     checkmarkColor = Color(0xFF06210F)
@@ -581,7 +602,10 @@ fun JvmGcAutoTunerDialog(
                         modifier = Modifier
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
-                            .clickable { applyOptimalRam = !applyOptimalRam },
+                            .clickable {
+                                applyOptimalRam = !applyOptimalRam
+                                AllSettings.jvmGcApplyOptimalRam.save(applyOptimalRam)
+                            },
                         shape = RoundedCornerShape(10.dp),
                         color = Color(0xFF20232A),
                         border = BorderStroke(1.dp, Color(0xFF2D313B))
@@ -592,7 +616,10 @@ fun JvmGcAutoTunerDialog(
                         ) {
                             Checkbox(
                                 checked = applyOptimalRam,
-                                onCheckedChange = { applyOptimalRam = it },
+                                onCheckedChange = {
+                                    applyOptimalRam = it
+                                    AllSettings.jvmGcApplyOptimalRam.save(it)
+                                },
                                 colors = CheckboxDefaults.colors(
                                     checkedColor = activeAccent,
                                     checkmarkColor = Color(0xFF06210F)

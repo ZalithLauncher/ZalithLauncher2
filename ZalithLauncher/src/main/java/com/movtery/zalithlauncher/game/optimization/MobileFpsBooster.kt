@@ -30,10 +30,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -355,16 +358,26 @@ fun MobileFpsBoosterDialog(
     val loaderName = info?.loaderInfo?.loader?.displayName
     val hasModLoader = version != null && loaderName != null && !loaderName.equals("Vanilla", ignoreCase = true)
 
-    var selectedPreset by remember { mutableStateOf(FpsBoostPreset.BALANCED_MOBILE) }
-    var tuneOptionsTxt by remember { mutableStateOf(true) }
-    var installFpsMods by remember { mutableStateOf(hasModLoader) }
+    // Restore the last selection so reopening the dialog never resets the UI.
+    var selectedPreset by remember {
+        mutableStateOf(
+            FpsBoostPreset.entries.firstOrNull { it.name == AllSettings.fpsBoostPreset.state }
+                ?: FpsBoostPreset.BALANCED_MOBILE
+        )
+    }
+    var tuneOptionsTxt by remember { mutableStateOf(AllSettings.fpsBoostTuneOptions.state) }
+    var installFpsMods by remember {
+        mutableStateOf(if (hasModLoader) AllSettings.fpsBoostInstallMods.state else false)
+    }
     var isRunning by remember { mutableStateOf(false) }
     var statusText by remember { mutableStateOf<String?>(null) }
     var isDone by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = { if (!isRunning) onDismiss() }) {
         Surface(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 560.dp),
             shape = RoundedCornerShape(18.dp),
             color = Color(0xFF1A1D24),
             border = BorderStroke(1.dp, accentColor.copy(alpha = 0.5f))
@@ -372,8 +385,9 @@ fun MobileFpsBoosterDialog(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 // Header
                 Row(
@@ -422,7 +436,10 @@ fun MobileFpsBoosterDialog(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .clickable(enabled = !isRunning) { selectedPreset = preset },
+                            .clickable(enabled = !isRunning) {
+                                selectedPreset = preset
+                                AllSettings.fpsBoostPreset.save(preset.name)
+                            },
                         shape = RoundedCornerShape(12.dp),
                         color = if (isSelected) accentColor.copy(alpha = 0.14f) else Color(0xFF21242B),
                         border = BorderStroke(
@@ -433,9 +450,9 @@ fun MobileFpsBoosterDialog(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                                .padding(horizontal = 14.dp, vertical = 12.dp),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
@@ -470,12 +487,21 @@ fun MobileFpsBoosterDialog(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable(enabled = !isRunning) { tuneOptionsTxt = !tuneOptionsTxt },
+                        .clickable(enabled = !isRunning) {
+                            tuneOptionsTxt = !tuneOptionsTxt
+                            AllSettings.fpsBoostTuneOptions.save(tuneOptionsTxt)
+                        }
+                        .padding(vertical = 2.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Checkbox(
                         checked = tuneOptionsTxt,
-                        onCheckedChange = { if (!isRunning) tuneOptionsTxt = it },
+                        onCheckedChange = {
+                            if (!isRunning) {
+                                tuneOptionsTxt = it
+                                AllSettings.fpsBoostTuneOptions.save(it)
+                            }
+                        },
                         colors = CheckboxDefaults.colors(checkedColor = accentColor)
                     )
                     Text(
@@ -489,12 +515,21 @@ fun MobileFpsBoosterDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable(enabled = !isRunning) { installFpsMods = !installFpsMods },
+                            .clickable(enabled = !isRunning) {
+                                installFpsMods = !installFpsMods
+                                AllSettings.fpsBoostInstallMods.save(installFpsMods)
+                            }
+                            .padding(vertical = 2.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Checkbox(
                             checked = installFpsMods,
-                            onCheckedChange = { if (!isRunning) installFpsMods = it },
+                            onCheckedChange = {
+                                if (!isRunning) {
+                                    installFpsMods = it
+                                    AllSettings.fpsBoostInstallMods.save(it)
+                                }
+                            },
                             colors = CheckboxDefaults.colors(checkedColor = accentColor)
                         )
                         Text(

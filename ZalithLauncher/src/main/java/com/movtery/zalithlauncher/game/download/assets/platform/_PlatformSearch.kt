@@ -239,6 +239,7 @@ suspend fun <E : AbstractPlatformSearcher, T> fastestMirroredResult(
         async(Dispatchers.IO) { block(searcher) }
     }.toMutableMap()
     var lastError: Throwable? = null
+    val sourceErrors = mutableMapOf<String, Throwable>()
     // Wait for the first source to settle; a failure only prunes that source while
     // the survivors keep racing. External cancellation rethrows immediately.
     while (pending.isNotEmpty()) {
@@ -254,16 +255,28 @@ suspend fun <E : AbstractPlatformSearcher, T> fastestMirroredResult(
         //Prune failures, naming the dead source; the survivors keep racing.
         val failures = pending.entries.filter { it.value.getCompletionExceptionOrNull() != null }
         failures.forEach { (searcher, deferred) ->
-            Logger.warning(TAG, "Search source {${searcher.source}} failed (${deferred.getCompletionExceptionOrNull()?.message}), ${pending.size - failures.size} source(s) still racing.")
+            val failure = deferred.getCompletionExceptionOrNull()
+            if (failure != null) {
+                sourceErrors[searcher.source] = failure
+            }
+            runCatching {
+                Logger.warning(TAG, "Search source {${searcher.source}} failed (${failure?.let { "${it::class.simpleName}: ${it.message}" }}), ${pending.size - failures.size} source(s) still racing.")
+            }
             pending.remove(searcher)
         }
         pending.entries.firstOrNull { it.value.isCompleted }?.let { (searcher, winner) ->
             pending.values.forEach { deferred -> if (deferred !== winner) deferred.cancel() }
-            Logger.debug(TAG, "Search source {${searcher.source}} won the race.")
+            runCatching {
+                Logger.debug(TAG, "Search source {${searcher.source}} won the race.")
+            }
             return@supervisorScope winner.await()
         }
     }
-    throw lastError ?: IllegalStateException("All sources failed without reporting an error.")
+    //Name every dead source and why: without this, search failures are impossible to diagnose.
+    val detail = sourceErrors.entries.joinToString("; ") { (source, e) ->
+        "$source: ${e::class.simpleName}: ${e.message}"
+    }.takeIf { it.isNotBlank() } ?: "no error captured"
+    throw IOException("All ${searchers.size} sources failed: $detail", lastError)
 }
 
 suspend fun searchAssets(

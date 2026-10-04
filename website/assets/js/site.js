@@ -32,8 +32,32 @@
     return mode === "dark" ? "dark" : "light";
   }
 
+  /* ---------- giscus ----------
+     giscus renders in its own iframe and knows nothing about the theme control
+     on this page. Push the resolved theme into it, both when the theme changes
+     and once the iframe has loaded — otherwise the comment box sits on the OS
+     preference and visibly disagrees with the rest of the site. */
+  function pushGiscusTheme(resolved) {
+    var frame = document.querySelector("iframe.giscus-frame");
+    if (!frame || !frame.contentWindow) return;
+    frame.contentWindow.postMessage(
+      { giscus: { setConfig: { theme: resolved } } },
+      "https://giscus.app"
+    );
+  }
+
+  // giscus fires nothing useful after load, so watch for the iframe instead.
+  var giscusObserver = new MutationObserver(function () {
+    if (document.querySelector("iframe.giscus-frame")) {
+      pushGiscusTheme(resolve(read(MODE_KEY, "auto")));
+      giscusObserver.disconnect();
+    }
+  });
+  giscusObserver.observe(document.documentElement, { childList: true, subtree: true });
+
   function applyMode(mode) {
-    root.setAttribute("data-theme", resolve(mode));
+    var resolved = resolve(mode);
+    root.setAttribute("data-theme", resolved);
     root.setAttribute("data-mode", mode);
     document.querySelectorAll("[data-mode-set]").forEach(function (btn) {
       btn.setAttribute("aria-pressed", String(btn.getAttribute("data-mode-set") === mode));
@@ -41,8 +65,10 @@
     // keep the browser chrome in step with the page
     var meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute("content", resolve(mode) === "dark" ? "#14120F" : "#FAF6F1");
+      meta.setAttribute("content", resolved === "dark" ? "#14120F" : "#FAF6F1");
     }
+    // and the comment iframe, if it happens to be loaded already
+    pushGiscusTheme(resolved);
   }
 
   function applyAccent(accent) {
@@ -64,7 +90,7 @@
     applyAccent(accent);
   }
 
-  /* ---------- boot ---------- */
+  // ---------- boot ----------
   var mode = read(MODE_KEY, "auto");
   var accent = read(ACCENT_KEY, "violet");
 

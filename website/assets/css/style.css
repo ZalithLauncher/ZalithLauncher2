@@ -691,3 +691,53 @@ tbody td code { font-size: .82em; }
   body::before { display: none; }
   .reveal { opacity: 1; transform: none; }
 }
+
+
+/* ---------- 23. Community (Discord + comments) ---------- */
+.community-grid { display: grid; grid-template-columns: 1fr 1.35fr; gap: 1.15rem; align-items: start; }
+
+.discord-card {
+  background: linear-gradient(150deg, rgba(88, 101, 242, .10), rgba(var(--accent-rgb), .06));
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.7rem;
+  text-align: center;
+}
+.discord-card .dc-icon {
+  width: 58px; height: 58px;
+  margin: 0 auto 1.05rem;
+  display: grid; place-items: center;
+  border-radius: 18px;
+  background: #5865F2;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(88, 101, 242, .32);
+}
+.discord-card .dc-icon svg { width: 32px; height: 32px; }
+.discord-card h3 { margin-bottom: .5rem; }
+.discord-card p { font-size: .93rem; margin-bottom: 1.25rem; }
+.discord-card .btn-discord { background: #5865F2; color: #fff; width: 100%; }
+.discord-card .btn-discord:hover { background: #4752C4; transform: translateY(-2px); box-shadow: 0 10px 26px rgba(88, 101, 242, .3); }
+
+.comments-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  min-height: 180px;
+}
+.comments-panel h3 { margin-bottom: .35rem; }
+.comments-panel > p { font-size: .9rem; margin-bottom: 1.15rem; }
+.giscus, .giscus-frame { width: 100%; border: 0; }
+.giscus-notice {
+  border: 1px dashed var(--border-2);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.25rem;
+  font-size: .89rem;
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+.giscus-notice strong { display: block; color: var(--text); margin-bottom: .3rem; }
+
+@media (max-width: 860px) {
+  .community-grid { grid-template-columns: 1fr; }
+}

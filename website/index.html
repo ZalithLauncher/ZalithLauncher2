@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-accent="violet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mirai Launcher — Minecraft: Java Edition for Android</title>
+<meta name="description" content="Mirai Launcher runs Minecraft: Java Edition on Android. From-source renderers for 1.8 through the latest release, offline accounts with skins and capes, no ads and no telemetry.">
+<meta name="theme-color" content="#FAF6F1">
+<link rel="canonical" href="https://YOUR-DOMAIN/">
+<link rel="icon" href="assets/img/favicon.ico" sizes="any">
+<link rel="icon" href="assets/img/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Mirai Launcher — Minecraft: Java Edition for Android">
+<meta property="og:description" content="From-source renderers, offline accounts with skins and capes, no ads and no telemetry.">
+<meta property="og:image" content="assets/img/mirai-logo.png">
+<meta property="og:url" content="https://YOUR-DOMAIN/">
+<meta name="twitter:card" content="summary_large_image">
+<script>
+/* Set theme before first paint — avoids a flash of the wrong palette. */
+(function(){try{
+  var m=localStorage.getItem('mirai-theme')||'auto';
+  var a=localStorage.getItem('mirai-accent')||'violet';
+  var d=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  document.documentElement.setAttribute('data-theme',m==='auto'?d:m);
+  document.documentElement.setAttribute('data-mode',m);
+  document.documentElement.setAttribute('data-accent',a);
+}catch(e){}})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <nav class="nav" aria-label="Main">
+      <a class="brand" href="index.html">
+        <img src="assets/img/mirai-logo-256.png" alt="" width="30" height="30">
+        <span>Mirai</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html" aria-current="page">Home</a></li>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="renderers.html">Renderers</a></li>
+        <li><a href="guide.html">Guide</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="changelog.html">Changelog</a></li>
+      </ul>
+      <div class="nav-actions">
+        <div class="theme-wrap">
+          <button class="icon-btn" id="theme-toggle" aria-expanded="false" aria-haspopup="true" aria-label="Change theme and accent">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>
+            </svg>
+          </button>
+          <div class="theme-panel" id="theme-panel" role="dialog" aria-label="Theme settings">
+            <h4 class="panel-title">Appearance</h4>
+            <div class="mode-row">
+              <button class="mode-btn" data-mode-set="light" aria-pressed="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+                Light
+              </button>
+              <button class="mode-btn" data-mode-set="dark" aria-pressed="false">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+                Dark
+              </button>
+              <button class="mode-btn" data-mode-set="auto" aria-pressed="false">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+                System
+              </button>
+            </div>
+            <h4 class="panel-title">Accent</h4>
+            <div class="swatch-row">
+              <button class="swatch" data-set="violet" aria-label="Violet accent" aria-pressed="true"></button>
+              <button class="swatch" data-set="amber" aria-label="Amber accent" aria-pressed="false"></button>
+              <button class="swatch" data-set="forest" aria-label="Forest accent" aria-pressed="false"></button>
+              <button class="swatch" data-set="ocean" aria-label="Ocean accent" aria-pressed="false"></button>
+              <button class="swatch" data-set="rose" aria-label="Rose accent" aria-pressed="false"></button>
+            </div>
+          </div>
+        </div>
+        <a class="btn btn-primary btn-sm" href="https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest">Download</a>
+        <button class="icon-btn menu-btn" id="menu-toggle" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+      </div>
+    </nav>
+  </div>
+  <div class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="index.html" aria-current="page">Home</a></li>
+      <li><a href="features.html">Features</a></li>
+      <li><a href="renderers.html">Renderers</a></li>
+      <li><a href="guide.html">Guide</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="changelog.html">Changelog</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="wrap">
+      <img class="hero-logo" src="assets/img/mirai-logo.png" alt="Mirai Launcher logo" width="512" height="512">
+      <h1>Minecraft: Java Edition,<br><em>on your phone.</em></h1>
+      <p class="lead">Mirai Launcher runs Java Edition on Android with a render stack built from source, offline accounts that keep their skin and cape, and no ads or telemetry anywhere in it.</p>
+      <div class="btn-row">
+        <a class="btn btn-primary" href="https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 19h16"/></svg>
+          Download for Android
+        </a>
+        <a class="btn btn-ghost" href="https://discord.gg/6EFrhqmd">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.317 4.369a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128c.126-.094.252-.192.372-.291a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.099.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>
+          Join the Discord
+        </a>
+      </div>
+      <div class="hero-meta">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Android 8.0+</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Version 1.0.0</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>GPL-3.0, open source</span>
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>No ads, no trackers</span>
+      </div>
+      <div class="pill-strip">
+        <span class="pill">Minecraft 1.8 → latest</span>
+        <span class="pill">Fabric · Forge · NeoForge · Quilt</span>
+        <span class="pill">Mods · Shaders · Resource packs</span>
+        <span class="pill">Offline accounts + capes</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Why -->
+  <section>
+    <div class="wrap">
+      <div class="section-head center reveal">
+        <p class="eyebrow">Why Mirai</p>
+        <h2>A launcher you can actually look inside</h2>
+        <p>Most Android launchers hand you a wrapper library and a prayer. Mirai is built so that when something breaks, you can find out why.</p>
+      </div>
+      <div class="grid grid-3">
+        <article class="card reveal">
+          <div class="card-icon">🧩</div>
+          <h3>Renderers built from source</h3>
+          <p>LTW and LTW Legacy compile from vendored sources in this repository, for every ABI. A wrong-architecture library is caught in CI, not after you press Play.</p>
+        </article>
+        <article class="card reveal" style="--d:80ms">
+          <div class="card-icon">🎯</div>
+          <h3>It picks the right wrapper</h3>
+          <p>A renderer only runs on a Minecraft version it declares support for. The boundary is the OpenGL profile, not a version number nobody agrees on.</p>
+        </article>
+        <article class="card reveal" style="--d:160ms">
+          <div class="card-icon">⚡</div>
+          <h3>Tuned for a phone</h3>
+          <p>A one-tap FPS preset, an automatic JRE and GC tuner, a crash reader and a mod conflict resolver — all applied per device and kept across restarts.</p>
+        </article>
+        <article class="card reveal">
+          <div class="card-icon">🛡️</div>
+          <h3>Private by default</h3>
+          <p>No ads. No telemetry. No account resale. Your worlds and your accounts stay on your device unless you choose a login that needs the network.</p>
+        </article>
+        <article class="card reveal" style="--d:80ms">
+          <div class="card-icon">👤</div>
+          <h3>Offline accounts, dressed up</h3>
+          <p>Create a local username, then equip a skin and a cape on it — with a 3D preview you can spin before you launch.</p>
+        </article>
+        <article class="card reveal" style="--d:160ms">
+          <div class="card-icon">🌍</div>
+          <h3>Discover built in</h3>
+          <p>Browse and install modpacks, mods, resource packs, shaders and saves. Downloads land in the instance you meant, not in a random folder.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Screenshots -->
+  <section>
+    <div class="wrap">
+      <div class="section-head reveal">
+        <p class="eyebrow">Screenshots</p>
+        <h2>Take a look around</h2>
+        <p>Every screen below is the shipping build, on a real handset.</p>
+      </div>
+      <div class="shots">
+        <figure class="shot wide reveal">
+          <img src="assets/img/shot-home.jpg" alt="Mirai Launcher home dashboard showing quick actions, account status and the play button" width="1200" height="537" loading="lazy" decoding="async">
+          <figcaption><strong>Home</strong>Quick actions for Boost FPS, JRE &amp; GC and the Crash Doctor, with your account and Play button within reach.</figcaption>
+        </figure>
+        <figure class="shot reveal">
+          <img src="assets/img/shot-instances.jpg" alt="Instance list with search, filters for modpacks, vanilla and pinned versions" width="1200" height="537" loading="lazy" decoding="async">
+          <figcaption><strong>Instances</strong>Search, filter by All, Modpacks, Vanilla or Pinned, and create a new instance.</figcaption>
+        </figure>
+        <figure class="shot reveal">
+          <img src="assets/img/shot-discover.jpg" alt="Discover screen browsing mods, modpacks, shaders and resource packs" width="1200" height="537" loading="lazy" decoding="async">
+          <figcaption><strong>Discover</strong>Browse and install mods, modpacks, shaders and more from inside the launcher.</figcaption>
+        </figure>
+        <figure class="shot reveal">
+          <img src="assets/img/shot-wallpapers.jpg" alt="Wallpaper picker with built-in Minecraft wallpapers and dim control" width="1200" height="537" loading="lazy" decoding="async">
+          <figcaption><strong>Wallpapers</strong>20 built-in HD wallpapers, with dim control and your own imports.</figcaption>
+        </figure>
+        <figure class="shot reveal">
+          <img src="assets/img/shot-renderer.jpg" alt="Renderer settings showing renderer, Vulkan driver and graphics API per version" width="1200" height="537" loading="lazy" decoding="async">
+          <figcaption><strong>Renderers</strong>Renderer, Vulkan driver and graphics API, set per version.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Renderers teaser -->
+  <section>
+    <div class="wrap">
+      <div class="grid grid-2" style="align-items:center;gap:2.4rem">
+        <div class="reveal">
+          <p class="eyebrow">Renderer stack</p>
+          <h2>The part that decides whether it starts</h2>
+          <p class="lead mt-2">Minecraft on Android is a translation problem. A wrapper turns the desktop OpenGL calls the game makes into whatever your device actually offers — and picking the wrong one is the single most common reason a version refuses to launch.</p>
+          <p class="mt-2">Mirai ships eleven of them, picks one for you based on the version and your device, and lets you override it per instance. Two of them are compiled from source right here.</p>
+          <div class="btn-row mt-3">
+            <a class="btn btn-subtle" href="renderers.html">See the renderer lineup</a>
+          </div>
+        </div>
+        <div class="grid reveal" style="--d:120ms;gap:.7rem">
+          <div class="card" style="padding:1.1rem 1.25rem">
+            <h4 style="font-family:var(--font-body)">LTW Legacy <span class="badge">built here</span></h4>
+            <p class="small" style="margin-top:.3rem">Minecraft 1.8 – 1.16.5 · OpenGL 1.x/2.1 → OpenGL ES</p>
+          </div>
+          <div class="card" style="padding:1.1rem 1.25rem">
+            <h4 style="font-family:var(--font-body)">LTW <span class="badge">built here</span></h4>
+            <p class="small" style="margin-top:.3rem">Minecraft 1.17+ · OpenGL 3.2 core → OpenGL ES</p>
+          </div>
+          <div class="card" style="padding:1.1rem 1.25rem">
+            <h4 style="font-family:var(--font-body)">MobileGlues · vgpu · GL4ES <span class="badge badge-neutral">bundled</span></h4>
+            <p class="small" style="margin-top:.3rem">Modern and legacy fallbacks, all four ABIs</p>
+          </div>
+          <div class="card" style="padding:1.1rem 1.25rem">
+            <h4 style="font-family:var(--font-body)">Zink · VirGL · Freedreno · Panfrost <span class="badge badge-neutral">bundled</span></h4>
+            <p class="small" style="margin-top:.3rem">Mesa and Vulkan paths for the devices that need them</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="rule">
+
+  <!-- Privacy -->
+  <section>
+    <div class="wrap">
+      <div class="section-head center reveal">
+        <p class="eyebrow">Privacy</p>
+        <h2>Nothing to opt out of</h2>
+        <p>There is no analytics SDK in this build. Not a disabled one — none at all.</p>
+      </div>
+      <div class="grid grid-4">
+        <div class="card center reveal"><h3 style="font-size:1.6rem">🚫</h3><h4 style="font-family:var(--font-body);margin-top:.6rem">No ads</h4></div>
+        <div class="card center reveal" style="--d:70ms"><h3 style="font-size:1.6rem">📡</h3><h4 style="font-family:var(--font-body);margin-top:.6rem">No telemetry</h4></div>
+        <div class="card center reveal" style="--d:140ms"><h3 style="font-size:1.6rem">🔒</h3><h4 style="font-family:var(--font-body);margin-top:.6rem">Accounts stay local</h4></div>
+        <div class="card center reveal" style="--d:210ms"><h3 style="font-size:1.6rem">📖</h3><h4 style="font-family:var(--font-body);margin-top:.6rem">GPL-3.0 source</h4></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section>
+    <div class="wrap">
+      <div class="cta-band reveal">
+        <h2>Ready to play?</h2>
+        <p>Grab the latest APK from GitHub Releases, sideload it, and add an account. Best on 4&nbsp;GB of RAM or more.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest">Download the latest APK</a>
+          <a class="btn btn-ghost" href="guide.html">Read the setup guide</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">
+          <img src="assets/img/mirai-logo-256.png" alt="" width="26" height="26">
+          <span>Mirai Launcher</span>
+        </div>
+        <p>A Minecraft: Java Edition launcher for Android. Open source under GPL-3.0.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Launcher</h4>
+        <ul>
+          <li><a href="features.html">Features</a></li>
+          <li><a href="renderers.html">Renderers</a></li>
+          <li><a href="guide.html">Setup guide</a></li>
+          <li><a href="changelog.html">Changelog</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="https://discord.gg/6EFrhqmd">Discord server</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher">GitHub</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Download</h4>
+        <ul>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest">Latest release</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/blob/Mirai-launcher/CHANGELOG.md">Release notes</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/blob/Mirai-launcher/LICENSE">License</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Mirai Launcher. GPL-3.0.</span>
+      <span>Not affiliated with Mojang or Microsoft. Minecraft is a trademark of Mojang Synergies AB.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/site.js"></script>
+</body>
+</html>

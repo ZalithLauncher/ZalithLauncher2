@@ -1,0 +1,54 @@
+name: Deploy website
+
+# Publishes website/ to GitHub Pages.
+#
+# One-time setup: in the repository settings open
+#   Settings -> Pages -> Build and deployment -> Source
+# and choose "GitHub Actions". Set the custom domain on the same page; GitHub
+# writes the CNAME record into the published site itself, so there is no CNAME
+# file to keep in step with it.
+
+on:
+  push:
+    branches:
+      - Mirai-launcher
+    paths:
+      - "website/**"
+      - ".github/workflows/deploy_pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Let an in-flight deploy finish rather than cancelling it mid-publish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload website
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: website
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

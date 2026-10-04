@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light" data-accent="violet">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Changelog — Mirai Launcher</title>
+<meta name="description" content="Release notes for Mirai Launcher, starting with 1.0.0 — the renderer lineup, mobile performance tools, interface work and the fixes behind them.">
+<meta name="theme-color" content="#FAF6F1">
+<link rel="canonical" href="https://YOUR-DOMAIN/changelog.html">
+<link rel="icon" href="assets/img/favicon.ico" sizes="any">
+<link rel="icon" href="assets/img/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Changelog — Mirai Launcher">
+<meta property="og:description" content="Release notes for Mirai Launcher.">
+<meta property="og:image" content="assets/img/mirai-logo.png">
+<script>
+(function(){try{
+  var m=localStorage.getItem('mirai-theme')||'auto';
+  var a=localStorage.getItem('mirai-accent')||'violet';
+  var d=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
+  document.documentElement.setAttribute('data-theme',m==='auto'?d:m);
+  document.documentElement.setAttribute('data-mode',m);
+  document.documentElement.setAttribute('data-accent',a);
+}catch(e){}})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..700;1,9..144,400..700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap">
+    <nav class="nav" aria-label="Main">
+      <a class="brand" href="index.html">
+        <img src="assets/img/mirai-logo-256.png" alt="" width="30" height="30">
+        <span>Mirai</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="features.html">Features</a></li>
+        <li><a href="renderers.html">Renderers</a></li>
+        <li><a href="guide.html">Guide</a></li>
+        <li><a href="faq.html">FAQ</a></li>
+        <li><a href="changelog.html" aria-current="page">Changelog</a></li>
+      </ul>
+      <div class="nav-actions">
+        <div class="theme-wrap">
+          <button class="icon-btn" id="theme-toggle" aria-expanded="false" aria-haspopup="true" aria-label="Change theme and accent">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+          </button>
+          <div class="theme-panel" id="theme-panel" role="dialog" aria-label="Theme settings">
+            <h4 class="panel-title">Appearance</h4>
+            <div class="mode-row">
+              <button class="mode-btn" data-mode-set="light" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>Light</button>
+              <button class="mode-btn" data-mode-set="dark" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>Dark</button>
+              <button class="mode-btn" data-mode-set="auto" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>System</button>
+            </div>
+            <h4 class="panel-title">Accent</h4>
+            <div class="swatch-row">
+              <button class="swatch" data-set="violet" aria-label="Violet accent" aria-pressed="true"></button>
+              <button class="swatch" data-set="amber" aria-label="Amber accent" aria-pressed="false"></button>
+              <button class="swatch" data-set="forest" aria-label="Forest accent" aria-pressed="false"></button>
+              <button class="swatch" data-set="ocean" aria-label="Ocean accent" aria-pressed="false"></button>
+              <button class="swatch" data-set="rose" aria-label="Rose accent" aria-pressed="false"></button>
+            </div>
+          </div>
+        </div>
+        <a class="btn btn-primary btn-sm" href="https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest">Download</a>
+        <button class="icon-btn menu-btn" id="menu-toggle" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+      </div>
+    </nav>
+  </div>
+  <div class="mobile-menu" id="mobile-menu">
+    <ul>
+      <li><a href="index.html">Home</a></li>
+      <li><a href="features.html">Features</a></li>
+      <li><a href="renderers.html">Renderers</a></li>
+      <li><a href="guide.html">Guide</a></li>
+      <li><a href="faq.html">FAQ</a></li>
+      <li><a href="changelog.html" aria-current="page">Changelog</a></li>
+    </ul>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="hero" style="padding-block:clamp(2.6rem,6vw,4.2rem) 1rem">
+    <div class="wrap">
+      <p class="eyebrow reveal">Changelog</p>
+      <h1 class="reveal" style="max-width:14ch;margin-inline:auto">What changed</h1>
+      <p class="lead reveal" style="--d:80ms">Notable changes to Mirai Launcher. The full history lives in <a href="https://github.com/entitybrian69-bit/Mirai-launcher/blob/Mirai-launcher/CHANGELOG.md" style="color:var(--accent)">CHANGELOG.md</a>.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap wrap-narrow">
+      <div class="release reveal">
+        <div class="release-head">
+          <span class="release-version">1.0.0</span>
+          <span class="badge">First public release</span>
+          <span class="small muted">2026-10-04</span>
+        </div>
+
+        <div class="release-list">
+
+          <div>
+            <h4>Added</h4>
+            <ul>
+              <li><strong>LTW Legacy renderer</strong> (<code>libltwlegacy.so</code>) — a wrapper covering Minecraft <strong>1.8 – 1.16.5</strong>, built from a vendored, pinned snapshot of GL4ES (1.1.7) for every ABI.</li>
+              <li><strong>MobileGlues renderer</strong> (<code>libmobileglues.so</code>) — a modern OpenGL-on-GLES wrapper covering Minecraft <strong>1.17 – 26.3</strong>, with a tuned <code>config.json</code> written at startup.</li>
+              <li><strong>VGPU renderers</strong> (<code>libvgpu.so</code>, <code>libvgpu_1368.so</code>) — two options for Minecraft <strong>1.16.5 and older</strong>, with Sodium and shader support.</li>
+              <li><strong>1-Tap FPS Booster</strong> — one tap applies the full mobile FPS preset, and the choice persists across restarts.</li>
+              <li><strong>JRE &amp; GC auto-tuner</strong> — tunes the Java runtime and garbage collector for the device, and remembers what it chose.</li>
+              <li><strong>Smart Crash Doctor</strong> — reads a crash log and suggests the fix.</li>
+              <li><strong>Mod dependency &amp; conflict resolver</strong> — resolves missing dependencies and conflicts automatically.</li>
+              <li><strong>Interface overhaul</strong> — redesigned screens with dedicated landscape layouts, a home dashboard with quick-action pills, a streamlined navigation rail, and a theme that follows the wallpaper.</li>
+              <li><strong>20 HD Minecraft wallpapers</strong> built in, with dim control, a Solid Dark mode and custom imports.</li>
+              <li><strong>Rebuilt download pages</strong> — hero card, screenshots rail, and auto-detection that reads a file's Minecraft versions and loaders.</li>
+              <li><strong>Full Minecraft version catalog in Discover</strong> — 69 modding-relevant releases from 26.3 back to 1.4.7, newest first, replacing a 14-item cap.</li>
+              <li><strong>Minimizable modpack install dialog</strong> — shrink it to a floating button and keep using the launcher.</li>
+              <li><strong>In-game Mirai Pill HUD</strong> with world and screenshot quick actions.</li>
+              <li><strong>Interactive 3D paper doll</strong> — drag to spin 360°, tap to open account management.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4>Changed</h4>
+            <ul>
+              <li><strong>The legacy GL path is now built from source.</strong> The LTW Legacy wrapper is compiled from vendored sources instead of shipping another prebuilt blob.</li>
+              <li><strong>Automatic wrapper selection is wired into the launch path.</strong> Previously an instance with no renderer configured fell back to the first loaded renderer for every version.</li>
+              <li><strong>The picker no longer hardcodes identifiers or version boundaries.</strong> It reads each renderer's declared compatibility window, so a renderer cannot drift out of sync with it.</li>
+              <li><strong>An unsupported override is rejected up front</strong> instead of being honoured and then failing the launcher's own support check moments later.</li>
+              <li><strong>Platform search falls back sequentially</strong> across sources — 15s per source inside a 30s cap — instead of racing them concurrently.</li>
+              <li><strong>Wallpaper blur is a pre-rendered static image</strong> on all Android versions, removing the per-frame cost that janked tab switches and dialogs.</li>
+              <li><strong>Settings and wallpaper backgrounds decode off the UI thread</strong> and share a process-wide cached bitmap.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4>Fixed</h4>
+            <ul>
+              <li><strong>Discover search failed with "This job has not completed yet"</strong> on Modrinth and CurseForge — concurrent requests through a shared HTTP client; the sequential fallback above fixes it.</li>
+              <li><strong>CurseForge outages no longer kill search</strong> — requests fall back to a mirror backup source.</li>
+              <li><strong>Sodium, Embedium and Rubidium crashed instantly after joining a world</strong> on every renderer except one. The launcher now applies a crash-free chunk-backend patch to all three mods' configs on <em>every</em> renderer, covering both existing configs and first-run defaults.</li>
+              <li><strong>Version comparison could not run in a plain JVM unit test</strong> — a missing resource stream now degrades to an empty list instead of throwing, which is what made the renderer picker testable in CI.</li>
+              <li><strong>Visual lag when opening any tab</strong>, fixed by the pre-rendered blur and cached background decoding.</li>
+              <li><strong>Startup and animation jank</strong> from the screen transition and software bitmap path.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4>Verified in CI</h4>
+            <ul>
+              <li>The APK verifier now checks <strong>both</strong> <code>libltw.so</code> and <code>libltwlegacy.so</code> for every requested ABI, and runs in the release workflow as well as the normal build.</li>
+              <li>The renderer test set now includes the LTW Legacy and renderer picker tests — the latter had never been executed by CI before.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4>Not yet claimed</h4>
+            <p class="small muted" style="margin-bottom:.6rem">Deliberately not claimed in this release, because they need a physical Android device running the game and have not been measured:</p>
+            <ul>
+              <li>Performance (FPS, 1% lows, memory, startup time, chunk load speed) relative to any other renderer.</li>
+              <li>Mod, resource pack and shader pack compatibility matrices.</li>
+              <li>Whether the newer upstream GL4ES revision behaves identically to the build it supersedes on legacy versions.</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4>Notes</h4>
+            <ul>
+              <li>LTW Legacy is derived from GL4ES, which is MIT licensed; upstream licence and copyright notices are preserved.</li>
+              <li>MobileGlues is LGPL-2.1 licensed by MobileGL-Dev; only its prebuilt native libraries are bundled, unmodified.</li>
+              <li>Released as <strong>1.0.0</strong>, version code 200043 — kept monotonic with pre-release builds so existing installs see the update.</li>
+            </ul>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <div class="cta-band reveal">
+        <h2>Get 1.0.0</h2>
+        <p>Five APKs, one per ABI, plus a universal build that runs on all of them.</p>
+        <div class="btn-row">
+          <a class="btn btn-primary" href="https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest">Download the latest release</a>
+          <a class="btn btn-ghost" href="https://github.com/entitybrian69-bit/Mirai-launcher/releases">All releases</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand"><img src="assets/img/mirai-logo-256.png" alt="" width="26" height="26"><span>Mirai Launcher</span></div>
+        <p>A Minecraft: Java Edition launcher for Android. Open source under GPL-3.0.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Launcher</h4>
+        <ul>
+          <li><a href="features.html">Features</a></li>
+          <li><a href="renderers.html">Renderers</a></li>
+          <li><a href="guide.html">Setup guide</a></li>
+          <li><a href="changelog.html">Changelog</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Community</h4>
+        <ul>
+          <li><a href="https://discord.gg/6EFrhqmd">Discord server</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher">GitHub</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Download</h4>
+        <ul>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest">Latest release</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/blob/Mirai-launcher/CHANGELOG.md">Release notes</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/blob/Mirai-launcher/LICENSE">License</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 Mirai Launcher. GPL-3.0.</span>
+      <span>Not affiliated with Mojang or Microsoft. Minecraft is a trademark of Mojang Synergies AB.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/site.js"></script>
+</body>
+</html>

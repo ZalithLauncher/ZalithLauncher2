@@ -19,6 +19,19 @@
 package com.movtery.zalithlauncher.ui.screens.content.download.assets.download
 
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
+import com.movtery.zalithlauncher.utils.formatNumberByLocale
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -346,11 +359,30 @@ fun DownloadAssetsScreen(
     eventViewModel: EventViewModel,
     onItemClicked: (PlatformClasses, PlatformVersion, iconUrl: String?, deps: List<DependencyEntry>) -> Unit,
     nestedNavKeyClass: Class<out TitledNavKey>? = null,
-    versionsUIWeight: Float = 6.5f,
-    projectUIWeight: Float = 3.5f,
     installedChecker: ((PlatformVersion) -> InstalledMod?)? = null,
 ) {
     val viewModel: DownloadScreenViewModel = rememberDownloadAssetsViewModel(key)
+
+    //Shared dependency resolution for both version-row taps and the hero "Download Latest" button.
+    fun resolveDeps(version: PlatformVersion): List<DependencyEntry> {
+        return version.platformDependencies().mapNotNull { dep ->
+            val depKey = dep.cacheKey()
+            val project = viewModel.cachedDependencyProject[depKey]
+            when {
+                project != null -> DependencyEntry(dep, project)
+                viewModel.notFoundDependencyProjects.contains(depKey) ->
+                    DependencyEntry(dep, null, notFound = true)
+                viewModel.failedDependencyProjects.contains(depKey) ->
+                    DependencyEntry(dep, null)
+                //依赖项目信息仍在获取中
+                else -> null
+            }
+        }
+    }
+
+    fun launchDownload(version: PlatformVersion) {
+        onItemClicked(viewModel.classes, version, key.iconUrl, resolveDeps(version))
+    }
 
     BaseScreen(
         levels1 = listOf(
@@ -359,407 +391,533 @@ fun DownloadAssetsScreen(
         Triple(parentScreenKey, parentCurrentKey, false),
         Triple(key, currentKey, false),
     ) { isVisible ->
-        Row(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            val yOffset by swapAnimateDpAsState(targetValue = (-40).dp, swapIn = isVisible)
-            Versions(
-                modifier = Modifier
-                    .weight(versionsUIWeight)
-                    .fillMaxHeight()
-                    .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-                viewModel = viewModel,
-                installedChecker = installedChecker,
-                onReload = { viewModel.getVersions() },
-                onItemClicked = { version ->
-                    val deps = version.platformDependencies().mapNotNull { dep ->
-                        val key = dep.cacheKey()
-                        val project = viewModel.cachedDependencyProject[key]
-                        when {
-                            project != null -> DependencyEntry(dep, project)
-                            viewModel.notFoundDependencyProjects.contains(key) ->
-                                DependencyEntry(dep, null, notFound = true)
-                            viewModel.failedDependencyProjects.contains(key) ->
-                                DependencyEntry(dep, null)
-                            //依赖项目信息仍在获取中
-                            else -> null
-                        }
-                    }
-                    onItemClicked(viewModel.classes, version, key.iconUrl, deps)
-                },
-            )
-
-            val xOffset by swapAnimateDpAsState(
-                targetValue = 40.dp,
-                swapIn = isVisible,
-                isHorizontal = true
-            )
-            ProjectInfo(
-                modifier = Modifier
-                    .weight(projectUIWeight)
-                    .fillMaxHeight()
-                    .padding(vertical = 12.dp)
-                    .padding(end = 12.dp)
-                    .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
-                projectResult = viewModel.projectResult,
-                platform = key.platform,
-                projectId = key.projectId,
-                classes = viewModel.classes,
-                onReload = { viewModel.getProject() },
-                openLink = { url ->
-                    eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url))
-                }
-            )
-        }
+        val yOffset by swapAnimateDpAsState(targetValue = (-40).dp, swapIn = isVisible)
+        MiraiDownloadColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+            viewModel = viewModel,
+            platform = key.platform,
+            projectId = key.projectId,
+            installedChecker = installedChecker,
+            onReloadVersions = { viewModel.getVersions() },
+            onReloadProject = { viewModel.getProject() },
+            onVersionClicked = { launchDownload(it) },
+            openLink = { url ->
+                eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url))
+            }
+        )
     }
 }
 
 /**
- * 所有版本列表
+ * Number of LazyColumn header items above the version rows (hero card + filter row).
+ * Used as the scroll offset when auto-scrolling to the adapted version.
+ */
+private const val DOWNLOAD_HEADER_COUNT = 2
+
+/**
+ * Single-column "Mobile Hero" layout: hero card, filters, version rows,
+ * then related links and screenshots at the bottom.
  */
 @Composable
-private fun Versions(
-    modifier: Modifier = Modifier,
+private fun MiraiDownloadColumn(
     viewModel: DownloadScreenViewModel,
-    installedChecker: ((PlatformVersion) -> InstalledMod?)? = null,
-    onReload: () -> Unit = {},
-    onItemClicked: (PlatformVersion) -> Unit = {}
-) {
-    when (val versions = viewModel.versionsResult) {
-        is DownloadAssetsState.Getting -> {
-            Box(
-                modifier.padding(all = 12.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.animateContentSize()
-                    ) {
-                        when (val state = viewModel.versionsLoading) {
-                            is DownloadAssetsVersionLoading.None -> {}
-                            is DownloadAssetsVersionLoading.StartLoadPage -> {
-                                Text(
-                                    text = stringResource(R.string.download_assets_loading_page_data),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                            is DownloadAssetsVersionLoading.LoadingPage -> {
-                                Text(
-                                    text = stringResource(R.string.download_assets_loaded_chunk_page, state.chunk, state.page),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-                    LinearWavyProgressIndicator(
-                        modifier = Modifier.width(168.dp),
-                        wavelength = 32.dp
-                    )
-                }
-            }
-        }
-        is DownloadAssetsState.Success -> {
-            Column(modifier = modifier) {
-                //简单过滤条件
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    CheckChip(
-                        selected = viewModel.showOnlyMCRelease,
-                        onClick = {
-                            viewModel.filterWith(showOnlyMCRelease = viewModel.showOnlyMCRelease.not())
-                        },
-                        label = {
-                            Text(text = stringResource(R.string.download_assets_show_only_mc_release))
-                        },
-                    )
-
-                    SimpleTextInputField(
-                        modifier = Modifier.weight(1f),
-                        value = viewModel.searchMCVersion,
-                        onValueChange = { viewModel.filterWith(searchMCVersion = it) },
-                        singleLine = true,
-                        textStyle = TextStyle(color = onCardColor()).copy(fontSize = 12.sp),
-                        hint = {
-                            Text(
-                                text = stringResource(R.string.download_assets_search_mc_versions),
-                                style = TextStyle(color = onCardColor()).copy(fontSize = 12.sp)
-                            )
-                        }
-                    )
-                }
-
-                HorizontalDivider(
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
-                )
-
-                val scrollState = rememberLazyListState()
-
-                LaunchedEffect(Unit) {
-                    delay(100L.milliseconds)
-                    runCatching {
-                        val result = versions.result
-                        val index = versions.result.indexOfFirst { it.isAdapt }
-                        if (index >= 0 && index < result.size) {
-                            //自动滚动到适配的资源版本
-                            scrollState.animateScrollToItem(index)
-                        }
-                    }
-                }
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                    state = scrollState
-                ) {
-                    items(
-                        items = versions.result,
-                        key = { "${it.gameVersion}_${it.loader?.getDisplayName()}" }
-                    ) { info ->
-                        AssetsVersionItemLayout(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
-                            infoMap = info,
-                            installedChecker = installedChecker,
-                            onItemClicked = onItemClicked
-                        )
-                    }
-                }
-            }
-        }
-        is DownloadAssetsState.Error -> {
-            Box(modifier.padding(all = 12.dp)) {
-                ScalingLabel(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = {
-                        AndroidStringText(
-                            text = androidText(
-                                R.string.download_assets_failed_to_get_versions,
-                                versions.message
-                            )
-                        )
-                    },
-                    onClick = onReload
-                )
-            }
-        }
-    }
-}
-
-/**
- * 项目信息板块
- */
-@Composable
-private fun ProjectInfo(
-    modifier: Modifier = Modifier,
-    projectResult: DownloadAssetsState<Triple<PlatformProject, ModTranslations, ModTranslations.McMod?>>,
     platform: Platform,
     projectId: String,
-    classes: PlatformClasses,
-    onReload: () -> Unit = {},
-    openLink: (url: String) -> Unit = {}
+    installedChecker: ((PlatformVersion) -> InstalledMod?)?,
+    onReloadVersions: () -> Unit,
+    onReloadProject: () -> Unit,
+    onVersionClicked: (PlatformVersion) -> Unit,
+    openLink: (url: String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    BackgroundCard(
-        modifier = modifier,
-        shape = MaterialTheme.shapes.extraLarge
+    val versionsResult = viewModel.versionsResult
+    val scrollState = rememberLazyListState()
+
+    val projectData = (viewModel.projectResult as? DownloadAssetsState.Success)?.result
+    val project = projectData?.first
+    val projectUrls = remember(project, viewModel.classes) {
+        project?.platformUrls(viewModel.classes)
+    }
+    val projectScreenshots = remember(project) {
+        project?.platformScreenshots().orEmpty()
+    }
+
+    //Auto-scroll to the version adapted to the current instance, once per fresh load.
+    var versionsLoaded by remember { mutableStateOf(false) }
+    LaunchedEffect(versionsResult) {
+        val result = (versionsResult as? DownloadAssetsState.Success)?.result
+        val justLoaded = result != null && !versionsLoaded
+        versionsLoaded = result != null
+        if (!justLoaded || result == null) return@LaunchedEffect
+        delay(100L.milliseconds)
+        runCatching {
+            val index = result.indexOfFirst { it.isAdapt }
+            if (index >= 0) {
+                //自动滚动到适配的资源版本
+                scrollState.animateScrollToItem(DOWNLOAD_HEADER_COUNT + index)
+            }
+        }
+    }
+
+    //"Download Latest" target: the newest file of the adapted group, otherwise the newest group.
+    val latestVersion = (versionsResult as? DownloadAssetsState.Success)
+        ?.result?.let { list ->
+            (list.firstOrNull { it.isAdapt } ?: list.firstOrNull())?.versions?.firstOrNull()
+        }
+
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        state = scrollState,
+        contentPadding = PaddingValues(bottom = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Box(modifier = Modifier) {
-            when (projectResult) {
-                is DownloadAssetsState.Getting -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(all = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        //图标、标题、简介的骨架
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                ShimmerBox(
-                                    modifier = Modifier
-                                        .clip(shape = RoundedCornerShape(10.dp))
-                                        .size(72.dp)
-                                )
-                                Column(
-                                    modifier = Modifier.padding(top = 8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    //标题
-                                    ShimmerBox(
-                                        modifier = Modifier
-                                            .fillMaxWidth(0.6f)
-                                            .height(20.dp)
-                                            .clip(RoundedCornerShape(4.dp))
-                                    )
-                                    //简介
-                                    ShimmerBox(
-                                        modifier = Modifier
-                                            .fillMaxWidth(0.9f)
-                                            .height(16.dp)
-                                            .clip(RoundedCornerShape(4.dp))
-                                    )
-                                }
-                            }
-                        }
-                    }
+        item(key = "mirai_hero") {
+            DownloadHeroCard(
+                projectResult = viewModel.projectResult,
+                classes = viewModel.classes,
+                platform = platform,
+                projectId = projectId,
+                latestVersion = latestVersion,
+                onDownloadLatest = onVersionClicked,
+                onReload = onReloadProject
+            )
+        }
+
+        when (versionsResult) {
+            is DownloadAssetsState.Getting -> {
+                item(key = "mirai_versions_loading") {
+                    VersionsLoadingItem(loading = viewModel.versionsLoading)
                 }
-                is DownloadAssetsState.Success -> {
-                    val (project, mod, mcmod) = projectResult.result
-                    //项目基本信息
-                    val platform = remember { project.platform() }
-                    val iconUrl = remember { project.platformIconUrl() }
-                    val title = remember { project.platformTitle() }
-                    val summary = remember { project.platformSummary() }
-                    val urls = remember(classes) { project.platformUrls(classes) }
-                    val screenshots = remember { project.platformScreenshots() }
-
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(all = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        //图标、标题、简介
-                        item {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 32.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                AssetsIcon(
-                                    modifier = Modifier.clip(shape = RoundedCornerShape(10.dp)),
-                                    size = 72.dp,
-                                    iconUrl = iconUrl
-                                )
-                                //标题、简介
-                                Column(
-                                    modifier = Modifier.padding(top = 8.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text(
-                                        text = mcmod.getMcmodTitle(title, context),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        textAlign = TextAlign.Center
-                                    )
-                                    summary?.let { summary ->
-                                        Text(
-                                            text = summary,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            textAlign = TextAlign.Center
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        //相关链接
-                        if (!urls.isAllNull()) {
-                            item {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.download_assets_links),
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-
-                                    ProjectUrlsContent(
-                                        platform = platform,
-                                        urls = urls,
-                                        mcmod = mcmod,
-                                        mod = mod,
-                                        openLink = openLink,
-                                    )
-                                }
-                            }
-                        }
-
-                        //屏幕截图
-                        items(screenshots) { screenshot ->
-                            ScreenshotItemLayout(
-                                modifier = Modifier.fillMaxWidth(),
-                                screenshot = screenshot
-                            )
-                        }
-                    }
+            }
+            is DownloadAssetsState.Success -> {
+                item(key = "mirai_filters") {
+                    FilterRow(
+                        showOnlyMCRelease = viewModel.showOnlyMCRelease,
+                        onToggleReleases = {
+                            viewModel.filterWith(showOnlyMCRelease = viewModel.showOnlyMCRelease.not())
+                        },
+                        searchMCVersion = viewModel.searchMCVersion,
+                        onSearchChange = { viewModel.filterWith(searchMCVersion = it) }
+                    )
                 }
-                is DownloadAssetsState.Error -> {
+                items(
+                    items = versionsResult.result,
+                    key = { "${it.gameVersion}_${it.loader?.getDisplayName()}" }
+                ) { info ->
+                    AssetsVersionItemLayout(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                        infoMap = info,
+                        installedChecker = installedChecker,
+                        onItemClicked = onVersionClicked
+                    )
+                }
+            }
+            is DownloadAssetsState.Error -> {
+                item(key = "mirai_versions_error") {
                     Box(
                         modifier = Modifier
-                            .fillMaxSize()
-                            .padding(all = 12.dp)
+                            .fillMaxWidth()
+                            .padding(all = 24.dp),
+                        contentAlignment = Alignment.Center
                     ) {
                         ScalingLabel(
-                            modifier = Modifier.align(Alignment.Center),
                             text = {
                                 AndroidStringText(
                                     text = androidText(
-                                        R.string.download_assets_failed_to_get_project,
-                                        projectResult.message
+                                        R.string.download_assets_failed_to_get_versions,
+                                        versionsResult.message
                                     )
                                 )
                             },
-                            onClick = onReload
+                            onClick = onReloadVersions
                         )
                     }
                 }
             }
+        }
 
-            // 资源类型、收藏开关
-            Row(
-                modifier = Modifier.padding(all = 16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                ClassesIdentifier(
-                    classes = classes,
-                    iconSize = 16.dp,
-                    textStyle = MaterialTheme.typography.labelMedium
-                )
-
-                val isFavorite = FavoriteProjectsRepository.isFavorite(platform, projectId)
-                FavoriteIdentifier(
-                    isFavorite = isFavorite,
-                    iconSize = 16.dp,
-                    textStyle = MaterialTheme.typography.labelMedium,
-                    onClick = {
-                        if (isFavorite) {
-                            FavoriteProjectsRepository.unfavorite(platform, projectId)
-                        } else {
-                            //项目数据未就绪时无法生成收藏缓存，忽略此次操作
-                            (projectResult as? DownloadAssetsState.Success)
-                                ?.result?.first?.let { project ->
-                                    FavoriteProjectsRepository.favorite(project, classes)
-                                }
-                        }
-                    }
+        //Related links rail (project data only, independent of the versions state).
+        if (projectData != null && projectUrls != null && !projectUrls.isAllNull()) {
+            val (_, mod, mcmod) = projectData
+            item(key = "mirai_links") {
+                LinksRail(
+                    platform = platform,
+                    urls = projectUrls,
+                    mcmod = mcmod,
+                    mod = mod,
+                    openLink = openLink
                 )
             }
+        }
+
+        //Screenshots carousel.
+        if (projectScreenshots.isNotEmpty()) {
+            item(key = "mirai_screenshots") {
+                ScreenshotsRail(screenshots = projectScreenshots)
+            }
+        }
+    }
+}
+
+/**
+ * Hero header: icon, title, author, summary, stats, favorite toggle and Download Latest.
+ */
+@Composable
+private fun DownloadHeroCard(
+    projectResult: DownloadAssetsState<Triple<PlatformProject, ModTranslations, ModTranslations.McMod?>>,
+    classes: PlatformClasses,
+    platform: Platform,
+    projectId: String,
+    latestVersion: PlatformVersion?,
+    onDownloadLatest: (PlatformVersion) -> Unit,
+    onReload: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    BackgroundCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        shape = MaterialTheme.shapes.extraLarge
+    ) {
+        when (projectResult) {
+            is DownloadAssetsState.Getting -> {
+                HeroShimmer()
+            }
+            is DownloadAssetsState.Success -> {
+                val (project, _, mcmod) = projectResult.result
+                val context = LocalContext.current
+                val iconUrl = remember(project) { project.platformIconUrl() }
+                val title = remember(project) { project.platformTitle() }
+                val summary = remember(project) { project.platformSummary() }
+                val author = remember(project) { project.platformAuthor() }
+                val downloads = remember(project) { project.platformDownloadCount() }
+                val follows = remember(project) { project.platformFollows() }
+                val accent = MiraiThemeManager.currentAccent()
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(all = 14.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AssetsIcon(
+                        modifier = Modifier.clip(shape = RoundedCornerShape(16.dp)),
+                        size = 84.dp,
+                        iconUrl = iconUrl
+                    )
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        ClassesIdentifier(
+                            classes = classes,
+                            iconSize = 14.dp,
+                            textStyle = MaterialTheme.typography.labelSmall
+                        )
+                        Text(
+                            text = mcmod.getMcmodTitle(title, context),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        author?.takeIf { it.isNotBlank() }?.let {
+                            Text(
+                                text = "by $it",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = accent,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        summary?.takeIf { it.isNotBlank() }?.let {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.bodySmall,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        Text(
+                            text = buildString {
+                                append(formatNumberByLocale(context, downloads))
+                                append(" downloads")
+                                if (follows != null) {
+                                    append("  •  ")
+                                    append(formatNumberByLocale(context, follows))
+                                    append(" followers")
+                                }
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        val isFavorite = FavoriteProjectsRepository.isFavorite(platform, projectId)
+                        FavoriteIdentifier(
+                            isFavorite = isFavorite,
+                            iconSize = 16.dp,
+                            textStyle = MaterialTheme.typography.labelMedium,
+                            onClick = {
+                                if (isFavorite) {
+                                    FavoriteProjectsRepository.unfavorite(platform, projectId)
+                                } else {
+                                    FavoriteProjectsRepository.favorite(project, classes)
+                                }
+                            }
+                        )
+                        Button(
+                            onClick = { latestVersion?.let(onDownloadLatest) },
+                            enabled = latestVersion != null,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = accent,
+                                contentColor = Color(0xFF06210F)
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 10.dp)
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(16.dp),
+                                painter = painterResource(R.drawable.ic_download_2_outlined),
+                                contentDescription = null
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Download Latest",
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    }
+                }
+            }
+            is DownloadAssetsState.Error -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(all = 24.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ScalingLabel(
+                        text = {
+                            AndroidStringText(
+                                text = androidText(
+                                    R.string.download_assets_failed_to_get_project,
+                                    projectResult.message
+                                )
+                            )
+                        },
+                        onClick = onReload
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HeroShimmer() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(all = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        ShimmerBox(
+            modifier = Modifier
+                .clip(shape = RoundedCornerShape(16.dp))
+                .size(84.dp)
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            ShimmerBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
+                    .height(22.dp)
+                    .clip(RoundedCornerShape(4.dp))
+            )
+            ShimmerBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .height(16.dp)
+                    .clip(RoundedCornerShape(4.dp))
+            )
+            ShimmerBox(
+                modifier = Modifier
+                    .fillMaxWidth(0.5f)
+                    .height(14.dp)
+                    .clip(RoundedCornerShape(4.dp))
+            )
+        }
+    }
+}
+
+/**
+ * Release filter chip + MC version search.
+ */
+@Composable
+private fun FilterRow(
+    showOnlyMCRelease: Boolean,
+    onToggleReleases: () -> Unit,
+    searchMCVersion: String,
+    onSearchChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            CheckChip(
+                selected = showOnlyMCRelease,
+                onClick = onToggleReleases,
+                label = {
+                    Text(text = stringResource(R.string.download_assets_show_only_mc_release))
+                },
+            )
+
+            SimpleTextInputField(
+                modifier = Modifier.weight(1f),
+                value = searchMCVersion,
+                onValueChange = onSearchChange,
+                singleLine = true,
+                textStyle = TextStyle(color = onCardColor()).copy(fontSize = 12.sp),
+                hint = {
+                    Text(
+                        text = stringResource(R.string.download_assets_search_mc_versions),
+                        style = TextStyle(color = onCardColor()).copy(fontSize = 12.sp)
+                    )
+                }
+            )
+        }
+
+        HorizontalDivider(
+            modifier = Modifier
+                .padding(horizontal = 12.dp)
+                .fillMaxWidth(),
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+        )
+    }
+}
+
+@Composable
+private fun VersionsLoadingItem(
+    loading: DownloadAssetsVersionLoading,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(all = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.animateContentSize()
+        ) {
+            when (loading) {
+                is DownloadAssetsVersionLoading.None -> {}
+                is DownloadAssetsVersionLoading.StartLoadPage -> {
+                    Text(
+                        text = stringResource(R.string.download_assets_loading_page_data),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center
+                    )
+                }
+                is DownloadAssetsVersionLoading.LoadingPage -> {
+                    Text(
+                        text = stringResource(R.string.download_assets_loaded_chunk_page, loading.chunk, loading.page),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+        LinearWavyProgressIndicator(
+            modifier = Modifier.width(168.dp),
+            wavelength = 32.dp
+        )
+    }
+}
+
+/**
+ * Related project links as a horizontal rail.
+ */
+@Composable
+private fun LinksRail(
+    platform: Platform,
+    urls: PlatformProject.Urls,
+    mcmod: ModTranslations.McMod?,
+    mod: ModTranslations,
+    openLink: (url: String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.download_assets_links),
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ProjectUrlsContent(
+                platform = platform,
+                urls = urls,
+                mcmod = mcmod,
+                mod = mod,
+                openLink = openLink,
+            )
+        }
+    }
+}
+
+/**
+ * Screenshots carousel.
+ */
+@Composable
+private fun ScreenshotsRail(
+    screenshots: List<PlatformProject.Screenshot>,
+    modifier: Modifier = Modifier,
+) {
+    LazyRow(
+        modifier = modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(screenshots) { screenshot ->
+            ScreenshotItemLayout(
+                modifier = Modifier.width(260.dp),
+                screenshot = screenshot,
+                shape = RoundedCornerShape(12.dp)
+            )
         }
     }
 }

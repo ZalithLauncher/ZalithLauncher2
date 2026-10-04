@@ -182,6 +182,7 @@ jobs:
             --tests "com.movtery.zalithlauncher.game.renderer.LTWLegacyRendererTest" \
             --tests "com.movtery.zalithlauncher.game.renderer.VGPURendererTest" \
             --tests "com.movtery.zalithlauncher.game.renderer.RendererPickerTest" \
+            --tests "com.movtery.zalithlauncher.game.optimization.JvmGcAutoTunerTest" \
             --tests "com.movtery.zalithlauncher.game.addons.mirror.MirrorPreferencesTest" \
             --tests "com.movtery.zalithlauncher.game.account.wardrobe.FileReplacementTest" \
             -Darch=all --console=plain 2>&1 | tee "$test_log"

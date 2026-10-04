@@ -90,7 +90,9 @@ import com.movtery.zalithlauncher.game.download.game.GameInstaller
 import com.movtery.zalithlauncher.game.download.game.optifine.CantFetchingOptiFineUrlException
 import com.movtery.zalithlauncher.game.download.jvm_server.JvmCrashException
 import com.movtery.zalithlauncher.game.download.jvm_server.isProcessStartRefused
+import com.movtery.zalithlauncher.game.optimization.JvmGcAutoTunerDialog
 import com.movtery.zalithlauncher.game.optimization.MobileFpsBoosterDialog
+import com.movtery.zalithlauncher.game.optimization.ModDependencyResolverDialog
 import com.movtery.zalithlauncher.game.version.download.DownloadFailedException
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
@@ -333,11 +335,27 @@ private fun ModrinthInstanceHeroBanner(
     val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
     val ramMb = remember(version) { version.getRamAllocation(context) }
     var showFpsBooster by remember { mutableStateOf(false) }
+    var showJreGcTuner by remember { mutableStateOf(false) }
+    var showModResolver by remember { mutableStateOf(false) }
 
     if (showFpsBooster) {
         MobileFpsBoosterDialog(
             version = version,
             onDismiss = { showFpsBooster = false }
+        )
+    }
+
+    if (showJreGcTuner) {
+        JvmGcAutoTunerDialog(
+            version = version,
+            onDismiss = { showJreGcTuner = false }
+        )
+    }
+
+    if (showModResolver) {
+        ModDependencyResolverDialog(
+            version = version,
+            onDismiss = { showModResolver = false }
         )
     }
 
@@ -400,6 +418,50 @@ private fun ModrinthInstanceHeroBanner(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
+        }
+
+        // Smart Mod Dependency & Conflict Resolver Button (Feature #2)
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = Color(0xFF21242B),
+            border = BorderStroke(1.dp, Color(0xFF2E333E)),
+            onClick = { showModResolver = true }
+        ) {
+            Row(
+                modifier = Modifier
+                    .height(34.dp)
+                    .padding(horizontal = 9.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "🛡️ Mod Check",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFE5E7EB)
+                )
+            }
+        }
+
+        // JRE Auto-Tuner & GC Optimizer Button (Feature #17)
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = Color(0xFF21242B),
+            border = BorderStroke(1.dp, Color(0xFF2E333E)),
+            onClick = { showJreGcTuner = true }
+        ) {
+            Row(
+                modifier = Modifier
+                    .height(34.dp)
+                    .padding(horizontal = 9.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "☕ JRE & GC",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFE5E7EB)
+                )
+            }
         }
 
         // 1-Tap Mobile FPS Booster Button

@@ -108,6 +108,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.optimization.ModDependencyResolver
+import com.movtery.zalithlauncher.game.optimization.ModDependencyResolverDialog
 import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
@@ -594,6 +596,27 @@ fun ModsManagerScreen(
         val viewModel = rememberModsManageViewModel(version, modsDir)
         val updaterViewModel = rememberModsUpdaterViewModel(version, modsDir)
 
+        var showModDependencyResolver by remember { mutableStateOf(false) }
+        var detectedModIssuesCount by remember { mutableIntStateOf(0) }
+
+        LaunchedEffect(viewModel.allMods.size, viewModel.enabledCount) {
+            val report = ModDependencyResolver.scanInstanceMods(version, modsDir)
+            detectedModIssuesCount = report.issues.size
+        }
+
+        if (showModDependencyResolver) {
+            ModDependencyResolverDialog(
+                version = version,
+                modsDir = modsDir,
+                onModsChanged = {
+                    viewModel.refresh(context)
+                },
+                onDismiss = {
+                    showModDependencyResolver = false
+                }
+            )
+        }
+
         //页面创建时，检查一次模组数量，如果不同，则说明有增删
         //可自动刷新一次模组列表
         LaunchedEffect(Unit) {
@@ -729,6 +752,8 @@ fun ModsManagerScreen(
                                 viewModel.clearSelected()
                             },
                             swapToDownload = swapToDownload,
+                            onOpenModResolver = { showModDependencyResolver = true },
+                            detectedIssuesCount = detectedModIssuesCount,
                             refresh = { viewModel.refresh(context) },
                             submitError = submitError
                         )
@@ -819,6 +844,8 @@ private fun ModsActionsHeader(
     onSelectAll: () -> Unit,
     onClearModsSelected: () -> Unit,
     swapToDownload: () -> Unit,
+    onOpenModResolver: () -> Unit = {},
+    detectedIssuesCount: Int = 0,
     refresh: () -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit = {},
     inputFieldColor: Color = itemColor(),
@@ -924,6 +951,33 @@ private fun ModsActionsHeader(
                             modifier = Modifier.size(16.dp)
                         )
                     }
+                }
+            }
+
+            // Smart Mod Dependency & Conflict Resolver Pill (Feature #2)
+            val hasIssues = detectedIssuesCount > 0
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = if (hasIssues) Color(0xFF3B1A1E) else Color(0xFF21242B),
+                border = BorderStroke(
+                    1.dp,
+                    if (hasIssues) Color(0xFFEF4444) else Color(0xFF2E333E)
+                ),
+                onClick = onOpenModResolver
+            ) {
+                Row(
+                    modifier = Modifier
+                        .height(34.dp)
+                        .padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = if (hasIssues) "🛡️ $detectedIssuesCount Issues" else "🛡️ Check Mods",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (hasIssues) Color(0xFFFCA5A5) else Color(0xFFE5E7EB)
+                    )
                 }
             }
 

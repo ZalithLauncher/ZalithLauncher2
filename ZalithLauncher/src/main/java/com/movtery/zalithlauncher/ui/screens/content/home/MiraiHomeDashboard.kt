@@ -66,6 +66,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.TaskSystem
+import com.movtery.zalithlauncher.game.optimization.JvmGcAutoTunerDialog
 import com.movtery.zalithlauncher.game.optimization.MobileFpsBoosterDialog
 import com.movtery.zalithlauncher.game.optimization.SmartCrashDoctorDialog
 import com.movtery.zalithlauncher.game.renderer.RendererPicker
@@ -140,12 +141,20 @@ fun MiraiHomeDashboard(
     val activeAccent = MiraiThemeManager.currentAccent()
 
     var showFpsBooster by remember { mutableStateOf(false) }
+    var showJreGcTuner by remember { mutableStateOf(false) }
     var showCrashDoctor by remember { mutableStateOf(false) }
 
     if (showFpsBooster) {
         MobileFpsBoosterDialog(
             version = currentVersion ?: versions.firstOrNull(),
             onDismiss = { showFpsBooster = false }
+        )
+    }
+
+    if (showJreGcTuner) {
+        JvmGcAutoTunerDialog(
+            version = currentVersion ?: versions.firstOrNull(),
+            onDismiss = { showJreGcTuner = false }
         )
     }
 
@@ -218,6 +227,29 @@ fun MiraiHomeDashboard(
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = activeAccent
+                            )
+                        }
+                    }
+
+                    // JRE & GC Auto-Tuner Pill (Feature #17)
+                    Surface(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(18.dp))
+                            .clickable { showJreGcTuner = true },
+                        shape = RoundedCornerShape(18.dp),
+                        color = ModrinthCardColor,
+                        border = BorderStroke(1.dp, ModrinthCardBorder)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "☕ JRE & GC",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color(0xFFE5E7EB)
                             )
                         }
                     }

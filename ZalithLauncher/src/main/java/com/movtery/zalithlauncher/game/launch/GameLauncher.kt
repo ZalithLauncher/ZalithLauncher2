@@ -38,6 +38,7 @@ import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.download.game.parseLibraryComponents
 import com.movtery.zalithlauncher.game.multirt.Runtime
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
+import com.movtery.zalithlauncher.game.optimization.JvmGcAutoTuner
 import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
@@ -220,7 +221,13 @@ class GameLauncher(
     }
 
     override fun progressFinalUserArgs(args: MutableList<String>, ramAllocation: Int) {
-        super.progressFinalUserArgs(args, version.getRamAllocation(activity))
+        val allocMb = version.getRamAllocation(activity)
+        super.progressFinalUserArgs(args, allocMb)
+        JvmGcAutoTuner.sanitizeAndInjectGcArgs(
+            args = args,
+            javaMajor = runtime.javaVersion,
+            ramAllocationMb = allocMb
+        )
         if (Renderers.isCurrentRendererValid()) {
             args.add("-Dorg.lwjgl.opengl.libname=${getRendererLibrary()}")
         }
@@ -323,6 +330,9 @@ class GameLauncher(
         val pickedRuntime = RuntimesManager.loadRuntime(runtime)
 
         if (AllSettings.autoPickJavaRuntime.getValue()) {
+            JvmGcAutoTuner.resolveOptimalRuntimeForLaunch(version, gameManifest)?.let { optimalRuntime ->
+                return optimalRuntime
+            }
             val loaderInfo = version.getVersionInfo()?.loaderInfo
             //开启了自动选择，根据游戏需求的版本做选择
             val targetJavaVersion = when (loaderInfo?.loader) {

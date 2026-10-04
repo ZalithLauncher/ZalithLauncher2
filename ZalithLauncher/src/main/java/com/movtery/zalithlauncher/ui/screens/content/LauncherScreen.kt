@@ -24,6 +24,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -70,6 +72,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
@@ -675,6 +678,9 @@ private fun ActionMenuCardContent(
     val capeFile = remember(account, refreshWardrobe) {
         account?.getCapeFile()?.takeIf { it.exists() }
     }
+    // Paper-doll camera angle. Horizontal drags spin it a full 360°; works with or
+    // without a skin/cape since only the camera moves. Resets when switching accounts.
+    var dollAzimuth by remember(account?.username) { mutableStateOf(28f) }
 
     Surface(
         modifier = Modifier
@@ -702,7 +708,17 @@ private fun ActionMenuCardContent(
                         preferSide = GuideSide.Below
                     )
                     .clip(RoundedCornerShape(12.dp))
-                    .clickable(onClick = toAccountManageScreen),
+                    // Tap opens Account Manager; horizontal drag spins the doll 360°.
+                    // The drag consumes movement past touch slop, so a tap never
+                    // misfires while rotating (and vice versa).
+                    .pointerInput(toAccountManageScreen) {
+                        detectTapGestures(onTap = { toAccountManageScreen() })
+                    }
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures { _, dragAmount ->
+                            dollAzimuth = (dollAzimuth + dragAmount * 0.45f).mod(360f)
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 // Dark 3D Pedestal Block at bottom of stage with account/create label
@@ -733,14 +749,7 @@ private fun ActionMenuCardContent(
                     modelType = account?.skinModelType,
                     animation = null,
                     interactionEnabled = false,
-                    azimuth = 28,
-                )
-
-                // Top-layer transparent touch catcher so WebView never swallows clicks
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clickable(onClick = toAccountManageScreen)
+                    azimuth = dollAzimuth.roundToInt(),
                 )
             }
 

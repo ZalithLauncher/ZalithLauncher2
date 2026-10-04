@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.path
 
 import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.BuildKeys
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.utils.network.ResilientDns
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
@@ -66,6 +67,16 @@ const val URL_CLOUD_RENDERER_PLUGINS = "https://www.123865.com/s/YLIUVv-hae0v"
 const val URL_CLOUD_DRIVE_DRIVER_PLUGINS = "https://www.123865.com/s/YLIUVv-3ae0v"
 const val URL_CLOUD_NATIVE_LIB_PLUGINS = "https://www.123865.com/s/YLIUVv-Hae0v"
 
+/**
+ * CurseForge API key actually sent with requests: a user-pasted key wins,
+ * otherwise the key baked in at build time (blank in keyless builds).
+ */
+fun resolveCurseForgeApiKey(): String {
+    return AllSettings.curseForgeApiKey.getValue()
+        .takeIf { it.isNotBlank() }
+        ?: BuildKeys.CURSEFORGE_API
+}
+
 private fun isCurseForgeHost(host: String): Boolean =
     host == HOST_CURSEFORGE_API ||
             host == CURSEFORGE_CDN_SUFFIX ||
@@ -80,7 +91,7 @@ private fun isCurseForgeHost(host: String): Boolean =
 private val CURSEFORGE_INTERCEPTOR = Interceptor { chain ->
     val request = chain.request()
     if (isCurseForgeHost(request.url.host)) {
-        val apiKey = BuildKeys.CURSEFORGE_API
+        val apiKey = resolveCurseForgeApiKey()
         if (apiKey.isNotBlank()) {
             val newRequest = request.newBuilder()
                 .header("x-api-key", apiKey)
@@ -134,7 +145,7 @@ val GLOBAL_CLIENT = HttpClient(OkHttp) {
 }.apply {
     requestPipeline.intercept(HttpRequestPipeline.State) {
         if (isCurseForgeHost(context.url.host)) {
-            val apiKey = BuildKeys.CURSEFORGE_API
+            val apiKey = resolveCurseForgeApiKey()
             if (apiKey.isNotBlank()) {
                 context.header("x-api-key", apiKey)
             }

@@ -127,6 +127,14 @@ import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 import kotlin.math.roundToInt
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.input.pointer.util.VelocityTracker
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.exp
 
 private const val ContentWeight = 7.4f
 private const val ActionMenuWeight = 2.6f
@@ -662,6 +670,15 @@ private fun VersionsContent(
     }
 }
 
+/** Degrees of doll rotation per pixel of horizontal drag. */
+private const val DOLL_DRAG_DEG_PER_PX = 0.45f
+/** Exponential friction of the release fling (higher stops faster). */
+private const val DOLL_FLING_FRICTION = 5f
+/** Fling starts only above this release velocity (degrees/second). */
+private const val DOLL_FLING_MIN_VELOCITY = 60f
+/** Fling loop parks the job below this velocity (degrees/second). */
+private const val DOLL_FLING_STOP_VELOCITY = 20f
+
 @Composable
 private fun ActionMenuCardContent(
     modifier: Modifier = Modifier,
@@ -681,6 +698,9 @@ private fun ActionMenuCardContent(
     // Paper-doll camera angle. Horizontal drags spin it a full 360°; works with or
     // without a skin/cape since only the camera moves. Resets when switching accounts.
     var dollAzimuth by remember(account?.username) { mutableStateOf(28f) }
+    val flingScope = rememberCoroutineScope()
+    val dollVelocityTracker = remember(account?.username) { VelocityTracker() }
+    var dollFlingJob by remember(account?.username) { mutableStateOf<Job?>(null) }
 
     Surface(
         modifier = Modifier
@@ -715,9 +735,43 @@ private fun ActionMenuCardContent(
                         detectTapGestures(onTap = { toAccountManageScreen() })
                     }
                     .pointerInput(Unit) {
-                        detectHorizontalDragGestures { _, dragAmount ->
-                            dollAzimuth = (dollAzimuth + dragAmount * 0.45f).mod(360f)
-                        }
+                        detectHorizontalDragGestures(
+                            onDragStart = {
+                                dollFlingJob?.cancel()
+                                dollFlingJob = null
+                                dollVelocityTracker.resetTracking()
+                            },
+                            onDragEnd = {
+                                val releaseVelocity = dollVelocityTracker.calculateVelocity().x * DOLL_DRAG_DEG_PER_PX
+                                dollFlingJob?.cancel()
+                                if (abs(releaseVelocity) < DOLL_FLING_MIN_VELOCITY) {
+                                    dollFlingJob = null
+                                    return@detectHorizontalDragGestures
+                                }
+                                //Exponential spin-down: the doll keeps gliding after release.
+                                dollFlingJob = flingScope.launch {
+                                    var velocity = releaseVelocity
+                                    var lastFrame = withFrameNanos { it }
+                                    while (abs(velocity) > DOLL_FLING_STOP_VELOCITY) {
+                                        ensureActive()
+                                        val now = withFrameNanos { it }
+                                        val dt = ((now - lastFrame) / 1_000_000_000f).coerceIn(0f, 0.05f)
+                                        lastFrame = now
+                                        dollAzimuth = (dollAzimuth + velocity * dt).mod(360f)
+                                        velocity *= exp(-DOLL_FLING_FRICTION * dt)
+                                    }
+                                    dollFlingJob = null
+                                }
+                            },
+                            onDragCancel = {
+                                dollFlingJob?.cancel()
+                                dollFlingJob = null
+                            },
+                            onHorizontalDrag = { change, dragAmount ->
+                                dollVelocityTracker.addPosition(change.uptimeMillis, change.position)
+                                dollAzimuth = (dollAzimuth + dragAmount * DOLL_DRAG_DEG_PER_PX).mod(360f)
+                            }
+                        )
                     },
                 contentAlignment = Alignment.Center
             ) {

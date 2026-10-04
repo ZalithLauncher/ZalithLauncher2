@@ -110,6 +110,9 @@ object AllSettings : SettingsRegistry() {
     val launcherLogRetentionDays = intSetting("launcherLogRetentionDays", 7, 1..14)
     val gameDownloadSource = enumSetting("gameDownloadSource", MirrorSourceType.AUTO, MirrorSourceType.LEGACY_NAMES)
     val assetPlatformSource = enumSetting("assetPlatformSource", MirrorSourceType.AUTO, MirrorSourceType.LEGACY_NAMES)
+    //Optional user-supplied CurseForge API key. Fork builds ship no key, so without
+    //this the official CurseForge source is unusable (403) and only the mirror is used.
+    val curseForgeApiKey = stringSetting("curseForgeApiKey", "")
     val controlLayout = stringSetting("controlLayout", "")
     val currentAccount = stringSetting("currentAccount", "")
     val currentGamePathId = stringSetting("currentGamePathId", GamePathManager.DEFAULT_ID)

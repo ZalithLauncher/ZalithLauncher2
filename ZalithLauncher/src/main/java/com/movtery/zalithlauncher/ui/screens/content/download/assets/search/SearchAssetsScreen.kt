@@ -602,6 +602,55 @@ fun SearchAssetsScreen(
                 }
             }
 
+            //Stable page callbacks: remembered so typing in the search box does not
+            //recreate them and recompose the whole result grid on every keystroke.
+            val onReloadStable = remember(viewModel) { { viewModel.search() } }
+            val onPreviousPageStable = remember(viewModel) { { pageNumber: Int ->
+                previousPage(
+                    pageNumber = pageNumber,
+                    pages = viewModel.pages,
+                    index = viewModel.searchFilter.index,
+                    limit = viewModel.searchFilter.limit,
+                    onSuccess = { previousPage ->
+                        viewModel.searchResult = SearchAssetsState.Success(previousPage)
+                    },
+                    onSearch = { newIndex ->
+                        viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                        viewModel.search()
+                    }
+                )
+            } }
+            val onNextPageStable = remember(viewModel) { { pageNumber: Int, isLastPage: Boolean ->
+                nextPage(
+                    pageNumber = pageNumber,
+                    isLastPage = isLastPage,
+                    pages = viewModel.pages,
+                    index = viewModel.searchFilter.index,
+                    limit = viewModel.searchFilter.limit,
+                    onSuccess = { nextPage ->
+                        viewModel.searchResult = SearchAssetsState.Success(nextPage)
+                    },
+                    onSearch = { newIndex ->
+                        viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                        viewModel.search()
+                    }
+                )
+            } }
+            val onNavigatePageStable = remember(viewModel) { { pageNumber: Int ->
+                navigatePage(
+                    pageNumber = pageNumber,
+                    pages = viewModel.pages,
+                    limit = viewModel.searchFilter.limit,
+                    onSuccess = { nextPage ->
+                        viewModel.searchResult = SearchAssetsState.Success(nextPage)
+                    },
+                    onSearch = { newIndex ->
+                        viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                        viewModel.search()
+                    }
+                )
+            } }
+
             // Full-Width 2-Column Mobile Project Grid (Mockup #4)
             ResultListLayout(
                 modifier = Modifier
@@ -609,56 +658,12 @@ fun SearchAssetsScreen(
                     .weight(1f),
                 classes = platformClasses,
                 searchState = viewModel.searchResult,
-                onReload = {
-                    viewModel.search()
-                },
+                onReload = onReloadStable,
                 swapToDownload = swapToDownload,
                 installedInfo = installedInfo,
-                onPreviousPage = { pageNumber ->
-                    previousPage(
-                        pageNumber = pageNumber,
-                        pages = viewModel.pages,
-                        index = viewModel.searchFilter.index,
-                        limit = viewModel.searchFilter.limit,
-                        onSuccess = { previousPage ->
-                            viewModel.searchResult = SearchAssetsState.Success(previousPage)
-                        },
-                        onSearch = { newIndex ->
-                            viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
-                            viewModel.search()
-                        }
-                    )
-                },
-                onNextPage = { pageNumber, isLastPage ->
-                    nextPage(
-                        pageNumber = pageNumber,
-                        isLastPage = isLastPage,
-                        pages = viewModel.pages,
-                        index = viewModel.searchFilter.index,
-                        limit = viewModel.searchFilter.limit,
-                        onSuccess = { nextPage ->
-                            viewModel.searchResult = SearchAssetsState.Success(nextPage)
-                        },
-                        onSearch = { newIndex ->
-                            viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
-                            viewModel.search()
-                        }
-                    )
-                },
-                onNavigatePage = { pageNumber ->
-                    navigatePage(
-                        pageNumber = pageNumber,
-                        pages = viewModel.pages,
-                        limit = viewModel.searchFilter.limit,
-                        onSuccess = { nextPage ->
-                            viewModel.searchResult = SearchAssetsState.Success(nextPage)
-                        },
-                        onSearch = { newIndex ->
-                            viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
-                            viewModel.search()
-                        }
-                    )
-                }
+                onPreviousPage = onPreviousPageStable,
+                onNextPage = onNextPageStable,
+                onNavigatePage = onNavigatePageStable
             )
         }
     }

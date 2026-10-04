@@ -176,20 +176,20 @@ fun ResultListLayout(
                     installedInfo = installedInfo
                 )
 
+                //Apply the collapse fraction directly: it is already continuous with
+                //scroll, so spring-chasing it only added lag and extra recompositions.
                 val targetScale = 1f - (1f - controllerMinScale) * fraction
-                val animatedScale by animateFloatAsState(targetScale)
                 val targetAlpha = 1f - (1f - controllerMinAlpha) * fraction
-                val animatedAlpha by animateFloatAsState(targetAlpha)
 
                 Row(
                     modifier = Modifier
                         .height(controllerHeight)
                         .align(Alignment.BottomEnd)
                         .padding(bottom = 8.dp, end = 6.dp)
-                        .alpha(animatedAlpha)
+                        .alpha(targetAlpha)
                         .graphicsLayer {
-                            scaleX = animatedScale
-                            scaleY = animatedScale
+                            scaleX = targetScale
+                            scaleY = targetScale
                             transformOrigin = TransformOrigin(1f, 1f)
                         }
                 ) {
@@ -400,7 +400,9 @@ private fun ResultList(
                     val author = remember(item) { item.platformAuthor() }
                     val downloads = remember(item) { item.platformDownloadCount() }
                     val modloaders = remember(item) { item.platformModLoaders() }
-                    val categories = remember(item, classes) { item.platformCategories(classes) }
+                    val categories = remember(item, classes) {
+                        item.platformCategories(classes)?.sortedWith { o1, o2 -> o1.index() - o2.index() }
+                    }
                     val isInstalled = installedInfo?.invoke(platform, item.platformId()) != null
                     val isFavorite = FavoriteProjectsRepository.isFavorite(platform, item.platformId())
 
@@ -413,7 +415,7 @@ private fun ResultList(
                         author = author,
                         downloads = downloads,
                         modloaders = modloaders,
-                        categories = categories?.sortedWith { o1, o2 -> o1.index() - o2.index() },
+                        categories = categories,
                         isInstalled = isInstalled,
                         isFavorite = isFavorite,
                         onFavoriteClick = {
@@ -501,6 +503,7 @@ fun ResultProjectLayout(
                 )
 
                 // Download Count Pill ("↓ 48.2M")
+                val downloadsText = remember(downloads) { formatNumberByLocale(context, downloads) }
                 Surface(
                     shape = RoundedCornerShape(12.dp),
                     color = Color(0xFF2C303C)
@@ -517,7 +520,7 @@ fun ResultProjectLayout(
                             tint = Color(0xFFD1D5DB)
                         )
                         Text(
-                            text = formatNumberByLocale(context, downloads),
+                            text = downloadsText,
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFFE5E7EB)

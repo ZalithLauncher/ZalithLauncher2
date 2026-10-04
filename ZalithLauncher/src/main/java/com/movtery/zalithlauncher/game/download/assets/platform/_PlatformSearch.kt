@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.game.download.assets.platform
 
 import android.util.Log
+import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.game.addons.mirror.orderSourceCandidates
 import com.movtery.zalithlauncher.game.download.assets.mapExceptionToMessage
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.CurseForgeSearcher
@@ -114,10 +115,26 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
  * Automatically fall back to the alternate CurseForge source when the preferred source fails.
  * An explicit Official preference continues to use only CurseForge's API.
  */
+/**
+ * True when the official CurseForge API can actually be used: either the build
+ * ships a key, or the user pasted their own in Settings.
+ */
+fun hasCurseForgeApiKey(): Boolean =
+    AllSettings.curseForgeApiKey.getValue().isNotBlank() ||
+            BuildKeys.CURSEFORGE_API.isNotBlank()
+
 fun mirroredCurseForgeSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<CurseForgeSearcher> {
     val preference = AllSettings.assetPlatformSource.getValue()
+    if (!hasCurseForgeApiKey()) {
+        //Without a key the official API answers 403 to every request: never send it.
+        if (preference == MirrorSourceType.OFFICIAL) {
+            throw IOException("CurseForge official API requires an API key. Paste one in Settings, or switch the asset source to Auto.")
+        }
+        //Official unusable: mirror only.
+        return listOf(mirrorCurseForgeSearcher)
+    }
     val mirrorSource = mirrorCurseForgeSearcher.takeIf {
         preference != MirrorSourceType.OFFICIAL
     }
@@ -148,7 +165,7 @@ fun mirroredModrinthSource(
 }
 
 /** Overall wall-clock budget for one interactive search across all queries. */
-private const val SEARCH_OVERALL_TIMEOUT_MS = 20_000L
+private const val SEARCH_OVERALL_TIMEOUT_MS = 30_000L
 
 /** Interactive search responses are tiny; keep the most recent pages in memory. */
 private const val SEARCH_CACHE_MAX_ENTRIES = 16
@@ -204,34 +221,41 @@ private fun putCachedSearchResult(key: String, result: PlatformSearchResult) {
  * Unlike [mirroredPlatformSearcher] (sequential fallback), a slow-but-alive source
  * never stalls the search: the fastest healthy source wins every time.
  */
-suspend fun <E, T> fastestMirroredResult(
+suspend fun <E : AbstractPlatformSearcher, T> fastestMirroredResult(
     searchers: List<E>,
     block: suspend (E) -> T
 ): T = coroutineScope {
     require(searchers.isNotEmpty()) { "Searcher list must not be empty." }
-    if (searchers.size == 1) return@coroutineScope block(searchers.first())
+    //Single source runs directly, but off Main so response parsing never drops frames.
+    if (searchers.size == 1) return@coroutineScope withContext(Dispatchers.IO) { block(searchers.first()) }
 
-    val pending = searchers.map { searcher ->
-        async { block(searcher) }
-    }.toMutableList()
+    val pending = searchers.associateWith { searcher ->
+        async(Dispatchers.IO) { block(searcher) }
+    }.toMutableMap()
     var lastError: Throwable? = null
     // Wait for the first source to settle; a failure only prunes that source while
     // the survivors keep racing. External cancellation rethrows immediately.
     while (pending.isNotEmpty()) {
         try {
             select<Unit> {
-                pending.forEach { deferred -> deferred.onAwait {} }
+                pending.values.forEach { deferred -> deferred.onAwait {} }
             }
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (e: Exception) {
             lastError = e
         }
-        pending.firstOrNull { it.isCompleted && it.getCompletionExceptionOrNull() == null }?.let { winner ->
-            pending.forEach { deferred -> if (deferred !== winner) deferred.cancel() }
+        //Prune failures, naming the dead source; the survivors keep racing.
+        val failures = pending.entries.filter { it.value.getCompletionExceptionOrNull() != null }
+        failures.forEach { (searcher, deferred) ->
+            Logger.warning(TAG, "Search source {${searcher.source}} failed (${deferred.getCompletionExceptionOrNull()?.message}), ${pending.size - failures.size} source(s) still racing.")
+            pending.remove(searcher)
+        }
+        pending.entries.firstOrNull { it.value.isCompleted }?.let { (searcher, winner) ->
+            pending.values.forEach { deferred -> if (deferred !== winner) deferred.cancel() }
+            Logger.debug(TAG, "Search source {${searcher.source}} won the race.")
             return@coroutineScope winner.await()
         }
-        pending.removeAll { it.isCompleted }
     }
     throw lastError ?: IllegalStateException("All sources failed without reporting an error.")
 }

@@ -46,6 +46,7 @@
     <string name="home_news_summary">Open the release page to see published builds and notes.</string>
     <string name="home_news_open">View releases</string>
     <string name="generic_cancel">Cancel</string>
+    <string name="generic_minimize">Minimize</string>
     <string name="generic_confirm">Confirm</string>
     <string name="generic_error">Error</string>
     <string name="generic_tip">Tip</string>

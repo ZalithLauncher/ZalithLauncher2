@@ -52,6 +52,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -357,7 +358,8 @@ fun TitleTaskFlowDialog(
     title: String,
     tasks: List<TitledTask>,
     onCancel: () -> Unit = {},
-    logOutput: TaskLogOutput? = null
+    logOutput: TaskLogOutput? = null,
+    onMinimize: (() -> Unit)? = null
 ) {
     Dialog(
         onDismissRequest = {},
@@ -392,6 +394,7 @@ fun TitleTaskFlowDialog(
                         title = title,
                         tasks = tasks,
                         onCancel = onCancel,
+                        onMinimize = onMinimize,
                         modifier = Modifier.padding(16.dp)
                     )
                 } else {
@@ -403,6 +406,7 @@ fun TitleTaskFlowDialog(
                             title = title,
                             tasks = tasks,
                             onCancel = onCancel,
+                            onMinimize = onMinimize,
                             modifier = Modifier.weight(1f)
                         )
                         TaskLogCard(
@@ -423,7 +427,8 @@ private fun TaskFlowListColumn(
     title: String,
     tasks: List<TitledTask>,
     onCancel: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onMinimize: (() -> Unit)? = null
 ) {
     Column(
         modifier = modifier,
@@ -454,11 +459,32 @@ private fun TaskFlowListColumn(
             }
         }
 
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onCancel
-        ) {
-            MarqueeText(text = stringResource(R.string.generic_cancel))
+        if (onMinimize != null) {
+            //最小化按钮在左，取消按钮在右
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    modifier = Modifier.weight(1f),
+                    onClick = onMinimize
+                ) {
+                    MarqueeText(text = stringResource(R.string.generic_minimize))
+                }
+                Button(
+                    modifier = Modifier.weight(1f),
+                    onClick = onCancel
+                ) {
+                    MarqueeText(text = stringResource(R.string.generic_cancel))
+                }
+            }
+        } else {
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                onClick = onCancel
+            ) {
+                MarqueeText(text = stringResource(R.string.generic_cancel))
+            }
         }
     }
 }

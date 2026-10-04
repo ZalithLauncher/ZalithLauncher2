@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.viewmodel
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -166,8 +165,7 @@ class BackgroundViewModel: ViewModel() {
                 )
             }.collectLatest { config ->
                 when {
-                    Build.VERSION.SDK_INT >= 31 || !config.valid ||
-                        config.blur <= 0 || config.opacity >= 100 ->
+                    !config.valid || config.blur <= 0 || config.opacity >= 100 ->
                         glassBlur.clearBlurredBackground()
                     config.isImage && config.blurType == BackgroundBlur.Background ->
                         glassBlur.refreshStaticDisplayBitmap(config.blur)

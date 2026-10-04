@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.ui.screens.content.elements
 
 import android.app.Activity
 import android.net.Uri
-import android.os.Build
 import android.os.Parcelable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -49,7 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -566,15 +564,11 @@ fun Background(
     val layerCapture = !backgroundMode && blur > 0 && opacity < 100 && viewModel.isValid
     val density = LocalDensity.current
 
+    //NOTE: never use live Modifier.blur() on this fullscreen layer: a per-frame GPU
+    //blur of the whole wallpaper janks every tab switch, scroll and dialog on weak
+    //GPUs. The pre-blurred static bitmap below looks identical at zero frame cost.
     Box(
         modifier = modifier
-            .then(
-                if (backgroundBlurEnabled && Build.VERSION.SDK_INT >= 31) {
-                    Modifier.blur(blur.dp)
-                } else {
-                    Modifier
-                }
-            )
             .backgroundCapture(
                 store = viewModel,
                 recordContent = layerCapture,
@@ -594,7 +588,8 @@ fun Background(
                 }
                 viewModel.isImage -> {
                     val blurred = viewModel.blurredBackground
-                    if (backgroundBlurEnabled && Build.VERSION.SDK_INT < 31 && blurred != null) {
+                    //Pre-blurred static bitmap on every SDK: identical frosted look, zero per-frame cost.
+                    if (backgroundBlurEnabled && blurred != null) {
                         Image(
                             bitmap = blurred,
                             contentDescription = null,

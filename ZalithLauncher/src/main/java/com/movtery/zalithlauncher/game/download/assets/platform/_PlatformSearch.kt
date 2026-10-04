@@ -41,10 +41,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -69,11 +68,12 @@ private val mirrorCurseForgeSearcher = CurseForgeSearcher(
 suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
     searchers: List<E>,
     printLog: Boolean = true,
+    perSourceTimeoutMs: Long? = null,
     block: suspend (E) -> T
 ): T {
     require(searchers.isNotEmpty()) { "Searcher list must not be empty." }
 
-    val errors = mutableListOf<Exception>()
+    val errors = mutableListOf<Pair<String, Exception>>()
     var lastException: Exception? = null
 
     for (searcher in searchers) {
@@ -81,7 +81,15 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
             if (printLog) {
                 Logger.debug(TAG, "Starting to attempt to perform the operation on source: {${searcher.source}}")
             }
-            return block(searcher)
+            val result = if (perSourceTimeoutMs != null) {
+                //withTimeoutOrNull: only THIS budget expiring yields null; external
+                //cancellation still throws and aborts the whole fallback chain.
+                withTimeoutOrNull(perSourceTimeoutMs) { block(searcher) }
+                    ?: throw IOException("Source {${searcher.source}} timed out after ${perSourceTimeoutMs}ms")
+            } else {
+                block(searcher)
+            }
+            return result
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (e: Exception) {
@@ -91,24 +99,29 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
             if (e.isInterruptedIOException()) {
                 throw e
             } else if (e is FileNotFoundException) {
-                errors.add(e)
+                errors.add(searcher.source to e)
                 break
             } else {
-                errors.add(e)
+                errors.add(searcher.source to e)
             }
         }
     }
 
     if (printLog) {
-        Logger.warning(TAG, 
+        Logger.warning(TAG,
             msg = "An error occurred during this search.",
             t = IOException("All sources have failed to attempt", lastException).apply {
-                errors.forEachIndexed { i, e ->
-                    addSuppressed(Exception("Mirror error #${i + 1}: ${e.message}"))
+                errors.forEachIndexed { i, (source, e) ->
+                    addSuppressed(Exception("Mirror error #${i + 1} [$source]: ${e.message}"))
                 }
             }
         )
     }
+    //Name every dead source and why: without this, failures are impossible to diagnose.
+    val detail = errors.joinToString("; ") { (source, e) ->
+        "$source: ${e::class.simpleName}: ${e.message}"
+    }.takeIf { it.isNotBlank() }
+    if (detail != null) throw IOException("All ${searchers.size} sources failed: $detail", lastException)
     throw lastException ?: IllegalStateException("Should not have executed to this stage.")
 }
 
@@ -167,6 +180,12 @@ fun mirroredModrinthSource(
 
 /** Overall wall-clock budget for one interactive search across all queries. */
 private const val SEARCH_OVERALL_TIMEOUT_MS = 30_000L
+/**
+ * Per-source budget for sequential platform search: a single hung mirror can never
+ * stall discovery past this. 15s per source keeps the worst case (all sources slow)
+ * inside a tolerable window while a healthy first source still answers in ~1-2s.
+ */
+private const val SEARCH_SOURCE_TIMEOUT_MS = 15_000L
 
 /** Interactive search responses are tiny; keep the most recent pages in memory. */
 private const val SEARCH_CACHE_MAX_ENTRIES = 16
@@ -214,71 +233,6 @@ private fun putCachedSearchResult(key: String, result: PlatformSearchResult) {
     }
 }
 
-/**
- * Runs [block] against every candidate source concurrently and returns the first
- * successful result, cancelling the slower sources. When every source fails, the
- * last error is thrown. A single candidate runs directly without extra coroutines.
- *
- * Unlike [mirroredPlatformSearcher] (sequential fallback), a slow-but-alive source
- * never stalls the search: the fastest healthy source wins every time.
- *
- * Sources run as supervised children: one source failing must never cancel the
- * survivors (a plain [coroutineScope] would do exactly that and turn any single
- * fast failure into a total search failure). External cancellation still aborts
- * the whole race immediately.
- */
-suspend fun <E : AbstractPlatformSearcher, T> fastestMirroredResult(
-    searchers: List<E>,
-    block: suspend (E) -> T
-): T = supervisorScope {
-    require(searchers.isNotEmpty()) { "Searcher list must not be empty." }
-    //Single source runs directly, but off Main so response parsing never drops frames.
-    if (searchers.size == 1) return@supervisorScope withContext(Dispatchers.IO) { block(searchers.first()) }
-
-    val pending = searchers.associateWith { searcher ->
-        async(Dispatchers.IO) { block(searcher) }
-    }.toMutableMap()
-    var lastError: Throwable? = null
-    val sourceErrors = mutableMapOf<String, Throwable>()
-    // Wait for the first source to settle; a failure only prunes that source while
-    // the survivors keep racing. External cancellation rethrows immediately.
-    while (pending.isNotEmpty()) {
-        try {
-            select<Unit> {
-                pending.values.forEach { deferred -> deferred.onAwait {} }
-            }
-        } catch (cancelled: CancellationException) {
-            throw cancelled
-        } catch (e: Exception) {
-            lastError = e
-        }
-        //Prune failures, naming the dead source; the survivors keep racing.
-        val failures = pending.entries.filter { it.value.getCompletionExceptionOrNull() != null }
-        failures.forEach { (searcher, deferred) ->
-            val failure = deferred.getCompletionExceptionOrNull()
-            if (failure != null) {
-                sourceErrors[searcher.source] = failure
-            }
-            runCatching {
-                Logger.warning(TAG, "Search source {${searcher.source}} failed (${failure?.let { "${it::class.simpleName}: ${it.message}" }}), ${pending.size - failures.size} source(s) still racing.")
-            }
-            pending.remove(searcher)
-        }
-        pending.entries.firstOrNull { it.value.isCompleted }?.let { (searcher, winner) ->
-            pending.values.forEach { deferred -> if (deferred !== winner) deferred.cancel() }
-            runCatching {
-                Logger.debug(TAG, "Search source {${searcher.source}} won the race.")
-            }
-            return@supervisorScope winner.await()
-        }
-    }
-    //Name every dead source and why: without this, search failures are impossible to diagnose.
-    val detail = sourceErrors.entries.joinToString("; ") { (source, e) ->
-        "$source: ${e::class.simpleName}: ${e.message}"
-    }.takeIf { it.isNotBlank() } ?: "no error captured"
-    throw IOException("All ${searchers.size} sources failed: $detail", lastError)
-}
-
 suspend fun searchAssets(
     searchPlatform: Platform,
     searchFilter: PlatformSearchFilter,
@@ -312,9 +266,14 @@ suspend fun searchAssets(
                     try {
                         // Serve repeat searches (tab switches, back navigation, retries) instantly.
                         val cached = getCachedSearchResult(cacheKey)
+                        //Sequential fallback with a per-source budget: concurrent
+                        //requests through the shared client proved unstable
+                        //(spurious "job has not completed" failures), so sources
+                        //are tried one by one instead of racing.
                         val r = cached ?: when (searchPlatform) {
-                            Platform.CURSEFORGE -> fastestMirroredResult(
-                                searchers = mirroredCurseForgeSource()
+                            Platform.CURSEFORGE -> mirroredPlatformSearcher(
+                                searchers = mirroredCurseForgeSource(),
+                                perSourceTimeoutMs = SEARCH_SOURCE_TIMEOUT_MS
                             ) { searcher ->
                                 searcher.searchAssets(
                                     query = query,
@@ -322,8 +281,9 @@ suspend fun searchAssets(
                                     platformClasses = platformClasses
                                 )
                             }
-                            Platform.MODRINTH -> fastestMirroredResult(
-                                searchers = mirroredModrinthSource()
+                            Platform.MODRINTH -> mirroredPlatformSearcher(
+                                searchers = mirroredModrinthSource(),
+                                perSourceTimeoutMs = SEARCH_SOURCE_TIMEOUT_MS
                             ) { searcher ->
                                 searcher.searchAssets(
                                     query = query,

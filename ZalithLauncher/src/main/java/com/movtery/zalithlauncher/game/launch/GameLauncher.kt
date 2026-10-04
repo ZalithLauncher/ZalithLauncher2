@@ -388,17 +388,30 @@ class GameLauncher(
     }
 
     /**
-     * Ensures 1.16.5 + Fabric + Sodium and OptiFine/Iris shaderpacks run smoothly without errors
-     * on VGPU (`libvgpu.so` / `libvgpu_1368.so`) and GL4ES-based legacy renderers:
-     * 1. Sets `use_chunk_multidraw = false` in `config/sodium-options.json` so Sodium 1.16.5 uses
-     *    the Oneshot (`gl4es_glMultiDrawArrays`) chunk backend instead of calling
-     *    `glMultiDrawArraysIndirect(GL_QUADS)` on OpenGL ES.
+     * Ensures 1.16.5 + Fabric/Forge + Sodium-family mods (Sodium, Embedium, Rubidium)
+     * and OptiFine/Iris shaderpacks run smoothly without errors on EVERY renderer:
+     * 1. Patches `use_chunk_multidraw = false` (plus the safe `chunk_renderer_backend`)
+     *    in the installed mods' options files (`sodium-options.json`,
+     *    `embedium-options.json`, `rubidium-options.json`) so the chunk renderer uses
+     *    the Oneshot backend instead of calling `glMultiDrawArraysIndirect(GL_QUADS)` —
+     *    the call that crashes instantly after joining a world on renderers without
+     *    full multidraw support. Applied for all renderers: it only affects the game
+     *    when a Sodium-family mod is actually installed.
      * 2. Disables OptiFine `ofFastRender` / `ofAaLevel` in `optionsof.txt` if present so FBO
-     *    shaderpacks render cleanly.
+     *    shaderpacks render cleanly (legacy GLES renderers only).
      * 3. Downgrades `graphicsMode:2` (Fabulous) to `graphicsMode:1` (Fancy) in `options.txt` if
-     *    present so vanilla Fabulous depth-layer FBOs do not conflict with VGPU/shaders.
+     *    present so vanilla Fabulous depth-layer FBOs do not conflict with VGPU/shaders
+     *    (legacy GLES renderers only).
      */
     private fun configureVgpuAndLegacyCompatibility(dir: File) {
+        //Sodium-family patch first and always: it is renderer-independent and only
+        //touches families that are installed (or left a config behind).
+        runCatching {
+            patchSodiumFamilyOptions(dir)
+        }.onFailure {
+            Logger.warning(TAG, "Failed to apply Sodium compatibility configuration", it)
+        }
+
         if (!Renderers.isCurrentRendererValid()) return
         val renderer = Renderers.getCurrentRenderer()
         val isVgpuOrLegacyGles = renderer == VGPURenderer ||
@@ -408,62 +421,8 @@ class GameLauncher(
             renderer == NGGL4ESRenderer
         if (!isVgpuOrLegacyGles) return
 
-        runCatching {
-            val configDir = File(dir, "config")
-            if (configDir.ensureDirectorySilently()) {
-                val sodiumOptionsFile = configDir.child("sodium-options.json")
-                if (sodiumOptionsFile.exists() && sodiumOptionsFile.isFile) {
-                    var content = sodiumOptionsFile.readText()
-                    var modified = false
-                    if (content.contains(Regex(""""use_chunk_multidraw"\s*:\s*true"""))) {
-                        content = content.replace(
-                            Regex(""""use_chunk_multidraw"\s*:\s*true"""),
-                            """"use_chunk_multidraw": false"""
-                        )
-                        modified = true
-                    }
-                    if (content.contains(Regex(""""chunk_renderer_backend"\s*:\s*"GL43""""))) {
-                        content = content.replace(
-                            Regex(""""chunk_renderer_backend"\s*:\s*"GL43""""),
-                            """"chunk_renderer_backend": "GL30""""
-                        )
-                        modified = true
-                    }
-                    if (modified) {
-                        sodiumOptionsFile.writeText(content)
-                    }
-                } else {
-                    sodiumOptionsFile.writeText(
-                        """
-                        {
-                          "quality": {
-                            "cloud_quality": "FAST",
-                            "weather_quality": "DEFAULT",
-                            "enable_vignette": false,
-                            "enable_clouds": true,
-                            "smooth_lighting": "HIGH"
-                          },
-                          "advanced": {
-                            "use_vertex_array_objects": true,
-                            "use_chunk_multidraw": false,
-                            "animate_only_visible_textures": true,
-                            "use_entity_culling": true,
-                            "use_particle_culling": true,
-                            "use_fog_occlusion": true,
-                            "use_compact_vertex_format": true,
-                            "use_block_face_culling": true,
-                            "allow_direct_memory_access": true,
-                            "ignore_driver_blacklist": false
-                          },
-                          "notifications": {
-                            "hide_donation_button": true
-                          }
-                        }
-                        """.trimIndent() + "\n"
-                    )
-                }
-            }
 
+        runCatching {
             val optionsOfFile = File(dir, "optionsof.txt")
             if (optionsOfFile.exists() && optionsOfFile.isFile) {
                 val ofText = optionsOfFile.readText()
@@ -485,6 +444,108 @@ class GameLauncher(
         }.onFailure {
             Logger.warning(TAG, "Failed to apply VGPU/Sodium compatibility configuration", it)
         }
+    }
+
+    /**
+     * Patches every installed Sodium-family mod (Sodium, Embedium, Rubidium) so its
+     * chunk renderer uses the crash-free Oneshot backend on ALL renderers. Only families
+     * that are installed (or left a config behind) are touched.
+     */
+    private fun patchSodiumFamilyOptions(dir: File) {
+        val configDir = File(dir, "config")
+        if (!configDir.ensureDirectorySilently()) return
+        //Scanning mods/ avoids writing junk configs for mods the player never had.
+        val modJars = runCatching {
+            File(dir, "mods").listFiles()?.map { it.name.lowercase() }.orEmpty()
+        }.getOrDefault(emptyList())
+        val targets = listOf(
+            "sodium-options.json" to "sodium",
+            "embedium-options.json" to "embedium",
+            "rubidium-options.json" to "rubidium"
+        ).filter { (configName, fragment) ->
+            modJars.any { fragment in it } || File(configDir, configName).exists()
+        }
+        if (targets.isEmpty()) return
+        targets.forEach { (configName, _) ->
+            val optionsFile = File(configDir, configName)
+            if (optionsFile.exists() && optionsFile.isFile) {
+                patchExistingSodiumOptions(optionsFile)
+            } else {
+                writeSafeSodiumOptions(optionsFile)
+            }
+        }
+    }
+
+    /**
+     * Forces the crash-free chunk backend in an existing Sodium-family options file.
+     */
+    private fun patchExistingSodiumOptions(optionsFile: File) {
+        var content = optionsFile.readText()
+        var modified = false
+        if (content.contains(Regex("\"use_chunk_multidraw\"\\s*:\\s*true"))) {
+            content = content.replace(
+                Regex("\"use_chunk_multidraw\"\\s*:\\s*true"),
+                "\"use_chunk_multidraw\": false"
+            )
+            modified = true
+        } else if (!content.contains(Regex("\"use_chunk_multidraw\"\\s*:"))) {
+            //Key missing entirely: inject the safe value into the "advanced" block
+            //when there is one, otherwise Sodium falls back to multidraw and crashes
+            //right after joining the world on weaker renderers.
+            val advancedBlock = Regex("\"advanced\"\\s*:\\s*\\{")
+            if (advancedBlock.containsMatchIn(content)) {
+                content = advancedBlock.replaceFirst(
+                    content,
+                    "$0\n    \"use_chunk_multidraw\": false,"
+                )
+                modified = true
+            }
+        }
+        if (content.contains(Regex("\"chunk_renderer_backend\"\\s*:\\s*\"GL43\""))) {
+            content = content.replace(
+                Regex("\"chunk_renderer_backend\"\\s*:\\s*\"GL43\""),
+                "\"chunk_renderer_backend\": \"GL30\""
+            )
+            modified = true
+        }
+        if (modified) {
+            optionsFile.writeText(content)
+        }
+    }
+
+    /**
+     * Writes a fresh crash-free Sodium-family options file (first run, no config yet).
+     */
+    private fun writeSafeSodiumOptions(optionsFile: File) {
+        optionsFile.writeText(
+            """
+            {
+              "quality": {
+                "cloud_quality": "FAST",
+                "weather_quality": "DEFAULT",
+                "enable_vignette": false,
+                "enable_clouds": true,
+                "smooth_lighting": "HIGH"
+              },
+              "advanced": {
+                "use_vertex_array_objects": true,
+                "use_chunk_multidraw": false,
+                "chunk_renderer_backend": "GL30",
+                "animate_only_visible_textures": true,
+                "use_entity_culling": true,
+                "use_particle_culling": true,
+                "use_fog_occlusion": true,
+                "use_compact_vertex_format": true,
+                "use_block_face_culling": true,
+                "allow_direct_memory_access": true,
+                "ignore_driver_blacklist": false
+              },
+              "notifications": {
+                "hide_donation_button": true
+              }
+            }
+            """.trimIndent() + "\n"
+        )
     }
 }
 

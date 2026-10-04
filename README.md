@@ -34,7 +34,7 @@ It is not a generated app. It is not a team product with a tracker bolted on. It
 Mirai is tuned for the phone, not for a demo video.
 
 - ⚡ **Fast path to play** — recent worlds and instances stay one tap away.
-- 🧩 **Serious render stack** — choose the renderer that fits the device. LTW and LTW Legacy are built from source in this repository and cover Minecraft 1.17+ and 1.8–1.16.5 respectively, alongside GL4ES, VirGL, Zink-class, and Mesa options.
+- 🧩 **Serious render stack** — choose the renderer that fits the device. LTW and LTW Legacy are built from source in this repository and cover Minecraft 1.17+ and 1.8–1.16.5 respectively, alongside GL4ES, VirGL, Zink-class, and Mesa options. Mirai also bundles **MobileGlues** for Minecraft 1.17+, two **VGPU** options for 1.16.5 and older, and selects the right renderer for each version automatically.
 - 🧮 **RAM that you control** — a global memory slider, plus per-instance overrides when a pack needs more.
 - 📱 **Tested on other phones** — layouts, accounts, skins, and launch flow are checked across devices, not only on the developer’s main handset. That real-world pass is what keeps Mirai ahead of launchers that only look good on one screen.
 - 🛠️ **Updated often** — fixes and polish land on a regular cadence, with a built-in update check against GitHub Releases.

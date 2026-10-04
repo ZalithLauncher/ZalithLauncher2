@@ -28,12 +28,31 @@ First public release.
   upstream defaults otherwise), keeps it out of the Zink/Mesa env forcing, adds it to the
   auto-picker's modern order (LTW → MobileGlues → Zink), and gives it a FASTEST quick-pick
   card in renderer settings.
+- **VGPU renderers** (`libvgpu.so`, `libvgpu_1368.so`) — Pojav Glow-Worm vgpu and VGPU 1.3.6β
+  options for Minecraft **1.16.5 and older**, bundled for all four ABIs with Sodium and shader
+  support, plus picker tests.
+- **1-Tap FPS Booster** — one tap applies the full mobile FPS preset; the selection persists
+  across restarts.
+- **JRE & GC auto-tuner** — automatically tunes the Java runtime and garbage collector for the
+  device; the selection persists across restarts.
+- **Smart Crash Doctor** — reads a crash log and suggests the fix.
+- **Smart Mod Dependency & Conflict Resolver** — resolves missing mod dependencies and
+  conflicts automatically.
+- **Interface overhaul** — redesigned launcher screens plus dedicated landscape layouts with
+  animations, a new home dashboard with quick-action pills, a streamlined navigation rail, a
+  Discover category filter, and a dynamic theme that follows the wallpaper.
+- **20 HD Minecraft wallpapers** built in, with dim control, Solid Dark mode and custom imports.
+- **Rebuilt download pages** — hero card, screenshots rail directly under the hero, and
+  auto-detection that reads a file's MC versions/loaders, shows a Detected line and pre-checks
+  compatible installed versions.
 - **Full Minecraft version catalog in Discover** — the MC filter dropdown now lists all 69
   modding-relevant releases from 26.3 back to 1.4.7 (newest first, patch-level), replacing
   the old 14-item capped list. Versions seen in results stay pinned on top.
 - **Minimizable modpack install dialog** — the Installing Modpack window has a Minimize button
   (left of Cancel) that shrinks it to a small floating reopen button while the install keeps
   running in the background.
+- **In-game Mirai Pill HUD** and world/screenshot quick actions.
+- **Interactive 3D paper doll** — drag to spin 360°, tap to open account management.
 
 ### Changed
 
@@ -79,6 +98,7 @@ First public release.
 - **Discover search failed with "This job has not completed yet"** on Modrinth and CurseForge.
   Concurrent requests through the shared HTTP client produced the spurious failure; the
   sequential fallback above fixes it.
+- **CurseForge outages no longer kill search** — requests fall back to a mirror backup source.
 - **Sodium / Embedium / Rubidium crashed instantly after joining a world** on every renderer
   except Krypton Wrapper. The launcher now applies the crash-free chunk-backend patch
   (`use_chunk_multidraw = false`, safe `GL30` backend) to all three mods' config files on
@@ -86,6 +106,7 @@ First public release.
   first-run defaults — so 1.16.5 + Sodium-family mods runs anywhere.
 - **Visual lag when opening any tab** is fixed by the pre-rendered blur and cached background
   decoding described above.
+- **Startup/animation jank** from the JellyBounce animation and software bitmap path is gone.
 
 ### Verified in CI
 

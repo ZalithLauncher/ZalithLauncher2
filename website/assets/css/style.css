@@ -741,3 +741,90 @@ tbody td code { font-size: .82em; }
 @media (max-width: 860px) {
   .community-grid { grid-template-columns: 1fr; }
 }
+
+
+/* ---------- 24. Team ---------- */
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.3rem;
+  max-width: 640px;
+  margin-inline: auto;
+}
+
+.person {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.5rem 1.7rem;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease-soft),
+              border-color var(--t) var(--ease-soft);
+}
+.person:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
+
+/* Avatar ring picks up the person's colour */
+.person-avatar {
+  width: 132px;
+  height: 132px;
+  margin: 0 auto 1.2rem;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--person-color);
+  box-shadow: 0 8px 26px rgba(var(--person-rgb), .26);
+  transition: transform var(--t) var(--ease), box-shadow var(--t) var(--ease-soft);
+}
+.person:hover .person-avatar { transform: scale(1.04); }
+.person-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+.person-name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: -.01em;
+  color: var(--person-color);
+  line-height: 1.2;
+}
+
+.person-role {
+  display: inline-block;
+  margin-top: .6rem;
+  padding: .22rem .74rem;
+  border-radius: var(--radius-pill);
+  background: var(--code-bg);
+  color: var(--text-3);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+/* Per-person colour.
+   "black" needs a light-mode value and a dark-mode value: a literal black name
+   is invisible against the dark background, so dark mode lightens it to a
+   near-white that reads as the same idea. */
+.person[data-person="entitybrian"] {
+  --person-color: #C81E1E;
+  --person-rgb: 200, 30, 30;
+}
+.person[data-person="entitybrian"]:hover { border-color: rgba(200, 30, 30, .4); }
+
+.person[data-person="fireplayz"] {
+  --person-color: #101010;
+  --person-rgb: 16, 16, 16;
+}
+.person[data-person="fireplayz"]:hover { border-color: rgba(120, 120, 120, .45); }
+
+[data-theme="dark"] .person[data-person="entitybrian"] {
+  --person-color: #F26D6D;
+  --person-rgb: 242, 109, 109;
+}
+[data-theme="dark"] .person[data-person="fireplayz"] {
+  --person-color: #E9E9E9;
+  --person-rgb: 233, 233, 233;
+}
+
+@media (max-width: 520px) {
+  .person-avatar { width: 112px; height: 112px; }
+}

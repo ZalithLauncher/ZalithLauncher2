@@ -23,6 +23,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,6 +37,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.stickyHeader
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -184,24 +187,26 @@ fun MiraiHomeDashboard(
         contentPadding = PaddingValues(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // 1. Mobile Header Row: 'Mirai Launcher' on left, 'Boost FPS', 'Crash Doctor', 'Files' & 'N Tasks' pills on right
-        item {
-            Row(
+        // 1. Header pinned at the very top: quick-action pills toolbar first (scrollable
+        // so narrow screens never clip a pill), dashboard title directly below it.
+        stickyHeader {
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                color = Color(0xFF14161B).copy(alpha = 0.94f)
             ) {
-                Text(
-                    text = "Mirai Launcher",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color.White
-                )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 4.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                     // 1-Tap Mobile FPS Booster Pill (Always visible on dashboard)
                     Surface(
                         modifier = Modifier
@@ -344,6 +349,14 @@ fun MiraiHomeDashboard(
                             )
                         }
                     }
+                    }
+
+                    Text(
+                        text = "Mirai Launcher",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White
+                    )
                 }
             }
         }

@@ -12,7 +12,7 @@
 [![Solo Developer](https://img.shields.io/badge/Maintained%20by-One%20Developer-F59E0B?style=for-the-badge)](https://github.com/entitybrian69-bit)
 [![Privacy](https://img.shields.io/badge/Privacy-No%20Trackers-111827?style=for-the-badge)](https://github.com/entitybrian69-bit/Mirai-launcher)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge)](LICENSE)
-[![Discord](https://img.shields.io/badge/Discord-Community%20%26%20suggestions-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/6EFrhqmd)
+[![Discord](https://img.shields.io/badge/Discord-Community%20%26%20suggestions-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/2crccE9s)
 
 ▶ Play &nbsp;·&nbsp; 🔍 Discover &nbsp;·&nbsp; ⚙️ Settings &nbsp;·&nbsp; 👤 Offline accounts & capes &nbsp;·&nbsp; 🔒 Private by design
 
@@ -192,9 +192,9 @@ This is a solo project. Help is still welcome.
 **Discord channel** — join to talk with other Mirai users, report a problem, and suggest what
 should land next.
 
-[![Discord](https://img.shields.io/badge/Discord-Join%20the%20channel-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/6EFrhqmd)
+[![Discord](https://img.shields.io/badge/Discord-Join%20the%20channel-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/2crccE9s)
 
-**Invite link:** <https://discord.gg/6EFrhqmd>
+**Invite link:** <https://discord.gg/2crccE9s>
 
 ---
 

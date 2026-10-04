@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.stickyHeader
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -187,9 +186,9 @@ fun MiraiHomeDashboard(
         contentPadding = PaddingValues(bottom = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // 1. Header pinned at the very top: quick-action pills toolbar first (scrollable
+        // 1. Header at the very top: quick-action pills toolbar first (scrollable
         // so narrow screens never clip a pill), dashboard title directly below it.
-        stickyHeader {
+        item {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = Color(0xFF14161B).copy(alpha = 0.94f)

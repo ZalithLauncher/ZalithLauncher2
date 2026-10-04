@@ -40,7 +40,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -148,9 +147,6 @@ fun mirroredModrinthSource(
     )
 }
 
-/** How often the source race checks for a winner. Negligible next to network latency. */
-private const val SOURCE_RACE_POLL_MS = 50L
-
 /** Overall wall-clock budget for one interactive search across all queries. */
 private const val SEARCH_OVERALL_TIMEOUT_MS = 20_000L
 
@@ -217,20 +213,27 @@ suspend fun <E, T> fastestMirroredResult(
 
     val pending = searchers.map { searcher ->
         async { block(searcher) }
-    }
-    // Poll for completion: simple, cancellation-safe (delay throws on cancel),
-    // and the 50ms granularity is negligible next to network latency.
-    while (true) {
+    }.toMutableList()
+    var lastError: Throwable? = null
+    // Wait for the first source to settle; a failure only prunes that source while
+    // the survivors keep racing. External cancellation rethrows immediately.
+    while (pending.isNotEmpty()) {
+        try {
+            select<Unit> {
+                pending.forEach { deferred -> deferred.onAwait {} }
+            }
+        } catch (cancelled: CancellationException) {
+            throw cancelled
+        } catch (e: Exception) {
+            lastError = e
+        }
         pending.firstOrNull { it.isCompleted && it.getCompletionExceptionOrNull() == null }?.let { winner ->
             pending.forEach { deferred -> if (deferred !== winner) deferred.cancel() }
             return@coroutineScope winner.await()
         }
-        if (pending.all { it.isCompleted }) {
-            val lastError = pending.mapNotNull { it.getCompletionExceptionOrNull() }.lastOrNull()
-            throw lastError ?: IllegalStateException("All sources failed without reporting an error.")
-        }
-        delay(SOURCE_RACE_POLL_MS)
+        pending.removeAll { it.isCompleted }
     }
+    throw lastError ?: IllegalStateException("All sources failed without reporting an error.")
 }
 
 suspend fun searchAssets(

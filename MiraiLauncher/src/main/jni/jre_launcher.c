@@ -37,6 +37,8 @@
 #include "utils.h"
 #include "environ/environ.h"
 
+extern void bigcore_set_affinity(void);
+
 // Uncomment to try redirect signal handling to JVM
 // #define TRY_SIG2JVM
 
@@ -153,6 +155,9 @@ static jint launchJVM(int margc, char** margv) {
        LOG_TO_E("JLI_Launch = NULL");
        return -1;
    }
+
+   // Set CPU affinity to all big/prime cores for optimal JVM performance
+   bigcore_set_affinity();
 
    LOG_TO_D("Calling JLI_Launch");
 

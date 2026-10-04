@@ -506,6 +506,7 @@ abstract class Launcher(
             map["DALVIK_JAVAVM"] = ZLBridge.getJavaVMPointer().toString()
             map["DALVIK_APPLICATION"] = ZLBridge.jObjectToString(GlobalContext.applicationContext)
             map["ALSOFT_DRIVERS"] = "opensl"
+            map["POJAV_BIG_CORE_AFFINITY"] = "1"
 
             if (AllSettings.dumpShaders.getValue()) map["LIBGL_VGPU_DUMP"] = "1"
             if (AllSettings.zinkPreferSystemDriver.getValue()) map["POJAV_ZINK_PREFER_SYSTEM_DRIVER"] = "1"

@@ -727,13 +727,34 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener, SurfaceHolde
      * 参考 MinecraftGLSurface（https://github.com/AngelAuraMC/Amethyst-Android/blob/v3_openjdk/app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/MinecraftGLSurface.java）
      */
     private fun voteMaxDisplayRefreshRate(surface: Surface) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            runCatching {
+                val disp = display ?: return@runCatching
+                val modes = disp.supportedModes ?: return@runCatching
+                val currentMode = disp.mode ?: return@runCatching
+                // 寻找同分辨率下最高刷新率的显示模式
+                val bestMode = modes
+                    .filter { it.physicalWidth == currentMode.physicalWidth && it.physicalHeight == currentMode.physicalHeight }
+                    .maxByOrNull { it.refreshRate }
+                if (bestMode != null && bestMode.modeId != currentMode.modeId && bestMode.refreshRate > currentMode.refreshRate) {
+                    window?.attributes = window?.attributes?.apply {
+                        preferredDisplayModeId = bestMode.modeId
+                    }
+                }
+            }
+        }
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-        val maxRefreshRate = maxOf(120f, *display.mode.alternativeRefreshRates)
-        surface.setFrameRate(
-            maxRefreshRate,
-            Surface.FRAME_RATE_COMPATIBILITY_DEFAULT,
-            Surface.CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS
-        )
+        val rates = display?.mode?.alternativeRefreshRates ?: floatArrayOf()
+        val currentRate = display?.mode?.refreshRate ?: 60f
+        val maxRefreshRate = if (rates.isNotEmpty()) maxOf(currentRate, *rates.toTypedArray()) else currentRate
+        if (maxRefreshRate > 60f) {
+            surface.setFrameRate(
+                maxRefreshRate,
+                Surface.FRAME_RATE_COMPATIBILITY_DEFAULT,
+                Surface.CHANGE_FRAME_RATE_ONLY_IF_SEAMLESS
+            )
+        }
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {

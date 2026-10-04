@@ -27,6 +27,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
@@ -56,6 +57,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -69,6 +72,8 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.nonInteractiveScrollbar
@@ -93,6 +98,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -101,6 +108,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.optimization.ModDependencyResolver
+import com.movtery.zalithlauncher.game.optimization.ModDependencyResolverDialog
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
@@ -586,6 +596,27 @@ fun ModsManagerScreen(
         val viewModel = rememberModsManageViewModel(version, modsDir)
         val updaterViewModel = rememberModsUpdaterViewModel(version, modsDir)
 
+        var showModDependencyResolver by remember { mutableStateOf(false) }
+        var detectedModIssuesCount by remember { mutableIntStateOf(0) }
+
+        LaunchedEffect(viewModel.allMods.size, viewModel.enabledCount) {
+            val report = ModDependencyResolver.scanInstanceMods(version, modsDir)
+            detectedModIssuesCount = report.issues.size
+        }
+
+        if (showModDependencyResolver) {
+            ModDependencyResolverDialog(
+                version = version,
+                modsDir = modsDir,
+                onModsChanged = {
+                    viewModel.refresh(context)
+                },
+                onDismiss = {
+                    showModDependencyResolver = false
+                }
+            )
+        }
+
         //页面创建时，检查一次模组数量，如果不同，则说明有增删
         //可自动刷新一次模组列表
         LaunchedEffect(Unit) {
@@ -721,6 +752,8 @@ fun ModsManagerScreen(
                                 viewModel.clearSelected()
                             },
                             swapToDownload = swapToDownload,
+                            onOpenModResolver = { showModDependencyResolver = true },
+                            detectedIssuesCount = detectedModIssuesCount,
                             refresh = { viewModel.refresh(context) },
                             submitError = submitError
                         )
@@ -811,213 +844,175 @@ private fun ModsActionsHeader(
     onSelectAll: () -> Unit,
     onClearModsSelected: () -> Unit,
     swapToDownload: () -> Unit,
+    onOpenModResolver: () -> Unit = {},
+    detectedIssuesCount: Int = 0,
     refresh: () -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit = {},
     inputFieldColor: Color = itemColor(),
     inputFieldContentColor: Color = onItemColor()
 ) {
     CardTitleLayout(modifier = modifier) {
-        BoxWithConstraints(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp)
-                .padding(top = 4.dp)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box {
-                    var expanded by remember { mutableStateOf(false) }
-                    IconButton(
-                        onClick = { expanded = !expanded }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_filter_alt_outlined),
-                            contentDescription = stringResource(R.string.mods_update_task_filter)
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
-                        shape = MaterialTheme.shapes.large
-                    ) {
-                        ModStateFilter.entries.forEach { filter ->
-                            val count = when (filter) {
-                                ModStateFilter.Enabled -> enabledModsCount
-                                ModStateFilter.Disabled -> disabledModsCount
-                                else -> allModsCount
-                            }
-
-                            DropdownMenuItem(
-                                text = {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                    ) {
-                                        Text(text = stringResource(filter.textRes))
-                                        if (count != null) {
-                                            Text(text = "($count)")
-                                        }
-                                    }
-                                },
-                                onClick = {
-                                    onStateFilterChange(filter)
-                                    expanded = false
-                                },
-                                trailingIcon = if (filter == stateFilter) {
-                                    {
-                                        Icon(
-                                            painter = painterResource(R.drawable.ic_check),
-                                            contentDescription = null
-                                        )
-                                    }
-                                } else null
-                            )
-                        }
-                    }
-                }
-
-                Box {
-                    var expanded by remember { mutableStateOf(false) }
-                    IconButton(
-                        onClick = { expanded = !expanded }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_sort),
-                            contentDescription = stringResource(R.string.sort_by)
-                        )
-                    }
-                    SortByDropdownMenu(
-                        expanded = expanded,
-                        onClose = { expanded = false },
-                        enums = supportedSortByEnums,
-                        currentEnum = sortByEnum,
-                        onEnumChanged = onSortByChanged,
-                        isAscending = isAscending,
-                        onToggleSortOrder = onToggleSortOrder
+            SimpleTextInputField(
+                modifier = Modifier.weight(1f),
+                value = nameFilter,
+                onValueChange = { onNameFilterChange(it) },
+                hint = {
+                    Text(
+                        text = "Search $allModsCount installed mods...",
+                        style = TextStyle(color = LocalContentColor.current).copy(fontSize = 12.sp)
                     )
+                },
+                color = inputFieldColor,
+                contentColor = inputFieldContentColor,
+                singleLine = true
+            )
+
+            // Inline Filter Pills (Mockup #3: All, Enabled, Disabled)
+            ModStateFilter.entries.forEach { filter ->
+                val selected = stateFilter == filter
+                val count = when (filter) {
+                    ModStateFilter.Enabled -> enabledModsCount?.takeIf { it >= 0 }
+                    ModStateFilter.Disabled -> disabledModsCount?.takeIf { it >= 0 }
+                    else -> allModsCount
                 }
-
-                SimpleTextInputField(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(start = 4.dp),
-                    value = nameFilter,
-                    onValueChange = { onNameFilterChange(it) },
-                    hint = {
-                        Text(
-                            text = stringResource(R.string.generic_search),
-                            style = TextStyle(color = LocalContentColor.current).copy(fontSize = 12.sp)
-                        )
-                    },
-                    color = inputFieldColor,
-                    contentColor = inputFieldContentColor,
-                    singleLine = true
-                )
-
-                AnimatedVisibility(
-                    modifier = Modifier.height(IntrinsicSize.Min),
-                    visible = isModsSelected
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (selected) Color(0xFF143825) else Color(0xFF21242B),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                    ),
+                    onClick = { onStateFilterChange(filter) }
                 ) {
-                    Row {
-                        if (hasModLoader && canUpdate) {
-                            IconButton(
-                                onClick = onUpdateMods
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_update),
-                                    contentDescription = null
-                                )
-                            }
-                        }
-
-                        IconButton(
-                            onClick = onDeleteAll
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_delete_outlined),
-                                contentDescription = null
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = stringResource(filter.textRes),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFFE5E7EB)
+                        )
+                        if (count != null) {
+                            Text(
+                                text = count.toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF9CA3AF)
                             )
                         }
+                    }
+                }
+            }
 
+            AnimatedVisibility(
+                modifier = Modifier.height(IntrinsicSize.Min),
+                visible = isModsSelected
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (hasModLoader && canUpdate) {
                         IconButton(
-                            onClick = onSelectAll
+                            onClick = onUpdateMods,
+                            modifier = Modifier.size(30.dp)
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_select_all),
-                                contentDescription = null
+                                painter = painterResource(R.drawable.ic_update),
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
                             )
                         }
-
-                        IconButton(
-                            onClick = {
-                                if (isModsSelected) onClearModsSelected()
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_deselect),
-                                contentDescription = null
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(6.dp))
-
-                        VerticalDivider(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .padding(vertical = 12.dp),
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                    }
+                    IconButton(
+                        onClick = onDeleteAll,
+                        modifier = Modifier.size(30.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_delete_outlined),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = { if (isModsSelected) onClearModsSelected() },
+                        modifier = Modifier.size(30.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_deselect),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.width(6.dp))
-
-                val scrollState = rememberScrollState()
-                LaunchedEffect(Unit) {
-                    scrollState.scrollTo(scrollState.maxValue)
-                }
+            // Smart Mod Dependency & Conflict Resolver Pill (Feature #2)
+            val hasIssues = detectedIssuesCount > 0
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = if (hasIssues) Color(0xFF3B1A1E) else Color(0xFF21242B),
+                border = BorderStroke(
+                    1.dp,
+                    if (hasIssues) Color(0xFFEF4444) else Color(0xFF2E333E)
+                ),
+                onClick = onOpenModResolver
+            ) {
                 Row(
                     modifier = Modifier
-                        .fadeEdge(
-                            state = scrollState,
-                            length = 32.dp,
-                            direction = EdgeDirection.Horizontal
-                        )
-                        .widthIn(max = this@BoxWithConstraints.maxWidth / 2)
-                        .horizontalScroll(scrollState),
-                    verticalAlignment = Alignment.CenterVertically
+                        .height(34.dp)
+                        .padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    val taskBuilder = rememberMultipleUriImportTaskBuilder(
-                        id = "ContentManager.Mods.Import",
-                        targetDir = modsDir,
-                        checkExtension = listOf("jar"),
-                        submitError = submitError,
-                        onImported = refresh
+                    Text(
+                        text = if (hasIssues) "🛡️ $detectedIssuesCount Issues" else "🛡️ Check Mods",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (hasIssues) Color(0xFFFCA5A5) else Color(0xFFE5E7EB)
                     )
-                    ImportMultipleFileButton(
-                        extension = "jar",
-                        progressUris = { uris ->
-                            TaskSystem.submitTask(
-                                taskBuilder(uris)
-                            )
-                        }
-                    )
-
-                    IconTextButton(
-                        onClick = swapToDownload,
-                        painter = painterResource(R.drawable.ic_download_2_filled),
-                        text = stringResource(R.string.generic_download)
-                    )
-
-                    IconButton(
-                        onClick = refresh
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_refresh),
-                            contentDescription = stringResource(R.string.generic_refresh)
-                        )
-                    }
                 }
+            }
+
+            Button(
+                onClick = swapToDownload,
+                shape = RoundedCornerShape(10.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MiraiThemeManager.currentAccent(),
+                    contentColor = Color(0xFF06210F)
+                ),
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.height(34.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_add),
+                    contentDescription = null,
+                    modifier = Modifier.size(15.dp)
+                )
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = "Add Content",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.ExtraBold
+                )
+            }
+
+            IconButton(
+                onClick = refresh,
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_refresh),
+                    contentDescription = stringResource(R.string.generic_refresh),
+                    modifier = Modifier.size(17.dp)
+                )
             }
         }
     }
@@ -1140,188 +1135,151 @@ private fun ModItemLayout(
         else (-1).dp
     )
 
-    val scale = remember { Animatable(initialValue = 0.95f) }
-    LaunchedEffect(Unit) {
-        scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
-    }
     val context = LocalContext.current
 
     val projectInfo = mod.projectInfo
 
     LaunchedEffect(mod) {
-        //尝试加载该模组文件在平台上所属的项目
         onLoad()
     }
 
     Surface(
         modifier = modifier
-            .graphicsLayer(scaleY = scale.value, scaleX = scale.value)
             .border(
                 width = borderWidth,
                 color = borderColor,
-                shape = shape
+                shape = RoundedCornerShape(12.dp)
             ),
         onClick = onClick,
-        shape = shape,
-        color = itemColor,
+        shape = RoundedCornerShape(12.dp),
+        color = Color(0xFF21242B),
         contentColor = itemContentColor,
     ) {
         Row(
-            modifier = Modifier.padding(all = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            //模组的封面图标
             ModIcon(
-                modifier = Modifier.clip(shape = RoundedCornerShape(10.dp)),
+                modifier = Modifier.clip(shape = RoundedCornerShape(9.dp)),
                 mod = mod,
-                iconSize = 48.dp
+                iconSize = 40.dp
             )
 
-            //模组简要信息
-            Crossfade(
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .weight(1f),
-                //在本地是否为未知文件
-                targetState = mod.localMod.notMod && projectInfo == null,
-                label = "ModItemInfoCrossfade"
-            ) { isUnknown ->
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    val localMod = mod.localMod
-                    when {
-                        isUnknown -> {
-                            //非模组，只展示文件名称
-                            Text(
-                                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                                text = localMod.file.name,
-                                style = MaterialTheme.typography.titleSmall,
-                                maxLines = 1
-                            )
-                            if (localMod.loader != ModLoader.UNKNOWN) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                val localMod = mod.localMod
+                val isUnknown = localMod.notMod && projectInfo == null
+                if (isUnknown) {
+                    Text(
+                        text = localMod.file.name,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                } else {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val displayTitle = if (projectInfo != null) {
+                            val title = projectInfo.title
+                            mod.mcMod?.getMcmodTitle(title, context) ?: title
+                        } else {
+                            localMod.name
+                        }
+                        Text(
+                            modifier = Modifier.weight(1f, fill = false),
+                            text = displayTitle,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        val remoteLoaders = mod.remoteFile?.loaders
+                        if (!remoteLoaders.isNullOrEmpty()) {
+                            remoteLoaders.take(2).forEach { loader ->
                                 LittleTextLabel(
-                                    text = localMod.loader.displayName,
+                                    text = loader.getDisplayName(),
                                     shape = MaterialTheme.shapes.small
                                 )
                             }
-                        }
-                        else -> {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val displayTitle = if (projectInfo != null) {
-                                    val title = projectInfo.title
-                                    mod.mcMod?.getMcmodTitle(title, context) ?: title
-                                } else {
-                                    localMod.name
-                                }
-                                Text(
-                                    modifier = Modifier
-                                        .weight(1f, fill = false)
-                                        .basicMarquee(iterations = Int.MAX_VALUE)
-                                        .animateContentSize(),
-                                    text = displayTitle,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    maxLines = 1
-                                )
-                                Row(
-                                    modifier = Modifier
-                                        .basicMarquee(iterations = Int.MAX_VALUE)
-                                        .animateContentSize(),
-                                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                                ) {
-                                    val remoteLoaders = mod.remoteFile?.loaders
-                                    if (remoteLoaders != null && remoteLoaders.isNotEmpty()) {
-                                        remoteLoaders.forEach { loader ->
-                                            LittleTextLabel(
-                                                text = loader.getDisplayName(),
-                                                shape = MaterialTheme.shapes.small
-                                            )
-                                        }
-                                    } else if (localMod.loader != ModLoader.UNKNOWN) {
-                                        LittleTextLabel(
-                                            text = localMod.loader.displayName,
-                                            shape = MaterialTheme.shapes.small
-                                        )
-                                    }
-                                }
-                            }
-
-                            Text(
-                                modifier = Modifier
-                                    .alpha(0.7f)
-                                    .basicMarquee(iterations = Int.MAX_VALUE),
-                                text = stringResource(R.string.generic_file_name, localMod.file.name),
-                                style = MaterialTheme.typography.bodySmall,
-                                maxLines = 1
+                        } else if (localMod.loader != ModLoader.UNKNOWN) {
+                            LittleTextLabel(
+                                text = localMod.loader.displayName,
+                                shape = MaterialTheme.shapes.small
                             )
                         }
                     }
+
+                    Text(
+                        text = localMod.file.name,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF9CA3AF),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
             }
 
             Row(
-                modifier = Modifier.align(Alignment.CenterVertically),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (mod.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier
-                            .size(18.dp)
+                            .size(16.dp)
                             .alpha(0.7f),
                         strokeWidth = 2.dp
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
-                } else if (mod.isLoaded) {
-                    IconButton(
-                        modifier = Modifier.size(38.dp),
-                        onClick = onForceRefresh
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_refresh),
-                            contentDescription = stringResource(R.string.generic_refresh)
-                        )
-                    }
                 }
 
-                //启用/禁用
-                Checkbox(
+                Switch(
                     checked = mod.localMod.file.isEnabled(),
                     onCheckedChange = { checked ->
                         if (checked) onEnable()
                         else onDisable()
-                    }
+                    },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = Color(0xFF06210F),
+                        checkedTrackColor = MiraiThemeManager.currentAccent(),
+                        uncheckedThumbColor = Color(0xFF9CA3AF),
+                        uncheckedTrackColor = Color(0xFF282C36),
+                        uncheckedBorderColor = Color(0xFF3E4452)
+                    )
                 )
 
-                //详细信息展示
-                if (projectInfo == null) {
-                    if (!mod.localMod.notMod) {
-                        LocalModInfoTooltip(mod.localMod)
-                    }
-                } else {
+                if (projectInfo != null) {
                     IconButton(
-                        modifier = Modifier.size(38.dp),
+                        modifier = Modifier.size(32.dp),
                         onClick = {
                             onSwapMoreInfo(projectInfo.id, projectInfo.platform)
                         }
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_info_outlined),
-                            contentDescription = stringResource(R.string.mods_manage_info)
+                            contentDescription = stringResource(R.string.mods_manage_info),
+                            tint = Color(0xFF9CA3AF),
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
 
                 IconButton(
-                    modifier = Modifier.size(38.dp),
+                    modifier = Modifier.size(32.dp),
                     onClick = onDelete
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_delete_outlined),
-                        contentDescription = stringResource(R.string.generic_delete)
+                        contentDescription = stringResource(R.string.generic_delete),
+                        tint = Color(0xFF9CA3AF),
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }

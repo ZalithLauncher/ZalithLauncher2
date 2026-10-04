@@ -19,7 +19,11 @@
 package com.movtery.zalithlauncher.ui.screens.content.download.game
 
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -29,8 +33,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -40,6 +46,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,11 +70,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -72,6 +85,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersions
 import com.movtery.zalithlauncher.game.versioninfo.models.isType
@@ -250,28 +264,343 @@ fun SelectGameVersionScreen(
                 }
 
                 is VersionState.None -> {
-                    Column {
-                        VersionHeader(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 12.dp),
-                            versionFilter = viewModel.versionFilter,
-                            onVersionFilterChange = { viewModel.filterWith(it) },
-                            itemContainerColor = cardColor(),
-                            itemContentColor = onCardColor(),
-                            onRefreshClick = {
-                                viewModel.refresh(true)
-                            }
+                    val versions = state.versions
+                    var selectedVersionId by remember(versions) {
+                        mutableStateOf(
+                            versions.firstOrNull { it.version.id == "1.21.1" }?.version?.id
+                                ?: versions.firstOrNull()?.version?.id
+                                ?: "1.21.1"
                         )
+                    }
+                    var selectedLoader by remember { mutableStateOf("Fabric") }
+                    var instanceNameInput by remember(selectedVersionId, selectedLoader) {
+                        mutableStateOf("$selectedLoader $selectedVersionId")
+                    }
 
-                        VersionList(
-                            modifier = Modifier.weight(1f),
-                            versions = state.versions,
-                            onVersionSelect = onVersionSelect,
-                            openLink = { url ->
-                                eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url))
+                    val isLegacySelected = remember(selectedVersionId) {
+                        selectedVersionId.startsWith("1.8") ||
+                            selectedVersionId.startsWith("1.9") ||
+                            selectedVersionId.startsWith("1.10") ||
+                            selectedVersionId.startsWith("1.11") ||
+                            selectedVersionId.startsWith("1.12") ||
+                            selectedVersionId.startsWith("1.13") ||
+                            selectedVersionId.startsWith("1.14") ||
+                            selectedVersionId.startsWith("1.15") ||
+                            selectedVersionId.startsWith("1.16")
+                    }
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 4.dp, vertical = 2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        // LEFT PANE: Instance Info & Minecraft Version List (Mockup #5)
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = "Create New Instance",
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color.White
+                                )
+                                IconButton(
+                                    onClick = { viewModel.refresh(true) },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_refresh),
+                                        contentDescription = stringResource(R.string.generic_refresh),
+                                        tint = Color(0xFF9CA3AF),
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
-                        )
+
+                            Text(
+                                text = "Instance Info",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFE5E7EB)
+                            )
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = Color(0xFF21242B),
+                                    border = BorderStroke(1.dp, Color(0xFF2E333E))
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.img_old_grass_block),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .padding(6.dp)
+                                            .size(28.dp)
+                                    )
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(40.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(Color(0xFF21242B))
+                                        .border(1.dp, Color(0xFF2E333E), RoundedCornerShape(10.dp))
+                                        .padding(horizontal = 12.dp),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    BasicTextField(
+                                        value = instanceNameInput,
+                                        onValueChange = { instanceNameInput = it },
+                                        singleLine = true,
+                                        textStyle = TextStyle(
+                                            color = Color.White,
+                                            fontSize = 13.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        ),
+                                        cursorBrush = SolidColor(MiraiThemeManager.currentAccent()),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+
+                            Text(
+                                text = "Minecraft Version",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFE5E7EB)
+                            )
+
+                            // Filter Pills: Releases, Snapshots, Old Beta + compact search
+                            val versionFilter = viewModel.versionFilter
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                val filterItems = listOf(
+                                    Triple("Releases", versionFilter.release) {
+                                        viewModel.filterWith(versionFilter.copy(release = !versionFilter.release))
+                                    },
+                                    Triple("Snapshots", versionFilter.snapshot) {
+                                        viewModel.filterWith(versionFilter.copy(snapshot = !versionFilter.snapshot))
+                                    },
+                                    Triple("Old Beta", versionFilter.old) {
+                                        viewModel.filterWith(versionFilter.copy(old = !versionFilter.old))
+                                    }
+                                )
+                                filterItems.forEach { (label, active, onToggle) ->
+                                    Surface(
+                                        shape = RoundedCornerShape(14.dp),
+                                        color = if (active) MiraiThemeManager.currentAccent() else Color(0xFF21242B),
+                                        border = BorderStroke(
+                                            1.dp,
+                                            if (active) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                                        ),
+                                        onClick = onToggle
+                                    ) {
+                                        Text(
+                                            text = label,
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                            fontSize = 11.sp,
+                                            fontWeight = if (active) FontWeight.ExtraBold else FontWeight.Medium,
+                                            color = if (active) Color(0xFF06210F) else Color(0xFFD1D5DB)
+                                        )
+                                    }
+                                }
+
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(28.dp)
+                                        .clip(RoundedCornerShape(14.dp))
+                                        .background(Color(0xFF21242B))
+                                        .border(1.dp, Color(0xFF2E333E), RoundedCornerShape(14.dp))
+                                        .padding(horizontal = 8.dp),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    if (versionFilter.id.isEmpty()) {
+                                        Text(
+                                            text = "Filter...",
+                                            fontSize = 11.sp,
+                                            color = Color(0xFF8A909E)
+                                        )
+                                    }
+                                    BasicTextField(
+                                        value = versionFilter.id,
+                                        onValueChange = {
+                                            viewModel.filterWith(versionFilter.copy(id = it))
+                                        },
+                                        singleLine = true,
+                                        textStyle = TextStyle(
+                                            color = Color.White,
+                                            fontSize = 11.sp
+                                        ),
+                                        cursorBrush = SolidColor(MiraiThemeManager.currentAccent()),
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
+
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(6.dp),
+                                contentPadding = PaddingValues(bottom = 8.dp)
+                            ) {
+                                items(
+                                    items = versions,
+                                    key = { it.version.id }
+                                ) { ver ->
+                                    val verId = ver.version.id
+                                    val isSelected = verId == selectedVersionId
+
+                                    Surface(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isSelected) Color(0xFF172D22) else Color(0xFF21242B),
+                                        border = BorderStroke(
+                                            width = if (isSelected) 1.5.dp else 1.dp,
+                                            color = if (isSelected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                                        ),
+                                        onClick = {
+                                            selectedVersionId = verId
+                                        }
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(horizontal = 12.dp, vertical = 9.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = "Minecraft $verId",
+                                                fontSize = 13.sp,
+                                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.SemiBold,
+                                                color = Color.White,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+
+                                            if (isSelected) {
+                                                Surface(
+                                                    shape = RoundedCornerShape(10.dp),
+                                                    color = Color(0xFF1F4732)
+                                                ) {
+                                                    Text(
+                                                        text = "Selected",
+                                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                                        fontSize = 10.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = Color(0xFF6EE7B7)
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // RIGHT PANE: Modloader 2x3 Grid + Create CTA
+                        Column(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            verticalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(
+                                    text = "Modloader",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+
+                                val loaderRows = listOf(
+                                    listOf("Vanilla" to "", "Fabric" to "0.16.9", "NeoForge" to "Latest"),
+                                    listOf("Forge" to "Recommended", "Quilt" to "Latest", "OptiFine" to "HD U")
+                                )
+
+                                loaderRows.forEach { row ->
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        row.forEach { (loaderName, subLabel) ->
+                                            val isSelected = selectedLoader == loaderName
+                                            Surface(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .height(74.dp),
+                                                shape = RoundedCornerShape(12.dp),
+                                                color = if (isSelected) Color(0xFF1B2B24) else Color(0xFF21242B),
+                                                border = BorderStroke(
+                                                    width = if (isSelected) 1.5.dp else 1.dp,
+                                                    color = if (isSelected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                                                ),
+                                                onClick = { selectedLoader = loaderName }
+                                            ) {
+                                                Column(
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .padding(8.dp),
+                                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                                    verticalArrangement = Arrangement.Center
+                                                ) {
+                                                    Text(
+                                                        text = loaderName,
+                                                        fontSize = 13.sp,
+                                                        fontWeight = FontWeight.ExtraBold,
+                                                        color = Color.White
+                                                    )
+                                                    if (subLabel.isNotEmpty()) {
+                                                        Text(
+                                                            text = subLabel,
+                                                            fontSize = 11.sp,
+                                                            color = if (isSelected) MiraiThemeManager.currentAccent() else Color(0xFF9CA3AF)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            Button(
+                                onClick = { onVersionSelect(selectedVersionId) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(44.dp),
+                                shape = RoundedCornerShape(22.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MiraiThemeManager.currentAccent(),
+                                    contentColor = Color(0xFF06210F)
+                                )
+                            ) {
+                                Text(
+                                    text = "Create & Install Instance",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.ExtraBold
+                                )
+                            }
+                        }
                     }
                 }
             }

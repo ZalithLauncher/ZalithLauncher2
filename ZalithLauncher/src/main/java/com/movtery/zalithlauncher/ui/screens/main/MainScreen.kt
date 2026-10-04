@@ -167,56 +167,14 @@ fun MainScreen(
         backgroundColor().copy(alpha = launcherBackgroundOpacity)
     } else backgroundColor()
 
-    val night = java.time.LocalTime.now().hour.let { it >= 19 || it < 6 }
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = backgroundColor,
         contentColor = onBackgroundColor()
     ) {
         Box(Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            TopBar(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp),
-                mainScreenKey = mainScreenKey,
-                inLauncherScreen = inLauncherScreen,
-                taskRunning = tasks.isEmpty(),
-                isTasksExpanded = isTaskMenuExpanded,
-                contentColor = onBackgroundColor(),
-                onScreenBack = {
-                    screenBackStackModel.mainScreen.backStack.removeLastOrNull()
-                },
-                toMainScreen = toMainScreen,
-                toSettingsScreen = {
-                    screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
-                },
-                toDownloadScreen = {
-                    screenBackStackModel.downloadScreen.clearWith(screenBackStackModel.downloadGameScreen)
-                    screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
-                },
-                toMultiplayerScreen = {
-                    screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer)
-                },
-                openFileManager = {
-                    eventViewModel.sendEvent(
-                        EventViewModel.Event.OpenFileManager(
-                            rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath
-                        )
-                    )
-                },
-                changeExpandedState = {
-                    changeTasksExpandedState()
-                },
-            )
-
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+                modifier = Modifier.fillMaxSize()
             ) {
                 MiraiNavigationRail(
                     modifier = Modifier.fillMaxHeight(),
@@ -229,8 +187,20 @@ fun MainScreen(
                                 screenBackStackModel.mainScreen.clearWith(screenBackStackModel.downloadScreen)
                             }
                             LauncherSection.LIBRARY -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.VersionsManager)
+                            LauncherSection.WALLPAPERS -> {
+                                screenBackStackModel.settingsScreen.clearWith(NormalNavKey.Settings.Wallpapers)
+                                screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
+                            }
                             LauncherSection.MULTIPLAYER -> screenBackStackModel.mainScreen.clearWith(NormalNavKey.Multiplayer)
-                            LauncherSection.SETTINGS -> screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
+                            LauncherSection.SETTINGS -> {
+                                if (screenBackStackModel.settingsScreen.currentKey === NormalNavKey.Settings.Wallpapers) {
+                                    screenBackStackModel.settingsScreen.clearWith(NormalNavKey.Settings.Renderer)
+                                }
+                                screenBackStackModel.mainScreen.clearWith(screenBackStackModel.settingsScreen)
+                            }
+                            LauncherSection.ACCOUNTS -> screenBackStackModel.mainScreen.clearWith(
+                                NormalNavKey.AccountManager(FirstLoginMenu.NONE)
+                            )
                         }
                     },
                     onCreateInstance = {
@@ -258,23 +228,51 @@ fun MainScreen(
                         submitError = submitError
                     )
 
+                    if (tasks.isNotEmpty() && !inLauncherScreen && !isTaskMenuExpanded) {
+                        Surface(
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 8.dp, end = 12.dp)
+                                .clip(androidx.compose.foundation.shape.RoundedCornerShape(16.dp))
+                                .clickable { changeTasksExpandedState() },
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                            color = Color(0xFF143825),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF1BD96A))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_download),
+                                    contentDescription = null,
+                                    tint = Color(0xFF1BD96A),
+                                    modifier = Modifier.size(14.dp)
+                                )
+                                Text(
+                                    text = "${tasks.size} Tasks",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFF1BD96A)
+                                )
+                            }
+                        }
+                    }
+
                     TaskMenu(
                         tasks = tasks,
                         isExpanded = isTaskMenuExpanded,
                         modifier = Modifier
                             .fillMaxHeight()
-                            .fillMaxWidth(0.3f)
-                            .align(Alignment.CenterStart)
-                            .padding(all = 6.dp)
+                            .fillMaxWidth(0.36f)
+                            .align(Alignment.CenterEnd)
+                            .padding(all = 8.dp)
                     ) {
                         changeTasksExpandedState()
                     }
                 }
             }
-        }
-        if (night) {
-            Box(Modifier.matchParentSize().background(Color.Black.copy(alpha = 0.34f)))
-        }
         }
     }
 }
@@ -294,7 +292,12 @@ private fun TitledNavKey?.toLauncherSection(): LauncherSection? = when (this) {
     is NestedNavKey.VersionSettings,
     is NestedNavKey.VersionExport -> LauncherSection.LIBRARY
     NormalNavKey.Multiplayer -> LauncherSection.MULTIPLAYER
-    is NestedNavKey.Settings -> LauncherSection.SETTINGS
+    is NestedNavKey.Settings -> if (this.currentKey === NormalNavKey.Settings.Wallpapers) {
+        LauncherSection.WALLPAPERS
+    } else {
+        LauncherSection.SETTINGS
+    }
+    is NormalNavKey.AccountManager -> LauncherSection.ACCOUNTS
     else -> null
 }
 
@@ -302,6 +305,7 @@ private fun TitledNavKey?.toLauncherSection(): LauncherSection? = when (this) {
 private fun <E: TitledNavKey> TopBar(
     mainScreenKey: E?,
     inLauncherScreen: Boolean,
+    activeTasksCount: Int,
     taskRunning: Boolean,
     isTasksExpanded: Boolean,
     modifier: Modifier = Modifier,
@@ -315,16 +319,14 @@ private fun <E: TitledNavKey> TopBar(
     changeExpandedState: () -> Unit,
 ) {
     val festivals = LocalFestivals.current
-    val inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer
-    val inDownloadScreen = mainScreenKey is NestedNavKey.Download
-    val inSettingsScreen = mainScreenKey is NestedNavKey.Settings
 
     CompositionLocalProvider(LocalContentColor provides contentColor) {
-        BoxWithConstraints(modifier = modifier) {
-            val compactTopBar = maxWidth < 680.dp
+        BoxWithConstraints(
+            modifier = modifier
+                .background(Color(0xFF14161A))
+        ) {
             ConstraintLayout(modifier = Modifier.fillMaxSize()) {
                 val (backCenter, title, endButtons) = createRefs()
-                val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
 
                 Row(
                     modifier = Modifier
@@ -333,32 +335,34 @@ private fun <E: TitledNavKey> TopBar(
                             top.linkTo(parent.top)
                             bottom.linkTo(parent.bottom)
                         }
-                        .fillMaxHeight()
+                        .fillMaxHeight(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     AnimatedVisibility(visible = !inLauncherScreen) {
-                        Row(modifier = Modifier.fillMaxHeight()) {
-                            Spacer(Modifier.width(12.dp))
+                        Row(
+                            modifier = Modifier.fillMaxHeight(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Spacer(Modifier.width(8.dp))
                             IconButton(
-                                modifier = Modifier.fillMaxHeight(),
-                                onClick = {
-                                    if (!inLauncherScreen) toMainScreen()
-                                }
+                                onClick = onScreenBack
                             ) {
                                 Icon(
-                                    modifier = Modifier.size(24.dp),
+                                    modifier = Modifier.size(22.dp),
                                     painter = painterResource(R.drawable.ic_arrow_back),
-                                    contentDescription = stringResource(R.string.generic_back)
+                                    contentDescription = stringResource(R.string.generic_back),
+                                    tint = Color.White
                                 )
                             }
                             IconButton(
-                                modifier = Modifier.fillMaxHeight(),
                                 onClick = {
                                     if (!inLauncherScreen) toMainScreen()
                                 }
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_home_filled),
-                                    contentDescription = stringResource(R.string.generic_main_menu)
+                                    contentDescription = stringResource(R.string.generic_main_menu),
+                                    tint = Color(0xFF1BD96A)
                                 )
                             }
                         }
@@ -373,9 +377,13 @@ private fun <E: TitledNavKey> TopBar(
                         centerVerticallyTo(parent)
                         start.linkTo(backCenter.end, margin = 16.dp)
                     },
-                    targetState = parentRes to childRes
+                    targetState = parentRes to childRes,
+                    label = "topBarTitleCrossfade"
                 ) { (parent, child) ->
-                    val style = MaterialTheme.typography.titleMedium
+                    val style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
                     val maxLines = 1
 
                     if (inLauncherScreen) {
@@ -383,46 +391,18 @@ private fun <E: TitledNavKey> TopBar(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_mirai_mark),
-                                contentDescription = null,
-                                tint = Color.Unspecified,
-                                modifier = Modifier.size(0.dp)
-                            )
-                            Column(
-                                modifier = Modifier.widthIn(max = 170.dp),
-                                verticalArrangement = Arrangement.spacedBy(0.dp)
-                            ) {
+                            if (festivals.isEmpty()) {
                                 Text(
-                                    text = "",
+                                    text = "Home",
                                     style = style,
-                                    fontWeight = FontWeight.SemiBold,
-                                    maxLines = 1,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                    maxLines = 1
                                 )
-                                Text(
-                                    text = "",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    maxLines = 1,
-                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                            } else {
+                                FestivalTitleText(
+                                    festivals = festivals,
+                                    style = style,
+                                    maxLines = maxLines
                                 )
-                            }
-                            if (!compactTopBar) {
-                                Text("/", color = MaterialTheme.colorScheme.onSurfaceVariant)
-                                if (festivals.isEmpty()) {
-                                    Text(
-                                        text = stringResource(R.string.generic_main_menu),
-                                        style = style,
-                                        maxLines = 1
-                                    )
-                                } else {
-                                    FestivalTitleText(
-                                        festivals = festivals,
-                                        style = style,
-                                        maxLines = maxLines
-                                    )
-                                }
                             }
                         }
                     } else if (parent == null) {
@@ -441,7 +421,7 @@ private fun <E: TitledNavKey> TopBar(
                         }
                     } else {
                         val titleText = if (child != null) {
-                            androidText(parent, androidText(" - "), child)
+                            androidText(parent, androidText(" / "), child)
                         } else {
                             parent
                         }
@@ -458,60 +438,77 @@ private fun <E: TitledNavKey> TopBar(
                     modifier = Modifier.constrainAs(endButtons) {
                         top.linkTo(parent.top)
                         bottom.linkTo(parent.bottom)
-                        end.linkTo(parent.end, margin = 12.dp)
+                        end.linkTo(parent.end, margin = 14.dp)
                     },
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    AnimatedVisibility(
-                        visible = !(isTasksExpanded || taskRunning),
-                        enter = slideInVertically(initialOffsetY = { -50 }) + fadeIn(),
-                        exit = slideOutVertically(targetOffsetY = { -50 }) + fadeOut()
+                    // Modrinth Status / Syncing Pill (from Mockup #1 & #4)
+                    Surface(
+                        shape = MaterialTheme.shapes.extraLarge,
+                        color = Color(0xFF22252C),
+                        contentColor = Color.White,
+                        onClick = {
+                            if (!taskRunning) changeExpandedState() else toDownloadScreen()
+                        }
                     ) {
                         Row(
-                            modifier = Modifier
-                                .clip(shape = MaterialTheme.shapes.large)
-                                .clickable { changeExpandedState() }
-                                .padding(all = 8.dp)
-                                .width(120.dp),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            LinearProgressIndicator(modifier = Modifier.weight(1f))
-                            Icon(
-                                modifier = Modifier.size(22.dp),
-                                painter = painterResource(R.drawable.ic_assignment_filled),
-                                contentDescription = stringResource(R.string.main_task_menu)
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .clip(MaterialTheme.shapes.extraLarge)
+                                    .background(Color(0xFF1BD96A))
                             )
+                            Text(
+                                text = if (!taskRunning) {
+                                    "Syncing Tasks ($activeTasksCount)..."
+                                } else {
+                                    "Status: Ready"
+                                },
+                                style = MaterialTheme.typography.labelMedium,
+                                color = Color(0xFFE5E7EB)
+                            )
+                            if (!taskRunning) {
+                                LinearProgressIndicator(
+                                    modifier = Modifier
+                                        .width(56.dp)
+                                        .height(4.dp),
+                                    color = Color(0xFF1BD96A),
+                                    trackColor = Color(0xFF333842)
+                                )
+                            }
                         }
                     }
 
-                    IconButton(onClick = openFileManager) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_folder_filled),
-                            contentDescription = stringResource(R.string.main_file_manager)
-                        )
-                    }
-
-                    if (!compactTopBar) {
-                        TopBarRailItem(
-                            selected = inMultiplayerScreen,
-                            painter = painterResource(R.drawable.ic_group_filled),
-                            text = stringResource(R.string.terracotta),
-                            onClick = { if (!inMultiplayerScreen) toMultiplayerScreen() }
-                        )
-                        TopBarRailItem(
-                            selected = inDownloadScreen,
-                            painter = painterResource(R.drawable.ic_download_2_filled),
-                            text = stringResource(R.string.generic_download),
-                            onClick = { if (!inDownloadScreen) toDownloadScreen() }
-                        )
-                        TopBarRailItem(
-                            selected = inSettingsScreen,
-                            painter = painterResource(R.drawable.ic_settings_filled),
-                            text = stringResource(R.string.generic_setting),
-                            onClick = { if (!inSettingsScreen) toSettingsScreen() }
-                        )
+                    // Modrinth "File Manager" Pill Button (from Mockup #1)
+                    Surface(
+                        shape = MaterialTheme.shapes.extraLarge,
+                        color = Color(0xFF22252C),
+                        contentColor = Color.White,
+                        onClick = openFileManager
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(17.dp),
+                                painter = painterResource(R.drawable.ic_folder_filled),
+                                contentDescription = stringResource(R.string.main_file_manager),
+                                tint = Color(0xFFD1D5DB)
+                            )
+                            Text(
+                                text = "File Manager",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFFE5E7EB)
+                            )
+                        }
                     }
                 }
             }
@@ -736,11 +733,11 @@ private fun TaskMenu(
     AnimatedVisibility(
         modifier = modifier,
         enter = slideInHorizontally(
-            initialOffsetX = { if (isRtl) it else -it },
+            initialOffsetX = { if (isRtl) -it else it },
             animationSpec = getAnimateTween()
         ) + fadeIn(),
         exit = slideOutHorizontally(
-            targetOffsetX = { if (isRtl) it else -it },
+            targetOffsetX = { if (isRtl) -it else it },
             animationSpec = getAnimateTween()
         ) + fadeOut(),
         visible = show
@@ -748,40 +745,42 @@ private fun TaskMenu(
         BackgroundCard(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(all = 6.dp),
+                .padding(all = 4.dp),
             influencedByBackground = false,
             shape = MaterialTheme.shapes.extraLarge,
             colors = CardDefaults.cardColors(
-                containerColor = backgroundColor(),
-                contentColor = onBackgroundColor()
+                containerColor = Color(0xFF181A20),
+                contentColor = Color.White
             ),
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp)
+            elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp)
         ) {
             Column {
                 CardTitleLayout(blur = 0) {
-                    Box(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 12.dp)
-                            .padding(top = 8.dp, bottom = 4.dp)
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        Text(
+                            text = "Download Tasks (${tasks.size})",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+
                         IconButton(
-                            modifier = Modifier
-                                .size(28.dp)
-                                .align(Alignment.CenterStart),
+                            modifier = Modifier.size(28.dp),
                             onClick = changeExpandedState
                         ) {
                             Icon(
-                                modifier = Modifier.size(28.dp),
-                                painter = painterResource(R.drawable.ic_arrow_left_rounded),
-                                contentDescription = stringResource(R.string.generic_collapse)
+                                modifier = Modifier.size(20.dp),
+                                painter = painterResource(R.drawable.ic_close),
+                                contentDescription = stringResource(R.string.generic_collapse),
+                                tint = Color(0xFF9CA3AF)
                             )
                         }
-
-                        Text(
-                            modifier = Modifier.align(Alignment.Center),
-                            text = stringResource(R.string.main_task_menu)
-                        )
                     }
                 }
 
@@ -821,8 +820,8 @@ private fun TaskItem(
     rateBytesPerSec: Long?,
     modifier: Modifier = Modifier,
     shape: Shape = MaterialTheme.shapes.large,
-    color: Color = cardColor(false),
-    contentColor: Color = onCardColor(),
+    color: Color = Color(0xFF22252C),
+    contentColor: Color = Color.White,
     onCancelClick: () -> Unit = {}
 ) {
     Surface(
@@ -832,64 +831,105 @@ private fun TaskItem(
         contentColor = contentColor,
     ) {
         Row(
-            modifier = Modifier.padding(all = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(all = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
+            Box(
                 modifier = Modifier
-                    .size(24.dp)
-                    .align(Alignment.CenterVertically),
-                onClick = onCancelClick
+                    .size(34.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(Color(0xFF143825)),
+                contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    modifier = Modifier.size(20.dp),
-                    painter = painterResource(R.drawable.ic_close),
-                    contentDescription = stringResource(R.string.generic_cancel)
+                    modifier = Modifier.size(18.dp),
+                    painter = painterResource(R.drawable.ic_download_2_filled),
+                    contentDescription = null,
+                    tint = Color(0xFF1BD96A)
                 )
             }
 
             Column(
                 modifier = Modifier
                     .weight(1f)
-                    .align(Alignment.CenterVertically)
+                    .align(Alignment.CenterVertically),
+                verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
-                taskMessage?.let { message ->
-                    AndroidStringText(
-                        text = message,
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        taskMessage?.let { message ->
+                            AndroidStringText(
+                                text = message,
+                                style = MaterialTheme.typography.labelLarge
+                            )
+                        }
+                    }
+                    taskProgress.takeIf { it >= 0f }?.let { progress ->
+                        Text(
+                            text = "${(progress * 100).toInt()}%",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = Color(0xFF1BD96A),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
 
-                if (taskProgress < 0) { //负数则代表不确定
+                if (taskProgress < 0) {
                     LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(5.dp),
+                        color = Color(0xFF1BD96A),
+                        trackColor = Color(0xFF333842)
                     )
                 } else {
                     LinearProgressIndicator(
                         progress = { taskProgress },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(5.dp),
+                        color = Color(0xFF1BD96A),
+                        trackColor = Color(0xFF333842)
                     )
                 }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    taskProgress.takeIf { it >= 0f }?.let { progress ->
-                        Text(
-                            text = "${(progress * 100).toInt()}%",
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
                     rateBytesPerSec?.let { bytes ->
                         val text = remember(bytes) { "${formatFileSize(bytes)}/s" }
                         Text(
                             text = text,
-                            style = MaterialTheme.typography.labelMedium
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(0xFF9CA3AF)
                         )
-                    }
+                    } ?: Text(
+                        text = "Downloading...",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color(0xFF9CA3AF)
+                    )
                 }
+            }
+
+            IconButton(
+                modifier = Modifier
+                    .size(26.dp)
+                    .align(Alignment.CenterVertically),
+                onClick = onCancelClick
+            ) {
+                Icon(
+                    modifier = Modifier.size(18.dp),
+                    painter = painterResource(R.drawable.ic_close),
+                    contentDescription = stringResource(R.string.generic_cancel),
+                    tint = Color(0xFF9CA3AF)
+                )
             }
         }
     }

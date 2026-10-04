@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.ui.screens.content.elements
 
 import android.app.Activity
 import android.net.Uri
-import android.os.Build
 import android.os.Parcelable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -49,7 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -566,15 +564,11 @@ fun Background(
     val layerCapture = !backgroundMode && blur > 0 && opacity < 100 && viewModel.isValid
     val density = LocalDensity.current
 
+    //NOTE: never use live Modifier.blur() on this fullscreen layer: a per-frame GPU
+    //blur of the whole wallpaper janks every tab switch, scroll and dialog on weak
+    //GPUs. The pre-blurred static bitmap below looks identical at zero frame cost.
     Box(
         modifier = modifier
-            .then(
-                if (backgroundBlurEnabled && Build.VERSION.SDK_INT >= 31) {
-                    Modifier.blur(blur.dp)
-                } else {
-                    Modifier
-                }
-            )
             .backgroundCapture(
                 store = viewModel,
                 recordContent = layerCapture,
@@ -594,7 +588,8 @@ fun Background(
                 }
                 viewModel.isImage -> {
                     val blurred = viewModel.blurredBackground
-                    if (backgroundBlurEnabled && Build.VERSION.SDK_INT < 31 && blurred != null) {
+                    //Pre-blurred static bitmap on every SDK: identical frosted look, zero per-frame cost.
+                    if (backgroundBlurEnabled && blurred != null) {
                         Image(
                             bitmap = blurred,
                             contentDescription = null,
@@ -622,21 +617,6 @@ private fun BackgroundImage(
 ) {
     val context = LocalContext.current
 
-    val imageLoader = remember(refreshTrigger) {
-        ImageLoader.Builder(context)
-            .components { add(GifDecoder.Factory()) }
-            .build()
-    }
-    val request = remember(refreshTrigger) {
-        ImageRequest.Builder(context)
-            .data(imageFile)
-            .allowHardware(false)
-            .crossfade(false)
-            .build()
-    }
-
-    //GIF 的动画帧由绘制 → invalidateSelf → 再绘制的自续循环推进，
-    //任何一帧失效丢失都会让动画永久冻结，由帧时钟显式逐帧驱动重绘，保证循环自愈
     val isAnimatedState = remember(refreshTrigger) { mutableStateOf(false) }
     LaunchedEffect(refreshTrigger) {
         isAnimatedState.value = withContext(Dispatchers.IO) {
@@ -644,6 +624,19 @@ private fun BackgroundImage(
         }
     }
     val isAnimated = isAnimatedState.value
+
+    val imageLoader = remember(context) {
+        ImageLoader.Builder(context)
+            .components { add(GifDecoder.Factory()) }
+            .build()
+    }
+    val request = remember(refreshTrigger, isAnimated) {
+        ImageRequest.Builder(context)
+            .data(imageFile)
+            .allowHardware(!isAnimated)
+            .crossfade(false)
+            .build()
+    }
 
     val frameTick = remember { mutableIntStateOf(0) }
     if (isAnimated) {

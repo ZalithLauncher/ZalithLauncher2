@@ -20,6 +20,8 @@ package com.movtery.zalithlauncher.ui.screens.content
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -30,6 +32,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -37,6 +40,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
@@ -55,15 +61,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.context.COPY_LABEL_ACCOUNT_UUID
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
@@ -233,25 +242,14 @@ private fun AccountManageContent(
     operationUiState: AccountManageViewModel.OperationUiState,
     actions: AccountActions,
 ) {
-    Row(
-        modifier = Modifier.fillMaxSize()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 14.dp, vertical = 10.dp)
     ) {
-        ActionsLayout(
-            isVisible = isVisible,
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(all = 12.dp)
-                .weight(3f),
-            currentAccount = profileUiState.currentAccount,
-            actions = actions
-        )
-
         AccountsLayout(
             isVisible = isVisible,
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(top = 12.dp, end = 12.dp, bottom = 12.dp)
-                .weight(7f),
+            modifier = Modifier.fillMaxSize(),
             accounts = profileUiState.accounts,
             currentAccount = profileUiState.currentAccount,
             isOffline = profileUiState.isOffline,
@@ -271,7 +269,7 @@ private fun AccountManageContent(
 }
 
 /**
- * 左侧登录方式菜单组件
+ * 右侧 3D 皮肤与披风衣柜组件 (Mockup #5)
  */
 @Composable
 private fun ActionsLayout(
@@ -281,40 +279,222 @@ private fun ActionsLayout(
     actions: AccountActions
 ) {
     val xOffset by swapAnimateDpAsState(
-        targetValue = (-40).dp,
+        targetValue = 40.dp,
         swapIn = isVisible,
         isHorizontal = true
     )
 
-    Column(
+    val skinPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null && currentAccount != null) {
+            actions.onIntent(
+                AccountManageIntent.UpdateAccountSkinOp(
+                    AccountSkinOperation.ChangeSkin(currentAccount)
+                )
+            )
+            actions.onIntent(AccountManageIntent.OnSkinPicked(currentAccount, uri))
+        }
+    }
+    val capePicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null && currentAccount != null) {
+            actions.onIntent(
+                AccountManageIntent.UpdateAccountSkinOp(
+                    AccountSkinOperation.ChangeSkin(currentAccount)
+                )
+            )
+            actions.onIntent(AccountManageIntent.OnCapePicked(currentAccount, uri))
+        }
+    }
+
+    Surface(
         modifier = modifier
             .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
-            .fillMaxHeight()
+            .fillMaxHeight(),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF21242B),
+        border = BorderStroke(1.dp, Color(0xFF2E333E))
     ) {
-        //玩家模型预览
-        val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
-        SkinPreview3D(
+        Column(
             modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
-            skinFile = remember(currentAccount, refreshWardrobe) {
-                currentAccount?.getSkinFile()?.takeIf { it.exists() }
-            },
-            capeFile = remember(currentAccount, refreshWardrobe) {
-                currentAccount?.getCapeFile()?.takeIf { it.exists() }
-            },
-            modelType = currentAccount?.skinModelType
-        )
-
-        //添加账号
-        ScalingActionButton(
-            modifier = Modifier
-                .fillMaxWidth(),
-            onClick = {
-                actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
-            }
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            MarqueeText(text = stringResource(R.string.account_add_new_account))
+            // Header + Wide/Slim Toggle Pill (Mockup #6)
+            val isSlim = currentAccount?.skinModelType?.name?.contains("SLIM", ignoreCase = true) == true
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "Skin & Cape Wardrobe",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White
+                )
+
+                Surface(
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color(0xFF16181D),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    onClick = {
+                        currentAccount?.let { acc ->
+                            actions.onIntent(
+                                AccountManageIntent.UpdateAccountSkinOp(
+                                    AccountSkinOperation.ChangeSkin(acc)
+                                )
+                            )
+                        }
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (!isSlim) MiraiThemeManager.currentAccent() else Color.Transparent
+                        ) {
+                            Text(
+                                text = "Wide (4px)",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (!isSlim) Color(0xFF06210F) else Color(0xFF9CA3AF)
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = if (isSlim) MiraiThemeManager.currentAccent() else Color.Transparent
+                        ) {
+                            Text(
+                                text = "Slim (3px)",
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSlim) Color(0xFF06210F) else Color(0xFF9CA3AF)
+                            )
+                        }
+                    }
+                }
+            }
+
+            // 3D Model Stage with Grass Block Pedestal (animation = null to prevent continuous WebGL repaints)
+            val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+                color = Color(0xFF17191E),
+                border = BorderStroke(1.dp, Color(0xFF282C36))
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.img_old_grass_block),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(64.dp)
+                            .align(Alignment.BottomCenter)
+                            .offset(y = (-12).dp),
+                        alpha = 0.85f
+                    )
+                    SkinPreview3D(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = 18.dp),
+                        skinFile = remember(currentAccount, refreshWardrobe) {
+                            currentAccount?.getSkinFile()?.takeIf { it.exists() }
+                        },
+                        capeFile = remember(currentAccount, refreshWardrobe) {
+                            currentAccount?.getCapeFile()?.takeIf { it.exists() }
+                        },
+                        modelType = currentAccount?.skinModelType,
+                        animation = null
+                    )
+                }
+            }
+
+            // Bottom Wardrobe Action Buttons (Mockup #6: Change Skin + Equip Cape)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp),
+                    enabled = currentAccount != null,
+                    shape = RoundedCornerShape(19.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MiraiThemeManager.currentAccent(),
+                        contentColor = Color(0xFF06210F)
+                    ),
+                    contentPadding = PaddingValues(horizontal = 8.dp),
+                    onClick = {
+                        skinPicker.launch(arrayOf("image/png"))
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_checkroom),
+                        contentDescription = null,
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Spacer(Modifier.width(5.dp))
+                    Text(
+                        text = "Change Skin",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                }
+
+                Surface(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(38.dp),
+                    shape = RoundedCornerShape(19.dp),
+                    color = Color(0xFF181A20),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    onClick = {
+                        if (currentAccount?.isLocalAccount() == true) {
+                            capePicker.launch(arrayOf("image/png"))
+                        } else if (currentAccount != null) {
+                            actions.onIntent(
+                                AccountManageIntent.UpdateAccountSkinOp(
+                                    AccountSkinOperation.ChangeSkin(currentAccount)
+                                )
+                            )
+                        }
+                    }
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_upload),
+                            contentDescription = null,
+                            tint = Color(0xFFE5E7EB),
+                            modifier = Modifier.size(15.dp)
+                        )
+                        Spacer(Modifier.width(5.dp))
+                        Text(
+                            text = "Equip Cape",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -609,80 +789,150 @@ private fun AccountsLayout(
         actions = actions
     )
 
-    BackgroundCard(
+    Column(
         modifier = modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-        shape = MaterialTheme.shapes.extraLarge
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        if (accounts.isNotEmpty()) {
-            val scrollState = rememberLazyListState()
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nonInteractiveScrollbar(
-                        state = scrollState.scrollIndicatorState!!,
-                        orientation = Orientation.Vertical,
-                    )
-                    .clip(MaterialTheme.shapes.extraLarge),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
-                state = scrollState,
+        // Unified Single-Row Header + Quick Add Pills (Mockup #6)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Accounts",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White
+            )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                items(accounts, key = { it.uniqueUUID }) { account ->
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        AccountItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
-                            currentAccount = currentAccount,
-                            account = account,
-                            enabled = !isOffline, //非正版状态下不允许选择任何状态
-                            onSelected = { AccountsManager.setCurrentAccount(it) },
-                            openChangeSkinDialog = {
-                                if (!account.isAuthServerAccount()) {
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = MiraiThemeManager.currentAccent(),
+                    onClick = {
+                        if (!isMicrosoftLogging()) {
+                            actions.onIntent(
+                                AccountManageIntent.UpdateMicrosoftLoginOp(
+                                    MicrosoftLoginOperation.Tip
+                                )
+                            )
+                        }
+                    }
+                ) {
+                    Text(
+                        text = "+ Microsoft",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color(0xFF06210F)
+                    )
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF21242B),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    onClick = {
+                        actions.onIntent(AccountManageIntent.UpdateLocalLoginOp(LocalLoginOperation.Edit))
+                    }
+                ) {
+                    Text(
+                        text = "+ Offline",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+
+                Surface(
+                    shape = RoundedCornerShape(16.dp),
+                    color = Color(0xFF21242B),
+                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    onClick = {
+                        actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
+                    }
+                ) {
+                    Text(
+                        text = "+ Auth Server",
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+        }
+
+            if (accounts.isNotEmpty()) {
+                val scrollState = rememberLazyListState()
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .nonInteractiveScrollbar(
+                            state = scrollState.scrollIndicatorState!!,
+                            orientation = Orientation.Vertical,
+                        ),
+                    contentPadding = PaddingValues(vertical = 4.dp),
+                    state = scrollState,
+                ) {
+                    items(accounts, key = { it.uniqueUUID }) { account ->
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            AccountItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 5.dp),
+                                currentAccount = currentAccount,
+                                account = account,
+                                enabled = !isOffline,
+                                onSelected = { AccountsManager.setCurrentAccount(it) },
+                                openChangeSkinDialog = {
+                                    if (!account.isAuthServerAccount()) {
+                                        actions.onIntent(
+                                            AccountManageIntent.UpdateAccountSkinOp(
+                                                AccountSkinOperation.ChangeSkin(account)
+                                            )
+                                        )
+                                    }
+                                },
+                                onRefreshClick = {
                                     actions.onIntent(
-                                        AccountManageIntent.UpdateAccountSkinOp(
-                                            AccountSkinOperation.ChangeSkin(account)
+                                        AccountManageIntent.RefreshAccount(
+                                            account
+                                        )
+                                    )
+                                },
+                                onCopyUUID = {
+                                    copyText(COPY_LABEL_ACCOUNT_UUID, account.profileId, context, true)
+                                },
+                                onDeleteClick = {
+                                    actions.onIntent(
+                                        AccountManageIntent.UpdateAccountOp(
+                                            AccountOperation.Delete(account)
                                         )
                                     )
                                 }
-                            },
-                            onRefreshClick = {
-                                actions.onIntent(
-                                    AccountManageIntent.RefreshAccount(
-                                        account
-                                    )
-                                )
-                            },
-                            onCopyUUID = {
-                                copyText(COPY_LABEL_ACCOUNT_UUID, account.profileId, context, true)
-                            },
-                            onDeleteClick = {
-                                actions.onIntent(
-                                    AccountManageIntent.UpdateAccountOp(
-                                        AccountOperation.Delete(account)
-                                    )
-                                )
-                            }
-                        )
-
-                        if (account.isLocalAccount() &&
-                            (isOffline || account.uniqueUUID == currentAccount?.uniqueUUID)
-                        ) {
-                            LocalAccountWardrobeActions(
-                                account = account,
-                                onIntent = actions.onIntent
                             )
                         }
                     }
                 }
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    ScalingLabel(
+                        text = stringResource(R.string.account_no_account)
+                    )
+                }
             }
-        } else {
-            Box(modifier = Modifier.fillMaxSize()) {
-                ScalingLabel(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = stringResource(R.string.account_no_account)
-                )
-            }
-        }
     }
 }
 

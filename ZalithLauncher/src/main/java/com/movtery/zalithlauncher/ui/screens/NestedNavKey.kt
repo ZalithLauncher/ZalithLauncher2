@@ -54,7 +54,7 @@ sealed interface NestedNavKey {
         androidText(R.string.page_title_version_manage)
     ) {
         init {
-            backStack.addIfEmpty(NormalNavKey.Versions.OverView)
+            backStack.addIfEmpty(NormalNavKey.Versions.ModsManager)
         }
     }
     /** 导出整合包屏幕 */

@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -753,6 +754,8 @@ fun GameScreen(
                     null
                 }
 
+                val quickScope = rememberCoroutineScope()
+
                 DraggableGameBall(
                     position = AllSettings.menuBallPos.state,
                     onPositionChanged = {
@@ -767,6 +770,31 @@ fun GameScreen(
                     alpha = AllSettings.menuBallOpacity.state / 100f,
                     onClick = {
                         viewModel.switchMenu()
+                    },
+                    onTakeScreenshot = {
+                        quickScope.launch {
+                            val ev = ClickEvent(type = ClickEvent.Type.Key, key = ControlEventKeycode.GLFW_KEY_F2)
+                            viewModel.onKeyEvent(ev, true)
+                            delay(25L.milliseconds)
+                            viewModel.onKeyEvent(ev, false)
+                        }
+                    },
+                    onToggleDebugF3 = {
+                        quickScope.launch {
+                            val ev = ClickEvent(type = ClickEvent.Type.Key, key = ControlEventKeycode.GLFW_KEY_F3)
+                            viewModel.onKeyEvent(ev, true)
+                            delay(25L.milliseconds)
+                            viewModel.onKeyEvent(ev, false)
+                        }
+                    },
+                    onToggleLogOverlay = {
+                        onLogStateChange(logState.next())
+                    },
+                    onForceClose = {
+                        viewModel.forceCloseState = ForceCloseOperation.Show
+                    },
+                    onRefreshResolution = {
+                        eventViewModel.sendEvent(EventViewModel.Event.Game.RefreshSize)
                     }
                 )
             }

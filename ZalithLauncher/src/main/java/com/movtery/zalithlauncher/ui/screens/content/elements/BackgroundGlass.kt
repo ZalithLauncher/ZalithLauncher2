@@ -77,31 +77,17 @@ fun Modifier.backgroundGlass(
     blur: Int,
     color: Color,
     enabled: Boolean = true,
-): Modifier {
-    if (AllSettings.backgroundBlurType.state == BackgroundBlur.Background) return this
-    if (!enabled) return this
-    val background = LocalBackgroundViewModel.current?.takeIf { it.isValid } ?: return this
-    if (blur <= 0 || AllSettings.launcherBackgroundOpacity.state >= 100) return this
-    return this then GlassElement(blur, color, background)
-}
+): Modifier = this
 
 /**
- * 启动器背景捕获：由 Background 挂载，发布背景内容与屏幕区域供毛玻璃效果采样
- * @param recordContent 是否将内容录制到共享层（前景模糊模式）
- * @param blurRadiusPx 前景模式 GPU 预模糊半径（像素，仅 Android 12+ 生效）
- * @param whiteOverlayAlpha 白色提亮层透明度（0 表示不绘制）
+ * 启动器背景捕获：在移动端直接透传，避免全屏 GraphicsLayer 每帧重绘造成卡顿
  */
 internal fun Modifier.backgroundCapture(
     store: BackgroundViewModel,
     recordContent: Boolean,
     blurRadiusPx: Float,
     whiteOverlayAlpha: Float,
-): Modifier = this then BackgroundCaptureElement(
-    store,
-    recordContent,
-    blurRadiusPx.coerceIn(0f, MAX_GLASS_BLUR_PX),
-    whiteOverlayAlpha,
-)
+): Modifier = this
 
 internal fun whiteOverlayAlpha(blur: Int): Float {
     val t = (blur / 80f).coerceIn(0f, 1f)

@@ -1,6 +1,7 @@
 /*
  * Zalith Launcher 2
  * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2026 Mirai Launcher contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,121 +20,135 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
 import android.os.Environment
-import androidx.compose.foundation.gestures.Orientation
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.nonInteractiveScrollbar
-import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.CompositingStrategy
-import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionComparator
 import com.movtery.zalithlauncher.game.version.installed.VersionType
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.version.installed.cleanup.GameAssetCleaner
-import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.activities.MainActivity
 import com.movtery.zalithlauncher.ui.base.BaseScreen
-import com.movtery.zalithlauncher.ui.components.EdgeDirection
-import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
-import com.movtery.zalithlauncher.ui.components.ScalingLabel
-import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.CleanupOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.GamePathItemLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.GamePathOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionCategory
-import com.movtery.zalithlauncher.ui.screens.content.elements.VersionCategoryItem
-import com.movtery.zalithlauncher.ui.screens.content.elements.VersionItemLayout
+import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionsOperation
-import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
-import com.movtery.zalithlauncher.ui.theme.cardColor
-import com.movtery.zalithlauncher.ui.theme.onCardColor
+import com.movtery.zalithlauncher.ui.screens.content.home.ModrinthCompactSearchField
+import com.movtery.zalithlauncher.ui.screens.content.home.ModrinthMetaPill
+import com.movtery.zalithlauncher.ui.screens.content.home.resolveRendererShortLabel
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.canHandlePermission
 import com.movtery.zalithlauncher.utils.checkStoragePermissions
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
-import com.movtery.zalithlauncher.viewmodel.backgroundVisible
 import com.movtery.zalithlauncher.viewmodel.sendKeepScreen
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import kotlin.math.roundToInt
+
+private enum class LibraryFilterGroup(val label: String) {
+    ALL("All"),
+    MODPACKS("Modpacks"),
+    VANILLA("Vanilla"),
+    PINNED("Pinned")
+}
+
+private enum class LibrarySortMode(val label: String) {
+    LAST_PLAYED("Sort: Pinned & Active"),
+    NAME_ASC("Sort: Name (A–Z)"),
+    MC_VERSION("Sort: MC Version")
+}
 
 private class VersionsScreenViewModel : ViewModel() {
-    /** 版本类别分类 */
     var versionCategory by mutableStateOf(VersionCategory.ALL)
         private set
-    /** 重排序刷新key */
     var resortKey by mutableIntStateOf(0)
         private set
 
-    /** 游戏路径相关操作 */
     var gamePathOperation by mutableStateOf<GamePathOperation>(GamePathOperation.None)
 
-    /** 全部版本的数量 */
     var allVersionsCount by mutableIntStateOf(0)
-    /** 原版版本数量 */
     var vanillaVersionsCount by mutableIntStateOf(0)
-    /** 模组加载器版本数量 */
     var modloaderVersionsCount by mutableIntStateOf(0)
 
     fun startRefreshVersions() {
@@ -145,9 +160,6 @@ private class VersionsScreenViewModel : ViewModel() {
     private var currentJob: Job? = null
     private var mutex: Mutex = Mutex()
 
-    /**
-     * 变更当前版本列表的过滤类型
-     */
     fun changeCategory(category: VersionCategory) {
         currentJob?.cancel()
         currentJob = viewModelScope.launch {
@@ -157,17 +169,11 @@ private class VersionsScreenViewModel : ViewModel() {
         }
     }
 
-    /**
-     * 重新排序当前版本列表
-     */
     fun resortVersions() {
         resortKey++
     }
 
-    /** 清理游戏文件操作 */
     var cleanupOperation by mutableStateOf<CleanupOperation>(CleanupOperation.None)
-
-    /** 游戏无用资源清理者 */
     var cleaner by mutableStateOf<GameAssetCleaner?>(null)
 
     fun cleanUnusedFiles(
@@ -207,7 +213,7 @@ private class VersionsScreenViewModel : ViewModel() {
 }
 
 @Composable
-private fun rememberVersionViewModel() : VersionsScreenViewModel {
+private fun rememberVersionViewModel(): VersionsScreenViewModel {
     return viewModel(
         key = NormalNavKey.VersionsManager.toString()
     ) {
@@ -257,6 +263,7 @@ fun VersionsManageScreen(
     val versions by rememberVersions(VersionsManager.versions, viewModel)
     val currentVersion by VersionsManager.currentVersion.collectAsStateWithLifecycle()
     val isRefreshing by VersionsManager.isRefreshing.collectAsStateWithLifecycle()
+    var showGamePathDrawer by rememberSaveable { mutableStateOf(false) }
 
     GamePathOperation(
         gamePathOperation = viewModel.gamePathOperation,
@@ -268,36 +275,48 @@ fun VersionsManageScreen(
         screenKey = NormalNavKey.VersionsManager,
         currentKey = backScreenViewModel.mainScreen.currentKey
     ) { isVisible ->
-        Row {
-            LeftMenu(
-                isVisible = isVisible,
-                isRefreshing = isRefreshing,
-                swapToFileSelector = { path ->
-                    backScreenViewModel.mainScreen.backStack.navigateToFileSelector(
-                        startPath = path,
-                        selectFile = false,
-                        saveKey = NormalNavKey.VersionsManager
-                    ) { path ->
-                        viewModel.gamePathOperation = GamePathOperation.AddNewPath(path)
-                    }
-                },
-                onCleanupGameFiles = {
-                    if (viewModel.cleanupOperation == CleanupOperation.None) {
-                        viewModel.cleanupOperation = CleanupOperation.Tip
-                    }
-                },
-                changePathOperation = {
-                    viewModel.gamePathOperation = it
-                },
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(2.5f)
-            )
+        Row(modifier = Modifier.fillMaxSize()) {
+            AnimatedVisibility(
+                visible = showGamePathDrawer,
+                enter = expandVertically() + fadeIn(),
+                exit = shrinkVertically() + fadeOut()
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(240.dp),
+                    color = Color(0xFF17191F),
+                    border = BorderStroke(1.dp, Color(0xFF282C36))
+                ) {
+                    LeftMenu(
+                        isVisible = isVisible,
+                        isRefreshing = isRefreshing,
+                        swapToFileSelector = { path ->
+                            backScreenViewModel.mainScreen.backStack.navigateToFileSelector(
+                                startPath = path,
+                                selectFile = false,
+                                saveKey = NormalNavKey.VersionsManager
+                            ) { selectedPath ->
+                                viewModel.gamePathOperation = GamePathOperation.AddNewPath(selectedPath)
+                            }
+                        },
+                        onCleanupGameFiles = {
+                            if (viewModel.cleanupOperation == CleanupOperation.None) {
+                                viewModel.cleanupOperation = CleanupOperation.Tip
+                            }
+                        },
+                        changePathOperation = {
+                            viewModel.gamePathOperation = it
+                        },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+            }
 
             VersionsLayout(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .weight(7.5f),
+                    .weight(1f),
                 isVisible = isVisible,
                 isRefreshing = isRefreshing,
                 versions = versions,
@@ -307,8 +326,14 @@ fun VersionsManageScreen(
                 allVersionsCount = viewModel.allVersionsCount,
                 vanillaVersionsCount = viewModel.vanillaVersionsCount,
                 modloaderVersionsCount = viewModel.modloaderVersionsCount,
+                showGamePathDrawer = showGamePathDrawer,
+                onToggleGamePathDrawer = { showGamePathDrawer = !showGamePathDrawer },
                 navigateToVersions = navigateToVersions,
                 navigateToExport = navigateToExport,
+                onLaunchVersion = { version ->
+                    VersionsManager.saveVersion(version)
+                    eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(version))
+                },
                 submitError = submitError,
                 onRefresh = {
                     viewModel.startRefreshVersions()
@@ -373,6 +398,7 @@ private fun LeftMenu(
                 .weight(1f),
             contentPadding = PaddingValues(
                 start = 12.dp,
+                end = 12.dp,
                 top = 12.dp,
                 bottom = 12.dp
             )
@@ -383,7 +409,7 @@ private fun LeftMenu(
                     selected = currentPath == pathItem.path,
                     enabled = canHandlePermission,
                     onClick = {
-                        if (!isRefreshing) { //避免频繁刷新，防止currentGameInfo意外重置
+                        if (!isRefreshing) {
                             if (pathItem.id == GamePathManager.DEFAULT_ID) {
                                 GamePathManager.saveDefaultPath()
                             } else {
@@ -412,7 +438,7 @@ private fun LeftMenu(
 
         ScalingActionButton(
             modifier = Modifier
-                .padding(start = 12.dp)
+                .padding(horizontal = 12.dp)
                 .padding(top = 8.dp)
                 .fillMaxWidth(),
             onClick = {
@@ -434,7 +460,7 @@ private fun LeftMenu(
 
         ScalingActionButton(
             modifier = Modifier
-                .padding(start = 12.dp, top = 8.dp, bottom = 12.dp)
+                .padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 12.dp)
                 .fillMaxWidth(),
             onClick = onCleanupGameFiles
         ) {
@@ -443,7 +469,7 @@ private fun LeftMenu(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalLayoutApi::class)
 @Composable
 private fun VersionsLayout(
     modifier: Modifier = Modifier,
@@ -456,8 +482,11 @@ private fun VersionsLayout(
     allVersionsCount: Int,
     vanillaVersionsCount: Int,
     modloaderVersionsCount: Int,
+    showGamePathDrawer: Boolean,
+    onToggleGamePathDrawer: () -> Unit,
     navigateToVersions: (Version) -> Unit,
     navigateToExport: (Version) -> Unit,
+    onLaunchVersion: (Version) -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
     onRefresh: () -> Unit,
     onVersionPinned: () -> Unit,
@@ -468,10 +497,51 @@ private fun VersionsLayout(
         swapIn = isVisible
     )
 
+    var searchQuery by rememberSaveable { mutableStateOf("") }
+    var selectedFilter by rememberSaveable { mutableStateOf(LibraryFilterGroup.ALL) }
+    var sortMode by rememberSaveable { mutableStateOf(LibrarySortMode.LAST_PLAYED) }
+    var showSortMenu by remember { mutableStateOf(false) }
+
+    LaunchedEffect(selectedFilter) {
+        when (selectedFilter) {
+            LibraryFilterGroup.MODPACKS -> if (versionCategory != VersionCategory.MODLOADER) onCategoryChange(VersionCategory.MODLOADER)
+            LibraryFilterGroup.VANILLA -> if (versionCategory != VersionCategory.VANILLA) onCategoryChange(VersionCategory.VANILLA)
+            else -> if (versionCategory != VersionCategory.ALL) onCategoryChange(VersionCategory.ALL)
+        }
+    }
+
+    val displayedVersions = remember(versions, currentVersion, searchQuery, selectedFilter, sortMode) {
+        val q = searchQuery.trim().lowercase()
+        val filtered = versions.filter { version ->
+            val info = version.getVersionInfo()
+            val mcVer = info?.minecraftVersion.orEmpty()
+            val loader = info?.loaderInfo?.loader?.displayName.orEmpty()
+
+            val matchesFilter = when (selectedFilter) {
+                LibraryFilterGroup.ALL -> true
+                LibraryFilterGroup.MODPACKS -> info?.loaderInfo != null
+                LibraryFilterGroup.VANILLA -> info?.loaderInfo == null
+                LibraryFilterGroup.PINNED -> version.pinnedState
+            }
+            val matchesQuery = q.isEmpty() ||
+                version.getVersionName().lowercase().contains(q) ||
+                version.getVersionSummary().lowercase().contains(q) ||
+                mcVer.lowercase().contains(q) ||
+                loader.lowercase().contains(q)
+            matchesFilter && matchesQuery
+        }
+
+        when (sortMode) {
+            LibrarySortMode.LAST_PLAYED -> filtered
+            LibrarySortMode.NAME_ASC -> filtered.sortedBy { it.getVersionName().lowercase() }
+            LibrarySortMode.MC_VERSION -> filtered.sortedByDescending { it.getVersionInfo()?.minecraftVersion.orEmpty() }
+        }
+    }
+
     Box(
         modifier = modifier.offset { IntOffset(x = 0, y = surfaceYOffset.roundToPx()) }
     ) {
-        if (isRefreshing) { //版本正在刷新中
+        if (isRefreshing) {
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -486,186 +556,227 @@ private fun VersionsLayout(
                 submitError = submitError
             )
 
-            // 操作栏滚动吸附
-            val density = LocalDensity.current
-            val topAppBarState = rememberTopAppBarState()
-            val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState)
-            val headerTopPaddingPx = with(density) { 12.dp.toPx() }
-            var headerHeightPx by remember { mutableIntStateOf(0) }
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val columns = if (maxWidth >= 440.dp) 2 else 1
 
-            // 操作栏阴影跟随滚动线性过渡
-            val listState = rememberLazyListState()
-            val listScrolledFraction = remember(listState, headerTopPaddingPx) {
-                derivedStateOf {
-                    if (listState.firstVisibleItemIndex > 0) 1f
-                    else {
-                        val rampPx = headerTopPaddingPx + (listState.layoutInfo.visibleItemsInfo.firstOrNull()?.size ?: 0)
-                        (listState.firstVisibleItemScrollOffset / rampPx.coerceAtLeast(1f)).coerceIn(0f, 1f)
-                    }
-                }
-            }
-            val barShownFraction = remember(topAppBarState) {
-                derivedStateOf { 1f - topAppBarState.collapsedFraction }
-            }
-            val actionBarShadowElevation = if (backgroundVisible()) {
-                0.dp // 背景可见时不使用阴影，因为卡片会半透明化
-            } else {
-                5.dp * barShownFraction.value * listScrolledFraction.value
-            }
-
-            val listTopFadePx = (headerHeightPx + headerTopPaddingPx + 80f) *
-                    listScrolledFraction.value *
-                    barShownFraction.value
-
-            Box(modifier = Modifier.fillMaxSize()) {
-                if (versions.isNotEmpty()) {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .nestedScroll(scrollBehavior.nestedScrollConnection)
-                            .nonInteractiveScrollbar(
-                                state = listState.scrollIndicatorState!!,
-                                orientation = Orientation.Vertical,
-                            )
-                            .clipToBounds()
-                            .topFade(listTopFadePx),
-                        contentPadding = PaddingValues(
-                            start = 12.dp,
-                            top = with(density) {
-                                (headerHeightPx + topAppBarState.heightOffset).coerceAtLeast(0f).toDp()
-                            },
-                            end = 12.dp,
-                            bottom = 12.dp
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
-                        state = listState,
-                    ) {
-                        items(versions, key = { it.toString() }) { version ->
-                            VersionItemLayout(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .animateItem(),
-                                version = version,
-                                selected = version == currentVersion,
-                                submitError = submitError,
-                                onSelected = {
-                                    if (version == currentVersion) return@VersionItemLayout
-                                    if (!VersionsManager.saveVersion(version)) {
-                                        //不允许选择无效版本
-                                        versionsOperation = VersionsOperation.InvalidDelete(version)
-                                    }
-                                },
-                                onSettingsClick = {
-                                    navigateToVersions(version)
-                                },
-                                onRenameClick = { versionsOperation = VersionsOperation.Rename(version) },
-                                onCopyClick = { versionsOperation = VersionsOperation.Copy(version) },
-                                onExportClick = { navigateToExport(version) },
-                                onDeleteClick = { versionsOperation = VersionsOperation.Delete(version) },
-                                onPinned = onVersionPinned
-                            )
-                        }
-                    }
-                } else {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        ScalingLabel(
-                            modifier = Modifier.align(Alignment.Center),
-                            text = stringResource(R.string.versions_manage_no_versions)
-                        )
-                    }
-                }
-
-                Box(
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .zIndex(1f)
-                        .onSizeChanged {
-                            headerHeightPx = it.height
-                            topAppBarState.heightOffsetLimit = -it.height.toFloat()
-                        }
-                        .offset { IntOffset(x = 0, y = topAppBarState.heightOffset.roundToInt()) }
+                        .fillMaxSize()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
+                    // Top Mobile Library Toolbar (Mockup #2: Search + Sort Icon + New Instance CTA)
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(IntrinsicSize.Min)
-                            .padding(all = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        val blur = AllSettings.backgroundBlur.state
-                        val cardColor = cardColor()
+                        ModrinthCompactSearchField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = "Search instances...",
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Box {
+                            Surface(
+                                modifier = Modifier.size(36.dp),
+                                shape = RoundedCornerShape(10.dp),
+                                color = Color(0xFF21242B),
+                                border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                                onClick = { showSortMenu = true }
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_sort),
+                                        contentDescription = "Sort",
+                                        tint = Color(0xFFD1D5DB),
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                            DropdownMenu(
+                                expanded = showSortMenu,
+                                onDismissRequest = { showSortMenu = false }
+                            ) {
+                                LibrarySortMode.entries.forEach { mode ->
+                                    DropdownMenuItem(
+                                        text = { Text(mode.label) },
+                                        onClick = {
+                                            sortMode = mode
+                                            showSortMenu = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
 
                         Surface(
-                            modifier = Modifier.height(IntrinsicSize.Max),
-                            color = cardColor,
-                            contentColor = onCardColor(),
-                            shape = MaterialTheme.shapes.large,
-                            shadowElevation = actionBarShadowElevation,
+                            modifier = Modifier.size(36.dp),
+                            shape = RoundedCornerShape(10.dp),
+                            color = if (showGamePathDrawer) Color(0xFF143825) else Color(0xFF21242B),
+                            border = BorderStroke(
+                                1.dp,
+                                if (showGamePathDrawer) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                            ),
+                            onClick = onToggleGamePathDrawer
                         ) {
-                            Row(
-                                modifier = Modifier
-                                    .backgroundGlass(blur, cardColor)
-                                    .padding(all = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                IconTextButton(
-                                    onClick = onRefresh,
-                                    painter = painterResource(R.drawable.ic_refresh),
-                                    contentDescription = stringResource(R.string.generic_refresh),
-                                    text = stringResource(R.string.generic_refresh)
-                                )
-                                IconTextButton(
-                                    onClick = onInstall,
-                                    painter = painterResource(R.drawable.ic_download),
-                                    contentDescription = stringResource(R.string.versions_manage_install_new),
-                                    text = stringResource(R.string.versions_manage_install_new),
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_folder_outlined),
+                                    contentDescription = "Directories",
+                                    tint = if (showGamePathDrawer) MiraiThemeManager.currentAccent() else Color(0xFFD1D5DB),
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
 
-                        // 版本分类
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f, fill = false)
-                                .height(IntrinsicSize.Max),
-                            color = cardColor,
-                            contentColor = onCardColor(),
-                            shape = MaterialTheme.shapes.large,
-                            shadowElevation = actionBarShadowElevation,
+                        Button(
+                            onClick = onInstall,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MiraiThemeManager.currentAccent(),
+                                contentColor = Color(0xFF06210F)
+                            ),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
+                            modifier = Modifier.height(36.dp)
                         ) {
-                            val scrollState = rememberScrollState()
-                            Row(
-                                modifier = Modifier
-                                    .backgroundGlass(blur, cardColor)
-                                    .fadeEdge(
-                                        state = scrollState,
-                                        length = 32.dp,
-                                        direction = EdgeDirection.Horizontal
-                                    )
-                                    .horizontalScroll(state = scrollState)
-                                    .padding(all = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
+                            Icon(
+                                painter = painterResource(R.drawable.ic_add),
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(Modifier.width(4.dp))
+                            Text(
+                                text = "New Instance",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    }
+
+                    // Compact Filter Pills Row (Mockup #2: All, Modpacks, Vanilla, 1.17+ LTW, Legacy)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        LibraryFilterGroup.entries.forEach { group ->
+                            val selected = selectedFilter == group
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF21242B),
+                                border = BorderStroke(
+                                    1.dp,
+                                    if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                                ),
+                                onClick = { selectedFilter = group }
                             ) {
-                                VersionCategoryItem(
-                                    value = VersionCategory.ALL,
-                                    versionsCount = allVersionsCount,
-                                    selected = versionCategory == VersionCategory.ALL,
-                                    onClick = { onCategoryChange(VersionCategory.ALL) }
+                                Text(
+                                    text = group.label,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
+                                    color = if (selected) Color(0xFF06210F) else Color(0xFFD1D5DB)
                                 )
-                                VersionCategoryItem(
-                                    value = VersionCategory.VANILLA,
-                                    versionsCount = vanillaVersionsCount,
-                                    selected = versionCategory == VersionCategory.VANILLA,
-                                    onClick = { onCategoryChange(VersionCategory.VANILLA) }
-                                )
-                                VersionCategoryItem(
-                                    value = VersionCategory.MODLOADER,
-                                    versionsCount = modloaderVersionsCount,
-                                    selected = versionCategory == VersionCategory.MODLOADER,
-                                    onClick = { onCategoryChange(VersionCategory.MODLOADER) }
-                                )
+                            }
+                        }
+                    }
+
+                    // 3-Column Modrinth Instance Cards Grid
+                    if (displayedVersions.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(16.dp),
+                                color = Color(0xFF21242B),
+                                border = BorderStroke(1.dp, Color(0xFF2E323C))
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(24.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.versions_manage_no_versions),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                    Button(
+                                        onClick = onInstall,
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = MiraiThemeManager.currentAccent(),
+                                            contentColor = Color(0xFF06210F)
+                                        )
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_add),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                        Spacer(Modifier.width(6.dp))
+                                        Text(
+                                            text = "Create First Instance",
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        val rows = displayedVersions.chunked(columns)
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = PaddingValues(bottom = 14.dp)
+                        ) {
+                            items(
+                                count = rows.size,
+                                key = { idx -> rows[idx].joinToString("_") { it.toString() } }
+                            ) { idx ->
+                                val rowItems = rows[idx]
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    rowItems.forEach { version ->
+                                        ModrinthLibraryInstanceCard(
+                                            version = version,
+                                            selected = version == currentVersion,
+                                            onSelect = {
+                                                if (version != currentVersion) {
+                                                    if (!VersionsManager.saveVersion(version)) {
+                                                        versionsOperation = VersionsOperation.InvalidDelete(version)
+                                                    }
+                                                }
+                                            },
+                                            onPlayClick = { onLaunchVersion(version) },
+                                            onSettingsClick = { navigateToVersions(version) },
+                                            onPinToggle = {
+                                                runCatching {
+                                                    version.setPinnedAndSave(!version.pinnedState)
+                                                }.onSuccess {
+                                                    onVersionPinned()
+                                                }
+                                            },
+                                            onRenameClick = { versionsOperation = VersionsOperation.Rename(version) },
+                                            onCopyClick = { versionsOperation = VersionsOperation.Copy(version) },
+                                            onExportClick = { navigateToExport(version) },
+                                            onDeleteClick = { versionsOperation = VersionsOperation.Delete(version) },
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                    repeat((columns - rowItems.size).coerceAtLeast(0)) {
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                }
                             }
                         }
                     }
@@ -675,23 +786,260 @@ private fun VersionsLayout(
     }
 }
 
-/**
- * 在组件顶部绘制指定像素高度的线性渐隐
- */
-private fun Modifier.topFade(heightPx: Float): Modifier = this
-    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-    .drawWithContent {
-        drawContent()
-        if (heightPx <= 0f) return@drawWithContent
-        inset(
-            left = 0f,
-            top = 0f,
-            right = 0f,
-            bottom = (size.height - heightPx).coerceAtLeast(0f)
+@Composable
+private fun ModrinthLibraryInstanceCard(
+    version: Version,
+    selected: Boolean,
+    onSelect: () -> Unit,
+    onPlayClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    onPinToggle: () -> Unit,
+    onRenameClick: () -> Unit,
+    onCopyClick: () -> Unit,
+    onExportClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "libCardScale"
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E323C),
+        animationSpec = tween(220),
+        label = "libCardBorder"
+    )
+
+    val info = version.getVersionInfo()
+    val mcVer = info?.minecraftVersion ?: "Unknown"
+    val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    Surface(
+        modifier = modifier.graphicsLayer {
+            scaleX = scale
+            scaleY = scale
+        },
+        shape = RoundedCornerShape(14.dp),
+        color = Color(0xFF21242B),
+        border = BorderStroke(if (selected) 1.5.dp else 1.dp, borderColor),
+        onClick = onSelect
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            drawRect(
-                brush = Brush.verticalGradient(0f to Color.Black, 1f to Color.Transparent),
-                blendMode = BlendMode.DstOut
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = Color(0xFF2B2F3A),
+                    border = BorderStroke(1.dp, Color(0xFF343946))
+                ) {
+                    VersionIconImage(
+                        version = version,
+                        modifier = Modifier
+                            .padding(5.dp)
+                            .size(36.dp)
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    Text(
+                        text = version.getVersionName(),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = Color.White,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        ModrinthMetaPill(
+                            text = "$loaderName $mcVer",
+                            backgroundColor = Color(0xFF2C303C),
+                            textColor = Color(0xFFE5E7EB)
+                        )
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Left: Overflow Options Gear Button (Mockup #2)
+                Box {
+                    Surface(
+                        shape = RoundedCornerShape(9.dp),
+                        color = Color(0xFF282C36),
+                        border = BorderStroke(1.dp, Color(0xFF343946)),
+                        contentColor = Color(0xFFD1D5DB),
+                        onClick = { menuExpanded = true }
+                    ) {
+                        Box(
+                            modifier = Modifier.size(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_more_horiz),
+                                contentDescription = stringResource(R.string.generic_more),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.versions_manage_pin)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(
+                                        if (version.pinnedState) R.drawable.ic_pinned_filled else R.drawable.ic_pinned_outlined
+                                    ),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onPinToggle()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.generic_rename)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_edit_filled),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onRenameClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.generic_copy)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_file_copy_filled),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onCopyClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.versions_export)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_folder_zip_filled),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onExportClick()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = {
+                                Text(
+                                    text = stringResource(R.string.generic_delete),
+                                    color = Color(0xFFF87171)
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_delete_filled),
+                                    contentDescription = null,
+                                    tint = Color(0xFFF87171),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onDeleteClick()
+                            }
+                        )
+                    }
+                }
+
+                // Right: Settings Gear + Emerald '▶ Play' Pill Button (Mockup #2)
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(9.dp),
+                        color = Color(0xFF282C36),
+                        border = BorderStroke(1.dp, Color(0xFF343946)),
+                        contentColor = Color(0xFFD1D5DB),
+                        onClick = onSettingsClick
+                    ) {
+                        Box(
+                            modifier = Modifier.size(32.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_settings_filled),
+                                contentDescription = stringResource(R.string.versions_manage_settings),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = MiraiThemeManager.currentAccent(),
+                        contentColor = Color(0xFF06210F),
+                        onClick = onPlayClick
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .height(32.dp)
+                                .padding(horizontal = 14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_play_arrow_filled),
+                                contentDescription = stringResource(R.string.main_launch_game),
+                                modifier = Modifier.size(15.dp)
+                            )
+                            Text(
+                                text = "Play",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.ExtraBold
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
+}

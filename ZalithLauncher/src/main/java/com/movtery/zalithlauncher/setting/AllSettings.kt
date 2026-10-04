@@ -8,6 +8,8 @@ import com.materialkolor.PaletteStyle
 import com.movtery.layer_controller.utils.snap.SnapMode
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
+import com.movtery.zalithlauncher.game.optimization.FpsBoostPreset
+import com.movtery.zalithlauncher.game.optimization.GcTuningPreset
 import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.setting.enums.ActionMenuSide
@@ -108,6 +110,9 @@ object AllSettings : SettingsRegistry() {
     val launcherLogRetentionDays = intSetting("launcherLogRetentionDays", 7, 1..14)
     val gameDownloadSource = enumSetting("gameDownloadSource", MirrorSourceType.AUTO, MirrorSourceType.LEGACY_NAMES)
     val assetPlatformSource = enumSetting("assetPlatformSource", MirrorSourceType.AUTO, MirrorSourceType.LEGACY_NAMES)
+    //Optional user-supplied CurseForge API key. Fork builds ship no key, so without
+    //this the official CurseForge source is unusable (403) and only the mirror is used.
+    val curseForgeApiKey = stringSetting("curseForgeApiKey", "")
     val controlLayout = stringSetting("controlLayout", "")
     val currentAccount = stringSetting("currentAccount", "")
     val currentGamePathId = stringSetting("currentGamePathId", GamePathManager.DEFAULT_ID)
@@ -140,4 +145,12 @@ object AllSettings : SettingsRegistry() {
     val searchShadersPlatform = enumSetting("searchShadersPlatform", Platform.CURSEFORGE)
     val miraiQuietMode = boolSetting("miraiQuietMode", false)
     val miraiVulkanFailCount = intSetting("miraiVulkanFailCount", 0)
+    // 1-Tap FPS Booster + JRE/GC Auto-Tuner persist their last selection here so
+    // reopening the dialogs restores the previous choice instead of resetting.
+    val fpsBoostPreset = stringSetting("fpsBoostPreset", FpsBoostPreset.BALANCED_MOBILE.name)
+    val fpsBoostTuneOptions = boolSetting("fpsBoostTuneOptions", true)
+    val fpsBoostInstallMods = boolSetting("fpsBoostInstallMods", true)
+    val jvmGcPreset = stringSetting("jvmGcPreset", GcTuningPreset.MOBILE_LOW_PAUSE_G1GC.name)
+    val jvmGcAutoMatchJre = boolSetting("jvmGcAutoMatchJre", true)
+    val jvmGcApplyOptimalRam = boolSetting("jvmGcApplyOptimalRam", true)
 }

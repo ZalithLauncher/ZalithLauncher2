@@ -120,8 +120,6 @@ fun AssetInfoScreen(
                             }
                         },
                         nestedNavKeyClass = NestedNavKey.AssetInfo::class.java,
-                        versionsUIWeight = 7f,
-                        projectUIWeight = 3f,
                     )
                 }
             }

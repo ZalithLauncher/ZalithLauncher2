@@ -55,6 +55,8 @@ import com.movtery.zalithlauncher.game.account.yggdrasil.PlayerProfile
 import com.movtery.zalithlauncher.path.PathManager
 import java.io.File
 import java.io.InputStream
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 
 @SuppressLint("SetJavaScriptEnabled")
 class PlayerSkin(
@@ -251,6 +253,8 @@ fun SkinPreview3D(
     val context = LocalContext.current
     val playerSkin = remember { PlayerSkin(context) }
     var pageFinished by remember { mutableStateOf(false) }
+    //Coalesces rapid camera updates: only the newest angle survives until the paced reader takes it.
+    val cameraAngles = remember { Channel<Pair<Int, Int>>(Channel.CONFLATED) }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -277,10 +281,23 @@ fun SkinPreview3D(
             }
         )
 
-        LaunchedEffect(pageFinished, animation, azimuth, pitch) {
+        LaunchedEffect(pageFinished, animation) {
             if (!pageFinished) return@LaunchedEffect
             if (animation != null) playerSkin.startAnim(animation)
-            playerSkin.setAzimuthAndPitch(azimuth, pitch)
+        }
+        //Cheap observer: every drag tick only offers the newest angle to the channel.
+        LaunchedEffect(pageFinished, azimuth, pitch) {
+            if (!pageFinished) return@LaunchedEffect
+            cameraAngles.trySend(azimuth to pitch)
+        }
+        //Paced reader: camera JS calls are capped at ~60fps and always carry the
+        //latest angle, so fast drags and flings stay smooth instead of queueing up.
+        LaunchedEffect(pageFinished) {
+            if (!pageFinished) return@LaunchedEffect
+            for ((azimuthDeg, pitchDeg) in cameraAngles) {
+                playerSkin.setAzimuthAndPitch(azimuthDeg, pitchDeg)
+                delay(16)
+            }
         }
         LaunchedEffect(pageFinished, interactionEnabled) {
             if (!pageFinished) return@LaunchedEffect

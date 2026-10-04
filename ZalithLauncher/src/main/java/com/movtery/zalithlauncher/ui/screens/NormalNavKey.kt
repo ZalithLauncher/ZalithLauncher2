@@ -66,6 +66,9 @@ sealed interface NormalNavKey : TitledNavKey {
         @Serializable data object AboutInfo : Settings {
             @Contextual override val title: AndroidStringText = androidText(R.string.settings_tab_info_about)
         }
+        @Serializable data object Wallpapers : Settings {
+            @Contextual override val title: AndroidStringText = androidText(R.string.settings_tab_launcher)
+        }
     }
     sealed interface Versions : NormalNavKey {
         @Serializable data object OverView : Versions {

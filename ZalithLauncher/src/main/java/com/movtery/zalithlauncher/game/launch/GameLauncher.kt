@@ -38,6 +38,7 @@ import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.download.game.parseLibraryComponents
 import com.movtery.zalithlauncher.game.multirt.Runtime
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
+import com.movtery.zalithlauncher.game.optimization.JvmGcAutoTuner
 import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
@@ -45,7 +46,10 @@ import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWLegacyRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.VGPU1368Renderer
+import com.movtery.zalithlauncher.game.renderer.renderers.VGPURenderer
 import com.movtery.zalithlauncher.game.support.touch_controller.ControllerProxy
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
@@ -218,7 +222,13 @@ class GameLauncher(
     }
 
     override fun progressFinalUserArgs(args: MutableList<String>, ramAllocation: Int) {
-        super.progressFinalUserArgs(args, version.getRamAllocation(activity))
+        val allocMb = version.getRamAllocation(activity)
+        super.progressFinalUserArgs(args, allocMb)
+        JvmGcAutoTuner.sanitizeAndInjectGcArgs(
+            args = args,
+            javaMajor = runtime.javaVersion,
+            ramAllocationMb = allocMb
+        )
         if (Renderers.isCurrentRendererValid()) {
             args.add("-Dorg.lwjgl.opengl.libname=${getRendererLibrary()}")
         }
@@ -235,6 +245,8 @@ class GameLauncher(
         val gameDirPath = version.getGameDir()
 
         disableSplash(gameDirPath)
+        configureVgpuAndLegacyCompatibility(gameDirPath)
+        writeMobileGluesConfig()
 
         //初始化运行环境
         this.runtime = runtime
@@ -320,6 +332,9 @@ class GameLauncher(
         val pickedRuntime = RuntimesManager.loadRuntime(runtime)
 
         if (AllSettings.autoPickJavaRuntime.getValue()) {
+            JvmGcAutoTuner.resolveOptimalRuntimeForLaunch(version, gameManifest)?.let { optimalRuntime ->
+                return optimalRuntime
+            }
             val loaderInfo = version.getVersionInfo()?.loaderInfo
             //开启了自动选择，根据游戏需求的版本做选择
             val targetJavaVersion = when (loaderInfo?.loader) {
@@ -373,6 +388,189 @@ class GameLauncher(
             }
         }
     }
+
+    /**
+     * Ensures 1.16.5 + Fabric/Forge + Sodium-family mods (Sodium, Embedium, Rubidium)
+     * and OptiFine/Iris shaderpacks run smoothly without errors on EVERY renderer:
+     * 1. Patches `use_chunk_multidraw = false` (plus the safe `chunk_renderer_backend`)
+     *    in the installed mods' options files (`sodium-options.json`,
+     *    `embedium-options.json`, `rubidium-options.json`) so the chunk renderer uses
+     *    the Oneshot backend instead of calling `glMultiDrawArraysIndirect(GL_QUADS)` —
+     *    the call that crashes instantly after joining a world on renderers without
+     *    full multidraw support. Applied for all renderers: it only affects the game
+     *    when a Sodium-family mod is actually installed.
+     * 2. Disables OptiFine `ofFastRender` / `ofAaLevel` in `optionsof.txt` if present so FBO
+     *    shaderpacks render cleanly (legacy GLES renderers only).
+     * 3. Downgrades `graphicsMode:2` (Fabulous) to `graphicsMode:1` (Fancy) in `options.txt` if
+     *    present so vanilla Fabulous depth-layer FBOs do not conflict with VGPU/shaders
+     *    (legacy GLES renderers only).
+     */
+    private fun configureVgpuAndLegacyCompatibility(dir: File) {
+        //Sodium-family patch first and always: it is renderer-independent and only
+        //touches families that are installed (or left a config behind).
+        runCatching {
+            patchSodiumFamilyOptions(dir)
+        }.onFailure {
+            Logger.warning(TAG, "Failed to apply Sodium compatibility configuration", it)
+        }
+
+        if (!Renderers.isCurrentRendererValid()) return
+        val renderer = Renderers.getCurrentRenderer()
+        val isVgpuOrLegacyGles = renderer == VGPURenderer ||
+            renderer == VGPU1368Renderer ||
+            renderer == LTWLegacyRenderer ||
+            renderer == GL4ESRenderer ||
+            renderer == NGGL4ESRenderer
+        if (!isVgpuOrLegacyGles) return
+
+
+        runCatching {
+            val optionsOfFile = File(dir, "optionsof.txt")
+            if (optionsOfFile.exists() && optionsOfFile.isFile) {
+                val ofText = optionsOfFile.readText()
+                val updatedOfText = ofText
+                    .replace("ofFastRender:true", "ofFastRender:false")
+                    .replace(Regex("ofAaLevel:[1-9]\\d*"), "ofAaLevel:0")
+                if (updatedOfText != ofText) {
+                    optionsOfFile.writeText(updatedOfText)
+                }
+            }
+
+            val optionsFile = File(dir, "options.txt")
+            if (optionsFile.exists() && optionsFile.isFile) {
+                val text = optionsFile.readText()
+                if (text.contains("graphicsMode:2")) {
+                    optionsFile.writeText(text.replace("graphicsMode:2", "graphicsMode:1"))
+                }
+            }
+        }.onFailure {
+            Logger.warning(TAG, "Failed to apply VGPU/Sodium compatibility configuration", it)
+        }
+    }
+
+    /**
+     * Patches every installed Sodium-family mod (Sodium, Embedium, Rubidium) so its
+     * chunk renderer uses the crash-free Oneshot backend on ALL renderers. Only families
+     * that are installed (or left a config behind) are touched.
+     */
+    private fun patchSodiumFamilyOptions(dir: File) {
+        val configDir = File(dir, "config")
+        if (!configDir.ensureDirectorySilently()) return
+        //Scanning mods/ avoids writing junk configs for mods the player never had.
+        val modJars = runCatching {
+            File(dir, "mods").listFiles()?.map { it.name.lowercase() }.orEmpty()
+        }.getOrDefault(emptyList())
+        val targets = listOf(
+            "sodium-options.json" to "sodium",
+            "embedium-options.json" to "embedium",
+            "rubidium-options.json" to "rubidium"
+        ).filter { (configName, fragment) ->
+            modJars.any { fragment in it } || File(configDir, configName).exists()
+        }
+        if (targets.isEmpty()) return
+        targets.forEach { (configName, _) ->
+            val optionsFile = File(configDir, configName)
+            if (optionsFile.exists() && optionsFile.isFile) {
+                patchExistingSodiumOptions(optionsFile)
+            } else {
+                writeSafeSodiumOptions(optionsFile)
+            }
+        }
+    }
+
+    /**
+     * Forces the crash-free chunk backend in an existing Sodium-family options file.
+     */
+    private fun patchExistingSodiumOptions(optionsFile: File) {
+        var content = optionsFile.readText()
+        var modified = false
+        if (content.contains(Regex("\"use_chunk_multidraw\"\\s*:\\s*true"))) {
+            content = content.replace(
+                Regex("\"use_chunk_multidraw\"\\s*:\\s*true"),
+                "\"use_chunk_multidraw\": false"
+            )
+            modified = true
+        } else if (!content.contains(Regex("\"use_chunk_multidraw\"\\s*:"))) {
+            //Key missing entirely: inject the safe value into the "advanced" block
+            //when there is one, otherwise Sodium falls back to multidraw and crashes
+            //right after joining the world on weaker renderers.
+            val advancedBlock = Regex("\"advanced\"\\s*:\\s*\\{")
+            if (advancedBlock.containsMatchIn(content)) {
+                content = advancedBlock.replaceFirst(
+                    content,
+                    "$0\n    \"use_chunk_multidraw\": false,"
+                )
+                modified = true
+            }
+        }
+        if (content.contains(Regex("\"chunk_renderer_backend\"\\s*:\\s*\"GL43\""))) {
+            content = content.replace(
+                Regex("\"chunk_renderer_backend\"\\s*:\\s*\"GL43\""),
+                "\"chunk_renderer_backend\": \"GL30\""
+            )
+            modified = true
+        }
+        if (modified) {
+            optionsFile.writeText(content)
+        }
+    }
+
+    /**
+     * Writes a fresh crash-free Sodium-family options file (first run, no config yet).
+     */
+    private fun writeSafeSodiumOptions(optionsFile: File) {
+        optionsFile.writeText(
+            """
+            {
+              "quality": {
+                "cloud_quality": "FAST",
+                "weather_quality": "DEFAULT",
+                "enable_vignette": false,
+                "enable_clouds": true,
+                "smooth_lighting": "HIGH"
+              },
+              "advanced": {
+                "use_vertex_array_objects": true,
+                "use_chunk_multidraw": false,
+                "chunk_renderer_backend": "GL30",
+                "animate_only_visible_textures": true,
+                "use_entity_culling": true,
+                "use_particle_culling": true,
+                "use_fog_occlusion": true,
+                "use_compact_vertex_format": true,
+                "use_block_face_culling": true,
+                "allow_direct_memory_access": true,
+                "ignore_driver_blacklist": false
+              },
+              "notifications": {
+                "hide_donation_button": true
+              }
+            }
+            """.trimIndent() + "\n"
+        )
+    }
+
+    /**
+     * Writes the MobileGlues MG-ES config.json when MobileGlues is the active renderer.
+     * MG reads <MG_DIR_PATH>/config.json at startup; writing it explicitly pins the
+     * tested performance profile: error checking off (fastest path), everything else
+     * at upstream defaults (no ANGLE, no FSR, stock multidraw and extension set).
+     */
+    private fun writeMobileGluesConfig() {
+        if (!Renderers.isCurrentRendererValid()) return
+        if (Renderers.getCurrentRenderer() != MobileGluesRenderer) return
+        runCatching {
+            val mgDir = File(PathManager.DIR_FILES_PRIVATE, "MobileGlues")
+            if (!mgDir.exists() && !mgDir.mkdirs()) return
+            File(mgDir, "config.json").writeText(
+                """
+                {"enableANGLE":0,"enableNoError":1,"fsr1Setting":0,"enableExtComputeShader":0,"angleDepthClearFixMode":0,"enableExtTimerQuery":0,"enableExtDirectStateAccess":0,"multidrawMode":0,"maxGlslCacheSize":128}
+                """.trimIndent() + "\n"
+            )
+        }.onFailure {
+            Logger.warning(TAG, "Failed to write MobileGlues config.json", it)
+        }
+    }
 }
 
 private fun checkAndUsedJSPH(envMap: MutableMap<String, String>, runtime: Runtime) {
@@ -418,11 +616,13 @@ private fun setRendererEnv(envMap: MutableMap<String, String>) {
 
     if (RendererPluginManager.selectedRendererPlugin != null) return
 
-    // LTW and LTW Legacy are self-contained GLES-backed wrappers that bring their own GL
-    // implementation. Forcing the Zink/Mesa path here would load a second GL implementation
-    // beside libltw/libltwlegacy and the game would render through the wrong one.
+    // LTW, LTW Legacy, VGPU and MobileGlues are self-contained GLES-backed wrappers that
+    // bring their own GL implementation. Forcing the Zink/Mesa path here would load a second
+    // GL implementation beside them and the game would render through the wrong one.
     if (renderer != GL4ESRenderer && renderer != NGGL4ESRenderer &&
-        renderer != LTWRenderer && renderer != LTWLegacyRenderer) {
+        renderer != LTWRenderer && renderer != LTWLegacyRenderer &&
+        renderer != VGPURenderer && renderer != VGPU1368Renderer &&
+        renderer != MobileGluesRenderer) {
         envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
         envMap["MESA_GLSL_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
         envMap["MESA_GL_VERSION_OVERRIDE"] = "4.6"

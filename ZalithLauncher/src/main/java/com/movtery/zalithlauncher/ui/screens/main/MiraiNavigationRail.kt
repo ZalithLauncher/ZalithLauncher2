@@ -19,49 +19,60 @@
 
 package com.movtery.zalithlauncher.ui.screens.main
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 
 /** Primary destinations kept visible while nested launcher screens are open. */
 enum class LauncherSection {
     HOME,
-    DISCOVER,
     LIBRARY,
+    DISCOVER,
+    WALLPAPERS,
     MULTIPLAYER,
-    SETTINGS
+    SETTINGS,
+    ACCOUNTS
 }
+
+private val ModrinthRailBg = Color(0xFF121418)
+private val ModrinthRailDivider = Color(0xFF222630)
 
 @Composable
 fun MiraiNavigationRail(
@@ -72,157 +83,180 @@ fun MiraiNavigationRail(
     modifier: Modifier = Modifier
 ) {
     val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
-    val quiet = AllSettings.miraiQuietMode.state
+    val scrollState = rememberScrollState()
+    val activeAccent = MiraiThemeManager.currentAccent()
 
-    Surface(
-        modifier = modifier
-            .width(68.dp)
-            .fillMaxHeight(),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        contentColor = MaterialTheme.colorScheme.onSurface
-    ) {
-        Column(
+    Row(modifier = modifier.fillMaxHeight()) {
+        Surface(
             modifier = Modifier
-                .fillMaxHeight()
-                .padding(horizontal = 8.dp, vertical = 10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .width(56.dp)
+                .fillMaxHeight(),
+            color = ModrinthRailBg.copy(alpha = 0.94f),
+            contentColor = Color.White
         ) {
-            Box(
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .height(40.dp)
-                    .combinedClickable(
-                        onClick = {},
-                        onLongClick = { AllSettings.miraiQuietMode.save(!quiet) }
-                    ),
-                contentAlignment = Alignment.Center
+                    .fillMaxHeight()
+                    .verticalScroll(scrollState)
+                    .padding(vertical = 10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_mirai_mark),
-                    contentDescription = stringResource(R.string.launcher_brand_name),
-                    tint = androidx.compose.ui.graphics.Color.Unspecified,
-                    modifier = Modifier.size(32.dp)
+                // Mirai 'M' Logo Button
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(11.dp))
+                        .clickable(role = Role.Button) { onNavigate(LauncherSection.HOME) }
+                        .semantics { contentDescription = "Mirai Home" },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_mirai_mark),
+                        contentDescription = "Mirai",
+                        tint = activeAccent,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+
+                Spacer(Modifier.height(2.dp))
+
+                RailIconItem(
+                    iconRes = R.drawable.ic_home_filled,
+                    label = "Home",
+                    selected = selectedSection == LauncherSection.HOME,
+                    accentColor = activeAccent,
+                    onClick = { onNavigate(LauncherSection.HOME) }
+                )
+
+                RailIconItem(
+                    iconRes = R.drawable.ic_dashboard_filled,
+                    label = "Library",
+                    selected = selectedSection == LauncherSection.LIBRARY,
+                    accentColor = activeAccent,
+                    onClick = { onNavigate(LauncherSection.LIBRARY) }
+                )
+
+                RailIconItem(
+                    iconRes = R.drawable.ic_public,
+                    label = "Discover",
+                    selected = selectedSection == LauncherSection.DISCOVER,
+                    accentColor = activeAccent,
+                    onClick = { onNavigate(LauncherSection.DISCOVER) }
+                )
+
+                RailIconItem(
+                    iconRes = R.drawable.ic_format_paint_outlined,
+                    label = "Wallpapers",
+                    selected = selectedSection == LauncherSection.WALLPAPERS,
+                    accentColor = activeAccent,
+                    onClick = { onNavigate(LauncherSection.WALLPAPERS) }
+                )
+
+                HorizontalDivider(
+                    modifier = Modifier
+                        .width(28.dp)
+                        .padding(vertical = 2.dp),
+                    color = ModrinthRailDivider
+                )
+
+                RailIconItem(
+                    iconRes = R.drawable.ic_settings_filled,
+                    label = "Settings",
+                    selected = selectedSection == LauncherSection.SETTINGS,
+                    accentColor = activeAccent,
+                    onClick = { onNavigate(LauncherSection.SETTINGS) }
                 )
             }
-
-            Spacer(Modifier.height(10.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
-            Spacer(Modifier.height(8.dp))
-
-            LauncherSectionItem(
-                icon = R.drawable.ic_home_filled,
-                label = stringResource(R.string.generic_main_menu),
-                selected = selectedSection == LauncherSection.HOME,
-                onClick = { onNavigate(LauncherSection.HOME) }
-            )
-            if (!quiet) LauncherSectionItem(
-                icon = R.drawable.ic_search,
-                label = stringResource(R.string.generic_download),
-                selected = selectedSection == LauncherSection.DISCOVER,
-                onClick = { onNavigate(LauncherSection.DISCOVER) }
-            )
-            if (!quiet) LauncherSectionItem(
-                icon = R.drawable.ic_dashboard_filled,
-                label = stringResource(R.string.page_title_version_list),
-                selected = selectedSection == LauncherSection.LIBRARY,
-                onClick = { onNavigate(LauncherSection.LIBRARY) }
-            )
-            if (!quiet) LauncherSectionItem(
-                icon = R.drawable.ic_group_filled,
-                label = stringResource(R.string.terracotta),
-                selected = selectedSection == LauncherSection.MULTIPLAYER,
-                onClick = { onNavigate(LauncherSection.MULTIPLAYER) }
-            )
-
-            Spacer(Modifier.weight(1f))
-
-            if (!quiet) LauncherSectionItem(
-                icon = R.drawable.ic_settings_filled,
-                label = stringResource(R.string.generic_setting),
-                selected = selectedSection == LauncherSection.SETTINGS,
-                onClick = { onNavigate(LauncherSection.SETTINGS) }
-            )
-
-            Spacer(Modifier.height(6.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f))
-            Spacer(Modifier.height(6.dp))
-            if (!quiet) AccountShortcut(account = account, onClick = onAccountClick)
         }
+
+        // Subtle 1dp vertical border separating rail from screen content
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .background(ModrinthRailDivider)
+        )
     }
 }
 
 @Composable
-private fun LauncherSectionItem(
-    icon: Int,
+private fun RailIconItem(
+    iconRes: Int,
     label: String,
     selected: Boolean,
-    highlighted: Boolean = false,
+    accentColor: Color,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(13.dp)
-    val backgroundColor = when {
-        selected -> MaterialTheme.colorScheme.primary
-        highlighted -> MaterialTheme.colorScheme.primaryContainer
-        else -> MaterialTheme.colorScheme.surfaceContainerLow
-    }
-    val iconColor = when {
-        selected -> MaterialTheme.colorScheme.onPrimary
-        highlighted -> MaterialTheme.colorScheme.onPrimaryContainer
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
-    }
+    val containerColor by animateColorAsState(
+        targetValue = if (selected) accentColor.copy(alpha = 0.18f) else Color.Transparent,
+        animationSpec = tween(140),
+        label = "railContainerColor"
+    )
+    val iconTint by animateColorAsState(
+        targetValue = if (selected) accentColor else Color(0xFF9CA3AF),
+        animationSpec = tween(140),
+        label = "railIconTint"
+    )
 
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 3.dp)
-            .height(42.dp)
-            .clip(shape)
-            .background(backgroundColor)
-            .clickable(role = Role.Button, onClick = onClick)
+            .size(width = 42.dp, height = 38.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(containerColor)
+            .then(
+                if (selected) {
+                    Modifier.border(
+                        BorderStroke(1.5.dp, accentColor.copy(alpha = 0.75f)),
+                        RoundedCornerShape(12.dp)
+                    )
+                } else Modifier
+            )
+            .clickable(role = Role.Tab, onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            tint = iconColor,
+            painter = painterResource(iconRes),
+            contentDescription = label,
+            tint = iconTint,
             modifier = Modifier.size(21.dp)
         )
     }
 }
 
 @Composable
-private fun AccountShortcut(
+private fun AccountAvatarRailButton(
     account: Account?,
+    selected: Boolean,
     onClick: () -> Unit
 ) {
-    val description = account?.username ?: stringResource(R.string.account_add_new_account)
+    val activeAccent = MiraiThemeManager.currentAccent()
+    val ringColor by animateColorAsState(
+        targetValue = if (selected) activeAccent else Color(0xFF2D323E),
+        animationSpec = tween(150),
+        label = "accountAvatarRing"
+    )
+
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .height(44.dp)
-            .clip(RoundedCornerShape(13.dp))
+            .size(36.dp)
+            .clip(CircleShape)
+            .background(Color(0xFF1E222B))
+            .border(
+                width = if (selected) 2.dp else 1.dp,
+                color = ringColor,
+                shape = CircleShape
+            )
             .clickable(role = Role.Button, onClick = onClick)
-            .semantics { contentDescription = description },
+            .semantics { contentDescription = account?.username ?: "Accounts" },
         contentAlignment = Alignment.Center
     ) {
-        if (account != null) {
-            PlayerFace(account = account, avatarSize = 34.dp)
-        } else {
-            Box(
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(MaterialTheme.colorScheme.surfaceContainerHigh),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_person_outlined),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(19.dp)
-                )
-            }
-        }
+        PlayerFace(
+            modifier = Modifier
+                .size(30.dp)
+                .clip(CircleShape),
+            account = account
+        )
     }
 }

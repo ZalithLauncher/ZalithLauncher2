@@ -25,6 +25,8 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -33,6 +35,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -74,11 +77,14 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.download.assets.favorites.FavoriteProjectsRepository
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
@@ -163,28 +169,28 @@ fun ResultListLayout(
                 ResultList(
                     modifier = Modifier.fillMaxSize(),
                     state = listState,
-                    contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 60.dp, bottom = 6.dp),
+                    contentPadding = PaddingValues(top = 4.dp, bottom = 58.dp),
                     classes = classes,
                     data = page.data,
                     swapToDownload = swapToDownload,
                     installedInfo = installedInfo
                 )
 
+                //Apply the collapse fraction directly: it is already continuous with
+                //scroll, so spring-chasing it only added lag and extra recompositions.
                 val targetScale = 1f - (1f - controllerMinScale) * fraction
-                val animatedScale by animateFloatAsState(targetScale)
                 val targetAlpha = 1f - (1f - controllerMinAlpha) * fraction
-                val animatedAlpha by animateFloatAsState(targetAlpha)
 
                 Row(
                     modifier = Modifier
                         .height(controllerHeight)
-                        .align(Alignment.TopEnd)
-                        .padding(top = 12.dp, end = 6.dp)
-                        .alpha(animatedAlpha)
+                        .align(Alignment.BottomEnd)
+                        .padding(bottom = 8.dp, end = 6.dp)
+                        .alpha(targetAlpha)
                         .graphicsLayer {
-                            scaleX = animatedScale
-                            scaleY = animatedScale
-                            transformOrigin = TransformOrigin(1f, 0f)
+                            scaleX = targetScale
+                            scaleY = targetScale
+                            transformOrigin = TransformOrigin(1f, 1f)
                         }
                 ) {
                     PageController(
@@ -369,44 +375,61 @@ private fun ResultList(
     installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null
 ) {
     val context = LocalContext.current
+    val rows = remember(data) { data.chunked(2) }
+
     LazyColumn(
         modifier = modifier,
         state = state,
-        contentPadding = contentPadding
+        contentPadding = contentPadding,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        items(data) { (item, mcmod) ->
-            val platform = remember(item) { item.platform() }
-            val title = remember(item) { item.platformTitle() }
-            val description = remember(item) { item.platformDescription() }
-            val iconUrl = remember(item) { item.platformIconUrl() }
-            val author = remember(item) { item.platformAuthor() }
-            val downloads = remember(item) { item.platformDownloadCount() }
-            val modloaders = remember(item) { item.platformModLoaders() }
-            val categories = remember(item, classes) { item.platformCategories(classes) }
-            val isInstalled = installedInfo?.invoke(platform, item.platformId()) != null
-            val isFavorite = FavoriteProjectsRepository.isFavorite(platform, item.platformId())
+        items(
+            count = rows.size,
+            key = { idx -> rows[idx].joinToString("_") { it.first.platformId() } }
+        ) { idx ->
+            val rowItems = rows[idx]
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                rowItems.forEach { (item, mcmod) ->
+                    val platform = remember(item) { item.platform() }
+                    val title = remember(item) { item.platformTitle() }
+                    val description = remember(item) { item.platformDescription() }
+                    val iconUrl = remember(item) { item.platformIconUrl() }
+                    val author = remember(item) { item.platformAuthor() }
+                    val downloads = remember(item) { item.platformDownloadCount() }
+                    val modloaders = remember(item) { item.platformModLoaders() }
+                    val categories = remember(item, classes) {
+                        item.platformCategories(classes)?.sortedWith { o1, o2 -> o1.index() - o2.index() }
+                    }
+                    val isInstalled = installedInfo?.invoke(platform, item.platformId()) != null
+                    val isFavorite = FavoriteProjectsRepository.isFavorite(platform, item.platformId())
 
-            ResultProjectLayout(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp),
-                platform = platform,
-                title = mcmod.getMcmodTitle(title, context),
-                description = description,
-                iconUrl = iconUrl,
-                author = author,
-                downloads = downloads,
-                modloaders = modloaders,
-                categories = categories?.sortedWith { o1, o2 -> o1.index() - o2.index() },
-                isInstalled = isInstalled,
-                isFavorite = isFavorite,
-                onFavoriteClick = {
-                    FavoriteProjectsRepository.toggle(item, classes)
-                },
-                onClick = {
-                    swapToDownload(platform, item.platformId(), iconUrl)
+                    ResultProjectLayout(
+                        modifier = Modifier.weight(1f),
+                        platform = platform,
+                        title = mcmod.getMcmodTitle(title, context),
+                        description = description,
+                        iconUrl = iconUrl,
+                        author = author,
+                        downloads = downloads,
+                        modloaders = modloaders,
+                        categories = categories,
+                        isInstalled = isInstalled,
+                        isFavorite = isFavorite,
+                        onFavoriteClick = {
+                            FavoriteProjectsRepository.toggle(item, classes)
+                        },
+                        onClick = {
+                            swapToDownload(platform, item.platformId(), iconUrl)
+                        }
+                    )
                 }
-            )
+                if (rowItems.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
         }
     }
 }
@@ -426,127 +449,140 @@ fun ResultProjectLayout(
     isInstalled: Boolean = false,
     isFavorite: Boolean = false,
     onFavoriteClick: (() -> Unit)? = null,
-    shape: Shape = MaterialTheme.shapes.large,
+    shape: Shape = RoundedCornerShape(14.dp),
     influencedByBackground: Boolean = true,
-    color: Color = cardColor(influencedByBackground),
-    contentColor: Color = onCardColor(),
+    color: Color = Color(0xFF21242B),
+    contentColor: Color = Color.White,
     blur: Int = AllSettings.backgroundBlur.state,
     onClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
-
-    val scale = remember { Animatable(initialValue = 0.95f) }
-    LaunchedEffect(Unit) {
-        scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
+    val primaryBadgeText = remember(modloaders, platform) {
+        val loaderLabels = modloaders?.take(2)?.joinToString(" • ") { it.getDisplayName() }
+        if (!loaderLabels.isNullOrBlank()) {
+            loaderLabels
+        } else {
+            platform.displayName
+        }
     }
 
     Surface(
-        modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
-        shape = shape,
-        color = color,
-        contentColor = contentColor,
+        modifier = modifier,
+        shape = RoundedCornerShape(14.dp),
+        color = Color(0xFF21242B),
+        contentColor = Color.White,
+        border = BorderStroke(1.dp, Color(0xFF2E333E)),
         onClick = onClick
     ) {
-        Row(
+        Column(
             modifier = Modifier
-                .backgroundGlass(blur, color, influencedByBackground)
-                .padding(all = 8.dp)
-                .height(IntrinsicSize.Min),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxWidth()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            AssetsIcon(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(10.dp))
-                    .align(Alignment.CenterVertically),
-                size = 72.dp,
-                iconUrl = iconUrl
-            )
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+            // Top Row: 40dp Icon + Bold Title + Download Count Pill (Mockup #4)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                ProjectTitleHead(
-                    platform = platform,
-                    title = title,
-                    author = author
+                AssetsIcon(
+                    modifier = Modifier.clip(RoundedCornerShape(10.dp)),
+                    size = 40.dp,
+                    iconUrl = iconUrl
                 )
 
-                Row(
+                Text(
                     modifier = Modifier.weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    //描述
-                    Text(
-                        modifier = Modifier.weight(1f),
-                        text = description,
-                        style = MaterialTheme.typography.bodySmall,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    text = title,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color.White,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
 
-                    //下载量
+                // Download Count Pill ("↓ 48.2M")
+                val downloadsText = remember(downloads) { formatNumberByLocale(context, downloads) }
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFF2C303C)
+                ) {
                     Row(
-                        modifier = Modifier.alpha(0.7f),
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
                     ) {
                         Icon(
-                            modifier = Modifier.size(16.dp),
+                            modifier = Modifier.size(12.dp),
                             painter = painterResource(R.drawable.ic_download_2_outlined),
-                            contentDescription = null
+                            contentDescription = null,
+                            tint = Color(0xFFD1D5DB)
                         )
                         Text(
-                            text = formatNumberByLocale(context, downloads),
-                            style = MaterialTheme.typography.labelSmall
+                            text = downloadsText,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFFE5E7EB)
                         )
                     }
                 }
+            }
+
+            // Middle: 2-line Summary Description (Mockup #4)
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = description,
+                fontSize = 12.sp,
+                color = Color(0xFF9CA3AF),
+                maxLines = 2,
+                minLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            // Bottom Row: Loader/Platform Pill on left + Emerald 'Install' Button on right (Mockup #4)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFF2C303C)
+                ) {
+                    Text(
+                        text = primaryBadgeText,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFFE5E7EB),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    //标签栏
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .basicMarquee(Int.MAX_VALUE)
-                            .alpha(0.7f),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        modloaders?.let {
-                            it.forEach { modloader ->
-                                Text(
-                                    text = modloader.getDisplayName(),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-                        }
-                        categories?.let {
-                            it.forEach { category ->
-                                Text(
-                                    text = stringResource(category.getDisplayName()),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-                        }
-                    }
-
-                    //资源的类别
-                    if (classes != null) {
-                        ClassesIdentifier(classes = classes)
-                    }
-
-                    if (isInstalled) {
-                        InstalledModBadge()
-                    }
-
                     onFavoriteClick?.let { onFavorite ->
                         FavoriteToggleLabel(
                             isFavorite = isFavorite,
                             onClick = onFavorite
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(16.dp),
+                        color = if (isInstalled) Color(0xFF143825) else MiraiThemeManager.currentAccent(),
+                        contentColor = if (isInstalled) MiraiThemeManager.currentAccent() else Color(0xFF06210F),
+                        onClick = onClick
+                    ) {
+                        Text(
+                            text = if (isInstalled) "Installed" else "Install",
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 5.dp),
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.ExtraBold
                         )
                     }
                 }

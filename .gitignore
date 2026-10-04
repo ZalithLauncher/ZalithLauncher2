@@ -31,3 +31,6 @@ LWJGL/*/build/
 .ampersand/
 
 .vscode/
+docs/mockups/
+docs/mockups_mobile/
+

@@ -1,6 +1,7 @@
 /*
  * Zalith Launcher 2
  * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2026 Mirai Launcher contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,27 +20,38 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
 import android.content.Context
-import androidx.compose.foundation.basicMarquee
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -51,9 +63,15 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -72,6 +90,9 @@ import com.movtery.zalithlauncher.game.download.game.GameInstaller
 import com.movtery.zalithlauncher.game.download.game.optifine.CantFetchingOptiFineUrlException
 import com.movtery.zalithlauncher.game.download.jvm_server.JvmCrashException
 import com.movtery.zalithlauncher.game.download.jvm_server.isProcessStartRefused
+import com.movtery.zalithlauncher.game.optimization.JvmGcAutoTunerDialog
+import com.movtery.zalithlauncher.game.optimization.MobileFpsBoosterDialog
+import com.movtery.zalithlauncher.game.optimization.ModDependencyResolverDialog
 import com.movtery.zalithlauncher.game.version.download.DownloadFailedException
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
@@ -85,9 +106,10 @@ import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
-import com.movtery.zalithlauncher.ui.screens.content.elements.CategoryIcon
-import com.movtery.zalithlauncher.ui.screens.content.elements.CategoryItem
 import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialog
+import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
+import com.movtery.zalithlauncher.ui.screens.content.home.ModrinthMetaPill
+import com.movtery.zalithlauncher.ui.screens.content.home.resolveRendererShortLabel
 import com.movtery.zalithlauncher.ui.screens.content.versions.AddonDiffs
 import com.movtery.zalithlauncher.ui.screens.content.versions.ModsManagerScreen
 import com.movtery.zalithlauncher.ui.screens.content.versions.ResourcePackManageScreen
@@ -101,6 +123,7 @@ import com.movtery.zalithlauncher.ui.screens.content.versions.VersionOverViewScr
 import com.movtery.zalithlauncher.ui.screens.navigateOnce
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -120,25 +143,16 @@ import java.util.concurrent.TimeoutException
 
 private const val TAG = "VersionSettings"
 
-/** 更新加载器状态操作 */
 private sealed interface UpdateLoaderOperation {
     data object None: UpdateLoaderOperation
-    /** 提醒加载器的变更情况 */
     data class Tip(val diffs: AddonDiffs, val info: GameDownloadInfo): UpdateLoaderOperation
-    /** 警告通知权限，可以无视，并直接开始安装 */
     data class WarningForNotification(val diffs: AddonDiffs, val info: GameDownloadInfo): UpdateLoaderOperation
-    /** 开始安装 */
     data object Install: UpdateLoaderOperation
-    /** 安装过程中出现异常 */
     data class Error(val th: Throwable): UpdateLoaderOperation
 }
 
 private class UpdateLoaderViewModel: ViewModel() {
     var installOperation by mutableStateOf<UpdateLoaderOperation>(UpdateLoaderOperation.None)
-
-    /**
-     * 游戏安装器
-     */
     var installer by mutableStateOf<GameInstaller?>(null)
 
     fun install(
@@ -196,6 +210,12 @@ private fun rememberUpdateLoaderViewModel(
     }
 }
 
+private data class ModrinthSubTabItem(
+    val key: TitledNavKey,
+    val label: String,
+    val iconRes: Int
+)
+
 @Composable
 fun VersionSettingsScreen(
     key: NestedNavKey.VersionSettings,
@@ -237,22 +257,53 @@ fun VersionSettingsScreen(
         screenKey = key,
         currentKey = backScreenViewModel.mainScreen.currentKey
     ) { isVisible ->
-        Row(modifier = Modifier.fillMaxSize()) {
-            val loaderInfo = remember(key) {
-                key.version.getVersionInfo()?.loaderInfo
-            }
+        val yOffset by swapAnimateDpAsState(
+            targetValue = (-30).dp,
+            swapIn = isVisible
+        )
+        val loaderInfo = remember(key) {
+            key.version.getVersionInfo()?.loaderInfo
+        }
+        val canUpdateLoader = loaderInfo == null || loaderInfo.loader.autoDownloadable
+        val isUpdateLoader = loaderInfo != null && loaderInfo.loader.autoDownloadable
 
-            TabMenu(
-                isVisible = isVisible,
-                backStack = key.backStack,
-                versionsScreenKey = key.currentKey,
-                canUpdateLoader = loaderInfo == null || loaderInfo.loader.autoDownloadable,
-                isUpdateLoader = loaderInfo != null && loaderInfo.loader.autoDownloadable,
-                modifier = Modifier.fillMaxHeight()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // 1. Compact Mobile Instance Header Row (Mockup #3)
+            ModrinthInstanceHeroBanner(
+                version = key.version,
+                onBack = backToMainScreen,
+                onPlay = {
+                    VersionsManager.saveVersion(key.version)
+                    eventViewModel.sendEvent(EventViewModel.Event.Launch.Game(key.version))
+                },
+                onOpenFolder = {
+                    eventViewModel.sendEvent(
+                        EventViewModel.Event.OpenFileManager(
+                            rootPath = key.version.getGameDir().absolutePath
+                        )
+                    )
+                }
             )
 
+            // 2. Horizontal Pill Tabs (Mockup #3: Mods, Resource Packs, Shaders, Worlds, Settings)
+            ModrinthInstanceSubTabs(
+                backStack = key.backStack,
+                versionsScreenKey = key.currentKey,
+                canUpdateLoader = canUpdateLoader,
+                isUpdateLoader = isUpdateLoader
+            )
+
+            // 3. Sub-Screen Content Area
             NavigationUI(
-                modifier = Modifier.fillMaxHeight(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
                 key = key,
                 viewModel = viewModel,
                 backScreenViewModel = backScreenViewModel,
@@ -270,97 +321,287 @@ fun VersionSettingsScreen(
     }
 }
 
-private val settingItems = listOf(
-    CategoryItem(NormalNavKey.Versions.OverView, { CategoryIcon(R.drawable.ic_dashboard_outlined, R.string.versions_settings_overview) }, R.string.versions_settings_overview),
-    CategoryItem(NormalNavKey.Versions.Config, { CategoryIcon(R.drawable.ic_build_outlined, R.string.versions_settings_config) }, R.string.versions_settings_config),
-    CategoryItem(NormalNavKey.Versions.UpdateLoader, { CategoryIcon(R.drawable.ic_update, R.string.versions_update_loader) }, R.string.versions_update_loader),
-    CategoryItem(NormalNavKey.Versions.ModsManager, { CategoryIcon(R.drawable.ic_extension_outlined, R.string.mods_manage) }, R.string.mods_manage, division = true),
-    CategoryItem(NormalNavKey.Versions.SavesManager, { CategoryIcon(R.drawable.ic_public, R.string.saves_manage) }, R.string.saves_manage),
-    CategoryItem(NormalNavKey.Versions.ResourcePackManager, { CategoryIcon(R.drawable.ic_format_paint_outlined, R.string.resource_pack_manage) }, R.string.resource_pack_manage),
-    CategoryItem(NormalNavKey.Versions.ShadersManager, { CategoryIcon(R.drawable.ic_lightbulb, R.string.shader_pack_manage) }, R.string.shader_pack_manage),
-    CategoryItem(NormalNavKey.Versions.ScreenshotsManager, { CategoryIcon(R.drawable.ic_photo_library_outlined, R.string.screenshots_manage) }, R.string.screenshots_manage),
-    CategoryItem(NormalNavKey.Versions.ServerList, { CategoryIcon(R.drawable.ic_dns_outlined, R.string.servers_list) }, R.string.servers_list, division = true),
-)
+@Composable
+private fun ModrinthInstanceHeroBanner(
+    version: Version,
+    onBack: () -> Unit,
+    onPlay: () -> Unit,
+    onOpenFolder: () -> Unit
+) {
+    val context = LocalContext.current
+    val activeAccent = MiraiThemeManager.currentAccent()
+    val info = version.getVersionInfo()
+    val mcVer = info?.minecraftVersion ?: "Unknown"
+    val loaderName = info?.loaderInfo?.loader?.displayName ?: "Vanilla"
+    val ramMb = remember(version) { version.getRamAllocation(context) }
+    var showFpsBooster by remember { mutableStateOf(false) }
+    var showJreGcTuner by remember { mutableStateOf(false) }
+    var showModResolver by remember { mutableStateOf(false) }
+
+    if (showFpsBooster) {
+        MobileFpsBoosterDialog(
+            version = version,
+            onDismiss = { showFpsBooster = false }
+        )
+    }
+
+    if (showJreGcTuner) {
+        JvmGcAutoTunerDialog(
+            version = version,
+            onDismiss = { showJreGcTuner = false }
+        )
+    }
+
+    if (showModResolver) {
+        ModDependencyResolverDialog(
+            version = version,
+            onDismiss = { showModResolver = false }
+        )
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Back Arrow Button
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = Color(0xFF21242B),
+            border = BorderStroke(1.dp, Color(0xFF2E333E)),
+            contentColor = Color.White,
+            onClick = onBack
+        ) {
+            Box(
+                modifier = Modifier.size(34.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_back),
+                    contentDescription = stringResource(R.string.generic_back),
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+
+        // Instance Icon
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = Color(0xFF21242B),
+            border = BorderStroke(1.dp, Color(0xFF2E333E))
+        ) {
+            VersionIconImage(
+                version = version,
+                modifier = Modifier
+                    .padding(5.dp)
+                    .size(28.dp)
+            )
+        }
+
+        // Title + Inline Subtitle
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(1.dp)
+        ) {
+            Text(
+                text = version.getVersionName(),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color.White,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = "$loaderName $mcVer • $ramMb MB",
+                style = MaterialTheme.typography.labelSmall,
+                color = Color(0xFF9CA3AF),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        // Smart Mod Dependency & Conflict Resolver Button (Feature #2)
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = Color(0xFF21242B),
+            border = BorderStroke(1.dp, Color(0xFF2E333E)),
+            onClick = { showModResolver = true }
+        ) {
+            Row(
+                modifier = Modifier
+                    .height(34.dp)
+                    .padding(horizontal = 9.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "🛡️ Mod Check",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFE5E7EB)
+                )
+            }
+        }
+
+        // JRE Auto-Tuner & GC Optimizer Button (Feature #17)
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = Color(0xFF21242B),
+            border = BorderStroke(1.dp, Color(0xFF2E333E)),
+            onClick = { showJreGcTuner = true }
+        ) {
+            Row(
+                modifier = Modifier
+                    .height(34.dp)
+                    .padding(horizontal = 9.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "☕ JRE & GC",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFFE5E7EB)
+                )
+            }
+        }
+
+        // 1-Tap Mobile FPS Booster Button
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = activeAccent.copy(alpha = 0.16f),
+            border = BorderStroke(1.dp, activeAccent.copy(alpha = 0.7f)),
+            onClick = { showFpsBooster = true }
+        ) {
+            Row(
+                modifier = Modifier
+                    .height(34.dp)
+                    .padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "⚡ Boost FPS",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = activeAccent
+                )
+            }
+        }
+
+        // Open Folder Button
+        Surface(
+            shape = RoundedCornerShape(10.dp),
+            color = Color(0xFF21242B),
+            border = BorderStroke(1.dp, Color(0xFF2E333E)),
+            contentColor = Color(0xFFE5E7EB),
+            onClick = onOpenFolder
+        ) {
+            Box(
+                modifier = Modifier.size(34.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_folder_outlined),
+                    contentDescription = "Folder",
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        }
+
+        // Dynamic Accent '▶ Play' Button
+        Button(
+            onClick = onPlay,
+            shape = RoundedCornerShape(10.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = activeAccent,
+                contentColor = Color(0xFF06210F)
+            ),
+            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+            modifier = Modifier.height(34.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_play_arrow_filled),
+                contentDescription = stringResource(R.string.main_launch_game),
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = "Play",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.ExtraBold
+            )
+        }
+    }
+}
 
 @Composable
-private fun TabMenu(
-    isVisible: Boolean,
+private fun ModrinthInstanceSubTabs(
     backStack: NavBackStack<TitledNavKey>,
     versionsScreenKey: TitledNavKey?,
     canUpdateLoader: Boolean,
-    isUpdateLoader: Boolean,
-    modifier: Modifier = Modifier
+    isUpdateLoader: Boolean
 ) {
-    val xOffset by swapAnimateDpAsState(
-        targetValue = (-40).dp,
-        swapIn = isVisible,
-        isHorizontal = true
-    )
+    val activeAccent = MiraiThemeManager.currentAccent()
+    val tabs = remember(canUpdateLoader, isUpdateLoader) {
+        buildList {
+            add(ModrinthSubTabItem(NormalNavKey.Versions.ModsManager, "Mods", R.drawable.ic_extension_outlined))
+            add(ModrinthSubTabItem(NormalNavKey.Versions.ResourcePackManager, "Resource Packs", R.drawable.ic_format_paint_outlined))
+            add(ModrinthSubTabItem(NormalNavKey.Versions.ShadersManager, "Shaders", R.drawable.ic_lightbulb))
+            add(ModrinthSubTabItem(NormalNavKey.Versions.SavesManager, "Worlds", R.drawable.ic_public))
+            add(ModrinthSubTabItem(NormalNavKey.Versions.ScreenshotsManager, "Screenshots", R.drawable.ic_image_outlined))
+            add(ModrinthSubTabItem(NormalNavKey.Versions.Config, "Settings", R.drawable.ic_build_outlined))
+            add(ModrinthSubTabItem(NormalNavKey.Versions.OverView, "Overview", R.drawable.ic_dashboard_outlined))
+            if (canUpdateLoader) {
+                add(ModrinthSubTabItem(NormalNavKey.Versions.UpdateLoader, if (isUpdateLoader) "Update Loader" else "Install Loader", R.drawable.ic_update))
+            }
+        }
+    }
 
     val scrollState = rememberScrollState()
-    Column(
-        modifier = modifier
-            .fadeEdge(scrollState)
-            .width(IntrinsicSize.Min)
-            .padding(start = 8.dp)
-            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
-            .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(scrollState),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
-        settingItems.forEach { item ->
-            if (item.key == NormalNavKey.Versions.UpdateLoader && !canUpdateLoader) {
-                //不支持自动更新安装，不放置“更新加载器/安装加载器”入口
-                return@forEach
-            }
-
-            if (item.division) {
-                HorizontalDivider(
-                    modifier = Modifier
-                        .padding(vertical = 12.dp)
-                        .fillMaxWidth(0.4f)
-                        .alpha(0.4f),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            NavigationRailItem(
-                selected = versionsScreenKey === item.key,
-                onClick = {
-                    if (item.key == NormalNavKey.Versions.UpdateLoader) {
-                        if (isUpdateLoader) {
-                            NormalNavKey.Versions.UpdateLoader.title = androidText(R.string.versions_update_loader)
-                        } else {
-                            NormalNavKey.Versions.UpdateLoader.title = androidText(R.string.versions_install_loader)
-                        }
-                    }
-                    backStack.navigateOnce(item.key)
-                },
-                icon = {
-                    item.icon()
-                },
-                label = {
-                    val text = if (item.key == NormalNavKey.Versions.UpdateLoader) {
-                        if (isUpdateLoader) {
-                            NormalNavKey.Versions.UpdateLoader.title = androidText(R.string.versions_update_loader)
-                            stringResource(item.textRes)
-                        } else {
-                            NormalNavKey.Versions.UpdateLoader.title = androidText(R.string.versions_install_loader)
-                            stringResource(R.string.versions_install_loader)
-                        }
-                    } else {
-                        stringResource(item.textRes)
-                    }
-                    Text(
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                        text = text,
-                        maxLines = 1,
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                }
+        tabs.forEach { tab ->
+            val selected = versionsScreenKey === tab.key
+            val bgColor by animateColorAsState(
+                targetValue = if (selected) activeAccent else Color(0xFF21242B),
+                animationSpec = tween(140),
+                label = "subTabBg"
+            )
+            val textColor by animateColorAsState(
+                targetValue = if (selected) Color(0xFF06210F) else Color(0xFFE5E7EB),
+                animationSpec = tween(140),
+                label = "subTabText"
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = bgColor,
+                border = BorderStroke(
+                    1.dp,
+                    if (selected) activeAccent else Color(0xFF2E333E)
+                ),
+                onClick = {
+                    if (tab.key == NormalNavKey.Versions.UpdateLoader) {
+                        if (isUpdateLoader) {
+                            NormalNavKey.Versions.UpdateLoader.title = androidText(R.string.versions_update_loader)
+                        } else {
+                            NormalNavKey.Versions.UpdateLoader.title = androidText(R.string.versions_install_loader)
+                        }
+                    }
+                    backStack.navigateOnce(tab.key)
+                }
+            ) {
+                Text(
+                    text = tab.label,
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = if (selected) FontWeight.ExtraBold else FontWeight.Medium,
+                    color = textColor
+                )
+            }
         }
     }
 }
@@ -434,11 +675,9 @@ private fun NavigationUI(
                         version = version
                     ) { diffs, info ->
                         if (viewModel.installOperation !is UpdateLoaderOperation.None) {
-                            //不是待安装状态，拒绝此次安装
                             return@UpdateLoaderScreen
                         }
                         if (!NotificationManager.checkNotificationEnabled(context)) {
-                            //警告通知权限
                             viewModel.installOperation = UpdateLoaderOperation.WarningForNotification(diffs, info)
                         } else {
                             viewModel.installOperation = UpdateLoaderOperation.Tip(diffs, info)
@@ -494,7 +733,7 @@ private fun NavigationUI(
                         versionsScreenKey = versionsScreenKey,
                         version = version,
                         backToMainScreen = backToMainScreen,
-                        swapToDownload =  {
+                        swapToDownload = {
                             backScreenViewModel.navigateToDownload(
                                 targetScreen = backScreenViewModel.downloadResourcePackScreen
                             )
@@ -592,7 +831,6 @@ private fun UpdateLoaderOperation(
                     ) {
                         Text(text = stringResource(R.string.versions_update_loader_diff_message))
 
-                        //格式化差异文本
                         operation.diffs.list.forEach { diff ->
                             val modloader = diff.getLoader().displayName
                             val string = when (diff) {
@@ -629,7 +867,6 @@ private fun UpdateLoaderOperation(
                 val updateLoader by installer.tasksFlow.collectAsStateWithLifecycle()
                 val installLog = installer.logOutput.collectAsStateWithLifecycle()
                 if (updateLoader.isNotEmpty()) {
-                    //安装/变更加载器流程对话框
                     TitleTaskFlowDialog(
                         title = stringResource(R.string.versions_update_loader),
                         tasks = updateLoader,

@@ -18,30 +18,66 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.download.assets.search
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformDisplayLabel
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformFilterCode
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformSearchFilter
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformSearchResult
+import com.movtery.zalithlauncher.game.download.assets.platform.PlatformSortField
 import com.movtery.zalithlauncher.game.download.assets.platform.navigatePage
 import com.movtery.zalithlauncher.game.download.assets.platform.nextPage
 import com.movtery.zalithlauncher.game.download.assets.platform.previousPage
@@ -51,6 +87,7 @@ import com.movtery.zalithlauncher.game.download.assets.utils.searchMcMods
 import com.movtery.zalithlauncher.game.version.mod.InstalledMod
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersions
+import com.movtery.zalithlauncher.game.versioninfo.allMinecraftVersions
 import com.movtery.zalithlauncher.game.versioninfo.popularVersions
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -58,7 +95,6 @@ import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.AssetsPage
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.ResultListLayout
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.SearchAssetsState
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.SearchFilter
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.string.containsChinese
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -308,124 +344,362 @@ fun SearchAssetsScreen(
         Triple(parentScreenKey, parentCurrentKey, false),
         Triple(screenKey, currentKey, false)
     ) { isVisible ->
-        Row {
-            val yOffset by swapAnimateDpAsState(targetValue = (-40).dp, swapIn = isVisible)
+        val yOffset by swapAnimateDpAsState(targetValue = (-30).dp, swapIn = isVisible)
+        val searchedVersions by viewModel.searchedVersions.collectAsStateWithLifecycle()
+
+        var showMcVersionMenu by remember { mutableStateOf(false) }
+        var showLoaderMenu by remember { mutableStateOf(false) }
+        var showSortMenu by remember { mutableStateOf(false) }
+        var showPlatformMenu by remember { mutableStateOf(false) }
+        var showCategoryMenu by remember { mutableStateOf(false) }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Compact Horizontal Search & Filter Bar (Mockup #4 + Category Dropdown)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                // Search Box ("Search Modrinth & CurseForge...")
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0xFF21242B))
+                        .border(1.dp, Color(0xFF2E333E), RoundedCornerShape(10.dp))
+                        .padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_search),
+                        contentDescription = null,
+                        tint = Color(0xFF9CA3AF),
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clickable { viewModel.resetSearch() }
+                    )
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.CenterStart
+                    ) {
+                        if (viewModel.searchFilter.searchName.isEmpty()) {
+                            Text(
+                                text = "Search...",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFF8A909E),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                        BasicTextField(
+                            value = viewModel.searchFilter.searchName,
+                            onValueChange = { viewModel.updateNameFilter(it) },
+                            singleLine = true,
+                            textStyle = TextStyle(
+                                color = Color.White,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Medium
+                            ),
+                            cursorBrush = SolidColor(MiraiThemeManager.currentAccent()),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            keyboardActions = KeyboardActions(onSearch = { viewModel.resetSearch() }),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    if (viewModel.searchFilter.searchName.isNotEmpty()) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_close),
+                            contentDescription = stringResource(R.string.generic_clear),
+                            tint = Color(0xFF9CA3AF),
+                            modifier = Modifier
+                                .size(15.dp)
+                                .clickable {
+                                    viewModel.updateNameFilter("")
+                                    viewModel.resetSearch()
+                                }
+                        )
+                    }
+                }
+
+                // Platform Dropdown Pill (Modrinth / CurseForge)
+                if (enablePlatform) {
+                    Box {
+                        DiscoverFilterDropdownPill(
+                            label = viewModel.searchPlatform.displayName,
+                            onClick = { showPlatformMenu = true }
+                        )
+                        DropdownMenu(
+                            expanded = showPlatformMenu,
+                            onDismissRequest = { showPlatformMenu = false }
+                        ) {
+                            Platform.entries.forEach { platform ->
+                                DropdownMenuItem(
+                                    text = { Text(platform.displayName) },
+                                    onClick = {
+                                        showPlatformMenu = false
+                                        if (viewModel.searchPlatform != platform) {
+                                            viewModel.searchPlatform = platform
+                                            viewModel.researchWithFilter(
+                                                viewModel.searchFilter.copy(categories = emptyList(), modloader = null)
+                                            )
+                                            onPlatformChange(platform)
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Category Dropdown Pill ("Category: All ▾")
+                if (categories.isNotEmpty()) {
+                    Box {
+                        val selectedCats = viewModel.searchFilter.categories
+                        val catLabel = when {
+                            selectedCats.isEmpty() -> "All"
+                            selectedCats.size == 1 -> stringResource(selectedCats.first().getDisplayName())
+                            else -> "${selectedCats.size} Selected"
+                        }
+                        DiscoverFilterDropdownPill(
+                            label = "Category: $catLabel",
+                            onClick = { showCategoryMenu = true }
+                        )
+                        DropdownMenu(
+                            expanded = showCategoryMenu,
+                            onDismissRequest = { showCategoryMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = {
+                                    Text(
+                                        text = "All Categories",
+                                        fontWeight = if (selectedCats.isEmpty()) FontWeight.Bold else FontWeight.Normal,
+                                        color = if (selectedCats.isEmpty()) MiraiThemeManager.currentAccent() else Color.Unspecified
+                                    )
+                                },
+                                onClick = {
+                                    showCategoryMenu = false
+                                    viewModel.researchWithFilter(
+                                        viewModel.searchFilter.copy(categories = emptyList())
+                                    )
+                                }
+                            )
+                            categories.forEach { cat ->
+                                val isCatSelected = selectedCats.contains(cat)
+                                DropdownMenuItem(
+                                    text = {
+                                        Text(
+                                            text = stringResource(cat.getDisplayName()),
+                                            fontWeight = if (isCatSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isCatSelected) MiraiThemeManager.currentAccent() else Color.Unspecified
+                                        )
+                                    },
+                                    onClick = {
+                                        val nextCats = if (isCatSelected) {
+                                            selectedCats - cat
+                                        } else {
+                                            listOf(cat)
+                                        }
+                                        showCategoryMenu = false
+                                        viewModel.researchWithFilter(
+                                            viewModel.searchFilter.copy(categories = nextCats)
+                                        )
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // MC Version Dropdown Pill ("MC: 1.21.1 ▾")
+                Box {
+                    val mcLabel = viewModel.searchFilter.gameVersion.ifEmpty { "All" }
+                    DiscoverFilterDropdownPill(
+                        label = "MC: $mcLabel",
+                        onClick = { showMcVersionMenu = true }
+                    )
+                    DropdownMenu(
+                        expanded = showMcVersionMenu,
+                        onDismissRequest = { showMcVersionMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("All Versions") },
+                            onClick = {
+                                showMcVersionMenu = false
+                                viewModel.researchWithFilter(viewModel.searchFilter.copy(gameVersion = ""))
+                            }
+                        )
+                        //Full catalog, newest first; versions seen in results stay pinned on top.
+                        val versionOptions = (searchedVersions + allMinecraftVersions).distinct()
+                        versionOptions.forEach { ver ->
+                            DropdownMenuItem(
+                                text = { Text(ver) },
+                                onClick = {
+                                    showMcVersionMenu = false
+                                    viewModel.researchWithFilter(viewModel.searchFilter.copy(gameVersion = ver))
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Loader Dropdown Pill ("Loader: Fabric ▾")
+                if (enableModLoader && modloaders.isNotEmpty()) {
+                    Box {
+                        val loaderLabel = viewModel.searchFilter.modloader?.getDisplayName() ?: "All"
+                        DiscoverFilterDropdownPill(
+                            label = "Loader: $loaderLabel",
+                            onClick = { showLoaderMenu = true }
+                        )
+                        DropdownMenu(
+                            expanded = showLoaderMenu,
+                            onDismissRequest = { showLoaderMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("All Loaders") },
+                                onClick = {
+                                    showLoaderMenu = false
+                                    viewModel.researchWithFilter(viewModel.searchFilter.copy(modloader = null))
+                                }
+                            )
+                            modloaders.forEach { loader ->
+                                DropdownMenuItem(
+                                    text = { Text(loader.getDisplayName()) },
+                                    onClick = {
+                                        showLoaderMenu = false
+                                        viewModel.researchWithFilter(viewModel.searchFilter.copy(modloader = loader))
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Sort Dropdown Pill ("Sort: Downloads ▾")
+                Box {
+                    DiscoverFilterDropdownPill(
+                        label = "Sort: ${stringResource(viewModel.searchFilter.sortField.getDisplayName())}",
+                        onClick = { showSortMenu = true }
+                    )
+                    DropdownMenu(
+                        expanded = showSortMenu,
+                        onDismissRequest = { showSortMenu = false }
+                    ) {
+                        PlatformSortField.entries.forEach { sort ->
+                            DropdownMenuItem(
+                                text = { Text(stringResource(sort.getDisplayName())) },
+                                onClick = {
+                                    showSortMenu = false
+                                    viewModel.researchWithFilter(viewModel.searchFilter.copy(sortField = sort))
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            //Stable page callbacks: remembered so typing in the search box does not
+            //recreate them and recompose the whole result grid on every keystroke.
+            val onReloadStable = remember(viewModel) { { viewModel.search() } }
+            val onPreviousPageStable = remember(viewModel) { { pageNumber: Int ->
+                previousPage(
+                    pageNumber = pageNumber,
+                    pages = viewModel.pages,
+                    index = viewModel.searchFilter.index,
+                    limit = viewModel.searchFilter.limit,
+                    onSuccess = { previousPage ->
+                        viewModel.searchResult = SearchAssetsState.Success(previousPage)
+                    },
+                    onSearch = { newIndex ->
+                        viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                        viewModel.search()
+                    }
+                )
+            } }
+            val onNextPageStable = remember(viewModel) { { pageNumber: Int, isLastPage: Boolean ->
+                nextPage(
+                    pageNumber = pageNumber,
+                    isLastPage = isLastPage,
+                    pages = viewModel.pages,
+                    index = viewModel.searchFilter.index,
+                    limit = viewModel.searchFilter.limit,
+                    onSuccess = { nextPage ->
+                        viewModel.searchResult = SearchAssetsState.Success(nextPage)
+                    },
+                    onSearch = { newIndex ->
+                        viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                        viewModel.search()
+                    }
+                )
+            } }
+            val onNavigatePageStable = remember(viewModel) { { pageNumber: Int ->
+                navigatePage(
+                    pageNumber = pageNumber,
+                    pages = viewModel.pages,
+                    limit = viewModel.searchFilter.limit,
+                    onSuccess = { nextPage ->
+                        viewModel.searchResult = SearchAssetsState.Success(nextPage)
+                    },
+                    onSearch = { newIndex ->
+                        viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
+                        viewModel.search()
+                    }
+                )
+            } }
+
+            // Full-Width 2-Column Mobile Project Grid (Mockup #4)
             ResultListLayout(
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(7f)
-                    .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                    .fillMaxWidth()
+                    .weight(1f),
                 classes = platformClasses,
                 searchState = viewModel.searchResult,
-                onReload = {
-                    viewModel.search()
-                },
+                onReload = onReloadStable,
                 swapToDownload = swapToDownload,
                 installedInfo = installedInfo,
-                onPreviousPage = { pageNumber ->
-                    previousPage(
-                        pageNumber = pageNumber,
-                        pages = viewModel.pages,
-                        index = viewModel.searchFilter.index,
-                        limit = viewModel.searchFilter.limit,
-                        onSuccess = { previousPage ->
-                            viewModel.searchResult = SearchAssetsState.Success(previousPage)
-                        },
-                        onSearch = { newIndex ->
-                            viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
-                            viewModel.search() //搜索上一页
-                        }
-                    )
-                },
-                onNextPage = { pageNumber, isLastPage ->
-                    nextPage(
-                        pageNumber = pageNumber,
-                        isLastPage = isLastPage,
-                        pages = viewModel.pages,
-                        index = viewModel.searchFilter.index,
-                        limit = viewModel.searchFilter.limit,
-                        onSuccess = { nextPage ->
-                            viewModel.searchResult = SearchAssetsState.Success(nextPage)
-                        },
-                        onSearch = { newIndex ->
-                            viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
-                            viewModel.search() //搜索下一页
-                        }
-                    )
-                },
-                onNavigatePage = { pageNumber ->
-                    navigatePage(
-                        pageNumber = pageNumber,
-                        pages = viewModel.pages,
-                        limit = viewModel.searchFilter.limit,
-                        onSuccess = { nextPage ->
-                            viewModel.searchResult = SearchAssetsState.Success(nextPage)
-                        },
-                        onSearch = { newIndex ->
-                            viewModel.searchFilter = viewModel.searchFilter.copy(index = newIndex)
-                            viewModel.search() //搜索目标页
-                        }
-                    )
-                }
+                onPreviousPage = onPreviousPageStable,
+                onNextPage = onNextPageStable,
+                onNavigatePage = onNavigatePageStable
             )
+        }
+    }
+}
 
-            val xOffset by swapAnimateDpAsState(
-                targetValue = 40.dp,
-                swapIn = isVisible,
-                isHorizontal = true
+@Composable
+private fun DiscoverFilterDropdownPill(
+    label: String,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.height(36.dp),
+        shape = RoundedCornerShape(10.dp),
+        color = Color(0xFF21242B),
+        border = BorderStroke(1.dp, Color(0xFF2E333E)),
+        onClick = onClick
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Text(
+                text = label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color(0xFFE5E7EB),
+                maxLines = 1
             )
-            val searchedMcMods by viewModel.searchedMcMods.collectAsStateWithLifecycle()
-            val searchedVersions by viewModel.searchedVersions.collectAsStateWithLifecycle()
-            SearchFilter(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(3f)
-                    .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
-                contentPadding = PaddingValues(top = 12.dp, bottom = 12.dp, end = 12.dp),
-                enablePlatform = enablePlatform,
-                searchPlatform = viewModel.searchPlatform,
-                onPlatformChange = {
-                    viewModel.searchPlatform = it
-                    viewModel.researchWithFilter(
-                        viewModel.searchFilter.copy(categories = emptyList(), modloader = null)
-                    )
-                    onPlatformChange(it)
-                },
-                searchName = viewModel.searchFilter.searchName,
-                onSearchNameChange = {
-                    viewModel.updateNameFilter(it)
-                },
-                onSearch = {
-                    viewModel.resetSearch()
-                },
-                searchedMcMods = searchedMcMods,
-                searchedVersions = searchedVersions,
-                gameVersion = viewModel.searchFilter.gameVersion,
-                onGameVersionChange = {
-                    viewModel.updateVersionFilter(it)
-                },
-                sortField = viewModel.searchFilter.sortField,
-                onSortFieldChange = {
-                    viewModel.researchWithFilter(
-                        viewModel.searchFilter.copy(sortField = it)
-                    )
-                },
-                allCategories = categories,
-                categories = viewModel.searchFilter.categories,
-                onCategoryChanged = { categories ->
-                    viewModel.researchWithFilter(
-                        viewModel.searchFilter.copy(categories = categories)
-                    )
-                },
-                enableModLoader = enableModLoader,
-                modloaders = modloaders,
-                modloader = viewModel.searchFilter.modloader,
-                onModLoaderChange = {
-                    viewModel.researchWithFilter(
-                        viewModel.searchFilter.copy(modloader = it)
-                    )
-                },
-                extraFilter = extraFilter
+            Icon(
+                painter = painterResource(R.drawable.ic_arrow_drop_down_rounded),
+                contentDescription = null,
+                tint = Color(0xFF9CA3AF),
+                modifier = Modifier.size(16.dp)
             )
         }
     }

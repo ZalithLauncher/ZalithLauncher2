@@ -23,6 +23,9 @@ import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.KopperZinkRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWLegacyRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.VGPU1368Renderer
+import com.movtery.zalithlauncher.game.renderer.renderers.VGPURenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VirGLRenderer
 import com.movtery.zalithlauncher.game.version.installed.utils.isBiggerVer
 import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
@@ -39,7 +42,8 @@ import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
  * agree on:
  *
  *  - **1.8 – 1.16.5** drive OpenGL 1.x/2.1 with fixed-function state and the legacy
- *    client-array draw path, so they need [LTWLegacyRenderer] (or GL4ES).
+ *    client-array draw path, so they need [LTWLegacyRenderer], [VGPURenderer],
+ *    [VGPU1368Renderer], or [GL4ESRenderer].
  *  - **1.17 and newer** require the OpenGL 3.2 core profile, which is what [LTWRenderer]
  *    implements.
  *
@@ -52,17 +56,20 @@ object RendererPicker {
     val GL4ES: String = GL4ESRenderer.getUniqueIdentifier()
     val VIRGL: String = VirGLRenderer.getUniqueIdentifier()
     val LTW: String = LTWRenderer.getUniqueIdentifier()
+    val MOBILEGLUES: String = MobileGluesRenderer.getUniqueIdentifier()
     val ZINK: String = KopperZinkRenderer.getUniqueIdentifier()
     val LTW_LEGACY: String = LTWLegacyRenderer.getUniqueIdentifier()
+    val VGPU: String = VGPURenderer.getUniqueIdentifier()
+    val VGPU_1368: String = VGPU1368Renderer.getUniqueIdentifier()
 
     /** The Minecraft release that moved the game onto the OpenGL 3.2 core profile. */
     private const val CORE_PROFILE_VERSION = "1.17"
 
     /** Preferred legacy wrappers, best first. */
-    private val LEGACY_ORDER = listOf(LTW_LEGACY, GL4ES, VIRGL)
+    private val LEGACY_ORDER = listOf(LTW_LEGACY, VGPU, VGPU_1368, GL4ES, VIRGL)
 
     /** Preferred core-profile wrappers, best first. */
-    private val MODERN_ORDER = listOf(LTW, ZINK)
+    private val MODERN_ORDER = listOf(LTW, MOBILEGLUES, ZINK)
 
     data class Choice(
         val identifier: String,

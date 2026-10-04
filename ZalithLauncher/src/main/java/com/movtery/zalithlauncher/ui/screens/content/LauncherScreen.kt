@@ -18,12 +18,16 @@
 
 package com.movtery.zalithlauncher.ui.screens.content
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -47,6 +51,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.AlertDialog
@@ -67,6 +72,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalUriHandler
@@ -91,6 +97,7 @@ import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.account.getAccountTypeName
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.path.URL_RELEASES
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.ActionMenuSide
@@ -106,16 +113,28 @@ import com.movtery.zalithlauncher.ui.screens.content.navigateToDownload
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.PlayerFace
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
+import com.movtery.zalithlauncher.ui.screens.content.home.MiraiHomeDashboard
 import com.movtery.zalithlauncher.ui.screens.content.home.PlayerSkinStage
+import com.movtery.zalithlauncher.ui.screens.content.home.resolveRendererBadgeDetail
+import com.movtery.zalithlauncher.ui.screens.content.home.resolveRendererShortLabel
 import com.movtery.zalithlauncher.ui.screens.content.home.LocalActionMenuDrag
 import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragAnchor
 import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragExclusion
 import com.movtery.zalithlauncher.ui.screens.content.home.rememberActionMenuDragState
 import com.movtery.zalithlauncher.ui.screens.content.home.version.LocalHomeCardLauncher
 import com.movtery.zalithlauncher.ui.screens.content.home.version.LocalHomeCardVersionSettings
+import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 import kotlin.math.roundToInt
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.ui.input.pointer.util.VelocityTracker
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
+import kotlin.math.abs
+import kotlin.math.exp
 
 private const val ContentWeight = 7.4f
 private const val ActionMenuWeight = 2.6f
@@ -163,7 +182,7 @@ fun LauncherScreen(
                 }
         ) {
             val parentWidthPx = constraints.maxWidth.toFloat()
-            val showActionMenu = maxWidth >= 680.dp
+            val showActionMenu = maxWidth >= 500.dp
             LaunchedEffect(showActionMenu) {
                 if (!showActionMenu) dragState.onDragCancel()
             }
@@ -185,7 +204,8 @@ fun LauncherScreen(
 
             val toAccountManageScreen: () -> Unit = {
                 backStackViewModel.mainScreen.navigateTo(
-                    screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE)
+                    screenKey = NormalNavKey.AccountManager(FirstLoginMenu.NONE),
+                    useClassEquality = true
                 )
             }
             val toVersionManageScreen: () -> Unit = {
@@ -232,7 +252,14 @@ fun LauncherScreen(
                         onCreateInstance = {
                             backStackViewModel.navigateToDownload(backStackViewModel.downloadGameScreen)
                         },
-                        onManageVersions = toVersionManageScreen
+                        onManageVersions = toVersionManageScreen,
+                        onOpenFileManager = {
+                            backStackViewModel.mainScreen.backStack.navigateToFileSelector(
+                                startPath = PathManager.DIR_FILES_EXTERNAL.absolutePath,
+                                selectFile = false,
+                                saveKey = NormalNavKey.LauncherMain
+                            ) {}
+                        }
                     )
                 }
 
@@ -286,13 +313,13 @@ private fun ContentMenu(
     onExploreContent: () -> Unit,
     onCreateInstance: () -> Unit,
     onManageVersions: () -> Unit,
+    onOpenFileManager: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     val yOffset by swapAnimateDpAsState(
         targetValue = (-40).dp,
         swapIn = isVisible
     )
-    val gridState = rememberCardGridState()
 
     CompositionLocalProvider(
         LocalHomeCardLauncher provides { version -> onLaunchGame(version) },
@@ -304,7 +331,15 @@ private fun ContentMenu(
                 .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            PlayerSkinStage(modifier = Modifier.fillMaxSize())
+            MiraiHomeDashboard(
+                onLaunchVersion = { version -> onLaunchGame(version) },
+                onOpenVersionSettings = onOpenVersionSettings,
+                onExploreContent = onExploreContent,
+                onCreateInstance = onCreateInstance,
+                onManageVersions = onManageVersions,
+                onOpenFileManager = onOpenFileManager,
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
 }
@@ -422,110 +457,175 @@ private fun VersionsContent(
     var showList by remember { mutableStateOf(false) }
     var showPick by remember { mutableStateOf(false) }
     var versionManagerRow by remember { mutableStateOf<LayoutCoordinates?>(null) }
-    Column(modifier = modifier) {
-        Box(
-            modifier = Modifier.fillMaxWidth(),
+
+    val versionSubtitle = remember(version) {
+        val info = version?.getVersionInfo()
+        val mcVer = info?.minecraftVersion
+        val loader = info?.loaderInfo?.loader?.displayName
+        when {
+            loader != null && mcVer != null -> "$loader $mcVer"
+            mcVer != null -> "Minecraft $mcVer"
+            else -> "Select Instance"
+        }
+    }
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Compact 2-line Instance Selector Pill
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp)
+                .onGloballyPositioned { coordinates ->
+                    versionManagerRow = coordinates
+                }
+                .clip(RoundedCornerShape(14.dp))
+                .clickable {
+                    if (version != null) showList = true else toVersionManageScreen()
+                }
+                .guideNode(
+                    key = GuideKeys.Main.Step.VersionList,
+                    preferSide = GuideSide.Above,
+                ),
+            shape = RoundedCornerShape(14.dp),
+            color = Color(0xFF171A20),
+            border = BorderStroke(1.dp, Color(0xFF2E333E))
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Column(
                     modifier = Modifier
-                        .weight(1f)
-                        .onGloballyPositioned { coordinates ->
-                            versionManagerRow = coordinates
-                        }
+                        .fillMaxWidth()
+                        .padding(horizontal = 10.dp, vertical = 7.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    VersionManagerLayout(
-                        isRefreshing = isRefreshing,
-                        version = version,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .fillMaxWidth(),
-                        swapToVersionManage = toVersionManageScreen,
-                        openListMenu = { showList = true },
+                    Text(
+                        text = if (isRefreshing) {
+                            "Loading..."
+                        } else {
+                            version?.getVersionName() ?: stringResource(R.string.versions_manage_no_versions)
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 1
+                    )
+                    Text(
+                        text = versionSubtitle,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MiraiThemeManager.currentAccent(),
+                        maxLines = 1
                     )
                 }
-                version?.takeIf { !isRefreshing && it.isValid() }?.let {
-                    IconButton(
-                        modifier = Modifier.padding(end = 8.dp),
-                        onClick = toVersionSettingsScreen
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_settings_filled),
-                            contentDescription = stringResource(R.string.versions_manage_settings)
+
+                val menuAnchor = versionManagerRow
+                val menuAnchorBounds = menuAnchor?.boundsInParent()
+                val menuAnchorX = menuAnchorBounds?.left ?: 0f
+                val menuAnchorHeight = menuAnchorBounds?.height ?: 0f
+
+                DropdownMenu(
+                    expanded = showList && menuAnchor != null,
+                    onDismissRequest = { showList = false },
+                    modifier = Modifier.width(240.dp),
+                    offset = DpOffset(
+                        x = with(LocalDensity.current) { menuAnchorX.toDp() },
+                        y = with(LocalDensity.current) { (-menuAnchorHeight).toDp() } - 8.dp
+                    ),
+                    shape = MaterialTheme.shapes.extraLarge
+                ) {
+                    val versions by VersionsManager.versions.collectAsStateWithLifecycle()
+                    versions.forEach { version0 ->
+                        DropdownMenuItem(
+                            text = {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    CommonVersionInfoLayout(
+                                        modifier = Modifier.weight(1f),
+                                        version = version0,
+                                        iconSize = 26.dp
+                                    )
+                                    IconButton(
+                                        onClick = {
+                                            onLaunchGame(version0)
+                                            showList = false
+                                        }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.ic_play_arrow_filled),
+                                            contentDescription = stringResource(R.string.main_launch_game),
+                                            tint = Color(0xFF1BD96A)
+                                        )
+                                    }
+                                }
+                            },
+                            onClick = {
+                                if (version == version0) return@DropdownMenuItem
+                                VersionsManager.saveVersion(version0)
+                                showList = false
+                            }
                         )
                     }
-                }
-            }
-
-            val menuAnchor = versionManagerRow
-            val menuAnchorBounds = menuAnchor?.boundsInParent()
-            val menuAnchorX = menuAnchorBounds?.left ?: 0f
-            val menuAnchorHeight = menuAnchorBounds?.height ?: 0f
-
-            DropdownMenu(
-                expanded = showList && menuAnchor != null,
-                onDismissRequest = { showList = false },
-                modifier = Modifier.width(260.dp),
-                offset = DpOffset(
-                    x = with(LocalDensity.current) { menuAnchorX.toDp() },
-                    y = with(LocalDensity.current) { (-menuAnchorHeight).toDp() } - 8.dp
-                ),
-                shape = MaterialTheme.shapes.extraLarge
-            ) {
-                val versions by VersionsManager.versions.collectAsStateWithLifecycle()
-                versions.forEach { version0 ->
                     DropdownMenuItem(
                         text = {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                CommonVersionInfoLayout(
-                                    modifier = Modifier.weight(1f),
-                                    version = version0,
-                                    iconSize = 28.dp
-                                )
-                                IconButton(
-                                    onClick = {
-                                        onLaunchGame(version0)
-                                        showList = false
-                                    }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_play_arrow_filled),
-                                        contentDescription = stringResource(R.string.main_launch_game),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                            }
+                            Text(
+                                text = "Manage All Instances...",
+                                color = Color(0xFF1BD96A),
+                                fontWeight = FontWeight.SemiBold
+                            )
                         },
                         onClick = {
-                            if (version == version0) return@DropdownMenuItem
-                            VersionsManager.saveVersion(version0)
                             showList = false
+                            toVersionManageScreen()
                         }
                     )
                 }
             }
         }
 
-        ScalingActionButton(
+        // Vibrant Pill PLAY Button (Mockup #1)
+        val activeAccent = MiraiThemeManager.currentAccent()
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(PaddingValues(horizontal = 12.dp))
-                .padding(bottom = 8.dp),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp),
-            onClick = {
-                onLaunchGame(null)
-            },
-            onLongClick = { showPick = true },
-            content = {
-                MarqueeText(text = stringResource(R.string.main_launch_game))
+                .padding(horizontal = 10.dp)
+                .padding(bottom = 10.dp)
+                .height(42.dp)
+                .clip(RoundedCornerShape(21.dp))
+                .combinedClickable(
+                    role = Role.Button,
+                    onClick = { onLaunchGame(null) },
+                    onLongClick = { showPick = true }
+                ),
+            shape = RoundedCornerShape(21.dp),
+            color = activeAccent,
+            contentColor = Color(0xFF06210F)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "PLAY",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = Color(0xFF06210F)
+                )
+                Spacer(Modifier.width(4.dp))
+                Icon(
+                    painter = painterResource(R.drawable.ic_play_arrow_filled),
+                    contentDescription = stringResource(R.string.main_launch_game),
+                    tint = Color(0xFF06210F),
+                    modifier = Modifier.size(18.dp)
+                )
             }
-        )
+        }
+
         if (showPick) {
             AlertDialog(
                 onDismissRequest = { showPick = false },
@@ -570,6 +670,15 @@ private fun VersionsContent(
     }
 }
 
+/** Degrees of doll rotation per pixel of horizontal drag. */
+private const val DOLL_DRAG_DEG_PER_PX = 0.45f
+/** Exponential friction of the release fling (higher stops faster). */
+private const val DOLL_FLING_FRICTION = 5f
+/** Fling starts only above this release velocity (degrees/second). */
+private const val DOLL_FLING_MIN_VELOCITY = 60f
+/** Fling loop parks the job below this velocity (degrees/second). */
+private const val DOLL_FLING_STOP_VELOCITY = 20f
+
 @Composable
 private fun ActionMenuCardContent(
     modifier: Modifier = Modifier,
@@ -579,39 +688,127 @@ private fun ActionMenuCardContent(
     toVersionManageScreen: () -> Unit,
     toVersionSettingsScreen: () -> Unit,
 ) {
-    BackgroundCard(
+    val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
+    val skinFile = remember(account, refreshWardrobe) {
+        account?.getSkinFile()?.takeIf { it.exists() }
+    }
+    val capeFile = remember(account, refreshWardrobe) {
+        account?.getCapeFile()?.takeIf { it.exists() }
+    }
+    // Paper-doll camera angle. Horizontal drags spin it a full 360°; works with or
+    // without a skin/cape since only the camera moves. Resets when switching accounts.
+    var dollAzimuth by remember(account?.username) { mutableStateOf(28f) }
+    val flingScope = rememberCoroutineScope()
+    val dollVelocityTracker = remember(account?.username) { VelocityTracker() }
+    var dollFlingJob by remember(account?.username) { mutableStateOf<Job?>(null) }
+
+    Surface(
         modifier = Modifier
             .actionMenuDragAnchor()
             .guideNode(GuideKeys.Main.Step.CardDrag)
             .then(modifier),
-        shape = MaterialTheme.shapes.extraLarge
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF1E2128),
+        border = BorderStroke(1.dp, Color(0xFF2C303A))
     ) {
-        ConstraintLayout(
-            modifier = Modifier.fillMaxSize()
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            val (accountAvatar, versionManagerLayout) = createRefs()
-
-            AccountAvatarCenter(
+            // 3D Skin & Cape Stage on Dark Pedestal (Mockup #1) — Tapping opens Account Creation / Management
+            Box(
                 modifier = Modifier
-                    .constrainAs(accountAvatar) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(versionManagerLayout.top)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    }.guideNode(
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(top = 6.dp, start = 8.dp, end = 8.dp)
+                    .actionMenuDragExclusion()
+                    .guideNode(
                         key = GuideKeys.Main.Step.Account,
                         preferSide = GuideSide.Below
-                    ),
-                account = account,
-                onClick = toAccountManageScreen
-            )
+                    )
+                    .clip(RoundedCornerShape(12.dp))
+                    // Tap opens Account Manager; horizontal drag spins the doll 360°.
+                    // The drag consumes movement past touch slop, so a tap never
+                    // misfires while rotating (and vice versa).
+                    .pointerInput(toAccountManageScreen) {
+                        detectTapGestures(onTap = { toAccountManageScreen() })
+                    }
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures(
+                            onDragStart = {
+                                dollFlingJob?.cancel()
+                                dollFlingJob = null
+                                dollVelocityTracker.resetTracking()
+                            },
+                            onDragEnd = {
+                                val releaseVelocity = dollVelocityTracker.calculateVelocity().x * DOLL_DRAG_DEG_PER_PX
+                                dollFlingJob?.cancel()
+                                if (abs(releaseVelocity) < DOLL_FLING_MIN_VELOCITY) {
+                                    dollFlingJob = null
+                                    return@detectHorizontalDragGestures
+                                }
+                                //Exponential spin-down: the doll keeps gliding after release.
+                                dollFlingJob = flingScope.launch {
+                                    var velocity = releaseVelocity
+                                    var lastFrame = withFrameNanos { it }
+                                    while (abs(velocity) > DOLL_FLING_STOP_VELOCITY) {
+                                        ensureActive()
+                                        val now = withFrameNanos { it }
+                                        val dt = ((now - lastFrame) / 1_000_000_000f).coerceIn(0f, 0.05f)
+                                        lastFrame = now
+                                        dollAzimuth = (dollAzimuth + velocity * dt).mod(360f)
+                                        velocity *= exp(-DOLL_FLING_FRICTION * dt)
+                                    }
+                                    dollFlingJob = null
+                                }
+                            },
+                            onDragCancel = {
+                                dollFlingJob?.cancel()
+                                dollFlingJob = null
+                            },
+                            onHorizontalDrag = { change, dragAmount ->
+                                dollVelocityTracker.addPosition(change.uptimeMillis, change.position)
+                                dollAzimuth = (dollAzimuth + dragAmount * DOLL_DRAG_DEG_PER_PX).mod(360f)
+                            }
+                        )
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                // Dark 3D Pedestal Block at bottom of stage with account/create label
+                Surface(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .offset(y = (-4).dp),
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF13151A),
+                    border = BorderStroke(1.dp, MiraiThemeManager.currentAccent().copy(alpha = 0.45f))
+                ) {
+                    Text(
+                        text = account?.username ?: "+ Add Account",
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = if (account != null) Color.White else MiraiThemeManager.currentAccent(),
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp)
+                    )
+                }
+
+                SkinPreview3D(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(bottom = 14.dp),
+                    skinFile = skinFile,
+                    capeFile = capeFile,
+                    modelType = account?.skinModelType,
+                    animation = null,
+                    interactionEnabled = false,
+                    azimuth = dollAzimuth.roundToInt(),
+                )
+            }
 
             VersionsContent(
-                modifier = Modifier.constrainAs(versionManagerLayout) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                },
+                modifier = Modifier.fillMaxWidth(),
                 onLaunchGame = onLaunchGame,
                 toVersionManageScreen = toVersionManageScreen,
                 toVersionSettingsScreen = toVersionSettingsScreen,
@@ -631,170 +828,14 @@ private fun ActionMenuTallerContent(
     toVersionSettingsScreen: () -> Unit,
     onOpenLink: (String) -> Unit
 ) {
-    val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
-    val skinFile = remember(account, refreshWardrobe) {
-        account?.getSkinFile()?.takeIf { it.exists() }
-    }
-    val capeFile = remember(account, refreshWardrobe) {
-        account?.getCapeFile()?.takeIf { it.exists() }
-    }
-
-    Column(
-        modifier = Modifier
-            .actionMenuDragAnchor()
-            .guideNode(
-                key = GuideKeys.Main.Step.CardDrag,
-                holeRadius = 0.dp,
-            )
-            .then(modifier)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-        val azimuth = (if (dockedSide == ActionMenuSide.START) -35 else 35) * (if (isRtl) -1 else 1)
-
-        BackgroundCard(
-            modifier = Modifier
-                .guideNode(
-                    key = GuideKeys.Main.Step.Account,
-                    preferSide = GuideSide.Above,
-                    holeRadius = 28.dp
-                )
-                .fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLarge,
-            onClick = toAccountManageScreen
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.home_playing_as),
-                    modifier = Modifier.padding(start = 12.dp, top = 10.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                AccountAvatarRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    account = account,
-                )
-            }
-        }
-
-        BackgroundCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLarge
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp, vertical = 9.dp),
-                verticalArrangement = Arrangement.spacedBy(7.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.home_skin_preview),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                SkinPreview3D(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(112.dp),
-                    skinFile = skinFile,
-                    capeFile = capeFile,
-                    modelType = account?.skinModelType,
-                    interactionEnabled = false,
-                    azimuth = azimuth,
-                )
-            }
-        }
-
-        BackgroundCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLarge
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.home_selected_installation),
-                    modifier = Modifier.padding(start = 12.dp, top = 10.dp),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                VersionsContent(
-                    modifier = Modifier.fillMaxWidth(),
-                    onLaunchGame = onLaunchGame,
-                    toVersionManageScreen = toVersionManageScreen,
-                    toVersionSettingsScreen = toVersionSettingsScreen,
-                )
-            }
-        }
-
-        BackgroundCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.extraLarge,
-            onClick = { onOpenLink(URL_RELEASES) }
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(10.dp),
-                verticalArrangement = Arrangement.spacedBy(7.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(90.dp)
-                        .clip(MaterialTheme.shapes.large)
-                ) {
-                    Image(
-                        painter = painterResource(R.drawable.mirai_hero_bg),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Black.copy(alpha = 0.38f))
-                    )
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(11.dp),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.launcher_brand_short),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White.copy(alpha = 0.82f)
-                        )
-                        Text(
-                            text = stringResource(R.string.home_news_title),
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = Color.White,
-                            maxLines = 1,
-                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                        )
-                    }
-                }
-                Text(
-                    text = stringResource(R.string.home_news_summary),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                TextButton(
-                    onClick = { onOpenLink(URL_RELEASES) },
-                    contentPadding = PaddingValues(horizontal = 0.dp, vertical = 2.dp)
-                ) {
-                    Text(stringResource(R.string.home_news_open))
-                }
-            }
-        }
-    }
+    ActionMenuCardContent(
+        modifier = modifier,
+        account = account,
+        onLaunchGame = onLaunchGame,
+        toAccountManageScreen = toAccountManageScreen,
+        toVersionManageScreen = toVersionManageScreen,
+        toVersionSettingsScreen = toVersionSettingsScreen
+    )
 }
 
 @Composable

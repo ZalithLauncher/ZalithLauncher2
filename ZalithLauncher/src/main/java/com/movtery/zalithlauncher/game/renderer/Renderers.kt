@@ -23,8 +23,11 @@ import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.KopperZinkRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWLegacyRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.PanfrostRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.VGPU1368Renderer
+import com.movtery.zalithlauncher.game.renderer.renderers.VGPURenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VirGLRenderer
 import com.movtery.zalithlauncher.utils.logging.Logger
 
@@ -47,7 +50,10 @@ object Renderers {
      */
     val BUILT_IN: List<RendererInterface> = listOf(
         NGGL4ESRenderer,
+        MobileGluesRenderer,
         GL4ESRenderer,
+        VGPURenderer,
+        VGPU1368Renderer,
         LTWLegacyRenderer,
         LTWRenderer,
         KopperZinkRenderer,

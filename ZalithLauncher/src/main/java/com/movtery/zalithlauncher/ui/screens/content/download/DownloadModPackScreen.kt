@@ -25,9 +25,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -36,11 +39,14 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -117,6 +123,11 @@ private sealed interface VersionNameOperation {
 
 private class ModPackViewModel: ViewModel() {
     var installOperation by mutableStateOf<ModPackInstallOperation>(ModPackInstallOperation.None)
+    /**
+     * 安装进度窗口是否已被最小化。最小化只隐藏对话框，
+     * 安装器仍在 [viewModelScope] 中继续工作。
+     */
+    var installDialogMinimized by mutableStateOf(false)
     var versionNameOperation by mutableStateOf<VersionNameOperation>(VersionNameOperation.None)
     var confirmMobileDataOperation by mutableStateOf<ConfirmMobileDataOperation>(ConfirmMobileDataOperation.None)
 
@@ -238,6 +249,13 @@ fun DownloadModPackScreen(
 ) {
     val viewModel: ModPackViewModel = rememberModPackViewModel(key)
 
+    //安装流程离开 Install 状态时（成功 / 失败 / 取消），退出最小化
+    LaunchedEffect(viewModel.installOperation) {
+        if (viewModel.installOperation !is ModPackInstallOperation.Install) {
+            viewModel.installDialogMinimized = false
+        }
+    }
+
     val context = LocalContext.current
     val backStack = key.backStack
     val stackTopKey = backStack.lastOrNull()
@@ -249,6 +267,8 @@ fun DownloadModPackScreen(
         operation = viewModel.installOperation,
         updateOperation = { viewModel.installOperation = it },
         installer = viewModel.installer,
+        installMinimized = viewModel.installDialogMinimized,
+        onInstallMinimizedChange = { viewModel.installDialogMinimized = it },
         onInstall = { version, iconUrl ->
             viewModel.install(
                 context = context,
@@ -350,7 +370,9 @@ private fun ModPackInstallOperation(
     updateOperation: (ModPackInstallOperation) -> Unit,
     installer: ModPackInstaller?,
     onInstall: (PlatformVersion, iconUrl: String?) -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    installMinimized: Boolean,
+    onInstallMinimizedChange: (Boolean) -> Unit
 ) {
     when (operation) {
         is ModPackInstallOperation.None -> {}
@@ -398,16 +420,37 @@ private fun ModPackInstallOperation(
                 val tasks = installer.tasksFlow.collectAsStateWithLifecycle()
                 val installLog = installer.logOutput.collectAsStateWithLifecycle()
                 if (tasks.value.isNotEmpty()) {
-                    //安装整合包流程对话框
-                    TitleTaskFlowDialog(
-                        title = stringResource(R.string.download_modpack_install_title),
-                        tasks = tasks.value,
-                        onCancel = {
-                            onCancel()
-                            updateOperation(ModPackInstallOperation.None)
-                        },
-                        logOutput = installLog.value
-                    )
+                    if (installMinimized) {
+                        //下载仍在后台继续：右下角悬浮小按钮可重新打开进度窗口
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .zIndex(1f),
+                            contentAlignment = Alignment.BottomEnd
+                        ) {
+                            SmallFloatingActionButton(
+                                modifier = Modifier.padding(16.dp),
+                                onClick = { onInstallMinimizedChange(false) }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_download),
+                                    contentDescription = stringResource(R.string.generic_expand)
+                                )
+                            }
+                        }
+                    } else {
+                        //安装整合包流程对话框
+                        TitleTaskFlowDialog(
+                            title = stringResource(R.string.download_modpack_install_title),
+                            tasks = tasks.value,
+                            onCancel = {
+                                onCancel()
+                                updateOperation(ModPackInstallOperation.None)
+                            },
+                            logOutput = installLog.value,
+                            onMinimize = { onInstallMinimizedChange(true) }
+                        )
+                    }
                 }
             }
         }

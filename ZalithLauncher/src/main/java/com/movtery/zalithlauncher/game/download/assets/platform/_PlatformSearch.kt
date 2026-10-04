@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.game.download.assets.platform
 
 import android.util.Log
+import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.game.addons.mirror.orderSourceCandidates
 import com.movtery.zalithlauncher.game.download.assets.mapExceptionToMessage
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.CurseForgeSearcher
@@ -37,10 +38,13 @@ import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.isInterruptedIOException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
@@ -65,11 +69,12 @@ private val mirrorCurseForgeSearcher = CurseForgeSearcher(
 suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
     searchers: List<E>,
     printLog: Boolean = true,
+    perSourceTimeoutMs: Long? = null,
     block: suspend (E) -> T
 ): T {
     require(searchers.isNotEmpty()) { "Searcher list must not be empty." }
 
-    val errors = mutableListOf<Exception>()
+    val errors = mutableListOf<Pair<String, Exception>>()
     var lastException: Exception? = null
 
     for (searcher in searchers) {
@@ -77,7 +82,15 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
             if (printLog) {
                 Logger.debug(TAG, "Starting to attempt to perform the operation on source: {${searcher.source}}")
             }
-            return block(searcher)
+            val result = if (perSourceTimeoutMs != null) {
+                //withTimeoutOrNull: only THIS budget expiring yields null; external
+                //cancellation still throws and aborts the whole fallback chain.
+                withTimeoutOrNull(perSourceTimeoutMs) { block(searcher) }
+                    ?: throw IOException("Source {${searcher.source}} timed out after ${perSourceTimeoutMs}ms")
+            } else {
+                block(searcher)
+            }
+            return result
         } catch (cancelled: CancellationException) {
             throw cancelled
         } catch (e: Exception) {
@@ -87,24 +100,29 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
             if (e.isInterruptedIOException()) {
                 throw e
             } else if (e is FileNotFoundException) {
-                errors.add(e)
+                errors.add(searcher.source to e)
                 break
             } else {
-                errors.add(e)
+                errors.add(searcher.source to e)
             }
         }
     }
 
     if (printLog) {
-        Logger.warning(TAG, 
+        Logger.warning(TAG,
             msg = "An error occurred during this search.",
             t = IOException("All sources have failed to attempt", lastException).apply {
-                errors.forEachIndexed { i, e ->
-                    addSuppressed(Exception("Mirror error #${i + 1}: ${e.message}"))
+                errors.forEachIndexed { i, (source, e) ->
+                    addSuppressed(Exception("Mirror error #${i + 1} [$source]: ${e.message}"))
                 }
             }
         )
     }
+    //Name every dead source and why: without this, failures are impossible to diagnose.
+    val detail = errors.joinToString("; ") { (source, e) ->
+        "$source: ${e::class.simpleName}: ${e.message}"
+    }.takeIf { it.isNotBlank() }
+    if (detail != null) throw IOException("All ${searchers.size} sources failed: $detail", lastException)
     throw lastException ?: IllegalStateException("Should not have executed to this stage.")
 }
 
@@ -112,10 +130,26 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
  * Automatically fall back to the alternate CurseForge source when the preferred source fails.
  * An explicit Official preference continues to use only CurseForge's API.
  */
+/**
+ * True when the official CurseForge API can actually be used: either the build
+ * ships a key, or the user pasted their own in Settings.
+ */
+fun hasCurseForgeApiKey(): Boolean =
+    AllSettings.curseForgeApiKey.getValue().isNotBlank() ||
+            BuildKeys.CURSEFORGE_API.isNotBlank()
+
 fun mirroredCurseForgeSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<CurseForgeSearcher> {
     val preference = AllSettings.assetPlatformSource.getValue()
+    if (!hasCurseForgeApiKey()) {
+        //Without a key the official API answers 403 to every request: never send it.
+        if (preference == MirrorSourceType.OFFICIAL) {
+            throw IOException("CurseForge official API requires an API key. Paste one in Settings, or switch the asset source to Auto.")
+        }
+        //Official unusable: mirror only.
+        return listOf(mirrorCurseForgeSearcher)
+    }
     val mirrorSource = mirrorCurseForgeSearcher.takeIf {
         preference != MirrorSourceType.OFFICIAL
     }
@@ -145,6 +179,61 @@ fun mirroredModrinthSource(
     )
 }
 
+/** Overall wall-clock budget for one interactive search across all queries. */
+private const val SEARCH_OVERALL_TIMEOUT_MS = 30_000L
+/**
+ * Per-source budget for sequential platform search: a single hung mirror can never
+ * stall discovery past this. 15s per source keeps the worst case (all sources slow)
+ * inside a tolerable window while a healthy first source still answers in ~1-2s.
+ */
+private const val SEARCH_SOURCE_TIMEOUT_MS = 15_000L
+
+/** Interactive search responses are tiny; keep the most recent pages in memory. */
+private const val SEARCH_CACHE_MAX_ENTRIES = 16
+
+/** Search cache TTL: mod listings barely change within a minute and a half. */
+private const val SEARCH_CACHE_TTL_MS = 90_000L
+
+private data class CachedSearchResult(
+    val result: PlatformSearchResult,
+    val timestampMs: Long
+)
+
+private val searchCacheLock = Any()
+private val searchCache = object : LinkedHashMap<String, CachedSearchResult>(16, 0.75f, true) {
+    override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, CachedSearchResult>): Boolean {
+        return size > SEARCH_CACHE_MAX_ENTRIES
+    }
+}
+
+private fun searchCacheKey(
+    platform: Platform,
+    classes: PlatformClasses,
+    query: String,
+    filter: PlatformSearchFilter
+): String = buildString {
+    append(platform.name).append('|')
+    append(classes.name).append('|')
+    append(AllSettings.assetPlatformSource.getValue()).append('|')
+    append(query).append('|')
+    append(filter.copy(searchName = "").toString())
+}
+
+private fun getCachedSearchResult(key: String): PlatformSearchResult? = synchronized(searchCacheLock) {
+    val cached = searchCache[key] ?: return@synchronized null
+    if (System.currentTimeMillis() - cached.timestampMs > SEARCH_CACHE_TTL_MS) {
+        searchCache.remove(key)
+        return@synchronized null
+    }
+    cached.result
+}
+
+private fun putCachedSearchResult(key: String, result: PlatformSearchResult) {
+    synchronized(searchCacheLock) {
+        searchCache[key] = CachedSearchResult(result, System.currentTimeMillis())
+    }
+}
+
 suspend fun searchAssets(
     searchPlatform: Platform,
     searchFilter: PlatformSearchFilter,
@@ -166,38 +255,58 @@ suspend fun searchAssets(
 
         var lastResult: PlatformSearchResult? = null
         var lastException: Exception? = null
-        for (query in queries) {
-            try {
-                val r = when (searchPlatform) {
-                    Platform.CURSEFORGE -> mirroredPlatformSearcher(
-                        searchers = mirroredCurseForgeSource(),
-                        printLog = false
-                    ) { searcher ->
-                        searcher.searchAssets(
-                            query = query,
-                            searchFilter = searchFilterForQuery,
-                            platformClasses = platformClasses
-                        )
-                    }
-                    Platform.MODRINTH -> mirroredPlatformSearcher(
-                        searchers = mirroredModrinthSource(),
-                        printLog = false
-                    ) { searcher ->
-                        searcher.searchAssets(
-                            query = query,
-                            searchFilter = searchFilterForQuery,
-                            platformClasses = platformClasses
-                        )
+        try {
+            withTimeout(SEARCH_OVERALL_TIMEOUT_MS) {
+                for (query in queries) {
+                    val cacheKey = searchCacheKey(
+                        platform = searchPlatform,
+                        classes = platformClasses,
+                        query = query,
+                        filter = searchFilterForQuery
+                    )
+                    try {
+                        // Serve repeat searches (tab switches, back navigation, retries) instantly.
+                        val cached = getCachedSearchResult(cacheKey)
+                        //Sequential fallback with a per-source budget: concurrent
+                        //requests through the shared client proved unstable
+                        //(spurious "job has not completed" failures), so sources
+                        //are tried one by one instead of racing.
+                        val r = cached ?: when (searchPlatform) {
+                            Platform.CURSEFORGE -> mirroredPlatformSearcher(
+                                searchers = mirroredCurseForgeSource(),
+                                perSourceTimeoutMs = SEARCH_SOURCE_TIMEOUT_MS
+                            ) { searcher ->
+                                searcher.searchAssets(
+                                    query = query,
+                                    searchFilter = searchFilterForQuery,
+                                    platformClasses = platformClasses
+                                )
+                            }
+                            Platform.MODRINTH -> mirroredPlatformSearcher(
+                                searchers = mirroredModrinthSource(),
+                                perSourceTimeoutMs = SEARCH_SOURCE_TIMEOUT_MS
+                            ) { searcher ->
+                                searcher.searchAssets(
+                                    query = query,
+                                    searchFilter = searchFilterForQuery,
+                                    platformClasses = platformClasses
+                                )
+                            }
+                        }
+                        if (cached == null) putCachedSearchResult(cacheKey, r)
+                        lastResult = r
+                        if (r.hasResults()) break
+                    } catch (cancelled: CancellationException) {
+                        throw cancelled
+                    } catch (e: Exception) {
+                        //当前关键词搜索失败，记录异常并继续尝试下一个
+                        lastException = e
                     }
                 }
-                lastResult = r
-                if (r.hasResults()) break
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (e: Exception) {
-                //当前关键词搜索失败，记录异常并继续尝试下一个
-                lastException = e
             }
+        } catch (e: TimeoutCancellationException) {
+            // Convert the timeout into a visible error instead of hanging on "Searching".
+            lastException = IOException("Search timed out after ${SEARCH_OVERALL_TIMEOUT_MS / 1000}s", e)
         }
 
         val result = lastResult ?: throw lastException ?: IOException("Failed to search for all queries")

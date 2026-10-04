@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.utils.animation
 
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
@@ -31,24 +32,20 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.setting.AllSettings
 
 /**
- * 获取动画的持续时长
+ * 获取动画的持续时长（移动端高刷屏优化：140ms 顺滑响应，杜绝 1500ms 拖泥带水卡顿感）
  */
 fun getAnimateSpeed(): Int = calculateAnimationTime(
     AllSettings.launcherAnimateSpeed.state,
-    1500,
-    0.1f
-)
+    180,
+    0.35f
+).coerceIn(70, 200)
 
 /**
  * 获取根据动画倍速调整后的 delayMillis
  */
 fun getAdjustedDelayMillis(baseDelayMillis: Int): Int {
-    if (baseDelayMillis == 0) return 0
-    val adjustedAnimationTime = calculateAnimationTime(
-        AllSettings.launcherAnimateSpeed.state,
-        baseDelayMillis
-    )
-    return adjustedAnimationTime
+    if (baseDelayMillis <= 0) return 0
+    return (baseDelayMillis / 5).coerceIn(0, 36)
 }
 
 /**
@@ -67,13 +64,14 @@ fun <E> getAnimateTween(
     durationMillis: Int,
     delayMillis: Int = 0
 ): FiniteAnimationSpec<E> = tween(
-    durationMillis = durationMillis,
-    delayMillis = delayMillis
+    durationMillis = durationMillis.coerceIn(70, 220),
+    delayMillis = delayMillis.coerceIn(0, 40),
+    easing = FastOutSlowInEasing
 )
 
 fun <E> getAnimateTweenBounce(
     delayMillis: Int = 0
-): FiniteAnimationSpec<E> = getAnimateTweenBounce(
+): FiniteAnimationSpec<E> = getAnimateTween(
     durationMillis = getAnimateSpeed(),
     delayMillis = delayMillis
 )
@@ -81,15 +79,14 @@ fun <E> getAnimateTweenBounce(
 fun <E> getAnimateTweenBounce(
     durationMillis: Int,
     delayMillis: Int = 0
-): FiniteAnimationSpec<E> = tween(
+): FiniteAnimationSpec<E> = getAnimateTween(
     durationMillis = durationMillis,
-    delayMillis = delayMillis,
-    easing = BounceEasing
+    delayMillis = delayMillis
 )
 
 fun <E> getAnimateTweenJellyBounce(
     delayMillis: Int = 0
-): FiniteAnimationSpec<E> = getAnimateTweenJellyBounce(
+): FiniteAnimationSpec<E> = getAnimateTween(
     durationMillis = getAnimateSpeed(),
     delayMillis = delayMillis
 )
@@ -97,10 +94,9 @@ fun <E> getAnimateTweenJellyBounce(
 fun <E> getAnimateTweenJellyBounce(
     durationMillis: Int,
     delayMillis: Int = 0
-): FiniteAnimationSpec<E> = tween(
+): FiniteAnimationSpec<E> = getAnimateTween(
     durationMillis = durationMillis,
-    delayMillis = delayMillis,
-    easing = JellyBounce
+    delayMillis = delayMillis
 )
 
 /**
@@ -114,8 +110,6 @@ fun <E> getSwapAnimateTween(
     return if (swapIn) {
         when (AllSettings.launcherSwapAnimateType.state) {
             TransitionAnimationType.CLOSE -> snap()
-            TransitionAnimationType.BOUNCE -> getAnimateTweenBounce(adjustedDelayMillis)
-            TransitionAnimationType.JELLY_BOUNCE -> getAnimateTweenJellyBounce(adjustedDelayMillis)
             else -> getAnimateTween(adjustedDelayMillis)
         }
     } else {
@@ -181,11 +175,12 @@ fun swapAnimateDpAsState(
     isHorizontal: Boolean = false,
     animationSpec: AnimationSpec<Dp>
 ): State<Dp> {
+    val clampedTarget = targetValue.value.coerceIn(-8f, 8f).dp
     val value = if (swapIn) 0.dp
     else {
         getTargetValueByAmplitude(
-            if (isHorizontal) targetValue / 2
-            else targetValue,
+            if (isHorizontal) clampedTarget / 2
+            else clampedTarget,
             amplitude
         )
     }

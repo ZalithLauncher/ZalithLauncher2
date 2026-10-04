@@ -110,6 +110,7 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.ListSettin
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCardColumn
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SwitchSettingsCard
+import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.TextInputSettingsCard
 import com.movtery.zalithlauncher.ui.theme.ColorThemeType
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -408,6 +409,14 @@ fun LauncherSettingsScreen(
                         summary = stringResource(R.string.settings_launcher_log_retention_days_summary),
                         valueRange = AllSettings.launcherLogRetentionDays.floatRange,
                         suffix = stringResource(R.string.unit_day)
+                    )
+
+                    TextInputSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.curseForgeApiKey,
+                        title = "CurseForge API Key",
+                        summary = "Optional. Without a key the official CurseForge source is skipped and only the mirror is used. Paste a free key from console.curseforge.com to enable it."
                     )
 
                     SettingsCard(

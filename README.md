@@ -19,6 +19,25 @@
 
 ---
 
+## 📸 Screenshots
+
+**Home dashboard** — quick actions (Boost FPS, JRE & GC, Crash Doctor), account status and PLAY at a glance.
+![Home dashboard](assets/screenshots/shot-home.jpg)
+
+**Instances** — search, filter (All / Modpacks / Vanilla / Pinned) and create new instances.
+![Instances](assets/screenshots/shot-instances.jpg)
+
+**Discover** — browse and install mods, modpacks, shaders and more.
+![Discover](assets/screenshots/shot-discover.jpg)
+
+**Wallpapers** — 20 built-in HD Minecraft wallpapers with dim control and custom imports.
+![Wallpapers](assets/screenshots/shot-wallpapers.jpg)
+
+**Renderer settings** — renderer, Vulkan driver and graphics API per version.
+![Renderer settings](assets/screenshots/shot-renderer.jpg)
+
+---
+
 ## 🏆 Why Mirai
 
 Mirai Launcher is a **Minecraft: Java Edition** launcher for Android, built to feel faster, cleaner, and more complete than the launchers most players settle for.

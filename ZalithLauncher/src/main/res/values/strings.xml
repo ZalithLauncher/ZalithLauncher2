@@ -1314,8 +1314,6 @@
     <string name="about_launcher_owner_link">GitHub profile</string>
     <string name="about_launcher_author_movtery_title">MovTery</string>
     <string name="about_launcher_author_movtery_text">Author of %s</string>
-    <string name="about_launcher_upstream_title">Original project contributors</string>
-    <string name="about_launcher_upstream_text">With thanks to MovTery and the Zalith Launcher 2 contributors for the work Mirai builds on.</string>
     <string name="about_launcher_project_link">Project Link</string>
     <string name="about_sponsor">Sponsorship Support</string>
     <string name="about_acknowledgements_title">Acknowledgements</string>

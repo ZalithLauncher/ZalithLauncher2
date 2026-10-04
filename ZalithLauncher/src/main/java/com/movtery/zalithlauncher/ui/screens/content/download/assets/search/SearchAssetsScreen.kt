@@ -87,6 +87,7 @@ import com.movtery.zalithlauncher.game.download.assets.utils.searchMcMods
 import com.movtery.zalithlauncher.game.version.mod.InstalledMod
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersions
+import com.movtery.zalithlauncher.game.versioninfo.allMinecraftVersions
 import com.movtery.zalithlauncher.game.versioninfo.popularVersions
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -534,8 +535,9 @@ fun SearchAssetsScreen(
                                 viewModel.researchWithFilter(viewModel.searchFilter.copy(gameVersion = ""))
                             }
                         )
-                        val versionOptions = searchedVersions.ifEmpty { popularVersions }
-                        versionOptions.take(15).forEach { ver ->
+                        //Full catalog, newest first; versions seen in results stay pinned on top.
+                        val versionOptions = (searchedVersions + allMinecraftVersions).distinct()
+                        versionOptions.forEach { ver ->
                             DropdownMenuItem(
                                 text = { Text(ver) },
                                 onClick = {

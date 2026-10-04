@@ -23,6 +23,7 @@ import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.KopperZinkRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWLegacyRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VGPU1368Renderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VGPURenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VirGLRenderer
@@ -55,6 +56,7 @@ object RendererPicker {
     val GL4ES: String = GL4ESRenderer.getUniqueIdentifier()
     val VIRGL: String = VirGLRenderer.getUniqueIdentifier()
     val LTW: String = LTWRenderer.getUniqueIdentifier()
+    val MOBILEGLUES: String = MobileGluesRenderer.getUniqueIdentifier()
     val ZINK: String = KopperZinkRenderer.getUniqueIdentifier()
     val LTW_LEGACY: String = LTWLegacyRenderer.getUniqueIdentifier()
     val VGPU: String = VGPURenderer.getUniqueIdentifier()
@@ -67,7 +69,7 @@ object RendererPicker {
     private val LEGACY_ORDER = listOf(LTW_LEGACY, VGPU, VGPU_1368, GL4ES, VIRGL)
 
     /** Preferred core-profile wrappers, best first. */
-    private val MODERN_ORDER = listOf(LTW, ZINK)
+    private val MODERN_ORDER = listOf(LTW, MOBILEGLUES, ZINK)
 
     data class Choice(
         val identifier: String,

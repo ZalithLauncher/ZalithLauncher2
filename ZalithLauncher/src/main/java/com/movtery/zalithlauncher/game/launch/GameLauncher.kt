@@ -46,6 +46,7 @@ import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWLegacyRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VGPU1368Renderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VGPURenderer
@@ -245,6 +246,7 @@ class GameLauncher(
 
         disableSplash(gameDirPath)
         configureVgpuAndLegacyCompatibility(gameDirPath)
+        writeMobileGluesConfig()
 
         //初始化运行环境
         this.runtime = runtime
@@ -547,6 +549,28 @@ class GameLauncher(
             """.trimIndent() + "\n"
         )
     }
+
+    /**
+     * Writes the MobileGlues MG-ES config.json when MobileGlues is the active renderer.
+     * MG reads <MG_DIR_PATH>/config.json at startup; writing it explicitly pins the
+     * tested performance profile: error checking off (fastest path), everything else
+     * at upstream defaults (no ANGLE, no FSR, stock multidraw and extension set).
+     */
+    private fun writeMobileGluesConfig() {
+        if (!Renderers.isCurrentRendererValid()) return
+        if (Renderers.getCurrentRenderer() != MobileGluesRenderer) return
+        runCatching {
+            val mgDir = File(PathManager.DIR_FILES_PRIVATE, "MobileGlues")
+            if (!mgDir.exists() && !mgDir.mkdirs()) return
+            File(mgDir, "config.json").writeText(
+                """
+                {"enableANGLE":0,"enableNoError":1,"fsr1Setting":0,"enableExtComputeShader":0,"angleDepthClearFixMode":0,"enableExtTimerQuery":0,"enableExtDirectStateAccess":0,"multidrawMode":0,"maxGlslCacheSize":128}
+                """.trimIndent() + "\n"
+            )
+        }.onFailure {
+            Logger.warning(TAG, "Failed to write MobileGlues config.json", it)
+        }
+    }
 }
 
 private fun checkAndUsedJSPH(envMap: MutableMap<String, String>, runtime: Runtime) {
@@ -592,12 +616,13 @@ private fun setRendererEnv(envMap: MutableMap<String, String>) {
 
     if (RendererPluginManager.selectedRendererPlugin != null) return
 
-    // LTW, LTW Legacy, and VGPU are self-contained GLES-backed wrappers that bring their own GL
-    // implementation. Forcing the Zink/Mesa path here would load a second GL implementation
-    // beside libltw/libltwlegacy/libvgpu and the game would render through the wrong one.
+    // LTW, LTW Legacy, VGPU and MobileGlues are self-contained GLES-backed wrappers that
+    // bring their own GL implementation. Forcing the Zink/Mesa path here would load a second
+    // GL implementation beside them and the game would render through the wrong one.
     if (renderer != GL4ESRenderer && renderer != NGGL4ESRenderer &&
         renderer != LTWRenderer && renderer != LTWLegacyRenderer &&
-        renderer != VGPURenderer && renderer != VGPU1368Renderer) {
+        renderer != VGPURenderer && renderer != VGPU1368Renderer &&
+        renderer != MobileGluesRenderer) {
         envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
         envMap["MESA_GLSL_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
         envMap["MESA_GL_VERSION_OVERRIDE"] = "4.6"

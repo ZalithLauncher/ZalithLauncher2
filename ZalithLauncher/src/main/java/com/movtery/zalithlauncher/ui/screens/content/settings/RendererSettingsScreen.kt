@@ -80,6 +80,7 @@ import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.renderer.renderers.KopperZinkRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWLegacyRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VGPU1368Renderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VGPURenderer
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
@@ -161,6 +162,12 @@ private val rendererStackOptions = listOf(
         title = "Kopper Zink (Vulkan)",
         badge = "VULKAN",
         description = "Mesa OpenGL-on-Vulkan translation for Adreno Turnip."
+    ),
+    RendererStackOption(
+        keyMatch = "MOBILEGLUES",
+        title = "MobileGlues (1.17+ Fastest)",
+        badge = "FASTEST",
+        description = "Modern MG-ES wrapper: fastest path for 1.17+ & Sodium."
     )
 )
 
@@ -225,6 +232,9 @@ fun RendererSettingsScreen(
                                         }
                                         "Zink" -> allRenderers.firstOrNull {
                                             it.getUniqueIdentifier() == KopperZinkRenderer.getUniqueIdentifier()
+                                        }
+                                        "MOBILEGLUES" -> allRenderers.firstOrNull {
+                                            it.getUniqueIdentifier() == MobileGluesRenderer.getUniqueIdentifier()
                                         }
                                         else -> allRenderers.firstOrNull()
                                     }

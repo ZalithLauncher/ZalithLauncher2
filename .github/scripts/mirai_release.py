@@ -20,7 +20,7 @@ ARCH_SUFFIXES = {
 
 
 def classify_apk(name: str) -> str:
-    if not name.startswith("MiraiLauncher-"):
+    if not name.startswith(("MiraiLauncher-", "Mirai Launcher-")):
         raise ValueError(f"Unexpected APK name: {name}")
     for suffix, arch in ARCH_SUFFIXES.items():
         if name.endswith(suffix):

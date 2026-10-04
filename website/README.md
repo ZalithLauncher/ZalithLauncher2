@@ -82,6 +82,47 @@ BASE='https://your.actual.domain'
 sed -i "s|https://entitybrian69-bit.github.io/Mirai-launcher|$BASE|g" *.html
 ```
 
+## Community
+
+### Discord
+
+Invite: **<https://discord.gg/RS7q9KaCm6>** (server: **MIRAI LAUNCHER**)
+Appears in the README and in the header, footer and CTAs of all six pages.
+
+> **Set this invite to never expire.** Discord's default is 7 days, and two earlier invites
+> died that way — one of them after it was already baked into every page. In Discord:
+> *Invite People → Edit invite link → Expire After: **Never***.
+
+### Comments (giscus)
+
+`index.html` and `faq.html` embed [giscus](https://giscus.app), which stores comments as GitHub
+Discussions. Threads are mapped by `pathname`, so each page gets its own conversation, and
+reactions are enabled.
+
+Current configuration:
+
+| Setting | Value |
+| --- | --- |
+| `data-repo` | `entitybrian69-bit/Mirai-launcher` |
+| `data-repo-id` | `R_kgDOU01PCQ` |
+| `data-category-id` | `DIC_kwDOU01PCc4DHAoA` (`Announcements`) |
+| `data-mapping` | `pathname` |
+| `data-reactions-enabled` | `1` |
+| `data-theme` | `preferred_color_scheme` — **overridden at runtime**, see below |
+
+**Requirements for it to work:** Discussions must be enabled in repository settings, the
+[giscus GitHub App](https://github.com/apps/giscus) must be installed on the repository, and
+the category ID above must exist. If any of those is missing, giscus renders a setup prompt
+instead of a comment box.
+
+**Theming.** giscus runs in its own iframe and cannot see this site's theme control, so
+`site.js` posts the resolved theme into it — whenever the theme changes, and once on load via a
+`MutationObserver` watching for the iframe. Without that the comment box would sit on the OS
+preference and visibly disagree with the rest of the page.
+
+The category is referenced **by ID rather than by name** deliberately: renaming the
+"Announcements" category in GitHub would silently break a name-based reference.
+
 ## Local preview
 
 Any static server works:

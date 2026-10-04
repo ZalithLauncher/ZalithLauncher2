@@ -37,7 +37,7 @@ object VGPURenderer : RendererInterface {
     override fun getRendererName(): String = "vgpu - (up to 1.16.5, fast)"
 
     override fun getRendererSummary(): String =
-        "Pojav Glow-Worm VGPU 1.4.0 fast renderer for Minecraft up to 1.16.5 (Fabric + Sodium & Shaders)."
+        "( Performative and balance for version above 1.16.5)"
 
     override fun getMaxMCVersion(): String = "1.16.5"
 

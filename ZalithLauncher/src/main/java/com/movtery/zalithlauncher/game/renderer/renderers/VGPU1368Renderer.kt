@@ -36,7 +36,7 @@ object VGPU1368Renderer : RendererInterface {
     override fun getRendererName(): String = "VGPU 1.3.6β"
 
     override fun getRendererSummary(): String =
-        "Pojav Glow-Worm VGPU 1.3.6β with built-in shaderconv for 1.16.5 Fabric + Sodium & Shaders."
+        "(Compat with all version and very reliable)"
 
     override fun getMaxMCVersion(): String = "1.16.5"
 

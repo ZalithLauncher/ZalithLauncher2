@@ -83,6 +83,7 @@ import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
 import com.movtery.zalithlauncher.game.download.assets.platform.cacheKey
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
@@ -167,6 +168,7 @@ fun DownloadSingleOperation(
             val classes = operation.classes
 
             DownloadDialog(
+                fileVersion = operation.version,
                 dependencyEntries = dependencyEntries,
                 classes = classes,
                 installedProjects = installedProjects,
@@ -205,6 +207,7 @@ private fun rememberValidVersions(): State<List<Version>> {
 
 @Composable
 private fun DownloadDialog(
+    fileVersion: PlatformVersion,
     dependencyEntries: List<DependencyEntry>,
     classes: PlatformClasses,
     installedProjects: Map<Platform, Set<String>>,
@@ -224,8 +227,31 @@ private fun DownloadDialog(
             onDismiss = onDismiss
         )
     } else {
+        //Auto-detection: MC versions + loaders supported by the file being downloaded.
+        val detectedGameVersions = remember(fileVersion) { fileVersion.platformGameVersion() }
+        val detectedLoaders = remember(fileVersion) { fileVersion.platformLoaders() }
+
+        fun isVersionDetected(gameVersion: Version): Boolean {
+            val info = gameVersion.getVersionInfo() ?: return false
+            if (info.minecraftVersion !in detectedGameVersions) return false
+            if (detectedLoaders.isEmpty()) return true
+            val installedLoader = info.loaderInfo?.loader?.displayName ?: return false
+            return detectedLoaders.any { it.getDisplayName().equals(installedLoader, ignoreCase = true) }
+        }
+
+        val detectedVersions = remember(versions, fileVersion) {
+            versions.filter(::isVersionDetected).toSet()
+        }
+
         //当前选择的版本，将会把资源安装到该版本
-        val selectedVersions = remember { mutableStateListOf(version0) }
+        //Auto-detection pre-checks every compatible installed version; when nothing
+        //matches, the current version stays selected as before.
+        val selectedVersions = remember {
+            mutableStateListOf<Version>().apply {
+                val detected = versions.filter(::isVersionDetected)
+                if (detected.isNotEmpty()) addAll(detected) else add(version0)
+            }
+        }
 
         //拆分依赖项目、可选项目
         val dependencies = remember(dependencyEntries) {
@@ -350,6 +376,35 @@ private fun DownloadDialog(
                                     style = MaterialTheme.typography.titleMedium
                                 )
 
+                                //Auto-detected file target, e.g. "Detected: 1.21.1 • Fabric".
+                                Text(
+                                    modifier = if (hasDeps) {
+                                        Modifier
+                                    } else {
+                                        Modifier.align(Alignment.CenterHorizontally)
+                                    },
+                                    text = remember(detectedGameVersions, detectedLoaders) {
+                                        buildString {
+                                            append("Detected: ")
+                                            append(
+                                                if (detectedGameVersions.isEmpty()) "?"
+                                                else detectedGameVersions.take(3).joinToString(", ")
+                                            )
+                                            if (detectedGameVersions.size > 3) {
+                                                append(" +${detectedGameVersions.size - 3}")
+                                            }
+                                            if (detectedLoaders.isNotEmpty()) {
+                                                append(" • ")
+                                                append(detectedLoaders.joinToString(" • ") { it.getDisplayName() })
+                                            }
+                                        }
+                                    },
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+
                                 val listState = rememberLazyListState()
 
                                 LaunchedEffect(Unit) {
@@ -367,6 +422,7 @@ private fun DownloadDialog(
                                     modifier = Modifier.fadeEdge(state = listState),
                                     versions = versions,
                                     selectedVersions = selectedVersions,
+                                    detectedVersions = detectedVersions,
                                     onVersionSelected = { selectedVersions.add(it) },
                                     onVersionUnSelected = { selectedVersions.remove(it) },
                                     listState = listState
@@ -423,6 +479,7 @@ private fun ChoseGameVersionLayout(
     modifier: Modifier = Modifier,
     versions: List<Version>,
     selectedVersions: List<Version>,
+    detectedVersions: Set<Version> = emptySet(),
     onVersionSelected: (Version) -> Unit,
     onVersionUnSelected: (Version) -> Unit,
     listState: LazyListState
@@ -442,6 +499,7 @@ private fun ChoseGameVersionLayout(
                     modifier = Modifier.fillMaxWidth(),
                     version = version,
                     checked = selectedVersions.contains(version),
+                    detected = detectedVersions.contains(version),
                     onChose = {
                         onVersionSelected(version)
                     },
@@ -459,6 +517,7 @@ private fun SelectVersionListItem(
     modifier: Modifier = Modifier,
     version: Version,
     checked: Boolean,
+    detected: Boolean = false,
     onChose: () -> Unit,
     onCancel: () -> Unit,
     shape: Shape = MaterialTheme.shapes.large,
@@ -496,6 +555,13 @@ private fun SelectVersionListItem(
                 modifier = Modifier.weight(1f),
                 version = version
             )
+            if (detected) {
+                LittleTextLabel(
+                    modifier = Modifier.padding(end = 8.dp),
+                    text = "Detected",
+                    shape = MaterialTheme.shapes.small
+                )
+            }
         }
     }
 }

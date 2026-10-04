@@ -411,10 +411,10 @@ fun DownloadAssetsScreen(
 }
 
 /**
- * Number of LazyColumn header items above the version rows (hero card + filter row).
+ * Number of LazyColumn header items above the version rows (hero card + screenshots slot + filter row).
  * Used as the scroll offset when auto-scrolling to the adapted version.
  */
-private const val DOWNLOAD_HEADER_COUNT = 2
+private const val DOWNLOAD_HEADER_COUNT = 3
 
 /**
  * Single-column "Mobile Hero" layout: hero card, filters, version rows,
@@ -444,20 +444,26 @@ private fun MiraiDownloadColumn(
         project?.platformScreenshots().orEmpty()
     }
 
+    val screenshotsShown = projectScreenshots.isNotEmpty()
     //Auto-scroll to the version adapted to the current instance, once per fresh load.
-    var versionsLoaded by remember { mutableStateOf(false) }
-    LaunchedEffect(versionsResult) {
+    //Re-scrolls when the screenshots rail pops in late (it sits above the rows),
+    //unless the user is already interacting with the list.
+    var versionsLoaded by remember(projectId) { mutableStateOf(false) }
+    var shotsArrived by remember(projectId) { mutableStateOf(false) }
+    LaunchedEffect(versionsResult, screenshotsShown) {
         val result = (versionsResult as? DownloadAssetsState.Success)?.result
         val justLoaded = result != null && !versionsLoaded
         versionsLoaded = result != null
-        if (!justLoaded || result == null) return@LaunchedEffect
+        val shotsJustArrived = screenshotsShown && !shotsArrived
+        shotsArrived = screenshotsShown
+        if ((!justLoaded && !shotsJustArrived) || result == null) return@LaunchedEffect
+        val index = result.indexOfFirst { it.isAdapt }
+        if (index < 0) return@LaunchedEffect
+        if (shotsJustArrived && !justLoaded && scrollState.isScrollInProgress) return@LaunchedEffect
         delay(100L.milliseconds)
         runCatching {
-            val index = result.indexOfFirst { it.isAdapt }
-            if (index >= 0) {
-                //自动滚动到适配的资源版本
-                scrollState.animateScrollToItem(DOWNLOAD_HEADER_COUNT + index)
-            }
+            //自动滚动到适配的资源版本
+            scrollState.animateScrollToItem(DOWNLOAD_HEADER_COUNT + index)
         }
     }
 
@@ -483,6 +489,14 @@ private fun MiraiDownloadColumn(
                 onDownloadLatest = onVersionClicked,
                 onReload = onReloadProject
             )
+        }
+
+        //Screenshots sit right under the hero; the slot is always emitted so the
+        //auto-scroll offset stays constant while the project is still loading.
+        item(key = "mirai_screenshots") {
+            if (projectScreenshots.isNotEmpty()) {
+                ScreenshotsRail(screenshots = projectScreenshots)
+            }
         }
 
         when (versionsResult) {
@@ -554,12 +568,6 @@ private fun MiraiDownloadColumn(
             }
         }
 
-        //Screenshots carousel.
-        if (projectScreenshots.isNotEmpty()) {
-            item(key = "mirai_screenshots") {
-                ScreenshotsRail(screenshots = projectScreenshots)
-            }
-        }
     }
 }
 

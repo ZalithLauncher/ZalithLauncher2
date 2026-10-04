@@ -662,6 +662,8 @@ tbody td code { font-size: .82em; }
   body { font-size: 16px; }
   .nav-links { display: none; }
   .menu-btn { display: grid; }
+  /* Keep the collapsed menu in the layout so the open state can expand it. */
+  .mobile-menu { display: block; }
   .theme-wrap { margin-left: auto; }
   .nav-actions { margin-left: 0; }
   .hero { padding-block: 2.4rem 1.6rem; }

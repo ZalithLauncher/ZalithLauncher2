@@ -1,4 +1,4 @@
-name: Mirai Release APKs
+name: Aerix Release APKs
 
 on:
   release:
@@ -52,7 +52,7 @@ jobs:
           done
           python3 .github/scripts/mirai_release.py verify ./apks
 
-      - name: Read Mirai version metadata
+      - name: Read Aerix version metadata
         id: version
         run: |
           set -euo pipefail
@@ -63,7 +63,7 @@ jobs:
           echo "code=$version_code" >> "$GITHUB_OUTPUT"
           echo "name=$version_name" >> "$GITHUB_OUTPUT"
 
-      - name: Generate Mirai update metadata
+      - name: Generate Aerix update metadata
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           RELEASE_PUBLISHED_AT: ${{ github.event.release.published_at }}
@@ -74,7 +74,7 @@ jobs:
         run: |
           python3 .github/scripts/mirai_release.py metadata \
             --apks-directory ./apks \
-            --output ./mirai-update.json \
+            --output ./aerix-update.json \
             --repository "$RELEASE_REPOSITORY" \
             --tag "$RELEASE_TAG" \
             --published-at "$RELEASE_PUBLISHED_AT" \
@@ -87,5 +87,5 @@ jobs:
           tag_name: ${{ github.event.release.tag_name }}
           files: |
             ./apks/*.apk
-            ./mirai-update.json
+            ./aerix-update.json
           fail_on_unmatched_files: true

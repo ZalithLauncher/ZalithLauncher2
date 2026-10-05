@@ -1,6 +1,6 @@
 # Renderer selection
 
-Mirai ships several OpenGL wrappers. A wrapper translates the desktop OpenGL calls Minecraft
+Aerix ships several OpenGL wrappers. A wrapper translates the desktop OpenGL calls Minecraft
 makes into whatever the device actually offers (OpenGL ES, or Vulkan through Mesa). Choosing the
 wrong one is the single most common reason a version fails to start, so the launcher picks one
 for you and lets you override it per instance.
@@ -77,7 +77,7 @@ about this:
   provides the GL entry points those mods need, such as the core-profile and extension surface
   that LTW exposes.
 
-So Mirai does not claim "Sodium parity" or "Iris parity" for any wrapper. What the wrappers are
+So Aerix does not claim "Sodium parity" or "Iris parity" for any wrapper. What the wrappers are
 responsible for is faithfully exposing the OpenGL surface each Minecraft version and its mods
 expect — and that is what the version ranges above are about.
 

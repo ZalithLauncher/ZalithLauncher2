@@ -1,8 +1,8 @@
 # LTW Legacy — provenance and fork notes
 
-`LTW Legacy` is Mirai's legacy OpenGL compatibility renderer for Minecraft **1.8 through 1.16.4**.
+`LTW Legacy` is Aerix's legacy OpenGL compatibility renderer for Minecraft **1.8 through 1.16.4**.
 
-It is built from a vendored snapshot of **GL4ES**, patched and packaged by Mirai as a single
+It is built from a vendored snapshot of **GL4ES**, patched and packaged by Aerix as a single
 native library, `libltwlegacy.so`.
 
 ## Upstream
@@ -18,7 +18,7 @@ native library, `libltwlegacy.so`.
 
 ## Why this exists
 
-Before this module, Mirai's legacy (1.8–1.16.4) renderer path depended on
+Before this module, Aerix's legacy (1.8–1.16.4) renderer path depended on
 `MiraiLauncher/src/main/jniLibs/*/libgl4es_114.so` — a **prebuilt binary with no source in
 tree**. That binary is GL4ES **1.1.4**; it cannot be audited, patched, rebuilt for a new ABI, or
 updated, and it silently drifts from the NDK and platform it is linked against.
@@ -43,16 +43,16 @@ LICENSE             upstream MIT license
 
 Deliberately **not** vendored, to keep the tree small: `traces/` (46 MB of captured API traces),
 `refs/`, `spec/`, `media/`, `tests/`, `debian/`, `Android.mk`, and the upstream top-level
-`CMakeLists.txt`. Mirai supplies its own CMake project instead, in
+`CMakeLists.txt`. Aerix supplies its own CMake project instead, in
 `ltwlegacy/src/main/cpp/CMakeLists.txt`.
 
-## What Mirai changed
+## What Aerix changed
 
 1. **Build system.** A dedicated CMake project replaces upstream's multi-platform top-level
    `CMakeLists.txt`. It compiles `src/gl/**` plus `src/glx/hardext.c` and emits a single
    `libltwlegacy.so` with the `ANDROID`, `NOX11`, `NO_GBM` and `DEFAULT_ES=2` defines upstream
    uses for Android targets.
-2. **No EGL wrapper.** Upstream can build a second `libEGL.so` shim. Mirai does not use it: the
+2. **No EGL wrapper.** Upstream can build a second `libEGL.so` shim. Aerix does not use it: the
    launcher loads `libltwlegacy.so` purely as a GL translation layer and lets the platform
    supply EGL, exactly as it already does for the `GL4ES` and `Krypton Wrapper` renderers. This
    avoids a second library competing for `eglGetProcAddress`.
@@ -62,7 +62,7 @@ Deliberately **not** vendored, to keep the tree small: `traces/` (46 MB of captu
 No behavioural patch to the C sources is applied on top of the pinned commit. The upstream
 sources in this directory are unmodified.
 
-## Relationship to the other Mirai renderers
+## Relationship to the other Aerix renderers
 
 | Renderer | Library | Emulates | Target versions |
 | --- | --- | --- | --- |
@@ -81,5 +81,5 @@ regresses.
 
 GL4ES is MIT licensed. The upstream `LICENSE` file is preserved verbatim at
 [`LICENSE`](LICENSE), and upstream copyright notices remain in every source file. MIT is
-compatible with Mirai's GPL-3.0 licensing; the combined work is distributed under GPL-3.0 with
+compatible with Aerix's GPL-3.0 licensing; the combined work is distributed under GPL-3.0 with
 the upstream MIT notice retained.

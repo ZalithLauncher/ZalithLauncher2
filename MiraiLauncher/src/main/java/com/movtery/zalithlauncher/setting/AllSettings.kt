@@ -91,7 +91,7 @@ object AllSettings : SettingsRegistry() {
     val gyroscopeSmoothingWindow = intSetting("gyroscopeSmoothingWindow", 4, 2..10)
     val gyroscopeInvertX = boolSetting("gyroscopeInvertX", false)
     val gyroscopeInvertY = boolSetting("gyroscopeInvertY", false)
-    val launcherColorTheme = enumSetting("launcherColorTheme", ColorThemeType.MIRAI)
+    val launcherColorTheme = enumSetting("launcherColorTheme", ColorThemeType.AERIX)
     val launcherCustomColor = intSetting("launcherCustomColor", Color.Blue.toArgb())
     val launcherCustomPaletteStyle = enumSetting("launcherCustomPaletteStyle", PaletteStyle.TonalSpot)
     val launcherDarkMode = enumSetting("launcherDarkMode", DarkMode.Enable)

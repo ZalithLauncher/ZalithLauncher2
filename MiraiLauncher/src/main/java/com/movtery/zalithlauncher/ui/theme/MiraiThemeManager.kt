@@ -1,7 +1,7 @@
 /*
  * Zalith Launcher 2
  * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
- * Copyright (C) 2026 Mirai Launcher contributors.
+ * Copyright (C) 2026 Aerix Launcher contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -274,7 +274,7 @@ object MiraiThemeManager {
                 .putString(KEY_SELECTED_WALLPAPER, "none")
                 .apply()
             AllSettings.launcherCustomColor.save(Color(0xFF1BD96A).toArgb())
-            AllSettings.launcherColorTheme.save(ColorThemeType.MIRAI)
+            AllSettings.launcherColorTheme.save(ColorThemeType.AERIX)
         }
     }
 

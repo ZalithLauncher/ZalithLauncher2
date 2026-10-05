@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Renderers — Mirai Launcher</title>
-<meta name="description" content="Mirai Launcher ships eleven Minecraft renderers, two of them compiled from source, and picks the right one for your version and device automatically.">
+<title>Renderers — Aerix Launcher</title>
+<meta name="description" content="Aerix Launcher ships eleven Minecraft renderers, two of them compiled from source, and picks the right one for your version and device automatically.">
 <meta name="theme-color" content="#FAF6F1">
-<link rel="canonical" href="https://entitybrian69-bit.github.io/Mirai-launcher/renderers.html">
+<link rel="canonical" href="https://entitybrian69-bit.github.io/Aerix-launcher/renderers.html">
 <link rel="icon" href="assets/img/favicon.ico" sizes="any">
 <link rel="icon" href="assets/img/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Renderers — Mirai Launcher">
+<meta property="og:title" content="Renderers — Aerix Launcher">
 <meta property="og:description" content="Eleven wrappers, two built from source, chosen automatically per version.">
-<meta property="og:image" content="https://entitybrian69-bit.github.io/Mirai-launcher/assets/img/mirai-logo.png">
+<meta property="og:image" content="https://entitybrian69-bit.github.io/Aerix-launcher/assets/img/aerix-logo.png">
 <script>
 (function(){try{
-  var m=localStorage.getItem('mirai-theme')||'auto';
-  var a=localStorage.getItem('mirai-accent')||'violet';
+  var m=localStorage.getItem('aerix-theme')||'auto';
+  var a=localStorage.getItem('aerix-accent')||'violet';
   var d=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';
   document.documentElement.setAttribute('data-theme',m==='auto'?d:m);
   document.documentElement.setAttribute('data-mode',m);
@@ -36,8 +36,8 @@
   <div class="wrap">
     <nav class="nav" aria-label="Main">
       <a class="brand" href="index.html">
-        <img src="assets/img/mirai-logo-256.png" alt="" width="30" height="30">
-        <span>Mirai</span>
+        <img src="assets/img/aerix-logo-256.png" alt="" width="30" height="30">
+        <span>Aerix</span>
       </a>
       <ul class="nav-links">
         <li><a href="index.html">Home</a></li>
@@ -69,7 +69,7 @@
             </div>
           </div>
         </div>
-        <a class="btn btn-primary btn-sm" href="https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest">Download</a>
+        <a class="btn btn-primary btn-sm" href="https://github.com/entitybrian69-bit/Aerix-launcher/releases/latest">Download</a>
         <button class="icon-btn menu-btn" id="menu-toggle" aria-expanded="false" aria-controls="mobile-menu" aria-label="Open menu">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
         </button>
@@ -102,7 +102,7 @@
     <div class="wrap">
       <div class="callout reveal">
         <strong>TL;DR</strong>
-        Mirai ships eleven renderers, chooses one automatically from the Minecraft version you are launching, and lets you override that choice per instance.
+        Aerix ships eleven renderers, chooses one automatically from the Minecraft version you are launching, and lets you override that choice per instance.
       </div>
     </div>
   </section>
@@ -117,7 +117,7 @@
       </div>
       <div class="table-scroll reveal">
         <table>
-          <caption class="visually-hidden">Renderer libraries bundled with Mirai Launcher and their compatibility</caption>
+          <caption class="visually-hidden">Renderer libraries bundled with Aerix Launcher and their compatibility</caption>
           <thead>
             <tr>
               <th scope="col">Renderer</th>
@@ -236,7 +236,7 @@
     <div class="wrap">
       <div class="section-head reveal">
         <p class="eyebrow">Selection</p>
-        <h2>How Mirai picks one</h2>
+        <h2>How Aerix picks one</h2>
         <p>Every renderer declares its own compatibility range. Nothing in the picker hardcodes a version boundary, so a renderer cannot drift out of sync with its own compatibility window.</p>
       </div>
       <div class="steps">
@@ -258,7 +258,7 @@
           <span class="step-num" aria-hidden="true"></span>
           <div>
             <h3>If nothing matches, it says so</h3>
-            <p>Rather than refusing to launch, Mirai uses the first loaded renderer and records the choice and the reason in the launch log. A surprising pick can always be traced back to a line explaining it.</p>
+            <p>Rather than refusing to launch, Aerix uses the first loaded renderer and records the choice and the reason in the launch log. A surprising pick can always be traced back to a line explaining it.</p>
           </div>
         </div>
       </div>
@@ -278,7 +278,7 @@
       <div class="grid grid-2">
         <div class="card reveal">
           <h3>LTW Legacy</h3>
-          <p>Built from a vendored snapshot of GL4ES, pinned to an exact upstream commit and version. Mirai supplies its own CMake project, drops upstream's optional EGL wrapper so it never competes for <code>eglGetProcAddress</code>, and renames the output so it can coexist with the other GL4ES builds.</p>
+          <p>Built from a vendored snapshot of GL4ES, pinned to an exact upstream commit and version. Aerix supplies its own CMake project, drops upstream's optional EGL wrapper so it never competes for <code>eglGetProcAddress</code>, and renames the output so it can coexist with the other GL4ES builds.</p>
           <p class="mt-2 small muted">GL4ES is MIT licensed. The upstream licence and copyright notices are preserved.</p>
         </div>
         <div class="card reveal" style="--d:80ms">
@@ -309,7 +309,7 @@
   <div class="wrap">
     <div class="footer-grid">
       <div>
-        <div class="footer-brand"><img src="assets/img/mirai-logo-256.png" alt="" width="26" height="26"><span>Mirai Launcher</span></div>
+        <div class="footer-brand"><img src="assets/img/aerix-logo-256.png" alt="" width="26" height="26"><span>Aerix Launcher</span></div>
         <p>A Minecraft: Java Edition launcher for Android. Open source under GPL-3.0.</p>
       </div>
       <div class="footer-col">
@@ -326,20 +326,20 @@
         <ul>
           <li><a href="https://discord.gg/RS7q9KaCm6">Discord server</a></li>
           <li><a href="faq.html">FAQ</a></li>
-          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher">GitHub</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Aerix-launcher">GitHub</a></li>
         </ul>
       </div>
       <div class="footer-col">
         <h4>Download</h4>
         <ul>
-          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest">Latest release</a></li>
-          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/blob/Mirai-launcher/CHANGELOG.md">Release notes</a></li>
-          <li><a href="https://github.com/entitybrian69-bit/Mirai-launcher/blob/Mirai-launcher/LICENSE">License</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Aerix-launcher/releases/latest">Latest release</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Aerix-launcher/blob/Aerix-launcher/CHANGELOG.md">Release notes</a></li>
+          <li><a href="https://github.com/entitybrian69-bit/Aerix-launcher/blob/Aerix-launcher/LICENSE">License</a></li>
         </ul>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 Mirai Launcher. GPL-3.0.</span>
+      <span>© 2026 Aerix Launcher. GPL-3.0.</span>
       <span>Not affiliated with Mojang or Microsoft. Minecraft is a trademark of Mojang Synergies AB.</span>
     </div>
   </div>

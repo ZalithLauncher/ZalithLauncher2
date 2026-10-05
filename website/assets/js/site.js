@@ -1,13 +1,13 @@
 /* ==========================================================================
-   Mirai Launcher — site behaviour
+   Aerix Launcher — site behaviour
    Theme engine (mode + accent) · mobile nav · scroll reveal · sticky header
    ========================================================================== */
 (function () {
   "use strict";
 
   var root = document.documentElement;
-  var MODE_KEY = "mirai-theme";
-  var ACCENT_KEY = "mirai-accent";
+  var MODE_KEY = "aerix-theme";
+  var ACCENT_KEY = "aerix-accent";
   var MODES = ["light", "dark", "auto"];
   var ACCENTS = ["violet", "amber", "forest", "ocean", "rose"];
 

@@ -1,16 +1,16 @@
 <div align="center">
 
-<img src="assets/mirai-logo.png" alt="Mirai Launcher logo" width="160" />
+<img src="assets/aerix-logo.png" alt="Aerix Launcher logo" width="160" />
 
-# ✨ 🚀 MIRAI LAUNCHER
+# ✨ 🚀 AERIX LAUNCHER
 ### The Best Minecraft: Java Edition Launcher for Android
 
 **Hand-built. Privately kept. Tested on real phones. Maintained by its owners.**
 
-[![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/entitybrian69-bit/Mirai-launcher/releases)
-[![Human Made](https://img.shields.io/badge/100%25-Human%20Made-7C3AED?style=for-the-badge)](https://github.com/entitybrian69-bit/Mirai-launcher)
+[![Platform](https://img.shields.io/badge/Platform-Android%208.0%2B-3DDC84?style=for-the-badge&logo=android&logoColor=white)](https://github.com/entitybrian69-bit/Aerix-launcher/releases)
+[![Human Made](https://img.shields.io/badge/100%25-Human%20Made-7C3AED?style=for-the-badge)](https://github.com/entitybrian69-bit/Aerix-launcher)
 [![Team](https://img.shields.io/badge/Maintained%20by-entitybrian%20%26%20fireplayz-F59E0B?style=for-the-badge)](https://github.com/entitybrian69-bit)
-[![Privacy](https://img.shields.io/badge/Privacy-No%20Trackers-111827?style=for-the-badge)](https://github.com/entitybrian69-bit/Mirai-launcher)
+[![Privacy](https://img.shields.io/badge/Privacy-No%20Trackers-111827?style=for-the-badge)](https://github.com/entitybrian69-bit/Aerix-launcher)
 [![License](https://img.shields.io/badge/License-GPL--3.0-blue?style=for-the-badge)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-Community%20%26%20suggestions-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/RS7q9KaCm6)
 
@@ -39,9 +39,9 @@
 
 ---
 
-## 🏆 Why Mirai
+## 🏆 Why Aerix
 
-Mirai Launcher is a **Minecraft: Java Edition** launcher for Android, built to feel faster, cleaner, and more complete than the launchers most players settle for.
+Aerix Launcher is a **Minecraft: Java Edition** launcher for Android, built to feel faster, cleaner, and more complete than the launchers most players settle for.
 
 It is not a generated app. It is not a team product with a tracker bolted on. It is a **well-developed, frequently updated** launcher, written and tested by **its owners** on more than one phone, so the thing that ships is the thing that actually runs in a hand.
 
@@ -51,19 +51,19 @@ It is not a generated app. It is not a team product with a tracker bolted on. It
 
 ## ⚡ Built for excellent performance
 
-Mirai is tuned for the phone, not for a demo video.
+Aerix is tuned for the phone, not for a demo video.
 
 - ⚡ **Fast path to play** — recent worlds and instances stay one tap away.
-- 🧩 **Serious render stack** — choose the renderer that fits the device. LTW and LTW Legacy are built from source in this repository and cover Minecraft 1.17+ and 1.8–1.16.5 respectively, alongside GL4ES, VirGL, Zink-class, and Mesa options. Mirai also bundles **MobileGlues** for Minecraft 1.17+, two **VGPU** options for 1.16.5 and older, and selects the right renderer for each version automatically.
+- 🧩 **Serious render stack** — choose the renderer that fits the device. LTW and LTW Legacy are built from source in this repository and cover Minecraft 1.17+ and 1.8–1.16.5 respectively, alongside GL4ES, VirGL, Zink-class, and Mesa options. Aerix also bundles **MobileGlues** for Minecraft 1.17+, two **VGPU** options for 1.16.5 and older, and selects the right renderer for each version automatically.
 - 🧮 **RAM that you control** — a global memory slider, plus per-instance overrides when a pack needs more.
-- 📱 **Tested on other phones** — layouts, accounts, skins, and launch flow are checked across devices, not only on the developer’s main handset. That real-world pass is what keeps Mirai ahead of launchers that only look good on one screen.
+- 📱 **Tested on other phones** — layouts, accounts, skins, and launch flow are checked across devices, not only on the developer’s main handset. That real-world pass is what keeps Aerix ahead of launchers that only look good on one screen.
 - 🛠️ **Updated often** — fixes and polish land on a regular cadence, with a built-in update check against GitHub Releases.
 
 ---
 
 ## 🛡️ Private. On purpose.
 
-Mirai keeps your launcher private.
+Aerix keeps your launcher private.
 
 - 🚫 **No ads**
 - 🚫 **No telemetry**
@@ -71,7 +71,7 @@ Mirai keeps your launcher private.
 - 🔒 Accounts, skins, and capes stay on the device unless you choose a login that needs the network
 - 📦 Open source under **GPL-3.0**, so the behavior is inspectable
 
-Your worlds are yours. Your accounts are yours. Mirai does not take a cut of either.
+Your worlds are yours. Your accounts are yours. Aerix does not take a cut of either.
 
 ---
 
@@ -128,9 +128,9 @@ Your worlds are yours. Your accounts are yours. Mirai does not take a cut of eit
 
 ---
 
-## 🥇 Mirai vs typical Android launchers
+## 🥇 Aerix vs typical Android launchers
 
-| | Mirai Launcher | Typical launcher |
+| | Aerix Launcher | Typical launcher |
 | --- | --- | --- |
 | Best-in-class Java launcher for Android | ✅ Built for it | ⚠️ Often a port |
 | Offline account + skin + cape | ✅ | ⚠️ Cape often missing |
@@ -142,7 +142,7 @@ Your worlds are yours. Your accounts are yours. Mirai does not take a cut of eit
 | Updated often by the owners | ✅ Active | ⚠️ Stalls |
 | Open source | ✅ GPL-3.0 | ⚠️ Sometimes closed |
 
-Mirai does not need a bigger team to be the better launcher. It needs care, and it has it.
+Aerix does not need a bigger team to be the better launcher. It needs care, and it has it.
 
 ---
 
@@ -163,7 +163,7 @@ Mirai does not need a bigger team to be the better launcher. It needs care, and 
   </tr>
 </table>
 
-Both owners design, write, test, and ship Mirai Launcher.
+Both owners design, write, test, and ship Aerix Launcher.
 
 No studio. No outsourced UI. No AI pass that “fills in the screens.”
 
@@ -173,15 +173,15 @@ That is why the product stays coherent: the people who add offline capes are the
 
 ## 📥 Install
 
-1. Download the latest APK from [Releases](https://github.com/entitybrian69-bit/Mirai-launcher/releases).
+1. Download the latest APK from [Releases](https://github.com/entitybrian69-bit/Aerix-launcher/releases).
 2. Allow install from this source in Android settings.
-3. Open Mirai, add an offline account or sign in with Microsoft, equip a skin and cape, and play.
+3. Open Aerix, add an offline account or sign in with Microsoft, equip a skin and cape, and play.
 
 **Requires Android 8.0+.** Best on 4 GB RAM or more.
 
 Debug builds from CI are for testing. Release builds are the ones to keep.
 
-🌐 **Website:** <https://entitybrian69-bit.github.io/Mirai-launcher/> — screenshots, the full renderer lineup, a setup guide and an FAQ.
+🌐 **Website:** <https://entitybrian69-bit.github.io/Aerix-launcher/> — screenshots, the full renderer lineup, a setup guide and an FAQ.
 
 ---
 
@@ -189,7 +189,7 @@ Debug builds from CI are for testing. Release builds are the ones to keep.
 
 Settings → About → Check for update.
 
-Mirai asks the GitHub Releases API, compares your build, and points you at the newest APK. No mystery JSON. No dead link.
+Aerix asks the GitHub Releases API, compares your build, and points you at the newest APK. No mystery JSON. No dead link.
 
 ---
 
@@ -206,7 +206,7 @@ This is a small project. Help is still welcome.
 
 ## 💬 Community and suggestions
 
-**Discord channel** — join to talk with other Mirai users, report a problem, and suggest what
+**Discord channel** — join to talk with other Aerix users, report a problem, and suggest what
 should land next.
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20channel-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/RS7q9KaCm6)
@@ -219,7 +219,7 @@ should land next.
 
 GPL-3.0. See [LICENSE](LICENSE).
 
-Minecraft is a trademark of Mojang Synergies AB. Mirai Launcher is an independent project and is not affiliated with, endorsed by, or associated with Mojang or Microsoft.
+Minecraft is a trademark of Mojang Synergies AB. Aerix Launcher is an independent project and is not affiliated with, endorsed by, or associated with Mojang or Microsoft.
 
 ---
 
@@ -229,6 +229,6 @@ Minecraft is a trademark of Mojang Synergies AB. Mirai Launcher is an independen
 
 **Excellent performance. Well developed. Non-AI. Updated often. Private. Offline accounts and capes. Tested on other phones.**
 
-🌐 **[Website](https://entitybrian69-bit.github.io/Mirai-launcher/)** · 💬 **[Discord](https://discord.gg/RS7q9KaCm6)** · ⭐ [Star Mirai](https://github.com/entitybrian69-bit/Mirai-launcher) · 📦 [Get the APK](https://github.com/entitybrian69-bit/Mirai-launcher/releases)
+🌐 **[Website](https://entitybrian69-bit.github.io/Aerix-launcher/)** · 💬 **[Discord](https://discord.gg/RS7q9KaCm6)** · ⭐ [Star Aerix](https://github.com/entitybrian69-bit/Aerix-launcher) · 📦 [Get the APK](https://github.com/entitybrian69-bit/Aerix-launcher/releases)
 
 </div>

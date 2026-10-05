@@ -46,7 +46,7 @@ fun ClassicHome(
     Column(modifier.fillMaxSize().padding(16.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("Mirai Launcher  /  Main Menu", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
+                Text("Aerix Launcher  /  Main Menu", color = Color.White, fontWeight = FontWeight.SemiBold, fontSize = 18.sp)
                 Text("Unofficial Modified Version", color = Color(0xFFD7CFC8), fontSize = 12.sp)
             }
             TopAction("Files", onFiles)

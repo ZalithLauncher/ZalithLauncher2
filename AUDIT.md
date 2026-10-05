@@ -1,8 +1,8 @@
-# AUDIT.md - Mirai Launcher Code Audit
+# AUDIT.md - Aerix Launcher Code Audit
 
 **Date**: 2026-10-01  
-**Repository**: entitybrian69-bit/Mirai-launcher  
-**Variant**: Mirai Launcher (fork of Zalith Launcher 2)  
+**Repository**: entitybrian69-bit/Aerix-launcher  
+**Variant**: Aerix Launcher (fork of Zalith Launcher 2)  
 **Target Version**: 2.6.1  
 
 ---
@@ -113,9 +113,9 @@
   5. Downloads APK via UI
 
 **Issues Identified**: ⚠️
-- URL points to **ZalithLauncher2** repo, not Mirai-launcher
+- URL points to **ZalithLauncher2** repo, not Aerix-launcher
 - Need to verify `URL_LATEST_RELEASE_INFO` path constant
-- **ASSUMING**: Fork should use `https://api.github.com/repos/entitybrian69-bit/Mirai-launcher/releases/latest`
+- **ASSUMING**: Fork should use `https://api.github.com/repos/entitybrian69-bit/Aerix-launcher/releases/latest`
 - Manual "Check for Update" button exists but may need testing
 
 ### BuildConfig Version
@@ -253,7 +253,7 @@
 
 ## 12. ASSUMPTIONS & DECISIONS
 
-1. **Repository URL**: Assuming update checker should point to `entitybrian69-bit/Mirai-launcher`
+1. **Repository URL**: Assuming update checker should point to `entitybrian69-bit/Aerix-launcher`
 2. **Maintainer Name**: Using "entitybrian" (from login)
 3. **Base Author**: "MovTery" (from original code)
 4. **Modrinth Inspiration**: Using existing NavigationRail as foundation

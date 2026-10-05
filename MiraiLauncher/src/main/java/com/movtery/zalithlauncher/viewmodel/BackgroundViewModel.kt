@@ -175,7 +175,7 @@ class BackgroundViewModel: ViewModel() {
     }
 
     /**
-     * Seed the Mirai shader wallpaper once, without overwriting a user's existing
+     * Seed the Aerix shader wallpaper once, without overwriting a user's existing
      * background or restoring it after they intentionally clear it.
      */
     suspend fun seedDefaultBackground(context: Context) = withContext(Dispatchers.IO) {
@@ -192,7 +192,7 @@ class BackgroundViewModel: ViewModel() {
             val parentDirectory = backgroundFile.parentFile ?: return@withLock
             val stagedFile = File(
                 parentDirectory,
-                ".mirai-background-seed-${System.nanoTime()}.tmp"
+                ".aerix-background-seed-${System.nanoTime()}.tmp"
             )
             try {
                 context.assets.open("wallpapers/wp_01_lush_caves.jpg").use { input ->
@@ -218,7 +218,7 @@ class BackgroundViewModel: ViewModel() {
                 val parentDirectory = backgroundFile.parentFile ?: return@withLock
                 val stagedFile = File(
                     parentDirectory,
-                    ".mirai-background-asset-${System.nanoTime()}.tmp"
+                    ".aerix-background-asset-${System.nanoTime()}.tmp"
                 )
                 try {
                     context.assets.open(assetPath).use { input ->
@@ -253,7 +253,7 @@ class BackgroundViewModel: ViewModel() {
                 }
                 val stagedFile = File(
                     parentDirectory,
-                    ".mirai-background-${System.nanoTime()}.tmp"
+                    ".aerix-background-${System.nanoTime()}.tmp"
                 )
                 try {
                     context.copyLocalFile(result, stagedFile)

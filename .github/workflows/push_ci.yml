@@ -1,4 +1,4 @@
-name: Mirai Build CI
+name: Aerix Build CI
 
 on:
   push:

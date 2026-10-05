@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="launcher_brand_name">Mirai 啟動器</string>
-    <string name="launcher_brand_short">Mirai</string>
+    <string name="launcher_brand_name">Aerix 啟動器</string>
+    <string name="launcher_brand_short">Aerix</string>
     <string name="app_unofficial_modified">非官方修改版</string>
     <string name="home_welcome_subtitle">啟動遊戲、探索內容，打造自己的體驗。</string>
     <string name="home_play">啟動遊戲</string>
@@ -1026,7 +1026,7 @@
     <!--  關於  -->
     <string name="about_launcher_title">關於啟動器</string>
     <string name="about_launcher_version">啟動器版本：%s</string>
-    <string name="about_launcher_owner_text">Mirai Launcher 的所有者與維護者。</string>
+    <string name="about_launcher_owner_text">Aerix Launcher 的所有者與維護者。</string>
     <string name="about_launcher_owner_link">GitHub 個人頁面</string>
     <string name="about_launcher_author_movtery_title">墨北 MovTery</string>
     <string name="about_launcher_author_movtery_text">%s 的作者</string>
@@ -1056,7 +1056,7 @@
     <string name="upgrade_version_size">大小：%s</string>
     <string name="upgrade_version_create_at">更新時間：%s</string>
     <string name="upgrade_get_remote_failed">取得更新失敗，請稍後再試</string>
-    <string name="upgrade_manifest_unavailable">Mirai 尚未發布更新資訊。</string>
+    <string name="upgrade_manifest_unavailable">Aerix 尚未發布更新資訊。</string>
     <string name="upgrade_open_releases">查看發佈版本</string>
     <string name="upgrade_rate_limited">請稍後再檢查更新。</string>
     <string name="upgrade_is_latest">目前已是最新版本</string>

@@ -1,21 +1,21 @@
-# Mirai Launcher
+# Aerix Launcher
 
 <p align="center">
-  <img src="assets/mirai-logo.png" alt="Mirai Launcher 標誌" width="192">
+  <img src="assets/aerix-logo.png" alt="Aerix Launcher 標誌" width="192">
 </p>
 
 <p align="center"><strong>More worlds. More control.</strong><br>
 為 Android 上的 Minecraft: Java Edition 打造的啟動器。</p>
 
 <p align="center">
-  <a href="https://github.com/entitybrian69-bit/Mirai-launcher/releases">查看已發布版本</a> ·
+  <a href="https://github.com/entitybrian69-bit/Aerix-launcher/releases">查看已發布版本</a> ·
   <a href="README_EN_US.md">English</a> ·
   <a href="README.md">简体中文</a>
 </p>
 
-![GitHub downloads](https://img.shields.io/github/downloads/entitybrian69-bit/Mirai-launcher/total)
+![GitHub downloads](https://img.shields.io/github/downloads/entitybrian69-bit/Aerix-launcher/total)
 
-> **Unofficial Modified Version** — Mirai 為希望在 Android 上清楚管理 Minecraft Java Edition 的玩家而設。版本、內容、帳號與控制設定集中於一處，讓你更快回到想玩的世界。
+> **Unofficial Modified Version** — Aerix 為希望在 Android 上清楚管理 Minecraft Java Edition 的玩家而設。版本、內容、帳號與控制設定集中於一處，讓你更快回到想玩的世界。
 
 ## 功能一覽
 
@@ -28,17 +28,17 @@
 - **遊戲檔案工具**：使用內建檔案管理器、匯入或匯出整合包，並設定版本隔離。
 - **個人化**：綠黑介面、自選背景與啟動器設定。
 
-Mirai 將版本、內容、帳號、控制與常用工具整合在一起，重視可調整性與日常使用，不對所有裝置作出不切實際的效能承諾。
+Aerix 將版本、內容、帳號、控制與常用工具整合在一起，重視可調整性與日常使用，不對所有裝置作出不切實際的效能承諾。
 
 ## 下載與建置
 
-已發布的 APK 會放在 [GitHub Releases](https://github.com/entitybrian69-bit/Mirai-launcher/releases)。GitHub Actions 可建置通用 APK，以及 ARMv7、ARM64、x86 與 x86_64 架構版本。手動工作流程可選擇 Debug 或 Release；Release 建置需在儲存庫的 Actions secrets 中設定 `STORE_PASSWORD` 與 `KEY_PASSWORD`，發布前會核驗五種 APK。
+已發布的 APK 會放在 [GitHub Releases](https://github.com/entitybrian69-bit/Aerix-launcher/releases)。GitHub Actions 可建置通用 APK，以及 ARMv7、ARM64、x86 與 x86_64 架構版本。手動工作流程可選擇 Debug 或 Release；Release 建置需在儲存庫的 Actions secrets 中設定 `STORE_PASSWORD` 與 `KEY_PASSWORD`，發布前會核驗五種 APK。
 
 本機建置需要 JDK 21 與 Android SDK（最低 API 26；專案使用 API 37 編譯設定）：
 
 ```bash
-git clone https://github.com/entitybrian69-bit/Mirai-launcher.git
-cd Mirai-launcher
+git clone https://github.com/entitybrian69-bit/Aerix-launcher.git
+cd Aerix-launcher
 ./gradlew :MiraiLauncher:assembleDebug -Darch=all
 ```
 
@@ -48,7 +48,7 @@ cd Mirai-launcher
 
 本專案程式碼遵循 **[GPL-3.0 license](LICENSE)** 開源協議。
 
-Mirai Launcher 使用了由 MovTery 與貢獻者為 Zalith Launcher 2 開發的程式碼，並保留原有的原始碼著作權聲明及適用的 GPL-3.0 授權條款。
+Aerix Launcher 使用了由 MovTery 與貢獻者為 Zalith Launcher 2 開發的程式碼，並保留原有的原始碼著作權聲明及適用的 GPL-3.0 授權條款。
 
 ### 附加條款（依據 GPLv3 開源授權條款第七條）
 

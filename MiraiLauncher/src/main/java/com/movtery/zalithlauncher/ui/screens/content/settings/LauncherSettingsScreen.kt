@@ -187,7 +187,7 @@ fun LauncherSettingsScreen(
                                 ColorThemeType.URBAN_ASH -> stringResource(R.string.theme_color_urban_ash)
                                 ColorThemeType.VERDANT_DAWN -> stringResource(R.string.theme_color_verdant_dawn)
                                 ColorThemeType.CUSTOM -> stringResource(R.string.generic_custom)
-                                ColorThemeType.MIRAI -> stringResource(R.string.theme_color_mirai)
+                                ColorThemeType.AERIX -> stringResource(R.string.theme_color_mirai)
                             }
                         },
                         maxItemsInEachRow = 5,

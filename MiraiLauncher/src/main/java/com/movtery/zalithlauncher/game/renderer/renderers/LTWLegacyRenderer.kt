@@ -1,7 +1,7 @@
 /*
  * Zalith Launcher 2
  * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
- * Copyright (C) 2026 Mirai Launcher contributors.
+ * Copyright (C) 2026 Aerix Launcher contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ object LTWLegacyRenderer : RendererInterface {
     override fun getRendererSummary(): String =
         "OpenGL 1.x/2.1 translation layer for Minecraft 1.8 - 1.16.5, built from source."
 
-    /** Minecraft 1.8 is the oldest version Mirai ships, and the oldest with an official launcher profile. */
+    /** Minecraft 1.8 is the oldest version Aerix ships, and the oldest with an official launcher profile. */
     override fun getMinMCVersion(): String = "1.8"
 
     /**

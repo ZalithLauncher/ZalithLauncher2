@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Verify the bundled native renderer libraries are packaged for the requested Android ABI(s).
 
-Mirai ships two wrapper libraries that are built from source rather than vendored as
+Aerix ships two wrapper libraries that are built from source rather than vendored as
 prebuilt blobs, and both must survive packaging:
 
   * ``libltw.so``       - LTW,     the OpenGL 3.2 core wrapper (MC 1.17+)
@@ -112,7 +112,7 @@ def main() -> int:
         metavar="NAME",
         help=(
             "restrict the check to a specific packaged library name; "
-            "repeatable. Defaults to checking every library Mirai builds from source: "
+            "repeatable. Defaults to checking every library Aerix builds from source: "
             + ", ".join(BUILT_FROM_SOURCE_LIBRARIES)
         ),
     )

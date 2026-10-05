@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate Mirai release APKs and build the launcher update manifest."""
+"""Validate Aerix release APKs and build the launcher update manifest."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ ARCH_SUFFIXES = {
 def classify_apk(name: str) -> str:
     if " " in name:
         raise ValueError(f"APK name contains a space; GitHub renames it on upload: {name}")
-    if not name.startswith(("MiraiLauncher-", "Mirai.Launcher-")):
+    if not name.startswith(("MiraiLauncher-", "Aerix.Launcher-")):
         raise ValueError(f"Unexpected APK name: {name}")
     for suffix, arch in ARCH_SUFFIXES.items():
         if name.endswith(suffix):
@@ -82,7 +82,7 @@ def write_metadata(
             }
         )
 
-    release_notes = body.strip() or f"Mirai Launcher {version_name}"
+    release_notes = body.strip() or f"Aerix Launcher {version_name}"
     metadata = {
         "code": version_code,
         "version": version_name,
@@ -92,7 +92,7 @@ def write_metadata(
         "bodies": [{"language": "en", "markdown": release_notes}],
     }
     output.write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"Generated update metadata for Mirai Launcher {version_name} ({len(files)} APKs).")
+    print(f"Generated update metadata for Aerix Launcher {version_name} ({len(files)} APKs).")
 
 
 def main() -> int:

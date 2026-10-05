@@ -1,15 +1,15 @@
-# Mirai Launcher website
+# Aerix Launcher website
 
 A static site for the launcher. No build step, no dependencies, no framework — plain HTML, one
 stylesheet and one small script. It is published to GitHub Pages by
 [`.github/workflows/deploy_pages.yml`](../.github/workflows/deploy_pages.yml) on every push to
-`Mirai-launcher` that touches `website/`.
+`Aerix-launcher` that touches `website/`.
 
 ## Pages
 
 | File | Purpose |
 | --- | --- |
-| `index.html` | Home — hero, why Mirai, screenshots, renderer teaser, privacy, download |
+| `index.html` | Home — hero, why Aerix, screenshots, renderer teaser, privacy, download |
 | `features.html` | The full feature list, grouped |
 | `renderers.html` | The renderer lineup, the two-LTW split, how selection works |
 | `guide.html` | Install and first-launch walkthrough, tuning, troubleshooting |
@@ -37,14 +37,14 @@ it is disabled under `prefers-reduced-motion: reduce`.
 1. **Settings → Pages → Build and deployment → Source → GitHub Actions.** ✅ already set
    Without this the deploy job fails with a `404` from the Pages API — Pages is not registered yet.
 2. Run **Deploy website** from the Actions tab, or push a change under `website/` to
-   `Mirai-launcher`. To publish without merging first, choose this branch in the run dialog —
+   `Aerix-launcher`. To publish without merging first, choose this branch in the run dialog —
    `workflow_dispatch` accepts any branch.
 
 ## The address
 
 The site lives at:
 
-**<https://entitybrian69-bit.github.io/Mirai-launcher/>**
+**<https://entitybrian69-bit.github.io/Aerix-launcher/>**
 
 That is free, permanent, served over HTTPS, and needs no purchase or renewal. Every page's
 `<link rel="canonical">` and Open Graph tags already point at it, so link previews on Discord,
@@ -79,14 +79,14 @@ repository. If that project ever changes its rules, the address goes away. The
 ```sh
 cd website
 BASE='https://your.actual.domain'
-sed -i "s|https://entitybrian69-bit.github.io/Mirai-launcher|$BASE|g" *.html
+sed -i "s|https://entitybrian69-bit.github.io/Aerix-launcher|$BASE|g" *.html
 ```
 
 ## Community
 
 ### Discord
 
-Invite: **<https://discord.gg/RS7q9KaCm6>** (server: **MIRAI LAUNCHER**)
+Invite: **<https://discord.gg/RS7q9KaCm6>** (server: **AERIX LAUNCHER**)
 Appears in the README and in the header, footer and CTAs of all six pages.
 
 > **Set this invite to never expire.** Discord's default is 7 days, and two earlier invites
@@ -103,7 +103,7 @@ Current configuration:
 
 | Setting | Value |
 | --- | --- |
-| `data-repo` | `entitybrian69-bit/Mirai-launcher` |
+| `data-repo` | `entitybrian69-bit/Aerix-launcher` |
 | `data-repo-id` | `R_kgDOU01PCQ` |
 | `data-category-id` | `DIC_kwDOU01PCc4DHAoA` (`Announcements`) |
 | `data-mapping` | `pathname` |
@@ -154,7 +154,7 @@ convert ../assets/screenshots/shot-home.jpg -resize 1200x -strip -interlace Plan
 ## Download links
 
 Every download button points at
-<https://github.com/entitybrian69-bit/Mirai-launcher/releases/latest> rather than at a specific
+<https://github.com/entitybrian69-bit/Aerix-launcher/releases/latest> rather than at a specific
 APK filename, so the site keeps working across releases without edits.
 
 ## Accessibility

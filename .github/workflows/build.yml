@@ -1,4 +1,4 @@
-name: Build Mirai APKs
+name: Build Aerix APKs
 
 on:
   workflow_dispatch:
@@ -74,7 +74,7 @@ jobs:
         run: |
           set -euo pipefail
           chmod +x gradlew
-          build_log="${RUNNER_TEMP}/mirai-gradle-${{ matrix.arch }}.log"
+          build_log="${RUNNER_TEMP}/aerix-gradle-${{ matrix.arch }}.log"
           set +e
           ./gradlew MiraiLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }} --console=plain --stacktrace 2>&1 | tee "$build_log"
           gradle_status=${PIPESTATUS[0]}
@@ -86,7 +86,7 @@ jobs:
           MIRAI_ARCH: ${{ matrix.arch }}
         run: |
           set -euo pipefail
-          build_log="${RUNNER_TEMP}/mirai-gradle-${MIRAI_ARCH}.log"
+          build_log="${RUNNER_TEMP}/aerix-gradle-${MIRAI_ARCH}.log"
           if [[ ! -s "$build_log" ]]; then
             echo "No Gradle output was captured for ${MIRAI_ARCH}." >> "$GITHUB_STEP_SUMMARY"
             echo "::error title=Gradle build failure::No Gradle output was captured."
@@ -176,7 +176,7 @@ jobs:
         if: inputs.variant == 'Debug' && matrix.arch == 'all'
         run: |
           set -uo pipefail
-          test_log="${RUNNER_TEMP}/mirai-unit-tests.log"
+          test_log="${RUNNER_TEMP}/aerix-unit-tests.log"
           ./gradlew MiraiLauncher:testDebugUnitTest \
             --tests "com.movtery.zalithlauncher.game.renderer.LTWRendererTest" \
             --tests "com.movtery.zalithlauncher.game.renderer.LTWLegacyRendererTest" \
@@ -192,14 +192,14 @@ jobs:
         if: ${{ always() && steps.unit-tests.outcome == 'failure' }}
         env:
           MIRAI_TEST_REPORT_DIR: MiraiLauncher/build/test-results/testDebugUnitTest
-          MIRAI_TEST_LOG: ${{ runner.temp }}/mirai-unit-tests.log
+          MIRAI_TEST_LOG: ${{ runner.temp }}/aerix-unit-tests.log
         run: python3 .github/scripts/publish_unit_test_failures.py
 
-      - name: Upload Mirai Release APK for ${{ matrix.arch }}
+      - name: Upload Aerix Release APK for ${{ matrix.arch }}
         if: inputs.variant == 'Release'
         uses: actions/upload-artifact@v7
         with:
-          name: mirai-release-apk-${{ matrix.arch }}
+          name: aerix-release-apk-${{ matrix.arch }}
           path: MiraiLauncher/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
@@ -207,14 +207,14 @@ jobs:
         if: inputs.variant == 'Release'
         uses: actions/upload-artifact@v7
         with:
-          name: mirai-release-mapping-${{ matrix.arch }}
+          name: aerix-release-mapping-${{ matrix.arch }}
           path: MiraiLauncher/build/outputs/mapping/release/mapping.txt
           if-no-files-found: error
 
-      - name: Upload Mirai Debug APK for ${{ matrix.arch }}
+      - name: Upload Aerix Debug APK for ${{ matrix.arch }}
         if: inputs.variant == 'Debug'
         uses: actions/upload-artifact@v7
         with:
-          name: mirai-debug-apk-${{ matrix.arch }}
+          name: aerix-debug-apk-${{ matrix.arch }}
           path: MiraiLauncher/build/outputs/apk/debug/*.apk
           if-no-files-found: error

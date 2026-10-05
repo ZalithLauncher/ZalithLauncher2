@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="launcher_brand_name">Mirai Launcher</string>
-    <string name="launcher_brand_short">Mirai</string>
+    <string name="launcher_brand_name">Aerix Launcher</string>
+    <string name="launcher_brand_short">Aerix</string>
     <string name="app_unofficial_modified">Unofficial Modified Version</string>
     <string name="home_welcome_title">Ready for your next world?</string>
     <string name="home_welcome_subtitle">Launch an installation, explore content, and make it yours.</string>
@@ -140,7 +140,7 @@
     <string name="theme_color_verdant_field">Verdant Twilight</string>
     <string name="theme_color_urban_ash">Urban Ash</string>
     <string name="theme_color_verdant_dawn">Silent Forest Dawn</string>
-    <string name="theme_color_mirai">Mirai Forest</string>
+    <string name="theme_color_mirai">Aerix Forest</string>
     <string name="theme_color_picker_title">Color Picker</string>
     <string name="theme_color_picker_edit_hex">Edit Hex</string>
     <string name="theme_color_picker_edit_hex_invalid">Invalid Hex</string>
@@ -1311,7 +1311,7 @@
     <!-- About -->
     <string name="about_launcher_title">About Launcher</string>
     <string name="about_launcher_version">Launcher Version: %s</string>
-    <string name="about_launcher_owner_text">Owner and maintainer of Mirai Launcher.</string>
+    <string name="about_launcher_owner_text">Owner and maintainer of Aerix Launcher.</string>
     <string name="about_launcher_owner_link">GitHub profile</string>
     <string name="about_launcher_author_movtery_title">MovTery</string>
     <string name="about_launcher_author_movtery_text">Author of %s</string>
@@ -1342,7 +1342,7 @@
     <string name="upgrade_version_size">Size: %s</string>
     <string name="upgrade_version_create_at">Updated At: %s</string>
     <string name="upgrade_get_remote_failed">Failed to check for updates. Please try again later.</string>
-    <string name="upgrade_manifest_unavailable">No Mirai update information has been published yet.</string>
+    <string name="upgrade_manifest_unavailable">No Aerix update information has been published yet.</string>
     <string name="upgrade_open_releases">Open releases</string>
     <string name="upgrade_rate_limited">Please wait a few seconds before checking again.</string>
     <string name="upgrade_is_latest">You are already on the latest version</string>

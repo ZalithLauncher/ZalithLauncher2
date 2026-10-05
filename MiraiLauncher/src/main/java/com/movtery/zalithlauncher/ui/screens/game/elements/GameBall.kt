@@ -1,7 +1,7 @@
 /*
  * Zalith Launcher 2
  * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
- * Copyright (C) 2026 Mirai Launcher contributors.
+ * Copyright (C) 2026 Aerix Launcher contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -161,7 +161,7 @@ private fun MiraiQuickOverlayPillContent(
         modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
         verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        // Collapsed Mirai Pill Header Row
+        // Collapsed Aerix Pill Header Row
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -197,7 +197,7 @@ private fun MiraiQuickOverlayPillContent(
                 )
             } else {
                 Text(
-                    text = "⚡ Mirai",
+                    text = "⚡ Aerix",
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.ExtraBold,
                     color = accentColor
@@ -246,7 +246,7 @@ private fun MiraiQuickOverlayPillContent(
             )
         }
 
-        // Expanded Mirai Quick-Overlay Drawer
+        // Expanded Aerix Quick-Overlay Drawer
         AnimatedVisibility(
             visible = hudExpanded,
             enter = expandVertically() + fadeIn(),
@@ -272,7 +272,7 @@ private fun MiraiQuickOverlayPillContent(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "MIRAI QUICK HUD",
+                            text = "AERIX QUICK HUD",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.ExtraBold,
                             color = accentColor

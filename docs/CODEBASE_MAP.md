@@ -1,7 +1,7 @@
-# Mirai Launcher — Codebase Map
+# Aerix Launcher — Codebase Map
 
-A full technical map of `entitybrian69-bit/Mirai-launcher`, written from a complete pass over
-the tree at commit `71feb68` (branch `Mirai-launcher`, release 1.0.0 / version code 200043).
+A full technical map of `entitybrian69-bit/Aerix-launcher`, written from a complete pass over
+the tree at commit `71feb68` (branch `Aerix-launcher`, release 1.0.0 / version code 200043).
 
 ---
 
@@ -9,13 +9,13 @@ the tree at commit `71feb68` (branch `Mirai-launcher`, release 1.0.0 / version c
 
 | | |
 | --- | --- |
-| **Product** | Mirai Launcher — a Minecraft: Java Edition launcher for Android |
+| **Product** | Aerix Launcher — a Minecraft: Java Edition launcher for Android |
 | **Upstream** | Fork of [`ZalithLauncher/ZalithLauncher2`](https://github.com/ZalithLauncher/ZalithLauncher2) by MovTery |
 | **Package namespace** | `com.movtery.zalithlauncher` (upstream namespace kept) |
 | **Release application ID** | `com.entitybrian69.mirailauncher.v2` |
 | **Debug application ID** | `com.entitybrian69.mirailauncher.v2.debug` |
 | **License** | GPL-3.0 (upstream MIT/other licenses preserved in `third_party/`) |
-| **Default branch** | `Mirai-launcher` |
+| **Default branch** | `Aerix-launcher` |
 | **Releases** | 1.0.0, published 2026-10-04 |
 | **Git history** | A single squashed commit — the fork's full history is not carried in this repo |
 
@@ -111,7 +111,7 @@ produced. Two `afterEvaluate` hooks trim the merged asset tree:
 2. **LWJGL natives cleanup** — delete every non-target ABI directory under
    `app_runtime/lwjgl/<ver>/natives/`.
 
-Output filenames are `Mirai.Launcher-<version>[-<abi>].apk` (spaces replaced by dots so the
+Output filenames are `Aerix.Launcher-<version>[-<abi>].apk` (spaces replaced by dots so the
 update URLs resolve — the script layer explicitly rejects names containing spaces).
 
 ### Version and branding source of truth
@@ -119,10 +119,10 @@ update URLs resolve — the script layer explicitly rejects names containing spa
 `MiraiLauncher/gradle.properties`:
 
 ```
-launcher_name=Mirai Launcher
-launcher_app_name=Mirai Launcher
-launcher_short_name=Mirai
-url_home=https://github.com/entitybrian69-bit/Mirai-launcher
+launcher_name=Aerix Launcher
+launcher_app_name=Aerix Launcher
+launcher_short_name=Aerix
+url_home=https://github.com/entitybrian69-bit/Aerix-launcher
 launcher_version_code=200043
 launcher_version_name=1.0.0
 ```
@@ -175,7 +175,7 @@ Versions nests: `OverView`, `Config`, `UpdateLoader`, `ModsManager`, `SavesManag
 | `game/download` | MoJang/Modrinth/CurseForge/MCIM/MCBBS/MultiMC/modpack pipelines |
 | `game/account` | Microsoft, Yggdrasil, auth-server, offline, wardrobe (skins/capes) |
 | `game/addons` | Mirror sources (BMCLAPI), modloaders (Fabric/Quilt/Forge/NeoForge/Cleanroom/OptiFine) |
-| `game/optimization` | The four Mirai headline features (see §8) |
+| `game/optimization` | The four Aerix headline features (see §8) |
 | `filemanager` | Full in-launcher file manager: its own theme, viewmodel, trash, editor |
 | `ui/control` | Touch controls, gamepad, gyroscope, joystick, mouse |
 | `ui/theme` | Material 3, MaterialKolor, festival effects, wallpaper-dynamic theming |
@@ -268,7 +268,7 @@ Verified in CI by `LTWRendererTest`, `LTWLegacyRendererTest`, `VGPURendererTest`
 **`third_party/LTW`** — Large Thin Wrapper (`git.artdeell.ltw`), the OpenGL 3.2 core wrapper.
 Builds `libltw.so` via `src/main/tinywrapper/CMakeLists.txt`.
 
-**`third_party/LTWVLegacy`** — Mirai's legacy wrapper, **a vendored GL4ES snapshot**:
+**`third_party/LTWVLegacy`** — Aerix's legacy wrapper, **a vendored GL4ES snapshot**:
 
 | Field | Value |
 | --- | --- |
@@ -278,11 +278,11 @@ Builds `libltw.so` via `src/main/tinywrapper/CMakeLists.txt`.
 | License | MIT (preserved) |
 | Vendored | 2026-10-03 |
 
-Mirai's three deliberate changes, documented in `UPSTREAM.md`:
+Aerix's three deliberate changes, documented in `UPSTREAM.md`:
 
 1. **Own CMake project** replacing upstream's multi-platform `CMakeLists.txt`. Compiles
    `src/gl/**` + `src/glx/hardext.c` with `ANDROID`, `NOX11`, `NO_GBM`, `DEFAULT_ES=2`.
-2. **No EGL wrapper.** Upstream can build a second `libEGL.so` shim; Mirai does not, so it never
+2. **No EGL wrapper.** Upstream can build a second `libEGL.so` shim; Aerix does not, so it never
    competes for `eglGetProcAddress`. The platform supplies EGL.
 3. **Renamed** to `libltwlegacy.so` so it coexists with `libgl4es_114.so` and `libng_gl4es.so`.
 
@@ -318,7 +318,7 @@ From AARs in `MiraiLauncher/libs/` (all four ABIs each): `NG-GL4ES-release.aar`,
 
 ---
 
-## 8. The four Mirai-differentiated features
+## 8. The four Aerix-differentiated features
 
 All under `game/optimization/`, all persisted through `AllSettings`:
 
@@ -329,10 +329,10 @@ All under `game/optimization/`, all persisted through `AllSettings`:
 | `SmartCrashDoctor.kt` | ~22.5k chars | Reads a crash log and suggests a fix |
 | `ModDependencyResolver.kt` | ~48.5k chars | Resolves missing mod dependencies and conflicts automatically |
 
-Around them: a Mirai-branded UI layer (`MiraiHomeDashboard`, `MiraiPlayPage`, `MiraiDetailPages`,
+Around them: a Aerix-branded UI layer (`MiraiHomeDashboard`, `MiraiPlayPage`, `MiraiDetailPages`,
 `MiraiRedrawnPages`, `MiraiRemainingPages`, `MiraiSectionPages`, `MiraiToolPages`,
 `MiraiNavigationRail`, `MiraiThemeManager`), 20 built-in HD wallpapers with dim control and
-custom imports, a pre-rendered blur (replacing a live GPU blur), an in-game Mirai Pill HUD, and
+custom imports, a pre-rendered blur (replacing a live GPU blur), an in-game Aerix Pill HUD, and
 an interactive 3D paper doll.
 
 ---
@@ -350,7 +350,7 @@ Nine enums in `setting/enums/`: `ActionMenuSide`, `AppLanguage`, `BackgroundBlur
 
 Notable defaults: `renderer = ""` (empty → the picker decides), `vulkanDriver = "default turnip"`,
 `resolutionRatio = 70`, `autoPickJavaRuntime = true`, `versionIsolation = true`,
-`launcherColorTheme = MIRAI`, `gameDownloadSource = AUTO`, `curseForgeApiKey = ""`.
+`launcherColorTheme = AERIX`, `gameDownloadSource = AUTO`, `curseForgeApiKey = ""`.
 
 ---
 
@@ -366,8 +366,8 @@ Simplified Chinese, Traditional Chinese, plus `values-night`.
 
 `path/UrlManager.kt` centralises endpoints and HTTP clients.
 
-- `URL_PROJECT` / `URL_OWNER` / `URL_RELEASES` → the Mirai repo (fork-corrected)
-- `URL_LATEST_RELEASE_INFO` → `.../releases/latest/download/mirai-update.json`
+- `URL_PROJECT` / `URL_OWNER` / `URL_RELEASES` → the Aerix repo (fork-corrected)
+- `URL_LATEST_RELEASE_INFO` → `.../releases/latest/download/aerix-update.json`
 - `URL_SUPPORT` → **still points at MovTery** (upstream leftover)
 - `URL_WEBLATE` → **still points at `zalithlauncher2`** (upstream leftover)
 - `URL_MINECRAFT_VERSION_REPOS` → `piston-meta.mojang.com/.../version_manifest_v2.json`
@@ -395,7 +395,7 @@ and optional cloud-drive links.
 - **On app start** — rate-limited to one check per hour; the user's last-ignored version is honoured.
 - **Manually** (Settings → About) — rate-limited to one check per 5 s, throws
   `TooFrequentOperationException`; bypasses the ignore list.
-- HTTP 404 is handled as `ManifestUnavailable` ("No Mirai update manifest is published yet")
+- HTTP 404 is handled as `ManifestUnavailable` ("No Aerix update manifest is published yet")
   rather than an error, so a fork without a published release degrades gracefully.
 - Comparison is `BuildConfig.VERSION_CODE < data.code`.
 
@@ -412,17 +412,17 @@ Ten workflows in `.github/workflows/`:
 | `build.yml` | `workflow_call` / manual | **The reusable build.** Matrix over 5 arches, JDK 21 Temurin, Gradle setup with failure summaries |
 | `debug_ci.yml` | push (any branch), PR | Debug build |
 | `push_ci.yml` | push (any branch), PR | Debug build (duplicate of the above) |
-| `mirai_fixed_ci.yml` | push to `Mirai-launcher` | Debug build (third duplicate) |
+| `mirai_fixed_ci.yml` | push to `Aerix-launcher` | Debug build (third duplicate) |
 | `release_ci.yml` | release published | Release build + collect, verify, sign-check, manifest, upload |
 | `add_home_features.yml` | manual | No-op stub |
-| `fix_back_button.yml` | manual | Scripted commit pushing to `Mirai-launcher` |
-| `remove_plus_tab.yml` | manual | Scripted commit pushing to `Mirai-launcher` |
+| `fix_back_button.yml` | manual | Scripted commit pushing to `Aerix-launcher` |
+| `remove_plus_tab.yml` | manual | Scripted commit pushing to `Aerix-launcher` |
 | `remove_warning.yml` | manual | Scripted commit |
 | `restore_classic_shell.yml`, `show_skin_stage.yml` | manual | Scripted commits |
 
 `debug_ci.yml`, `push_ci.yml`, and `mirai_fixed_ci.yml` are three near-identical debug-build
 workflows. Both `debug_ci.yml` and `push_ci.yml` trigger on `push` to `**` — i.e. every branch —
-and on every pull request, so any push runs two full builds; a push to `Mirai-launcher`
+and on every pull request, so any push runs two full builds; a push to `Aerix-launcher`
 additionally runs `mirai_fixed_ci.yml` for a third. Recent run history confirms it (7–15 minutes
 each). Consolidating to one would cut CI time by roughly two-thirds with no loss of coverage.
 
@@ -456,13 +456,13 @@ be invisible until someone launched the matching Minecraft version on a device.
    `verify_ltw_apk.py` per APK, then `mirai_release.py verify` to confirm exactly one APK per
    arch across `{all, arm, arm64, x86, x86_64}`
 4. Reads `launcher_version_code` / `launcher_version_name` from `MiraiLauncher/gradle.properties`
-5. `mirai_release.py metadata` writes `mirai-update.json` — rejecting names with spaces (GitHub
-   would rename them and break the URLs) and requiring the `MiraiLauncher-` / `Mirai.Launcher-`
+5. `mirai_release.py metadata` writes `aerix-update.json` — rejecting names with spaces (GitHub
+   would rename them and break the URLs) and requiring the `MiraiLauncher-` / `Aerix.Launcher-`
    prefix
 6. `softprops/action-gh-release@v3` uploads the APKs and the manifest with
    `fail_on_unmatched_files: true`
 
-This closes the loop for §12: the app polls `releases/latest/download/mirai-update.json`, which
+This closes the loop for §12: the app polls `releases/latest/download/aerix-update.json`, which
 this workflow generates and attaches to the tag.
 
 ---
@@ -506,12 +506,12 @@ to an empty list, which is what made `RendererPickerTest` runnable in CI at all.
 ### Leftover upstream references
 
 - `URL_SUPPORT = "https://ifdian.net/a/MovTery"` — the in-app support/donation link still sends
-  users to the upstream author, not to Mirai.
+  users to the upstream author, not to Aerix.
 - `URL_WEBLATE = "https://hosted.weblate.org/projects/zalithlauncher2"` — translations link to
   the upstream Weblate project.
 - The namespace `com.movtery.zalithlauncher` and most GPL headers credit MovTery (correct and
   required). `RendererPicker.kt` is one of the few files with the added
-  "Copyright (C) 2026 Mirai Launcher contributors" line.
+  "Copyright (C) 2026 Aerix Launcher contributors" line.
 
 ### CI cost
 
@@ -525,7 +525,7 @@ were added and the earlier two still trigger on every branch and every PR.
 repo — it comes from the `STORE_PASSWORD` / `KEY_PASSWORD` secrets or gitignored local files —
 so this is not an immediate compromise. It is still worth knowing that anyone who obtains those
 passwords can produce an APK that Android will accept as a legitimate update over an installed
-Mirai build. Rotation would require the key to leave version control.
+Aerix build. Rotation would require the key to leave version control.
 
 The debug keystore's passwords *are* in `MiraiLauncher/gradle.properties` as plain text, which
 is normal and harmless for a debug key.

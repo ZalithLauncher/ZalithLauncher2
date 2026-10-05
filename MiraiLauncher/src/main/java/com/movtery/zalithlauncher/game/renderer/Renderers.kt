@@ -38,7 +38,7 @@ private const val TAG = "Renderers"
  */
 object Renderers {
     /**
-     * The renderers Mirai ships with, in the order they are offered to the user.
+     * The renderers Aerix ships with, in the order they are offered to the user.
      *
      * This is the single source of truth for built-in renderers. [init] loads it, and
      * [RendererPicker] reads each entry's declared Minecraft version range from it, so a

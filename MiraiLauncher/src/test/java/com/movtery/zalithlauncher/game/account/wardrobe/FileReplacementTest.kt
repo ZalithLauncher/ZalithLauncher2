@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2026 Mirai Launcher contributors.
+ * Copyright (C) 2026 Aerix Launcher contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ import org.junit.Test
 class FileReplacementTest {
     @Test
     fun successfulReplacementMovesStagedFileOverTarget() {
-        val directory = Files.createTempDirectory("mirai-file-replacement").toFile()
+        val directory = Files.createTempDirectory("aerix-file-replacement").toFile()
         try {
             val target = directory.resolve("cape.png").apply { writeText("old cape") }
             val staged = directory.resolve("cape.staged.png").apply { writeText("new cape") }
@@ -37,7 +37,7 @@ class FileReplacementTest {
 
     @Test
     fun failedReplacementRestoresExistingTarget() {
-        val directory = Files.createTempDirectory("mirai-file-replacement").toFile()
+        val directory = Files.createTempDirectory("aerix-file-replacement").toFile()
         try {
             val target = directory.resolve("cape.png").apply { writeText("existing cape") }
             val missingStagedFile = directory.resolve("missing.staged.png")

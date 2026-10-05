@@ -1,7 +1,7 @@
 /*
  * Zalith Launcher 2
  * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
- * Copyright (C) 2026 Mirai Launcher contributors.
+ * Copyright (C) 2026 Aerix Launcher contributors.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,7 +80,7 @@ import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 
-fun wallpaperFile(context: Context) = File(context.filesDir, "mirai-wallpaper.jpg")
+fun wallpaperFile(context: Context) = File(context.filesDir, "aerix-wallpaper.jpg")
 
 var wallpaperRevision by mutableIntStateOf(0)
 

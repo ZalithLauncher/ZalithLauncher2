@@ -32,7 +32,7 @@ private fun TextStyle.miraiText(weight: FontWeight = fontWeight ?: FontWeight.No
 )
 
 /**
- * Compact, clean sans-serif type scale for the Mirai interface. It uses Android's
+ * Compact, clean sans-serif type scale for the Aerix interface. It uses Android's
  * system sans face so text remains crisp and accessible without copying a
  * third-party app's bundled brand assets.
  */

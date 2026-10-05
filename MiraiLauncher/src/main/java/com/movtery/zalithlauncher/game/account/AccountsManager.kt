@@ -234,7 +234,7 @@ object AccountsManager {
     }
 
     /**
-     * Refresh the selected account. Mirai allows offline and Microsoft accounts worldwide,
+     * Refresh the selected account. Aerix allows offline and Microsoft accounts worldwide,
      * so the old Greater-China lock must not clear currentAccount or disable the radio.
      */
     private fun refreshCurrentAccountState() {

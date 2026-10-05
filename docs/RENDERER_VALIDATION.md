@@ -5,7 +5,7 @@ results get recorded in.
 
 **No performance numbers or compatibility results are published for LTW or LTW Legacy yet.**
 Everything below is a procedure, not a result. Anything measurable requires a physical Android
-device running the game; it cannot be produced from a build machine, and Mirai does not publish
+device running the game; it cannot be produced from a build machine, and Aerix does not publish
 numbers it has not measured.
 
 Fill in the tables on the devices you have, and the results can be written up from them.
@@ -72,7 +72,7 @@ world, same settings.
 | GPU and driver string | |
 | Android version | |
 | RAM | |
-| Mirai build (version code) | |
+| Aerix build (version code) | |
 
 ### Selection
 
@@ -123,4 +123,4 @@ A useful report contains:
 4. `glGetString(GL_RENDERER)` and `GL_VERSION` if the game or a mod can print them.
 5. The full launcher log, and `latest.log` from the instance.
 
-The launch log is reachable from Mirai's built-in log viewer.
+The launch log is reachable from Aerix's built-in log viewer.

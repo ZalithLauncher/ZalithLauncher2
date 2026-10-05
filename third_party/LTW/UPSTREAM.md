@@ -4,4 +4,4 @@ The `ltw/` Android library is vendored from [MojoLauncher/LTW](https://github.co
 
 Upstream copyright and source notices are preserved in the vendored files. The upstream project is licensed under LGPL-3.0; see [`LICENSE`](LICENSE) and the upstream [README](README-upstream.md). The unused prebuilt host `glsl_compiler` helper was omitted; the Android CMake build compiles from the preserved sources.
 
-Mirai's renderer adapter lives in `MiraiLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/renderers/LTWRenderer.kt`. Gradle builds the native `libltw.so` for each requested Android ABI from the upstream CMake sources.
+Aerix's renderer adapter lives in `MiraiLauncher/src/main/java/com/movtery/zalithlauncher/game/renderer/renderers/LTWRenderer.kt`. Gradle builds the native `libltw.so` for each requested Android ABI from the upstream CMake sources.

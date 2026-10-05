@@ -40,5 +40,5 @@ enum class ColorThemeType {
     URBAN_ASH,
     VERDANT_DAWN,
     CUSTOM,
-    MIRAI
+    AERIX
 }

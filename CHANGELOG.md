@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Mirai Launcher are recorded here.
+All notable changes to Aerix Launcher are recorded here.
 
 Versions follow the `launcher_version_code` / `launcher_version_name` pair in
 `MiraiLauncher/gradle.properties`.
@@ -51,7 +51,7 @@ First public release.
 - **Minimizable modpack install dialog** — the Installing Modpack window has a Minimize button
   (left of Cancel) that shrinks it to a small floating reopen button while the install keeps
   running in the background.
-- **In-game Mirai Pill HUD** and world/screenshot quick actions.
+- **In-game Aerix Pill HUD** and world/screenshot quick actions.
 - **Interactive 3D paper doll** — drag to spin 360°, tap to open account management.
 
 ### Changed

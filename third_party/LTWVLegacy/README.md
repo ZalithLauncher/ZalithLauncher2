@@ -1,6 +1,6 @@
 # LTW Legacy
 
-Mirai's legacy OpenGL renderer for Minecraft **1.8 through 1.16.4**.
+Aerix's legacy OpenGL renderer for Minecraft **1.8 through 1.16.4**.
 
 LTW Legacy translates the OpenGL 1.x/2.1 pipeline that these Minecraft versions use onto the
 device's OpenGL ES 2.0/3.x driver, producing a single shared library:
@@ -18,7 +18,7 @@ GL 2.1 translator is not needed once Minecraft moves to the core profile.
 
 Built from a vendored snapshot of [GL4ES](https://github.com/ptitSeb/gl4es) (MIT), pinned at
 commit `a444cc94b17c672c66c3e6ce07428dc603034db1`, version 1.1.7. Full details, including what was
-vendored, what Mirai changed, and license compliance, are in [`../UPSTREAM.md`](../UPSTREAM.md).
+vendored, what Aerix changed, and license compliance, are in [`../UPSTREAM.md`](../UPSTREAM.md).
 
 ## Building
 
@@ -50,7 +50,7 @@ object for each requested ABI, so a packaging regression fails CI rather than sh
 
 ## Runtime configuration
 
-LTW Legacy honours the standard GL4ES hints. Mirai sets defaults for Minecraft in
+LTW Legacy honours the standard GL4ES hints. Aerix sets defaults for Minecraft in
 `GameLauncher.setRendererEnv`, and an instance can override any of them. The most useful ones:
 
 | Variable | Meaning |

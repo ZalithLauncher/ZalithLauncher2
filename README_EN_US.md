@@ -1,21 +1,21 @@
-# Mirai Launcher
+# Aerix Launcher
 
 <p align="center">
-  <img src="assets/mirai-logo.png" alt="Mirai Launcher logo" width="192">
+  <img src="assets/aerix-logo.png" alt="Aerix Launcher logo" width="192">
 </p>
 
 <p align="center"><strong>More worlds. More control.</strong><br>
 An Android launcher for Minecraft: Java Edition.</p>
 
 <p align="center">
-  <a href="https://github.com/entitybrian69-bit/Mirai-launcher/releases">Releases</a> ·
+  <a href="https://github.com/entitybrian69-bit/Aerix-launcher/releases">Releases</a> ·
   <a href="README.md">简体中文</a> ·
   <a href="README_ZH_TW.md">繁體中文</a>
 </p>
 
-![GitHub downloads](https://img.shields.io/github/downloads/entitybrian69-bit/Mirai-launcher/total)
+![GitHub downloads](https://img.shields.io/github/downloads/entitybrian69-bit/Aerix-launcher/total)
 
-> **Unofficial Modified Version** — Mirai is for players who want a clear, capable way to manage Minecraft Java Edition on Android. Set up your installations, content, accounts, and controls in one place, then get back to the world you came for.
+> **Unofficial Modified Version** — Aerix is for players who want a clear, capable way to manage Minecraft Java Edition on Android. Set up your installations, content, accounts, and controls in one place, then get back to the world you came for.
 
 ## Features
 
@@ -28,17 +28,17 @@ An Android launcher for Minecraft: Java Edition.</p>
 - **Game file tools:** use the built-in file manager, import or export modpacks, and configure version isolation.
 - **Personalize:** use the green-and-dark interface, choose a background, and adjust launcher settings.
 
-Mirai keeps versions, content, accounts, controls, and everyday tools together. It focuses on practical choices and configurable setups rather than promising identical performance on every device.
+Aerix keeps versions, content, accounts, controls, and everyday tools together. It focuses on practical choices and configurable setups rather than promising identical performance on every device.
 
 ## Downloads and builds
 
-Published APKs will be available on [GitHub Releases](https://github.com/entitybrian69-bit/Mirai-launcher/releases). GitHub Actions can build a universal APK and architecture-specific packages for ARMv7, ARM64, x86, and x86_64. The manual workflow offers Debug and Release builds; Release requires the `STORE_PASSWORD` and `KEY_PASSWORD` repository secrets, and tagged releases are checked for all five APKs before upload.
+Published APKs will be available on [GitHub Releases](https://github.com/entitybrian69-bit/Aerix-launcher/releases). GitHub Actions can build a universal APK and architecture-specific packages for ARMv7, ARM64, x86, and x86_64. The manual workflow offers Debug and Release builds; Release requires the `STORE_PASSWORD` and `KEY_PASSWORD` repository secrets, and tagged releases are checked for all five APKs before upload.
 
 To build locally, use JDK 21 and the Android SDK (minimum API 26; the project compiles against API 37):
 
 ```bash
-git clone https://github.com/entitybrian69-bit/Mirai-launcher.git
-cd Mirai-launcher
+git clone https://github.com/entitybrian69-bit/Aerix-launcher.git
+cd Aerix-launcher
 ./gradlew :MiraiLauncher:assembleDebug -Darch=all
 ```
 
@@ -48,7 +48,7 @@ Replace `all` with `arm`, `arm64`, `x86`, or `x86_64` for a specific architectur
 
 This project is licensed under the **[GPL-3.0 license](LICENSE)**.
 
-Mirai Launcher includes code originally developed for Zalith Launcher 2 by MovTery and contributors. The original source copyright notices and applicable GPL-3.0 terms are retained.
+Aerix Launcher includes code originally developed for Zalith Launcher 2 by MovTery and contributors. The original source copyright notices and applicable GPL-3.0 terms are retained.
 
 ### Additional Terms (Pursuant to Section 7 of the GPLv3 License)
 

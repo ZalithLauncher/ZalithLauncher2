@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10.0)
 project(LTWLegacy VERSION 1.0.0 LANGUAGES C)
 
-# LTW Legacy — Mirai's from-source legacy OpenGL (1.x/2.1) translation layer for
+# LTW Legacy — Aerix's from-source legacy OpenGL (1.x/2.1) translation layer for
 # Minecraft 1.8 – 1.16.4. Built from the GL4ES snapshot vendored two directories up.
 #
 #   third_party/LTWVLegacy/ltwlegacy/src/main/cpp/CMakeLists.txt   <- this file

@@ -582,8 +582,8 @@ private fun VersionsLayout(
                             Surface(
                                 modifier = Modifier.size(36.dp),
                                 shape = RoundedCornerShape(10.dp),
-                                color = Color(0xFF21242B),
-                                border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                                color = Color(0xFF161920),
+                                border = BorderStroke(1.dp, Color(0xFF262B37)),
                                 onClick = { showSortMenu = true }
                             ) {
                                 Box(contentAlignment = Alignment.Center) {
@@ -614,10 +614,10 @@ private fun VersionsLayout(
                         Surface(
                             modifier = Modifier.size(36.dp),
                             shape = RoundedCornerShape(10.dp),
-                            color = if (showGamePathDrawer) Color(0xFF143825) else Color(0xFF21242B),
+                            color = if (showGamePathDrawer) Color(0xFF143825) else Color(0xFF161920),
                             border = BorderStroke(
                                 1.dp,
-                                if (showGamePathDrawer) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                                if (showGamePathDrawer) MiraiThemeManager.currentAccent() else Color(0xFF262B37)
                             ),
                             onClick = onToggleGamePathDrawer
                         ) {
@@ -665,10 +665,10 @@ private fun VersionsLayout(
                             val selected = selectedFilter == group
                             Surface(
                                 shape = RoundedCornerShape(16.dp),
-                                color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF21242B),
+                                color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF161920),
                                 border = BorderStroke(
                                     1.dp,
-                                    if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                                    if (selected) MiraiThemeManager.currentAccent() else Color(0xFF262B37)
                                 ),
                                 onClick = { selectedFilter = group }
                             ) {
@@ -693,7 +693,7 @@ private fun VersionsLayout(
                         ) {
                             Surface(
                                 shape = RoundedCornerShape(16.dp),
-                                color = Color(0xFF21242B),
+                                color = Color(0xFF161920),
                                 border = BorderStroke(1.dp, Color(0xFF2E323C))
                             ) {
                                 Column(
@@ -824,7 +824,7 @@ private fun ModrinthLibraryInstanceCard(
             scaleY = scale
         },
         shape = RoundedCornerShape(14.dp),
-        color = Color(0xFF21242B),
+        color = Color(0xFF161920),
         border = BorderStroke(if (selected) 1.5.dp else 1.dp, borderColor),
         onClick = onSelect
     ) {

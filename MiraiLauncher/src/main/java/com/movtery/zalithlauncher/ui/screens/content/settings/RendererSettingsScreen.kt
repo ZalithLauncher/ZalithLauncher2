@@ -251,7 +251,7 @@ fun RendererSettingsScreen(
                                     label = "rendererOptionBorder"
                                 )
                                 val cardBg by animateColorAsState(
-                                    targetValue = if (isSelected) Color(0xFF162A20) else Color(0xFF21242B),
+                                    targetValue = if (isSelected) Color(0xFF162A20) else Color(0xFF161920),
                                     animationSpec = tween(160),
                                     label = "rendererOptionBg"
                                 )
@@ -335,8 +335,8 @@ fun RendererSettingsScreen(
                     Surface(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(14.dp),
-                        color = Color(0xFF21242B),
-                        border = BorderStroke(1.dp, Color(0xFF2E333E))
+                        color = Color(0xFF161920),
+                        border = BorderStroke(1.dp, Color(0xFF262B37))
                     ) {
                         Column(
                             modifier = Modifier
@@ -392,7 +392,7 @@ fun RendererSettingsScreen(
                                     color = if (currentJre.isEmpty()) MiraiThemeManager.currentAccent() else Color(0xFF17191E),
                                     border = BorderStroke(
                                         1.dp,
-                                        if (currentJre.isEmpty()) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                                        if (currentJre.isEmpty()) MiraiThemeManager.currentAccent() else Color(0xFF262B37)
                                     ),
                                     onClick = {
                                         AllSettings.autoPickJavaRuntime.save(true)
@@ -415,7 +415,7 @@ fun RendererSettingsScreen(
                                         color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF17191E),
                                         border = BorderStroke(
                                             1.dp,
-                                            if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                                            if (selected) MiraiThemeManager.currentAccent() else Color(0xFF262B37)
                                         ),
                                         onClick = {
                                             AllSettings.autoPickJavaRuntime.save(false)
@@ -444,8 +444,8 @@ fun RendererSettingsScreen(
                         .fillMaxWidth()
                         .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
                     shape = RoundedCornerShape(12.dp),
-                    color = Color(0xFF21242B),
-                    border = BorderStroke(1.dp, Color(0xFF2E333E))
+                    color = Color(0xFF161920),
+                    border = BorderStroke(1.dp, Color(0xFF262B37))
                 ) {
                     Row(
                         modifier = Modifier

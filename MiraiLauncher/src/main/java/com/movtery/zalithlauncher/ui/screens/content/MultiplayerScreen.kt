@@ -200,8 +200,8 @@ private fun TouchControlsAndGamepadBentoCard(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(14.dp),
-        color = Color(0xFF21242B),
-        border = BorderStroke(1.dp, Color(0xFF2E333E))
+        color = Color(0xFF161920),
+        border = BorderStroke(1.dp, Color(0xFF262B37))
     ) {
         Column(
             modifier = Modifier
@@ -226,7 +226,7 @@ private fun TouchControlsAndGamepadBentoCard(
                         .height(38.dp),
                     shape = RoundedCornerShape(19.dp),
                     color = Color(0xFF17191E),
-                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    border = BorderStroke(1.dp, Color(0xFF262B37)),
                     onClick = onOpenControlManager
                 ) {
                     Box(
@@ -248,7 +248,7 @@ private fun TouchControlsAndGamepadBentoCard(
                         .height(38.dp),
                     shape = RoundedCornerShape(19.dp),
                     color = Color(0xFF17191E),
-                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    border = BorderStroke(1.dp, Color(0xFF262B37)),
                     onClick = onOpenGamepadSettings
                 ) {
                     Box(
@@ -360,8 +360,8 @@ private fun LiveDiagnosticsConsoleCard(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(14.dp),
-        color = Color(0xFF21242B),
-        border = BorderStroke(1.dp, Color(0xFF2E333E))
+        color = Color(0xFF161920),
+        border = BorderStroke(1.dp, Color(0xFF262B37))
     ) {
         Column(
             modifier = Modifier
@@ -392,7 +392,7 @@ private fun LiveDiagnosticsConsoleCard(
                             color = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF17191E),
                             border = BorderStroke(
                                 1.dp,
-                                if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                                if (selected) MiraiThemeManager.currentAccent() else Color(0xFF262B37)
                             ),
                             onClick = {
                                 cleared = false
@@ -414,7 +414,7 @@ private fun LiveDiagnosticsConsoleCard(
                     Surface(
                         shape = RoundedCornerShape(12.dp),
                         color = Color(0xFF17191E),
-                        border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                        border = BorderStroke(1.dp, Color(0xFF262B37)),
                         onClick = { cleared = true }
                     ) {
                         Text(
@@ -476,7 +476,7 @@ private fun LiveDiagnosticsConsoleCard(
                         .height(38.dp),
                     shape = RoundedCornerShape(19.dp),
                     color = Color(0xFF17191E),
-                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    border = BorderStroke(1.dp, Color(0xFF262B37)),
                     onClick = onShareLog
                 ) {
                     Box(
@@ -588,8 +588,8 @@ private fun MainMenu(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(14.dp),
-        color = Color(0xFF21242B),
-        border = BorderStroke(1.dp, Color(0xFF2E333E))
+        color = Color(0xFF161920),
+        border = BorderStroke(1.dp, Color(0xFF262B37))
     ) {
         Column(
             modifier = Modifier
@@ -619,7 +619,7 @@ private fun MainMenu(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(18.dp),
                 color = Color(0xFF17191E),
-                border = BorderStroke(1.dp, Color(0xFF2E333E))
+                border = BorderStroke(1.dp, Color(0xFF262B37))
             ) {
                 Row(
                     modifier = Modifier
@@ -670,7 +670,7 @@ private fun MainMenu(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 color = Color(0xFF17191E),
-                border = BorderStroke(1.dp, Color(0xFF2E333E))
+                border = BorderStroke(1.dp, Color(0xFF262B37))
             ) {
                 Row(
                     modifier = Modifier

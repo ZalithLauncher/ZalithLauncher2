@@ -314,8 +314,8 @@ private fun ActionsLayout(
             .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
             .fillMaxHeight(),
         shape = RoundedCornerShape(16.dp),
-        color = Color(0xFF21242B),
-        border = BorderStroke(1.dp, Color(0xFF2E333E))
+        color = Color(0xFF161920),
+        border = BorderStroke(1.dp, Color(0xFF262B37))
     ) {
         Column(
             modifier = Modifier
@@ -340,7 +340,7 @@ private fun ActionsLayout(
                 Surface(
                     shape = RoundedCornerShape(14.dp),
                     color = Color(0xFF16181D),
-                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    border = BorderStroke(1.dp, Color(0xFF262B37)),
                     onClick = {
                         currentAccount?.let { acc ->
                             actions.onIntent(
@@ -461,7 +461,7 @@ private fun ActionsLayout(
                         .height(38.dp),
                     shape = RoundedCornerShape(19.dp),
                     color = Color(0xFF181A20),
-                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    border = BorderStroke(1.dp, Color(0xFF262B37)),
                     onClick = {
                         if (currentAccount?.isLocalAccount() == true) {
                             capePicker.launch(arrayOf("image/png"))
@@ -834,8 +834,8 @@ private fun AccountsLayout(
 
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFF21242B),
-                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    color = Color(0xFF161920),
+                    border = BorderStroke(1.dp, Color(0xFF262B37)),
                     onClick = {
                         actions.onIntent(AccountManageIntent.UpdateLocalLoginOp(LocalLoginOperation.Edit))
                     }
@@ -851,8 +851,8 @@ private fun AccountsLayout(
 
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = Color(0xFF21242B),
-                    border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                    color = Color(0xFF161920),
+                    border = BorderStroke(1.dp, Color(0xFF262B37)),
                     onClick = {
                         actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
                     }

@@ -156,7 +156,7 @@ private fun NavigationUI(
                     categories.forEach { cat ->
                         val selected = stackTopKey?.javaClass == cat.target.javaClass
                         val bgColor by animateColorAsState(
-                            targetValue = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF21242B),
+                            targetValue = if (selected) MiraiThemeManager.currentAccent() else Color(0xFF161920),
                             animationSpec = tween(160),
                             label = "discoverCatBg"
                         )
@@ -171,7 +171,7 @@ private fun NavigationUI(
                             color = bgColor,
                             border = BorderStroke(
                                 1.dp,
-                                if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                                if (selected) MiraiThemeManager.currentAccent() else Color(0xFF262B37)
                             ),
                             onClick = {
                                 backScreenViewModel.navigateToDownload(cat.target)

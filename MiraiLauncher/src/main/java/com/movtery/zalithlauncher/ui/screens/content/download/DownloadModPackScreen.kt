@@ -428,14 +428,25 @@ private fun ModPackInstallOperation(
                                 .zIndex(1f),
                             contentAlignment = Alignment.BottomEnd
                         ) {
-                            SmallFloatingActionButton(
-                                modifier = Modifier.padding(16.dp),
-                                onClick = { onInstallMinimizedChange(false) }
+                            Surface(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .clickable { onInstallMinimizedChange(false) },
+                                shape = CircleShape,
+                                color = Color(0xFF14171F),
+                                border = BorderStroke(2.dp, MiraiThemeManager.currentAccent()),
+                                shadowElevation = 8.dp
                             ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.ic_download),
-                                    contentDescription = stringResource(R.string.generic_expand)
-                                )
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.ic_download),
+                                        contentDescription = stringResource(R.string.generic_expand),
+                                        tint = MiraiThemeManager.currentAccent(),
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
                             }
                         }
                     } else {

@@ -564,7 +564,7 @@ class GameLauncher(
             if (!mgDir.exists() && !mgDir.mkdirs()) return
             File(mgDir, "config.json").writeText(
                 """
-                {"enableANGLE":0,"enableNoError":1,"fsr1Setting":0,"enableExtComputeShader":0,"angleDepthClearFixMode":0,"enableExtTimerQuery":0,"enableExtDirectStateAccess":0,"multidrawMode":0,"maxGlslCacheSize":128}
+                {"enableANGLE":0,"enableNoError":1,"fsr1Setting":0,"enableExtComputeShader":0,"angleDepthClearFixMode":0,"enableExtTimerQuery":0,"enableExtDirectStateAccess":0,"multidrawMode":0,"maxGlslCacheSize":512}
                 """.trimIndent() + "\n"
             )
         }.onFailure {
@@ -623,6 +623,7 @@ private fun setRendererEnv(envMap: MutableMap<String, String>) {
     envMap["MESA_SHADER_CACHE_MAX_SIZE"] = "512M"
     envMap["MESA_GLSL_CACHE_MAX_SIZE"] = "512M"
     envMap["mesa_glthread"] = "true"
+    envMap["MESA_NO_ERROR"] = "1"
 
     // LTW, LTW Legacy, VGPU and MobileGlues are self-contained GLES-backed wrappers that
     // bring their own GL implementation. Forcing the Zink/Mesa path here would load a second

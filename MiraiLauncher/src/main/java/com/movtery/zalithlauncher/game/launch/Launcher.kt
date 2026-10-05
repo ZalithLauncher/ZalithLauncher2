@@ -379,6 +379,9 @@ abstract class Launcher(
         if (args.none { it.startsWith("-XX:TieredStopAtLevel") } && args.none { it.startsWith("-XX:-TieredCompilation") }) {
             args.add("-XX:+TieredCompilation")
         }
+        if (args.none { it.startsWith("-XX:TieredStopAtLevel") }) {
+            args.add("-XX:TieredStopAtLevel=4")
+        }
     }
 
     protected fun MutableList<String>.purgeArg(argStart: String) {

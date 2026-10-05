@@ -204,7 +204,7 @@ abstract class Launcher(
 
         // Elevate game thread priority to reduce frame time jitter and scheduling latency
         runCatching {
-            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_DISPLAY)
+            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_DISPLAY)
         }
 
         val exitCode = VMLauncher.launchJVM(args.toTypedArray())
@@ -381,6 +381,16 @@ abstract class Launcher(
         }
         if (args.none { it.startsWith("-XX:TieredStopAtLevel") }) {
             args.add("-XX:TieredStopAtLevel=4")
+        }
+        // Ultra-low latency thread & memory optimizations
+        if (args.none { it.startsWith("-XX:+UseStringDeduplication") }) {
+            args.add("-XX:+UseStringDeduplication")
+        }
+        if (args.none { it.startsWith("-XX:+OptimizeStringConcat") }) {
+            args.add("-XX:+OptimizeStringConcat")
+        }
+        if (args.none { it.startsWith("-XX:+UseCompressedOops") }) {
+            args.add("-XX:+UseCompressedOops")
         }
     }
 

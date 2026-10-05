@@ -59,38 +59,10 @@ fun Modifier.fadeEdge(
     direction: EdgeDirection = EdgeDirection.Vertical,
     position: EdgeSide = EdgeSide.Both,
     style: FadeStyle = createDefaultFadeStyle(direction)
-): Modifier {
-    val fadePx = with(LocalDensity.current) { length.toPx() }
-
-    val topDistance = state.value.toFloat()
-    val startFade = if (state.canScrollBackward) {
-        (topDistance / fadePx).coerceIn(0f, 1f) * fadePx
-    } else 0f
-
-    val bottomDistance = (state.maxValue - state.value).toFloat()
-    val endFade = if (state.canScrollForward) {
-        (bottomDistance / fadePx).coerceIn(0f, 1f) * fadePx
-    } else 0f
-
-    return this
-        //使用离屏合成，让混合模式只影响当前组件，不污染父级与同级元素
-        .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-        .drawWithContent {
-            drawContent()
-            drawFadeEdges(startFade, endFade, direction, position, style)
-        }
-}
+): Modifier = this
 
 /**
- * 为可滚动的组件增加边缘渐隐的效果，可以很直观的提醒用户这里可以被滑动，
- * 效果类似元安卓View体系下的 fading edge
- * - 本实现依赖 `graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)`，
- *   该设置会让内容在单独的离屏缓冲区中绘制，以便后续通过混合模式（如 DstOut）实现“擦除”效果
- * - 如果将此修饰符放在 `padding()`、`scroll()` 或其他修饰符之后，
- *   那么离屏层可能只包裹部分内容，导致渐隐区域无法覆盖整个可见范围，从而看起来“没有效果”
- * @param direction 控制渐隐的方向，默认是垂直方向
- * @param position 指定在哪个边缘显示渐隐效果（上、下或两边）
- * @param style 控制渐隐的样式
+ * 为可滚动的组件增加边缘渐隐的效果，可以很直观的提醒用户这里可以被滑动
  */
 @Composable
 fun Modifier.fadeEdge(
@@ -99,42 +71,7 @@ fun Modifier.fadeEdge(
     direction: EdgeDirection = EdgeDirection.Vertical,
     position: EdgeSide = EdgeSide.Both,
     style: FadeStyle = createDefaultFadeStyle(direction)
-): Modifier {
-    val fadePx = with(LocalDensity.current) { length.toPx() }
-    val layoutInfo = state.layoutInfo
-
-    val firstItem = layoutInfo.visibleItemsInfo.firstOrNull()
-    val topDistancePx = when {
-        firstItem == null -> 0f
-        state.firstVisibleItemIndex == 0 -> -firstItem.offset.toFloat()
-        else -> fadePx //说明已经不在顶部了，直接满强度
-    }
-    val startFade = if (state.canScrollBackward) {
-        (topDistancePx / fadePx).coerceIn(0f, 1f) * fadePx
-    } else 0f
-
-    val lastItem = layoutInfo.visibleItemsInfo.lastOrNull()
-    val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
-    val bottomDistancePx = when {
-        lastItem == null -> 0f
-        state.canScrollForward.not() -> 0f
-        state.firstVisibleItemIndex + layoutInfo.visibleItemsInfo.size == layoutInfo.totalItemsCount &&
-                lastItem.offset + lastItem.size > viewportHeight ->
-            (lastItem.offset + lastItem.size - viewportHeight).toFloat()
-        else -> fadePx //还没到底部，直接满强度
-    }
-    val endFade = if (state.canScrollForward) {
-        (bottomDistancePx / fadePx).coerceIn(0f, 1f) * fadePx
-    } else 0f
-
-    return this
-        //使用离屏合成，让混合模式只影响当前组件，不污染父级与同级元素
-        .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-        .drawWithContent {
-            drawContent()
-            drawFadeEdges(startFade, endFade, direction, position, style)
-        }
-}
+): Modifier = this
 
 /**
  * 内部统一渲染渐隐的函数

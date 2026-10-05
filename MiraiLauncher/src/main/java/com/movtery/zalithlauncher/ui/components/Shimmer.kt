@@ -29,7 +29,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
@@ -39,20 +39,20 @@ fun Modifier.infiniteShimmer(
     initialValue: Float = 0.3f,
     targetValue: Float = 0.6f
 ): Modifier {
-    val infiniteTransition = rememberInfiniteTransition()
+    val infiniteTransition = rememberInfiniteTransition(label = "shimmer")
 
-    //循环动画
     val animatedAlpha by infiniteTransition.animateFloat(
         initialValue = initialValue,
         targetValue = targetValue,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = 1000, easing = LinearEasing),
             repeatMode = RepeatMode.Reverse
-        )
+        ),
+        label = "shimmer_alpha"
     )
 
     return this.then(
-        Modifier.alpha(animatedAlpha)
+        Modifier.graphicsLayer { alpha = animatedAlpha }
     )
 }
 

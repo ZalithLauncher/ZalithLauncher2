@@ -534,19 +534,3 @@ private fun FavoritesFilter(
  * 在组件顶部绘制指定像素高度的线性渐隐
  */
 private fun Modifier.topFade(heightPx: Float): Modifier = this
-    .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-    .drawWithContent {
-        drawContent()
-        if (heightPx <= 0f) return@drawWithContent
-        inset(
-            left = 0f,
-            top = 0f,
-            right = 0f,
-            bottom = (size.height - heightPx).coerceAtLeast(0f)
-        ) {
-            drawRect(
-                brush = Brush.verticalGradient(0f to Color.Black, 1f to Color.Transparent),
-                blendMode = BlendMode.DstOut
-            )
-        }
-    }

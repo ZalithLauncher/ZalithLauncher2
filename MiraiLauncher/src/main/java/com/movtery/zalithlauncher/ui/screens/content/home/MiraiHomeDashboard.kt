@@ -78,8 +78,8 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.theme.MiraiThemeManager
 
-private val ModrinthCardColor = Color(0xFF21242B)
-private val ModrinthCardBorder = Color(0xFF2E333E)
+private val ModrinthCardColor = Color(0xFF161920)
+private val ModrinthCardBorder = Color(0xFF262B37)
 private val ModrinthEmerald = Color(0xFF1BD96A)
 private val ModrinthOnEmerald = Color(0xFF06210F)
 private val ModrinthAmberBg = Color(0xFF9A6712)
@@ -505,10 +505,10 @@ private fun JumpBackInMobileCard(
 
     Surface(
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(16.dp))
             .clickable(onClick = onSelect),
-        shape = RoundedCornerShape(14.dp),
-        color = ModrinthCardColor.copy(alpha = 0.92f),
+        shape = RoundedCornerShape(16.dp),
+        color = ModrinthCardColor,
         border = BorderStroke(
             width = if (isSelected) 1.5.dp else 1.dp,
             color = if (isSelected) activeAccent.copy(alpha = 0.7f) else ModrinthCardBorder
@@ -593,10 +593,10 @@ private fun RecentInstanceMobileRow(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onSelect),
         shape = RoundedCornerShape(12.dp),
-        color = ModrinthCardColor.copy(alpha = 0.92f),
+        color = ModrinthCardColor,
         border = BorderStroke(
             width = 1.dp,
             color = if (isSelected) activeAccent.copy(alpha = 0.55f) else ModrinthCardBorder

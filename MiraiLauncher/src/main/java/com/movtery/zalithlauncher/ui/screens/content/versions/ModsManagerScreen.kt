@@ -884,10 +884,10 @@ private fun ModsActionsHeader(
                 }
                 Surface(
                     shape = RoundedCornerShape(16.dp),
-                    color = if (selected) Color(0xFF143825) else Color(0xFF21242B),
+                    color = if (selected) Color(0xFF132A1C) else Color(0xFF161920),
                     border = androidx.compose.foundation.BorderStroke(
                         1.dp,
-                        if (selected) MiraiThemeManager.currentAccent() else Color(0xFF2E333E)
+                        if (selected) MiraiThemeManager.currentAccent() else Color(0xFF262B37)
                     ),
                     onClick = { onStateFilterChange(filter) }
                 ) {
@@ -958,10 +958,10 @@ private fun ModsActionsHeader(
             val hasIssues = detectedIssuesCount > 0
             Surface(
                 shape = RoundedCornerShape(10.dp),
-                color = if (hasIssues) Color(0xFF3B1A1E) else Color(0xFF21242B),
+                color = if (hasIssues) Color(0xFF3B1A1E) else Color(0xFF161920),
                 border = BorderStroke(
                     1.dp,
-                    if (hasIssues) Color(0xFFEF4444) else Color(0xFF2E333E)
+                    if (hasIssues) Color(0xFFEF4444) else Color(0xFF262B37)
                 ),
                 onClick = onOpenModResolver
             ) {

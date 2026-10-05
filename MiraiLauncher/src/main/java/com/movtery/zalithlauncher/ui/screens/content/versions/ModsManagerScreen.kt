@@ -1151,19 +1151,20 @@ private fun ModItemLayout(
                 shape = RoundedCornerShape(12.dp)
             ),
         onClick = onClick,
-        shape = RoundedCornerShape(12.dp),
-        color = Color(0xFF21242B),
+        shape = RoundedCornerShape(16.dp),
+        color = Color(0xFF181B22),
+        border = BorderStroke(1.dp, if (selected) borderColor else Color(0xFF262A35)),
         contentColor = itemContentColor,
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 11.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             ModIcon(
-                modifier = Modifier.clip(shape = RoundedCornerShape(9.dp)),
+                modifier = Modifier.clip(shape = RoundedCornerShape(12.dp)),
                 mod = mod,
-                iconSize = 40.dp
+                iconSize = 44.dp
             )
 
             Column(

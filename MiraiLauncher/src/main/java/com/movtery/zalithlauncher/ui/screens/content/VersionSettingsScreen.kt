@@ -420,68 +420,47 @@ private fun ModrinthInstanceHeroBanner(
             )
         }
 
-        // Smart Mod Dependency & Conflict Resolver Button (Feature #2)
+        // Quick Tools Pill Menu: Boost FPS & GC Tuning
         Surface(
-            shape = RoundedCornerShape(10.dp),
-            color = Color(0xFF21242B),
-            border = BorderStroke(1.dp, Color(0xFF2E333E)),
-            onClick = { showModResolver = true }
-        ) {
-            Row(
-                modifier = Modifier
-                    .height(34.dp)
-                    .padding(horizontal = 9.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "🛡️ Mod Check",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFE5E7EB)
-                )
-            }
-        }
-
-        // JRE Auto-Tuner & GC Optimizer Button (Feature #17)
-        Surface(
-            shape = RoundedCornerShape(10.dp),
-            color = Color(0xFF21242B),
-            border = BorderStroke(1.dp, Color(0xFF2E333E)),
-            onClick = { showJreGcTuner = true }
-        ) {
-            Row(
-                modifier = Modifier
-                    .height(34.dp)
-                    .padding(horizontal = 9.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "☕ JRE & GC",
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFFE5E7EB)
-                )
-            }
-        }
-
-        // 1-Tap Mobile FPS Booster Button
-        Surface(
-            shape = RoundedCornerShape(10.dp),
-            color = activeAccent.copy(alpha = 0.16f),
-            border = BorderStroke(1.dp, activeAccent.copy(alpha = 0.7f)),
+            shape = RoundedCornerShape(12.dp),
+            color = activeAccent.copy(alpha = 0.14f),
+            border = BorderStroke(1.dp, activeAccent.copy(alpha = 0.5f)),
             onClick = { showFpsBooster = true }
         ) {
             Row(
                 modifier = Modifier
-                    .height(34.dp)
+                    .height(32.dp)
                     .padding(horizontal = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     text = "⚡ Boost FPS",
                     style = MaterialTheme.typography.labelSmall,
                     fontWeight = FontWeight.ExtraBold,
                     color = activeAccent
+                )
+            }
+        }
+
+        Surface(
+            shape = RoundedCornerShape(12.dp),
+            color = Color(0xFF1E2129),
+            border = BorderStroke(1.dp, Color(0xFF2A2F3B)),
+            onClick = { showJreGcTuner = true }
+        ) {
+            Row(
+                modifier = Modifier
+                    .height(32.dp)
+                    .padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Text(
+                    text = "☕ JRE & GC",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Color(0xFFE5E7EB)
                 )
             }
         }

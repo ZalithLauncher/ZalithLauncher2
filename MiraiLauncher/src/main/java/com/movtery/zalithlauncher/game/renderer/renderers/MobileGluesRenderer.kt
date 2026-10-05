@@ -36,8 +36,6 @@ object MobileGluesRenderer : RendererInterface {
 
     override fun getMinMCVersion(): String = "1.17"
 
-    override fun getMaxMCVersion(): String = "26.3"
-
     override fun getRendererEnv(): Lazy<Map<String, String>> = lazy {
         buildMap {
             //MG reads <dir>/config.json (written at launch); no LIBGL_* needed.

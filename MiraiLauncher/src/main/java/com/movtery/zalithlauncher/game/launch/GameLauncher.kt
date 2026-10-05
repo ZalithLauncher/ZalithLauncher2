@@ -616,6 +616,14 @@ private fun setRendererEnv(envMap: MutableMap<String, String>) {
 
     if (RendererPluginManager.selectedRendererPlugin != null) return
 
+    // Common Mesa shader cache and threading optimizations across all Mesa/Gallium/Zink drivers
+    envMap["MESA_GLSL_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
+    envMap["MESA_SHADER_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
+    envMap["MESA_DISK_CACHE_SINGLE_FILE"] = "1"
+    envMap["MESA_SHADER_CACHE_MAX_SIZE"] = "512M"
+    envMap["MESA_GLSL_CACHE_MAX_SIZE"] = "512M"
+    envMap["mesa_glthread"] = "true"
+
     // LTW, LTW Legacy, VGPU and MobileGlues are self-contained GLES-backed wrappers that
     // bring their own GL implementation. Forcing the Zink/Mesa path here would load a second
     // GL implementation beside them and the game would render through the wrong one.
@@ -624,10 +632,6 @@ private fun setRendererEnv(envMap: MutableMap<String, String>) {
         renderer != VGPURenderer && renderer != VGPU1368Renderer &&
         renderer != MobileGluesRenderer) {
         envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
-        envMap["MESA_GLSL_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
-        envMap["MESA_SHADER_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
-        envMap["MESA_DISK_CACHE_SINGLE_FILE"] = "1"
-        envMap["mesa_glthread"] = "true"
         envMap["MESA_GL_VERSION_OVERRIDE"] = "4.6"
         envMap["MESA_GLSL_VERSION_OVERRIDE"] = "460"
         envMap["force_glsl_extensions_warn"] = "true"

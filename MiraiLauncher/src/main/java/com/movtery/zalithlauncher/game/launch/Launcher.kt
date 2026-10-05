@@ -371,6 +371,14 @@ abstract class Launcher(
 
         // Some phones are not using the right number of cores, fix that
         args.add("-XX:ActiveProcessorCount=${java.lang.Runtime.getRuntime().availableProcessors()}")
+
+        // JVM startup and background compiler optimization for fast boot times on mobile
+        if (args.none { it.startsWith("-XX:CICompilerCount") }) {
+            args.add("-XX:CICompilerCount=2")
+        }
+        if (args.none { it.startsWith("-XX:TieredStopAtLevel") } && args.none { it.startsWith("-XX:-TieredCompilation") }) {
+            args.add("-XX:+TieredCompilation")
+        }
     }
 
     protected fun MutableList<String>.purgeArg(argStart: String) {

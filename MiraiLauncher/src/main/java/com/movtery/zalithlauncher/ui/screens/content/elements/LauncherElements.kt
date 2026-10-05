@@ -76,6 +76,7 @@ import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
 import com.movtery.zalithlauncher.game.renderer.RendererPicker
 import com.movtery.zalithlauncher.game.renderer.Renderers
+import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.hasVulkanBackend
 import com.movtery.zalithlauncher.game.version.installed.utils.isBiggerVer
@@ -315,8 +316,13 @@ fun LaunchGameOperation(
 
                 val mcVer = version.getVersionInfo()!!.minecraftVersion
 
-                // 设备完全支持 Vulkan 时跳过渲染器的版本支持检查
-                if (!version.hasVulkanBackend() || !ensureVulkanSupported(version)) {
+                // Versions 26.0+ can run on any backend/renderer without requiring Vulkan.
+                // Vulkan compatibility check is only run if Vulkan backend is actually targeted.
+                val graphicsApi = version.getGraphicsApi()
+                val isVulkanTargeted = graphicsApi == GraphicsApi.VULKAN ||
+                        (graphicsApi == GraphicsApi.DEFAULT && version.hasVulkanBackend())
+
+                if (isVulkanTargeted && !ensureVulkanSupported(version)) {
                     val isRendererUnsupported =
                         (currentRenderer.getMinMCVersion()?.let { mcVer.isLowerVer(it) } ?: false) ||
                                 (currentRenderer.getMaxMCVersion()?.let { mcVer.isBiggerVer(it) } ?: false)

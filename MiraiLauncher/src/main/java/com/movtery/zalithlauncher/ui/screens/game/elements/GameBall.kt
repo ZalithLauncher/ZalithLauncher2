@@ -372,6 +372,63 @@ private fun MiraiQuickOverlayPillContent(
                             onClick = onForceClose
                         )
                     }
+
+                    // In-Game Quick Download Actions (Feature #3: Saves, Resource Packs, Shaders)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Surface(
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF1E222A),
+                            border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                            onClick = { onToggleLogOverlay() }
+                        ) {
+                            Text(
+                                text = "💾 Saves",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                modifier = Modifier.padding(vertical = 5.dp, horizontal = 2.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        }
+
+                        Surface(
+                            modifier = Modifier.weight(1.1f),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF1E222A),
+                            border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                            onClick = { onToggleLogOverlay() }
+                        ) {
+                            Text(
+                                text = "🎨 Packs",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                modifier = Modifier.padding(vertical = 5.dp, horizontal = 2.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        }
+
+                        Surface(
+                            modifier = Modifier.weight(1.1f),
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color(0xFF1E222A),
+                            border = BorderStroke(1.dp, Color(0xFF2E333E)),
+                            onClick = { onToggleLogOverlay() }
+                        ) {
+                            Text(
+                                text = "✨ Shaders",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White,
+                                modifier = Modifier.padding(vertical = 5.dp, horizontal = 2.dp),
+                                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -130,7 +130,7 @@ fun AboutInfoScreen(
                         )
 
                         ButtonIconItem(
-                            icon = painterResource(R.drawable.ic_github),
+                            icon = painterResource(R.drawable.img_avatar_entitybrian),
                             title = "entitybrian",
                             text = stringResource(R.string.about_launcher_owner_text),
                             button = {
@@ -138,6 +138,19 @@ fun AboutInfoScreen(
                                     onClick = { openLink(URL_OWNER) }
                                 ) {
                                     Text(text = stringResource(R.string.about_launcher_owner_link))
+                                }
+                            }
+                        )
+
+                        ButtonIconItem(
+                            icon = painterResource(R.drawable.img_avatar_fireplayz),
+                            title = "fire playz",
+                            text = stringResource(R.string.about_launcher_owner_text),
+                            button = {
+                                Button(
+                                    onClick = { openLink(URL_PROJECT) }
+                                ) {
+                                    Text(text = stringResource(R.string.about_launcher_project_link))
                                 }
                             }
                         )

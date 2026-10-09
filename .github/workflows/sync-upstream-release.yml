@@ -193,7 +193,6 @@ jobs:
 
     env:
       OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
-      CURSEFORGE_API_KEY: ${{ secrets.CF_API_KEY }}
 
     steps:
       - name: Checkout main branch

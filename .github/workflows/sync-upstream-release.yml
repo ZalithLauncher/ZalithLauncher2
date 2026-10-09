@@ -215,7 +215,7 @@ jobs:
       - name: Decode keystore from secret
         id: keystore
         env:
-          KEYSTORE_P12_BASE64: ${{ secrets.KEYSTORE_P12_BASE64 }}
+          KEYSTORE_P12_BASE64: ${{ secrets.KEYSTORE_P12_BASE64 || secrets.KEYSTORE_BASE64_P12 }}
         run: |
           if [ -n "$KEYSTORE_P12_BASE64" ]; then
             echo "$KEYSTORE_P12_BASE64" | base64 -d > "$RUNNER_TEMP/release.p12"

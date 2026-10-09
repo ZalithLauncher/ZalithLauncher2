@@ -67,7 +67,6 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.CategoryIcon
 import com.movtery.zalithlauncher.ui.screens.content.elements.CategoryItem
 import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialog
 import com.movtery.zalithlauncher.ui.screens.content.assetinfo.AssetInfoScreen
-import com.movtery.zalithlauncher.ui.screens.content.versions.AddonDiffs
 import com.movtery.zalithlauncher.ui.screens.content.versions.ModifyVersionScreen
 import com.movtery.zalithlauncher.ui.screens.content.versions.ModsManagerScreen
 import com.movtery.zalithlauncher.ui.screens.content.versions.ResourcePackManageScreen

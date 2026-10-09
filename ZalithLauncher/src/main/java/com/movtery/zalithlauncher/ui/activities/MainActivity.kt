@@ -586,7 +586,7 @@ class MainActivity : BaseAppCompatActivity() {
     private fun checkUpdate() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                launcherUpgradeViewModel.checkManually(
+                val success = launcherUpgradeViewModel.checkManually(
                     onInProgress = {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@MainActivity, getString(R.string.generic_in_progress), Toast.LENGTH_SHORT).show()
@@ -596,28 +596,13 @@ class MainActivity : BaseAppCompatActivity() {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@MainActivity, getString(R.string.upgrade_is_latest), Toast.LENGTH_SHORT).show()
                         }
-                    },
-                    onManifestUnavailable = {
-                        withContext(Dispatchers.Main) {
-                            MaterialAlertDialogBuilder(this@MainActivity)
-                                .setTitle(R.string.upgrade_title)
-                                .setMessage(R.string.upgrade_manifest_unavailable)
-                                .setPositiveButton(R.string.upgrade_open_releases) { dialog, _ ->
-                                    openLink(URL_RELEASES)
-                                    dialog.dismiss()
-                                }
-                                .setNegativeButton(R.string.generic_cancel) { dialog, _ ->
-                                    dialog.dismiss()
-                                }
-                                .showThemed()
-                        }
-                    },
-                    onRemoteFailure = {
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(this@MainActivity, getString(R.string.upgrade_get_remote_failed), Toast.LENGTH_SHORT).show()
-                        }
                     }
                 )
+                if (!success) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@MainActivity, getString(R.string.upgrade_get_remote_failed), Toast.LENGTH_SHORT).show()
+                    }
+                }
             } catch (_: TooFrequentOperationException) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@MainActivity, getString(R.string.upgrade_rate_limited), Toast.LENGTH_SHORT).show()

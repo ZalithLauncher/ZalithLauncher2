@@ -435,7 +435,7 @@ fun JvmGcAutoTunerDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.ic_setting),
+                                painter = painterResource(R.drawable.ic_settings_filled),
                                 contentDescription = null,
                                 tint = activeAccent,
                                 modifier = Modifier.size(20.dp)

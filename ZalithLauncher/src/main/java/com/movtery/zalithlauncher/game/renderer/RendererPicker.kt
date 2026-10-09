@@ -19,14 +19,13 @@
 
 package com.movtery.zalithlauncher.game.renderer
 
+import com.movtery.zalithlauncher.game.renderer.renderers.FreedrenoRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.KopperZinkRenderer
-import com.movtery.zalithlauncher.game.renderer.renderers.LTWLegacyRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
-import com.movtery.zalithlauncher.game.renderer.renderers.VGPU1368Renderer
-import com.movtery.zalithlauncher.game.renderer.renderers.VGPURenderer
+import com.movtery.zalithlauncher.game.renderer.renderers.PanfrostRenderer
 import com.movtery.zalithlauncher.game.renderer.renderers.VirGLRenderer
 import com.movtery.zalithlauncher.game.version.installed.utils.isBiggerVer
 import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
@@ -47,8 +46,7 @@ import com.movtery.zalithlauncher.utils.device.normalizeMcVersion
  * reject LTW there rather than passing an incomplete library to SDL.
  *
  *  - **1.8 – 1.16.5** drive OpenGL 1.x/2.1 with fixed-function state and the legacy
- *    client-array draw path, so they need [LTWLegacyRenderer], [VGPURenderer],
- *    [VGPU1368Renderer], or [GL4ESRenderer].
+ *    client-array draw path, so they need [GL4ESRenderer] or [VirGLRenderer].
  *  - **1.17 and newer** require a core-profile-capable OpenGL wrapper; the picker considers
  *    [LTWRenderer], [MobileGluesRenderer], and modern [NGGL4ESRenderer]. For 26.2+, the SDL
  *    backend constraint above puts MobileGlues and NG-GL4ES ahead of LTW. Legacy GLES2
@@ -66,18 +64,17 @@ object RendererPicker {
     val MOBILEGLUES: String = MobileGluesRenderer.getUniqueIdentifier()
     val NG_GL4ES: String = NGGL4ESRenderer.getUniqueIdentifier()
     val ZINK: String = KopperZinkRenderer.getUniqueIdentifier()
-    val LTW_LEGACY: String = LTWLegacyRenderer.getUniqueIdentifier()
-    val VGPU: String = VGPURenderer.getUniqueIdentifier()
-    val VGPU_1368: String = VGPU1368Renderer.getUniqueIdentifier()
+    val FREEDRENO: String = FreedrenoRenderer.getUniqueIdentifier()
+    val PANFROST: String = PanfrostRenderer.getUniqueIdentifier()
 
     /** The Minecraft release that moved the game onto the OpenGL 3.2 core profile. */
     private const val CORE_PROFILE_VERSION = "1.17"
 
     /** Preferred legacy wrappers, best first. */
-    private val LEGACY_ORDER = listOf(LTW_LEGACY, VGPU, VGPU_1368, GL4ES, VIRGL)
+    private val LEGACY_ORDER = listOf(GL4ES, VIRGL, FREEDRENO, PANFROST)
 
     /** Preferred core-profile wrappers, best first. GL4ES is intentionally absent here. */
-    private val MODERN_ORDER = listOf(LTW, MOBILEGLUES, NG_GL4ES, ZINK)
+    private val MODERN_ORDER = listOf(LTWRenderer.getUniqueIdentifier(), MOBILEGLUES, NG_GL4ES, ZINK)
 
     /**
      * Minecraft's SDL/EGL backend needs a full EGL shared library. LTW's egl* exports are only
@@ -204,9 +201,13 @@ object RendererPicker {
         mcVersion.isNotBlank() &&
                 !normalizeMcVersion(mcVersion).isLowerVer(VulkanRequirements.MIN_MC_VERSION)
 
-    private fun minimumGlesVersion(identifier: String): Int? =
-        Renderers.BUILT_IN.firstOrNull { it.getUniqueIdentifier() == identifier }
-            ?.getMinimumGlesVersion()
+    private fun minimumGlesVersion(identifier: String): Int? {
+        return when (identifier) {
+            GL4ES -> 2
+            MOBILEGLUES, NG_GL4ES, LTW, VIRGL, ZINK, FREEDRENO, PANFROST -> 3
+            else -> null
+        }
+    }
 
     private fun supportsDevice(identifier: String, deviceGlesVersion: Int?): Boolean {
         if (deviceGlesVersion == null || deviceGlesVersion <= 0) return true
@@ -219,9 +220,9 @@ object RendererPicker {
         vulkanAvailable: Boolean?,
         allowUnknown: Boolean = false,
     ): Boolean {
-        val requiresVulkan = Renderers.BUILT_IN
-            .firstOrNull { it.getUniqueIdentifier() == identifier }
-            ?.requiresVulkan() == true
+        val renderer = Renderers.getRenderers().firstOrNull { it.getUniqueIdentifier() == identifier }
+        val requiresVulkan = renderer?.getRendererId()?.contains("vulkan") == true ||
+                renderer?.getRendererId()?.contains("zink") == true
         if (!requiresVulkan) return true
         return when (vulkanAvailable) {
             true -> true
@@ -242,7 +243,7 @@ object RendererPicker {
         // SDL loads on the Minecraft 26.2+ graphics path. This also upgrades an older persisted
         // LTW selection to a real SDL-compatible OpenGL renderer for affected instances.
         if (identifier == LTW && usesSdlGraphicsBackend(mcVersion)) return false
-        val renderer = Renderers.BUILT_IN.firstOrNull { it.getUniqueIdentifier() == identifier }
+        val renderer = Renderers.getRenderers().firstOrNull { it.getUniqueIdentifier() == identifier }
             ?: return true
         renderer.getMinMCVersion()?.let { min -> if (mcVersion.isLowerVer(min)) return false }
         renderer.getMaxMCVersion()?.let { max -> if (mcVersion.isBiggerVer(max)) return false }
@@ -250,7 +251,7 @@ object RendererPicker {
     }
 
     private fun nameOf(identifier: String): String =
-        Renderers.BUILT_IN.firstOrNull { it.getUniqueIdentifier() == identifier }
+        Renderers.getRenderers().firstOrNull { it.getUniqueIdentifier() == identifier }
             ?.getRendererName()
             ?: identifier
 

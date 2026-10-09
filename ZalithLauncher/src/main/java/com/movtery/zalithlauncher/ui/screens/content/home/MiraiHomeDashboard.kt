@@ -210,7 +210,7 @@ fun MiraiHomeDashboard(
                         .fillMaxWidth()
                         .height(250.dp)
                 ) {
-                    HomeGrid(state = gridState, modifier = Modifier.fillMaxSize())
+                    HomeGrid(state = gridState, isVisible = true, modifier = Modifier.fillMaxSize())
                 }
             }
         }
@@ -813,7 +813,7 @@ private fun lastPlayedAt(version: Version): Long {
 
 private fun versionSummary(version: Version): String {
     val info = version.getVersionInfo() ?: return version.getVersionName()
-    val loader = info.loaderInfo?.let { "${it.loader.displayName} ${it.version}" }
+    val loader = info.primaryLoader?.let { "${it.loader.displayName} ${it.version}" }
     return listOfNotNull(info.minecraftVersion, loader).joinToString(" · ")
 }
 

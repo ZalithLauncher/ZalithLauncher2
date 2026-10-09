@@ -1237,7 +1237,7 @@ private fun getLoaderIconRes(
                       horizontalArrangement = Arrangement.spacedBy(6.dp)
                   ) {
                       Text(text = versionInfo.minecraftVersion, style = MaterialTheme.typography.labelSmall)
-                      versionInfo.loaderInfo?.let { loaderInfo ->
+                      versionInfo.primaryLoader?.let { loaderInfo ->
                           Text(text = "•", style = MaterialTheme.typography.labelSmall)
                           Text(text = loaderInfo.loader.displayName, style = MaterialTheme.typography.labelSmall)
                           Text(text = loaderInfo.version, style = MaterialTheme.typography.labelSmall)

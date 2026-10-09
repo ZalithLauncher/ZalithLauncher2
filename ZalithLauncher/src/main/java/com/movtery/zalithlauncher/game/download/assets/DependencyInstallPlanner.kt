@@ -169,7 +169,7 @@ private fun InstalledMod.isCompatibleDependency(
         return false
     }
 
-    val targetLoader = targetInfo.loaderInfo?.loader
+    val targetLoader = targetInfo.primaryLoader?.loader
     if (targetLoader != null && !localLoaderMatches(local.loader, targetLoader)) {
         return false
     }

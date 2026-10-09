@@ -37,6 +37,12 @@ class VersionInfo(
         get() = PRIMARY_PRIORITY.firstNotNullOfOrNull { loader -> getLoader(loader) }
 
     /**
+     * 兼容属性，别名指向 primaryLoader
+     */
+    val loaderInfo: LoaderInfo?
+        get() = primaryLoader
+
+    /**
      * 获取指定类型的加载器信息
      */
     fun getLoader(loader: ModLoader): LoaderInfo? {

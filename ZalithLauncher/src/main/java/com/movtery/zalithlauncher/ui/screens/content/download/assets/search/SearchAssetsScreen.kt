@@ -153,42 +153,6 @@ private class SearchScreenViewModel(
     }
 
     /**
-     * 仅更新版本名称
-     */
-    fun updateVersionFilter(version: String) {
-        searchFilter = searchFilter.copy(gameVersion = version)
-        refreshVerSuggestions(version)
-    }
-
-    private fun refreshVerSuggestions(
-        version: String
-    ) {
-        currentSearchVersionJob?.cancel()
-        currentSearchVersionJob = viewModelScope.launch {
-            if (version.isNotEmpty()) delay(120)
-            val allVersions = MinecraftVersions.allVersions.value
-            val platform = searchPlatform
-            val result: List<String> = withContext(Dispatchers.Default) {
-                when {
-                    version.isEmpty() -> popularVersions
-                    allVersions.isEmpty() -> popularVersions.filter { ver ->
-                        ver.contains(version)
-                    }.take(20) //仅展示20个搜索结果
-                    else -> allVersions.filter {
-                        it.version.id.contains(version) &&
-                                //CurseForge只能使用正式版进行过滤
-                                (platform != Platform.CURSEFORGE || it.type == MinecraftVersion.Type.Release)
-                    }.map { it.version.id }.take(20) //仅展示20个搜索结果
-                }
-            }
-            if (searchFilter.gameVersion == version) {
-                _searchedVersions.update { result }
-            }
-            currentSearchVersionJob = null
-        }
-    }
-
-    /**
      * 重置并重新搜索
      */
     fun resetSearch() {
@@ -220,7 +184,6 @@ private class SearchScreenViewModel(
         val page = withContext(Dispatchers.Default) {
             result.getAssetsPage(platformClasses)
         }
-        }
         Logger.info(TAG, "Searched page info: {pageNumber: ${page.pageNumber}, pageIndex: ${page.pageIndex}, totalPage: ${page.totalPage}, isLastPage: ${page.isLastPage}}")
 
         val targetIndex = page.pageNumber - 1
@@ -239,7 +202,6 @@ private class SearchScreenViewModel(
     fun search() {
         currentSearchJob?.cancel() //取消上一个搜索
         currentSearchMCMODSJob?.cancel()
-        currentSearchVersionJob?.cancel()
 
         currentSearchJob = viewModelScope.launch {
             searchResult = SearchAssetsState.Searching

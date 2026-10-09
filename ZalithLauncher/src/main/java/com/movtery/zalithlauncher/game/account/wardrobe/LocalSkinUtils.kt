@@ -90,6 +90,41 @@ suspend fun validateSkinFile(skinFile: File): Boolean {
     }
 }
 
+/** Minecraft cape textures are PNGs sized 64×32 pixels. */
+suspend fun validateCapeFile(capeFile: File): Boolean = withContext(Dispatchers.IO) {
+    if (!capeFile.exists() || !capeFile.isFile) return@withContext false
+
+    val isPng = runCatching {
+        capeFile.inputStream().use { input ->
+            val signature = ByteArray(8)
+            var bytesRead = 0
+            while (bytesRead < signature.size) {
+                val count = input.read(signature, bytesRead, signature.size - bytesRead)
+                if (count < 0) break
+                bytesRead += count
+            }
+            bytesRead == signature.size && signature.contentEquals(
+                byteArrayOf(
+                    0x89.toByte(), 0x50, 0x4E, 0x47,
+                    0x0D, 0x0A, 0x1A, 0x0A
+                )
+            )
+        }
+    }.getOrDefault(false)
+    if (!isPng) return@withContext false
+
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeFile(capeFile.absolutePath, bounds)
+    if (bounds.outWidth != 64 || bounds.outHeight != 32) return@withContext false
+
+    val bitmap = BitmapFactory.decodeFile(capeFile.absolutePath) ?: return@withContext false
+    try {
+        bitmap.width == 64 && bitmap.height == 32
+    } finally {
+        bitmap.recycle()
+    }
+}
+
 /**
  * 检查披风像素合法性，Minecraft披风标准为64x32像素
  */

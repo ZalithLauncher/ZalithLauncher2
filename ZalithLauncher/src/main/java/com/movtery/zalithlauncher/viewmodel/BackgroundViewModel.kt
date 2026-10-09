@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.copyLocalFile
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
@@ -45,15 +46,26 @@ import com.movtery.zalithlauncher.utils.video.isVideoFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 /**
  * 启动器背景管理
  */
 class BackgroundViewModel: ViewModel() {
     val backgroundFile: File = PathManager.FILE_LAUNCHER_BACKGROUND
+
+    private val backgroundMutationMutex = Mutex()
+    private val defaultBackgroundSeedMarker = File(
+        backgroundFile.parentFile,
+        ".mirai_background_seeded"
+    )
 
     /**
      * 背景文件是否有效（存在，且是有效的视频或图片）
@@ -164,23 +176,95 @@ class BackgroundViewModel: ViewModel() {
         }
     }
 
+    /**
+     * Seed the Mirai shader wallpaper once, without overwriting a user's existing
+     * background or restoring it after they intentionally clear it.
+     */
+    suspend fun seedDefaultBackground(context: Context) = withContext(Dispatchers.IO) {
+        backgroundMutationMutex.withLock {
+            if (defaultBackgroundSeedMarker.exists()) return@withLock
+
+            if (backgroundFile.exists()) {
+                // The user already has a background; record that seeding has been handled.
+                defaultBackgroundSeedMarker.createNewFile()
+                updateState()
+                return@withLock
+            }
+
+            val parentDirectory = backgroundFile.parentFile ?: return@withLock
+            val stagedFile = File(
+                parentDirectory,
+                ".mirai-background-seed-${System.nanoTime()}.tmp"
+            )
+            try {
+                context.resources.openRawResource(R.drawable.mirai_hero_bg).use { input ->
+                    stagedFile.outputStream().use { output -> input.copyTo(output) }
+                }
+                if (!stagedFile.isImageFile()) return@withLock
+
+                // Recheck before replacing so a background selected during seeding wins.
+                if (!backgroundFile.exists()) replaceBackgroundFile(stagedFile)
+                defaultBackgroundSeedMarker.createNewFile()
+                updateState()
+            } catch (_: Exception) {
+                // Leave the seed marker unset so a later launch can retry the default copy.
+            } finally {
+                FileUtils.deleteQuietly(stagedFile)
+            }
+        }
+    }
+
     suspend fun delete() {
         withContext(Dispatchers.IO) {
-            FileUtils.deleteQuietly(backgroundFile)
-            updateState()
+            backgroundMutationMutex.withLock {
+                defaultBackgroundSeedMarker.createNewFile()
+                FileUtils.deleteQuietly(backgroundFile)
+                updateState()
+            }
         }
     }
 
     suspend fun import(context: Context, result: Uri) {
         withContext(Dispatchers.IO) {
-            FileUtils.deleteQuietly(backgroundFile)
-            context.copyLocalFile(result, backgroundFile)
-            if (!backgroundFile.isImageFile() && !backgroundFile.isVideoFile()) {
-                //不是媒体类文件
-                FileUtils.deleteQuietly(backgroundFile)
-                error("The selected file is not an image or a video!")
+            backgroundMutationMutex.withLock {
+                val parentDirectory = checkNotNull(backgroundFile.parentFile) {
+                    "Launcher background path has no parent directory."
+                }
+                val stagedFile = File(
+                    parentDirectory,
+                    ".mirai-background-${System.nanoTime()}.tmp"
+                )
+                try {
+                    context.copyLocalFile(result, stagedFile)
+                    if (!stagedFile.isImageFile() && !stagedFile.isVideoFile()) {
+                        error("The selected file is not an image or a video!")
+                    }
+
+                    replaceBackgroundFile(stagedFile)
+                    defaultBackgroundSeedMarker.createNewFile()
+                    updateState()
+                } finally {
+                    FileUtils.deleteQuietly(stagedFile)
+                }
             }
-            updateState()
+        }
+    }
+
+    /** Replace the selected background only after the new media has been validated. */
+    private fun replaceBackgroundFile(stagedFile: File) {
+        try {
+            Files.move(
+                stagedFile.toPath(),
+                backgroundFile.toPath(),
+                StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING
+            )
+        } catch (_: AtomicMoveNotSupportedException) {
+            Files.move(
+                stagedFile.toPath(),
+                backgroundFile.toPath(),
+                StandardCopyOption.REPLACE_EXISTING
+            )
         }
     }
 }

@@ -64,33 +64,32 @@ enum class ModTranslations(private val resourceName: String) {
 
     abstract fun getMcmodUrl(mcMod: McMod): String
 
-    suspend fun searchMod(query: String): List<McMod> {
-        if (!loadKeywords()) return emptyList()
+    suspend fun searchMod(query: String): List<McMod> = withContext(Dispatchers.Default) {
+        // Loading and indexing the bundled translation data is CPU and I/O work too; keep it
+        // off the UI thread, not just the per-keyword LCS scoring below.
+        if (!loadKeywords()) return@withContext emptyList()
         val newQuery = query.filterNot(Char::isWhitespace)
         val lcs = LongestCommonSubsequence(newQuery.length, maxKeywordLength)
 
-        return withContext(Dispatchers.Default) {
-            fun <T> ensureActive(
-                block: () -> T
-            ): T {
-                ensureActive()
-                return block()
-            }
-            keywords!!.asSequence()
-                .map { (keyword, mod) ->
-                    ensureActive { lcs.calc(newQuery, keyword) to mod }
-                }
-                .filter { (value) ->
-                    ensureActive { value >= max(1, newQuery.length - 3) }
-                }
-                .sortedByDescending {
-                    ensureActive { it.first }
-                }
-                .map {
-                    ensureActive { it.second }
-                }
-                .toList()
+        fun <T> ensureActive(block: () -> T): T {
+            ensureActive()
+            return block()
         }
+
+        keywords!!.asSequence()
+            .map { (keyword, mod) ->
+                ensureActive { lcs.calc(newQuery, keyword) to mod }
+            }
+            .filter { (value) ->
+                ensureActive { value >= max(1, newQuery.length - 3) }
+            }
+            .sortedByDescending {
+                ensureActive { it.first }
+            }
+            .map {
+                ensureActive { it.second }
+            }
+            .toList()
     }
 
     private fun loadFromResource(): Boolean {

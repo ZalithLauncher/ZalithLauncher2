@@ -19,8 +19,7 @@
 package com.movtery.zalithlauncher.game.download.assets.platform
 
 import android.util.Log
-import com.movtery.zalithlauncher.game.addons.mirror.MirrorPriority
-import com.movtery.zalithlauncher.game.addons.mirror.resolveMirrorPriority
+import com.movtery.zalithlauncher.game.addons.mirror.orderSourceCandidates
 import com.movtery.zalithlauncher.game.download.assets.mapExceptionToMessage
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.CurseForgeSearcher
 import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.MCIM_CURSEFORGE_API
@@ -30,6 +29,7 @@ import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.Modrint
 import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthVersion
 import com.movtery.zalithlauncher.game.download.assets.utils.localizedModSearchKeywords
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.DownloadAssetsState
 import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.SearchAssetsState
 import com.movtery.zalithlauncher.utils.isChinaMainland
@@ -78,6 +78,8 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
                 Logger.debug(TAG, "Starting to attempt to perform the operation on source: {${searcher.source}}")
             }
             return block(searcher)
+        } catch (cancelled: CancellationException) {
+            throw cancelled
         } catch (e: Exception) {
             Log.w("PlatformSearcher", "Failed to perform the operation on source: {${searcher.source}}", e)
             lastException = e
@@ -107,33 +109,40 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
 }
 
 /**
- * 镜像源只能在中国地区使用
+ * Automatically fall back to the alternate CurseForge source when the preferred source fails.
+ * An explicit Official preference continues to use only CurseForge's API.
  */
 fun mirroredCurseForgeSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<CurseForgeSearcher> {
-    val source = resolveMirrorPriority(AllSettings.assetPlatformSource.getValue(), mainland = enabledMirror)
-    val mirrorSource = mirrorCurseForgeSearcher.takeIf { enabledMirror }
-    return when (source) {
-        MirrorPriority.OFFICIAL -> listOf(curseForgeSearcher)
-        MirrorPriority.MIRROR_FIRST ->
-            listOfNotNull(mirrorSource, curseForgeSearcher)
+    val preference = AllSettings.assetPlatformSource.getValue()
+    val mirrorSource = mirrorCurseForgeSearcher.takeIf {
+        preference != MirrorSourceType.OFFICIAL
     }
+    return orderSourceCandidates(
+        official = curseForgeSearcher,
+        mirror = mirrorSource,
+        preference = preference,
+        mainland = enabledMirror
+    )
 }
 
 /**
- * 镜像源只能在中国地区使用
+ * 自动模式按地区调整 Modrinth 与 MCIM 的尝试顺序；显式源偏好始终生效。
  */
 fun mirroredModrinthSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<ModrinthSearcher> {
-    val source = resolveMirrorPriority(AllSettings.assetPlatformSource.getValue(), mainland = enabledMirror)
-    val mirrorSource = mirrorModrinthSearcher.takeIf { enabledMirror }
-    return when (source) {
-        MirrorPriority.OFFICIAL -> listOf(modrinthSearcher)
-        MirrorPriority.MIRROR_FIRST ->
-            listOfNotNull(mirrorSource, modrinthSearcher)
+    val preference = AllSettings.assetPlatformSource.getValue()
+    val mirrorSource = mirrorModrinthSearcher.takeIf {
+        preference != MirrorSourceType.OFFICIAL
     }
+    return orderSourceCandidates(
+        official = modrinthSearcher,
+        mirror = mirrorSource,
+        preference = preference,
+        mainland = enabledMirror
+    )
 }
 
 suspend fun searchAssets(
@@ -182,7 +191,9 @@ suspend fun searchAssets(
                     }
                 }
                 lastResult = r
-                if (r.getAssetsPage(platformClasses).data.isNotEmpty()) break
+                if (r.hasResults()) break
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (e: Exception) {
                 //当前关键词搜索失败，记录异常并继续尝试下一个
                 lastException = e
@@ -191,10 +202,14 @@ suspend fun searchAssets(
 
         val result = lastResult ?: throw lastException ?: IOException("Failed to search for all queries")
 
-        onSuccess(
-            if (containsChinese) result.processChineseSearchResults(searchFilter.searchName, platformClasses)
-            else result
-        )
+        val displayResult = if (containsChinese) {
+            withContext(Dispatchers.Default) {
+                result.processChineseSearchResults(searchFilter.searchName, platformClasses)
+            }
+        } else {
+            result
+        }
+        onSuccess(displayResult)
     }.onFailure { e ->
         if (e !is CancellationException) {
             Logger.error(TAG, "An exception occurred while searching for assets.", e)

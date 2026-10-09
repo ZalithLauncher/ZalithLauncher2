@@ -577,6 +577,82 @@ private val verdantDawnDark = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark.verdantDawn,
 )
 
+private val miraiLight = lightColorScheme(
+    primary = Color(0xFF087A3B),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFC5F3D2),
+    onPrimaryContainer = Color(0xFF00210D),
+    secondary = Color(0xFF416B4D),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFC5EBCB),
+    onSecondaryContainer = Color(0xFF082B15),
+    tertiary = Color(0xFF3C6858),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFBFEEDB),
+    onTertiaryContainer = Color(0xFF002117),
+    error = Color(0xFFBA1A1A),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFFFDAD6),
+    onErrorContainer = Color(0xFF410002),
+    background = Color(0xFFF5F9F5),
+    onBackground = Color(0xFF151D17),
+    surface = Color(0xFFF7FBF7),
+    onSurface = Color(0xFF151D17),
+    surfaceVariant = Color(0xFFDEE8DF),
+    onSurfaceVariant = Color(0xFF414B43),
+    outline = Color(0xFF718075),
+    outlineVariant = Color(0xFFC1CCC2),
+    scrim = Color(0xFF000000),
+    inverseSurface = Color(0xFF2A322B),
+    inverseOnSurface = Color(0xFFEEF5EE),
+    inversePrimary = Color(0xFF83D99A),
+    surfaceDim = Color(0xFFD7E0D8),
+    surfaceBright = Color(0xFFF7FBF7),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF0F5F0),
+    surfaceContainer = Color(0xFFEAF0EA),
+    surfaceContainerHigh = Color(0xFFE4EBE4),
+    surfaceContainerHighest = Color(0xFFDEE6DF),
+)
+
+private val miraiDark = darkColorScheme(
+    primary = Color(0xFF43E27D),
+    onPrimary = Color(0xFF003916),
+    primaryContainer = Color(0xFF075F2D),
+    onPrimaryContainer = Color(0xFFB7F5C8),
+    secondary = Color(0xFFB1D7B8),
+    onSecondary = Color(0xFF1D3522),
+    secondaryContainer = Color(0xFF334C38),
+    onSecondaryContainer = Color(0xFFCCEBD1),
+    tertiary = Color(0xFFA9DCC8),
+    onTertiary = Color(0xFF15372C),
+    tertiaryContainer = Color(0xFF2D5044),
+    onTertiaryContainer = Color(0xFFC5F2DE),
+    error = Color(0xFFFFB4AB),
+    onError = Color(0xFF690005),
+    errorContainer = Color(0xFF93000A),
+    onErrorContainer = Color(0xFFFFDAD6),
+    background = Color(0xFF070B08),
+    onBackground = Color(0xFFE5F1E6),
+    surface = Color(0xFF0A100B),
+    onSurface = Color(0xFFE5F1E6),
+    surfaceVariant = Color(0xFF26342A),
+    onSurfaceVariant = Color(0xFFB9CABB),
+    outline = Color(0xFF829787),
+    outlineVariant = Color(0xFF3D4D41),
+    scrim = Color(0xFF000000),
+    inverseSurface = Color(0xFFE5F1E6),
+    inverseOnSurface = Color(0xFF172019),
+    inversePrimary = Color(0xFF087A3B),
+    surfaceDim = Color(0xFF070B08),
+    surfaceBright = Color(0xFF26332A),
+    surfaceContainerLowest = Color(0xFF030604),
+    surfaceContainerLow = Color(0xFF0D1510),
+    surfaceContainer = Color(0xFF111A14),
+    surfaceContainerHigh = Color(0xFF18231B),
+    surfaceContainerHighest = Color(0xFF202D23),
+)
+
 private fun customLight(
     color: Color,
     style: PaletteStyle,
@@ -629,6 +705,7 @@ fun ZalithLauncherTheme(
                 ColorThemeType.VERDANTFIELD -> verdantFieldDark
                 ColorThemeType.URBAN_ASH -> urbanAshDark
                 ColorThemeType.VERDANT_DAWN -> verdantDawnDark
+                ColorThemeType.MIRAI -> miraiDark
                 ColorThemeType.CUSTOM -> customDark(
                     color = customColor,
                     style = customPaletteStyle
@@ -644,6 +721,7 @@ fun ZalithLauncherTheme(
                 ColorThemeType.VERDANTFIELD -> verdantFieldLight
                 ColorThemeType.URBAN_ASH -> urbanAshLight
                 ColorThemeType.VERDANT_DAWN -> verdantDawnLight
+                ColorThemeType.MIRAI -> miraiLight
                 ColorThemeType.CUSTOM -> customLight(
                     color = customColor,
                     style = customPaletteStyle

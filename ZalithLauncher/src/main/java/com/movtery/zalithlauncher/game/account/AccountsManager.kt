@@ -272,6 +272,7 @@ object AccountsManager {
         scope.launch {
             accountDao.deleteAccount(account)
             FileUtils.deleteQuietly(account.getSkinFile())
+            FileUtils.deleteQuietly(account.getCapeFile())
             suspendReloadAccounts()
         }
     }

@@ -274,18 +274,10 @@ class PlayerSkin(
         )
     }
 
-    /**
-     * 设置预览交互开关
-     * 关闭后 WebView 不再响应触摸（视角旋转等），仅作展示
-     */
     fun setInteractionEnabled(enabled: Boolean) {
         webview?.evaluateJavascript("setInteractionEnabled($enabled)", null)
     }
 
-    /**
-     * 销毁 WebView 并释放资源
-     * 应在包含该组件的 Composable 离开组合树时调用
-     */
     fun destroy() {
         webview?.apply {
             stopLoading()
@@ -317,17 +309,8 @@ enum class ModelAnimation {
 }
 
 /**
- * 3D 玩家皮肤预览：基于 skinview3d 的 WebView 渲染正面立绘与待机动画
- *
- * @param skinFile 皮肤文件，null 时展示默认皮肤
- * @param capeFile 披风文件，null 时移除披风
- * @param modelType 皮肤模型类型，null 时自动检测
- * @param animation 预览动画
- * @param azimuth 水平视角（度）
- * @param pitch 俯仰视角（度）
- * @param interactionEnabled 是否允许触摸交互（拖拽旋转视角）；
- * 关闭时触摸不进入 WebView，交还给上层手势处理
- * @param refreshKey 变化时重新加载皮肤与披风
+ * 3D skin preview. Idle animation is off by default so the WebView does not
+ * repaint every frame while the rest of the launcher is open.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -336,10 +319,10 @@ fun SkinPreview3D(
     capeFile: File?,
     modelType: SkinModelType?,
     modifier: Modifier = Modifier,
-    animation: ModelAnimation = ModelAnimation.NewIdle,
+    animation: ModelAnimation? = null,
     azimuth: Int = -35,
     pitch: Int = 10,
-    interactionEnabled: Boolean = true,
+    interactionEnabled: Boolean = false,
     refreshKey: Any? = null,
 ) {
     val context = LocalContext.current
@@ -355,10 +338,10 @@ fun SkinPreview3D(
     Box(modifier = modifier) {
         AndroidView(
             modifier = Modifier.matchParentSize(),
-            factory = { context ->
-                TouchGateLayout(context).apply {
+            factory = { viewContext ->
+                TouchGateLayout(viewContext).apply {
                     addView(
-                        playerSkin.loadWebView(context) { pageFinished = true },
+                        playerSkin.loadWebView(viewContext) { pageFinished = true },
                         ViewGroup.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
@@ -373,7 +356,7 @@ fun SkinPreview3D(
 
         LaunchedEffect(pageFinished, animation, azimuth, pitch) {
             if (!pageFinished) return@LaunchedEffect
-            playerSkin.startAnim(animation)
+            if (animation != null) playerSkin.startAnim(animation)
             playerSkin.setAzimuthAndPitch(azimuth, pitch)
         }
         LaunchedEffect(pageFinished, interactionEnabled) {
@@ -394,10 +377,6 @@ fun SkinPreview3D(
     }
 }
 
-/**
- * 触摸门控容器：gateOpen 为 false 时拦截全部发往子 View 的触摸，
- * 且自身不消费，手势继续交还上层处理
- */
 private class TouchGateLayout(context: Context) : FrameLayout(context) {
     var gateOpen: Boolean = true
 

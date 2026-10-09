@@ -64,6 +64,7 @@ val libraryData = listOf(
     LibraryInfo("ktor-serialization-kotlinx-json", COPYRIGHT_KTOR, LICENSE_APACHE_2, URL_KTOR),
     LibraryInfo("language-textmate", "Copyright © 2020-2024 Rosemoe", License("LGPL-2.1 License", R.raw.sora_editor_license), "https://github.com/Rosemoe/sora-editor/tree/main/language-textmate"),
     LibraryInfo("LWJGL - Lightweight Java Game Library", "Copyright © 2012-present Lightweight Java Game Library All rights reserved.", License(LICENSE_BSD_3_CLAUSE, R.raw.lwjgl_license), "https://github.com/LWJGL/lwjgl3"),
+    LibraryInfo("LTW (Large Thin Wrapper)", "Copyright (c) 2025 artDev, SerpentSpirale, CADIndie.", License(LICENSE_LGPL_3, R.raw.lgpl_3_license), "https://github.com/MojoLauncher/LTW"),
     LibraryInfo("material-color-utilities", "Copyright 2021 Google LLC", LICENSE_APACHE_2, "https://github.com/material-foundation/material-color-utilities"),
     LibraryInfo("Maven Artifact", "Copyright © The Apache Software Foundation", LICENSE_APACHE_2, "https://github.com/apache/maven/tree/maven-3.9.9/maven-artifact"),
     LibraryInfo("Media3", COPYRIGHT_AOSP, LICENSE_APACHE_2, "https://developer.android.com/jetpack/androidx/releases/media3"),

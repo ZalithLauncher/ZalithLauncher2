@@ -414,13 +414,12 @@ object AllSettings : SettingsRegistry() {
 
     //Launcher
     /**
-     * 颜色主题色
-     * Android 12+ 默认动态主题色
+     * Launcher theme: use the fixed Mirai green palette by default so the interface
+     * remains consistent across Android versions and device wallpapers.
      */
     val launcherColorTheme = enumSetting(
         "launcherColorTheme",
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ColorThemeType.DYNAMIC
-        else ColorThemeType.EMBERMIRE
+        ColorThemeType.MIRAI
     )
 
     /**
@@ -436,7 +435,7 @@ object AllSettings : SettingsRegistry() {
     /**
      * 启动器UI深色主题
      */
-    val launcherDarkMode = enumSetting("launcherDarkMode", DarkMode.FollowSystem)
+    val launcherDarkMode = enumSetting("launcherDarkMode", DarkMode.Enable)
 
     /**
      * 启动器语言
@@ -490,7 +489,7 @@ object AllSettings : SettingsRegistry() {
     /**
      * 启动器背景元素不透明度
      */
-    val launcherBackgroundOpacity = intSetting("launcherBackgroundOpacity", 80, 20..100)
+    val launcherBackgroundOpacity = intSetting("launcherBackgroundOpacity", 60, 20..100)
 
     /**
      * 启动器视频背景音量

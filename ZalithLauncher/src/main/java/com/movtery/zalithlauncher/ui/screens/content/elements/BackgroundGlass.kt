@@ -63,6 +63,11 @@ import kotlin.math.roundToInt
 import kotlin.math.sqrt
 import kotlin.time.Duration.Companion.milliseconds
 
+/** Live glass was re-blurring the full screen every frame and lagging every tab. */
+private const val MAX_GLASS_BLUR_PX = 12f
+private const val GLASS_RESAMPLE_MS = 700L
+private const val GLASS_CAPTURE_INTERVAL_MS = 250L
+
 /**
  * 背景毛玻璃效果：在元素内容下方对齐绘制启动器背景的预模糊结果
  * @param enabled 是否应用模糊效果
@@ -91,7 +96,12 @@ internal fun Modifier.backgroundCapture(
     recordContent: Boolean,
     blurRadiusPx: Float,
     whiteOverlayAlpha: Float,
-): Modifier = this then BackgroundCaptureElement(store, recordContent, blurRadiusPx, whiteOverlayAlpha)
+): Modifier = this then BackgroundCaptureElement(
+    store,
+    recordContent,
+    blurRadiusPx.coerceIn(0f, MAX_GLASS_BLUR_PX),
+    whiteOverlayAlpha,
+)
 
 internal fun whiteOverlayAlpha(blur: Int): Float {
     val t = (blur / 80f).coerceIn(0f, 1f)
@@ -133,7 +143,6 @@ private class GlassNode(
             invalidateDraw()
         }
 
-    //元素在屏幕坐标系中的位置，随布局逐帧更新，绘制时据此对齐采样
     private var screenOrigin = Offset.Zero
     private var hasOrigin = false
 
@@ -213,8 +222,7 @@ private data class BackgroundCaptureElement(
 }
 
 /**
- * 背景捕获节点：持有共享模糊层并随节点生命周期发布/摘除，
- * 布局时上报背景屏幕区域，Android 12- 前景模式下驱动帧捕获循环
+ * 背景捕获节点。模糊层按间隔重采，避免每个标签页每帧全屏模糊。
  */
 private class BackgroundCaptureNode(
     var store: BackgroundViewModel,
@@ -228,6 +236,7 @@ private class BackgroundCaptureNode(
     private var blurredLayer: GraphicsLayer? = null
     private var blurredEffectRadius = 0f
     private var captureJob: Job? = null
+    private var lastBlurRecordMs = 0L
 
     override fun onAttach() {
         sync()
@@ -247,8 +256,12 @@ private class BackgroundCaptureNode(
         if (recordContent && source != null) {
             source.record { this@draw.drawContent() }
             drawLayer(source)
-            if (Build.VERSION.SDK_INT >= 31) {
-                ensureBlurredLayer()?.record { drawLayer(source) }
+            if (Build.VERSION.SDK_INT >= 31 && blurRadiusPx > 0f) {
+                val now = System.currentTimeMillis()
+                if (now - lastBlurRecordMs >= GLASS_RESAMPLE_MS) {
+                    lastBlurRecordMs = now
+                    ensureBlurredLayer()?.record { drawLayer(source) }
+                }
             }
         } else {
             drawContent()
@@ -261,9 +274,6 @@ private class BackgroundCaptureNode(
         }
     }
 
-    /**
-     * 依据当前参数调和共享层的发布与捕获循环的启停
-     */
     fun sync() {
         syncLayers()
         syncCaptureLoop()
@@ -285,22 +295,22 @@ private class BackgroundCaptureNode(
     }
 
     private fun ensureBlurredLayer(): GraphicsLayer? {
+        val capped = blurRadiusPx.coerceIn(0f, MAX_GLASS_BLUR_PX)
         blurredLayer?.let { layer ->
-            if (blurredEffectRadius != blurRadiusPx) {
-                layer.renderEffect = BlurEffect(blurRadiusPx, blurRadiusPx, TileMode.Clamp)
-                blurredEffectRadius = blurRadiusPx
+            if (blurredEffectRadius != capped) {
+                layer.renderEffect = BlurEffect(capped, capped, TileMode.Clamp)
+                blurredEffectRadius = capped
             }
             return layer
         }
         val layer = createLayer() ?: return null
-        layer.renderEffect = BlurEffect(blurRadiusPx, blurRadiusPx, TileMode.Clamp)
-        blurredEffectRadius = blurRadiusPx
+        layer.renderEffect = BlurEffect(capped, capped, TileMode.Clamp)
+        blurredEffectRadius = capped
         blurredLayer = layer
         return layer
     }
 
     private fun createLayer(): GraphicsLayer? {
-        //release 必须归还给创建它的同一 context，故在创建时捕获
         val context = currentValueOf(LocalGraphicsContext)
         graphicsContext = context
         return context.createGraphicsLayer()
@@ -317,10 +327,8 @@ private class BackgroundCaptureNode(
                 }.collectLatest { active ->
                     if (!active) return@collectLatest
                     while (currentCoroutineContext().isActive) {
-                        val started = System.nanoTime()
                         store.captureGlassFrame()
-                        val elapsedMs = (System.nanoTime() - started) / 1_000_000L
-                        delay((16L - elapsedMs).coerceAtLeast(0L).milliseconds)
+                        delay(GLASS_CAPTURE_INTERVAL_MS.milliseconds)
                     }
                 }
             }

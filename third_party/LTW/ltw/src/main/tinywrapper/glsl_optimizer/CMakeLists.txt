@@ -1,0 +1,16 @@
+file(GLOB_RECURSE GLSL_OPTIMIZER_SRC "src/*.c")
+file(GLOB_RECURSE GLSL_OPTIMIZER_CPP_SRC "src/*.cpp")
+
+set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fPIC ")
+set(CMAKE_C_FLAGS  "${CMAKE_C_FLAGS} -fPIC")
+
+# TODO: add proper endianess detection
+add_compile_definitions(_LIB UTIL_ARCH_LITTLE_ENDIAN=1 UTIL_ARCH_BIG_ENDIAN=0 UNIX HAVE_OPENGL HAVE_OPENGL_ES_1 HAVE_OPENGL_ES_2 HAVE_STRUCT_TIMESPEC)
+
+if(ANDROID)
+	add_compile_definitions("ANDROID" DETECT_OS_ANDROID)
+else()
+	add_compile_definitions(HAVE_TIMESPEC_GET _GNU_SOURCE)
+endif()
+
+add_library(glsl_optimizer ${GLSL_OPTIMIZER_SRC} ${GLSL_OPTIMIZER_CPP_SRC})

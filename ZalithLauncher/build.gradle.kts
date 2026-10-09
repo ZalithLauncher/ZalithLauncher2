@@ -15,7 +15,8 @@ plugins {
     id("com.movtery.buildkeys")
 }
 
-val zalithPackageName = "com.movtery.zalithlauncher"
+val launcherNamespace = "com.movtery.zalithlauncher"
+val launcherApplicationId = "com.entitybrian69.mirailauncher"
 val launcherAPPName = project.findProperty("launcher_app_name") as? String ?: error("The \"launcher_app_name\" property is not set in gradle.properties.")
 val launcherName = project.findProperty("launcher_name") as? String ?: error("The \"launcher_name\" property is not set in gradle.properties.")
 val launcherShortName = project.findProperty("launcher_short_name") as? String ?: error("The \"launcher_short_name\" property is not set in gradle.properties.")
@@ -57,7 +58,7 @@ fun getKeyFromLocal(envKey: String, fileName: String? = null, default: String? =
 }
 
 android {
-    namespace = zalithPackageName
+    namespace = launcherNamespace
     compileSdk {
         version = release(37) {
             minorApiLevel = 2
@@ -82,7 +83,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = zalithPackageName
+        applicationId = launcherApplicationId
         applicationIdSuffix = ".v2"
         minSdk = 26
         targetSdk = 34
@@ -419,6 +420,9 @@ buildKeys {
 }
 
 dependencies {
+    implementation("androidx.compose.material3.adaptive:adaptive:1.3.0-rc01")
+    implementation("androidx.compose.material3.adaptive:adaptive-layout:1.3.0-rc01")
+    implementation("androidx.compose.material3.adaptive:adaptive-navigation:1.3.0-rc01")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.core.splashscreen)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -464,6 +468,7 @@ dependencies {
     implementation(project(":Terracotta"))
     implementation(project(":InputMap"))
     implementation(project(":Guide"))
+    implementation(project(":ltw"))
     //Utils
     implementation(libs.bytehook)
     implementation(libs.gson)

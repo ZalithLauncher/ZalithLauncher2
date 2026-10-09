@@ -43,6 +43,8 @@ class CurseForgeSearchResult(
     @SerialName("pagination")
     private val pagination: CurseForgePagination
 ): PlatformSearchResult {
+    override fun hasResults(): Boolean = data.any { it.isApproved() }
+
     override fun getAssetsPage(classes: PlatformClasses): AssetsPage {
         val mcmodData = data.mapNotNull { data0 ->
             if (!data0.isApproved()) return@mapNotNull null

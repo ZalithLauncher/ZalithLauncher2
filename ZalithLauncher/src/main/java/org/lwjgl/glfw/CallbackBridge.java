@@ -90,7 +90,7 @@ public class CallbackBridge {
     @Keep
     public static boolean notifyLauncher(int type, int... action) {
         if (action == null || action.length == 0) {
-            LoggerBridge.append("ZalithLauncher: SDL notification has no action");
+            LoggerBridge.append("Mirai Launcher: SDL notification has no action");
             return false;
         }
         switch (type) {
@@ -100,13 +100,13 @@ public class CallbackBridge {
                         return true;
                     }
                     try {
-                        LoggerBridge.append("ZalithLauncher: loading SDL3");
+                        LoggerBridge.append("Mirai Launcher: loading SDL3");
                         System.loadLibrary("SDL3");
-                        LoggerBridge.append("ZalithLauncher: loading SDL2");
+                        LoggerBridge.append("Mirai Launcher: loading SDL2");
                         System.loadLibrary("SDL2");
-                        LoggerBridge.append("ZalithLauncher: setting up SDL JNI");
+                        LoggerBridge.append("Mirai Launcher: setting up SDL JNI");
                         SdlBridge.setupJNI();
-                        LoggerBridge.append("ZalithLauncher: binding SDL surface");
+                        LoggerBridge.append("Mirai Launcher: binding SDL surface");
                         SdlBridge.setSdlEnabled(true);
                         SDLSurface surface = SDLActivity.getSDLSurface();
                         if (surface != null) {
@@ -115,14 +115,14 @@ public class CallbackBridge {
                                 surface.nativeResize(windowWidth, windowHeight);
                             }
                         }
-                        LoggerBridge.append("ZalithLauncher: SDL support enabled!");
+                        LoggerBridge.append("Mirai Launcher: SDL support enabled!");
                         return true;
                     } catch (Throwable e) {
                         SdlBridge.setSdlEnabled(false);
                         SdlBridge.clearSdlInitialized();
                         StringWriter trace = new StringWriter();
                         e.printStackTrace(new PrintWriter(trace));
-                        LoggerBridge.append("ZalithLauncher: SDL launcher integration is unavailable:\n" + trace);
+                        LoggerBridge.append("Mirai Launcher: SDL launcher integration is unavailable:\n" + trace);
                     }
                 }
                 if (action[0] == ACTION_SEND_TEXTBOX_RECT) {
@@ -421,7 +421,7 @@ public class CallbackBridge {
     @SuppressWarnings("unused")
     @Keep
     private static void onDirectInputEnable() {
-        LoggerBridge.append("ZalithLauncher: Direct gamepad input enabled");
+        LoggerBridge.append("Mirai Launcher: Direct gamepad input enabled");
         sGamepadDirectInput = true;
         DirectGamepadEnableHandler enableHandler =
                 sDirectGamepadEnableHandler == null ? null : sDirectGamepadEnableHandler.get();

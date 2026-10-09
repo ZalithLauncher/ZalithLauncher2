@@ -1,5 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="launcher_brand_name">Mirai Launcher</string>
+    <string name="launcher_brand_short">Mirai</string>
+    <string name="app_unofficial_modified">Unofficial Modified Version</string>
+    <string name="home_welcome_title">Ready for your next world?</string>
+    <string name="home_welcome_subtitle">Launch an installation, explore content, and make it yours.</string>
+    <string name="home_play">Play</string>
+    <string name="home_choose_version">Choose a version</string>
+    <string name="home_selected_installation">Selected installation</string>
+    <string name="home_explore_content">Explore mods</string>
+    <string name="home_manage_versions">Manage versions</string>
+    <string name="home_account_not_set">Choose an account to start playing.</string>
+    <string name="home_jump_in">Jump in</string>
+    <string name="home_jump_in_summary">Recently played, selected, and pinned installations</string>
+    <string name="home_playing_as">Playing as</string>
+    <string name="home_skin_preview">Skin preview</string>
+    <string name="home_library">Library</string>
+    <string name="home_search_instances">Search instances</string>
+    <string name="home_clear_search">Clear search</string>
+    <string name="home_filter_all">All instances</string>
+    <string name="home_filter_pinned">Pinned</string>
+    <string name="home_filter_other">Other</string>
+    <string name="home_sort_name">Name</string>
+    <string name="home_sort_game_version">Minecraft version</string>
+    <string name="home_sort_last_played">Last played</string>
+    <string name="home_last_played">Played %1$s</string>
+    <string name="home_never_played">Never played</string>
+    <string name="home_no_matching_instances">No instances match these filters</string>
+    <string name="home_clear_filters">Clear filters</string>
+    <string name="home_installed_version_count">%1$d installed</string>
+    <string name="home_badge_selected">Selected</string>
+    <string name="home_badge_pinned">Pinned</string>
+    <string name="home_badge_installed">Installed</string>
+    <string name="home_new_instance">New instance</string>
+    <string name="home_view_all">View all</string>
+    <string name="home_view_all_versions">View all %1$d versions</string>
+    <string name="home_empty_library_title">Your library is empty</string>
+    <string name="home_empty_library_summary">Install a Minecraft version to get started.</string>
+    <string name="home_empty_jump_in_title">Nothing to jump into yet</string>
+    <string name="home_empty_jump_in_summary">Install a version or pin one from your library for quick access.</string>
+    <string name="home_versions_refreshing">Refreshing installed versions…</string>
+    <string name="home_cards_title">Home cards</string>
+    <string name="home_cards_summary">Your saved quick-launch cards.</string>
+    <string name="home_news_title">News and updates</string>
+    <string name="home_news_summary">Open the release page to see published builds and notes.</string>
+    <string name="home_news_open">View releases</string>
     <string name="generic_cancel">Cancel</string>
     <string name="generic_run_in_background">Run in background</string>
     <string name="generic_confirm">Confirm</string>
@@ -166,6 +211,7 @@
     <string name="theme_color_verdant_field">Verdant Twilight</string>
     <string name="theme_color_urban_ash">Urban Ash</string>
     <string name="theme_color_verdant_dawn">Silent Forest Dawn</string>
+    <string name="theme_color_mirai">Mirai Forest</string>
     <string name="theme_color_picker_title">Color Picker</string>
     <string name="theme_color_picker_edit_hex">Edit Hex</string>
     <string name="theme_color_picker_edit_hex_invalid">Invalid Hex</string>
@@ -257,6 +303,7 @@
     <string name="launch_check_mods">Checking mods</string>
     <string name="main_task_menu">Task Menu</string>
     <string name="unpack_install_task_title">Installing dependencies</string>
+    <string name="main_file_manager">File manager</string>
     <!--  Download  -->
     <string name="download_category_game">Game</string>
     <string name="download_category_modpack">Modpack</string>
@@ -648,6 +695,11 @@
     <string name="account_change_cape_apply_success">Successfully changed your cape to: %s</string>
     <string name="account_change_cape_apply_reset">Successfully reset your cape</string>
     <string name="account_change_cape_apply_failed">(%d) Failed to change cape</string>
+    <string name="account_change_local_cape">Import a custom offline cape</string>
+    <string name="account_remove_local_cape">Remove custom cape</string>
+    <string name="account_change_cape_invalid_local">Invalid cape texture. Choose a 64×32 PNG image.</string>
+    <string name="account_change_cape_failed_to_import_local">Could not read that cape image</string>
+    <string name="account_change_local_cape_saved">Offline cape updated</string>
     <string name="account_supporting_username_invalid_title">Invalid Username</string>
     <string name="account_supporting_username_invalid_local_message_hint1">Valid usernames only support letters (case-insensitive), numbers, and underscores, with length between 3 and 16 characters.</string>
     <string name="account_supporting_username_invalid_local_message_hint2">Otherwise, the game may not run properly.</string>
@@ -687,6 +739,9 @@
     <string name="account_microsoft_exit_by_user">You left the webpage, so the Microsoft login process has been canceled for you.</string>
     <string name="account_advanced">Advanced Settings</string>
     <string name="account_local_create_account">Create Offline Account</string>
+    <string name="account_local_create_button">Create account</string>
+    <string name="account_local_add_skin">Add skin</string>
+    <string name="account_local_add_cape">Add custom cape</string>
     <string name="account_local_uuid" translatable="false">UUID</string>
     <string name="account_local_uuid_tip_1">UUID is the unique identifier of a Minecraft player.</string>
     <string name="account_local_uuid_tip_2">Different launchers may generate different UUIDs.</string>
@@ -1559,6 +1614,8 @@
     <!-- About -->
     <string name="about_launcher_title">About Launcher</string>
     <string name="about_launcher_version">Launcher Version: %s</string>
+    <string name="about_launcher_owner_text">Owner and maintainer of Mirai Launcher.</string>
+    <string name="about_launcher_owner_link">GitHub profile</string>
     <string name="about_launcher_author_movtery_title">MovTery</string>
     <string name="about_launcher_author_movtery_text">Author of Zalith Launcher 2</string>
     <string name="about_launcher_author_star1xr_title">Star1xr</string>
@@ -1608,6 +1665,9 @@
     <string name="upgrade_version_size">Size: %s</string>
     <string name="upgrade_version_create_at">Updated At: %s</string>
     <string name="upgrade_get_remote_failed">Failed to check for updates. Please try again later.</string>
+    <string name="upgrade_manifest_unavailable">No Mirai update information has been published yet.</string>
+    <string name="upgrade_open_releases">Open releases</string>
+    <string name="upgrade_rate_limited">Please wait a few seconds before checking again.</string>
     <string name="upgrade_is_latest">You are already on the latest version</string>
     <string name="upgrade_cloud_drive">Cloud Drive</string>
     <!--  Url  -->

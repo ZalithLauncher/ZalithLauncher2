@@ -1,45 +1,54 @@
-# Zalith Launcher 2
-![Downloads](https://img.shields.io/github/downloads/ZalithLauncher/ZalithLauncher2/total)
-[![Sponsor](https://img.shields.io/badge/sponsor-30363D?logo=GitHub-Sponsors)](https://afdian.com/a/MovTery)
+# Mirai Launcher
 
-[简体中文](README.md) | [繁體中文](README_ZH_TW.md)
+<p align="center">
+  <img src="assets/mirai-logo.png" alt="Mirai Launcher logo" width="192">
+</p>
 
+<p align="center"><strong>More worlds. More control.</strong><br>
+An Android launcher for Minecraft: Java Edition.</p>
 
-> [!IMPORTANT]
-> This project is **completely separate** from [ZalithLauncher](https://github.com/ZalithLauncher/ZalithLauncher).  
+<p align="center">
+  <a href="https://github.com/entitybrian69-bit/Mirai-launcher/releases">Releases</a> ·
+  <a href="README.md">简体中文</a> ·
+  <a href="README_ZH_TW.md">繁體中文</a>
+</p>
 
-**Zalith Launcher 2** is a newly designed launcher for **Android devices** tailored for [Minecraft: Java Edition](https://www.minecraft.net/). The project uses [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) as its core launching engine and features a modern UI built with **Jetpack Compose** and **Material Design 3**.  
-We are currently building our official website [zalithlauncher.cn](https://zalithlauncher.cn)  
-Additionally, we are aware that a third-party website has been set up using the name “Zalith Launcher”, appearing to be official. Please note: **this site was not created by us**. It exploits the name to display ads for profit. We **do not participate in, endorse, or trust** such content.  
-Please stay vigilant and **protect your personal privacy**!
+![GitHub downloads](https://img.shields.io/github/downloads/entitybrian69-bit/Mirai-launcher/total)
 
-## 🌐 Language and Translation Support
+> **Unofficial Modified Version** — Mirai is for players who want a clear, capable way to manage Minecraft Java Edition on Android. Set up your installations, content, accounts, and controls in one place, then get back to the world you came for.
 
-We are using the Weblate platform to translate Zalith Launcher 2. You're welcome to join our [Weblate project](https://hosted.weblate.org/projects/zalithlauncher2) and contribute to the translations!  
-Thank you to every language contributor for helping make Zalith Launcher 2 more multilingual and global!
+## Features
 
-## 📦 Build Instructions (For Developers)
+- **Installations and versions:** install game versions, manage multiple instances, and configure version-specific settings.
+- **Discover and download:** browse mods, modpacks, resource packs, saves/worlds, and shader packs.
+- **Accounts and wardrobe:** manage Microsoft, offline, and third-party Yggdrasil accounts. Offline profiles support custom skin and cape imports with 3D previews.
+- **Tune your setup:** choose from available renderer and Java runtime options, and adjust launch arguments. Results vary with the device, game version, and configuration.
+- **Input and controls:** customize touch layouts and configure supported gamepad, keyboard, and mouse input.
+- **Multiplayer and quick play:** manage server entries and start directly with a server or save.
+- **Game file tools:** use the built-in file manager, import or export modpacks, and configure version isolation.
+- **Personalize:** use the green-and-dark interface, choose a background, and adjust launcher settings.
 
-> The following section is for developers who wish to contribute or build the project locally.
+Mirai keeps versions, content, accounts, controls, and everyday tools together. It focuses on practical choices and configurable setups rather than promising identical performance on every device.
 
-### Requirements
+## Downloads and builds
 
-* Android Studio **Bumblebee** or newer
-* Android SDK:
-  * **Minimum API level**: 26
-  * **Target API level**: 35
-* JDK 11
+Published APKs will be available on [GitHub Releases](https://github.com/entitybrian69-bit/Mirai-launcher/releases). GitHub Actions can build a universal APK and architecture-specific packages for ARMv7, ARM64, x86, and x86_64. The manual workflow offers Debug and Release builds; Release requires the `STORE_PASSWORD` and `KEY_PASSWORD` repository secrets, and tagged releases are checked for all five APKs before upload.
 
-### Build Steps
+To build locally, use JDK 21 and the Android SDK (minimum API 26; the project compiles against API 37):
 
 ```bash
-git clone git@github.com:ZalithLauncher/ZalithLauncher2.git
-# Open the project in Android Studio and build
+git clone https://github.com/entitybrian69-bit/Mirai-launcher.git
+cd Mirai-launcher
+./gradlew :ZalithLauncher:assembleDebug -Darch=all
 ```
+
+Replace `all` with `arm`, `arm64`, `x86`, or `x86_64` for a specific architecture. You can also open the project in Android Studio and run the Gradle build.
 
 ## 📜 License
 
 This project is licensed under the **[GPL-3.0 license](LICENSE)**.
+
+Mirai Launcher includes code originally developed for Zalith Launcher 2 by MovTery and contributors. The original source copyright notices and applicable GPL-3.0 terms are retained.
 
 ### Additional Terms (Pursuant to Section 7 of the GPLv3 License)
 
@@ -78,6 +87,7 @@ This software uses the following open source libraries:
 | ktor-http                             | Copyright © 2000-2023 JetBrains s.r.o.                                                                        | Apache 2.0           | [Link↗](https://ktor.io)                                                           |
 | ktor-serialization-kotlinx-json       | Copyright © 2000-2023 JetBrains s.r.o.                                                                        | Apache 2.0           | [Link↗](https://ktor.io)                                                           |
 | LWJGL - Lightweight Java Game Library | Copyright © 2012-present Lightweight Java Game Library All rights reserved.                                   | BSD 3-Clause License | [Link↗](https://github.com/LWJGL/lwjgl3)                                           |
+| LTW (Large Thin Wrapper)              | Copyright (c) 2025 artDev, SerpentSpirale, CADIndie.                                                          | LGPL-3.0 License     | [Link↗](https://github.com/MojoLauncher/LTW)                                       |
 | material-color-utilities              | Copyright 2021 Google LLC                                                                                     | Apache 2.0           | [Link↗](https://github.com/material-foundation/material-color-utilities)           |
 | Maven Artifact                        | Copyright © The Apache Software Foundation                                                                    | Apache 2.0           | [Link↗](https://github.com/apache/maven/tree/maven-3.9.9/maven-artifact)           |
 | Media3                                | Copyright © The Android Open Source Project                                                                   | Apache 2.0           | [Link↗](https://developer.android.com/jetpack/androidx/releases/media3)            |

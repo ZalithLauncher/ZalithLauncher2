@@ -1,5 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="launcher_brand_name">Mirai 啟動器</string>
+    <string name="launcher_brand_short">Mirai</string>
+    <string name="app_unofficial_modified">非官方修改版</string>
+    <string name="home_welcome_subtitle">啟動遊戲、探索內容，打造自己的體驗。</string>
+    <string name="home_play">啟動遊戲</string>
+    <string name="home_explore_content">探索模組</string>
+    <string name="home_jump_in">快速啟動</string>
+    <string name="home_jump_in_summary">最近遊玩、目前選取與置頂的安裝版本</string>
+    <string name="home_playing_as">目前帳號</string>
+    <string name="home_skin_preview">外觀預覽</string>
+    <string name="home_library">版本庫</string>
+    <string name="home_search_instances">搜尋實例</string>
+    <string name="home_clear_search">清除搜尋</string>
+    <string name="home_filter_all">所有實例</string>
+    <string name="home_filter_pinned">已置頂</string>
+    <string name="home_filter_other">其他</string>
+    <string name="home_sort_name">名稱</string>
+    <string name="home_sort_game_version">Minecraft 版本</string>
+    <string name="home_sort_last_played">最近遊玩</string>
+    <string name="home_last_played">上次遊玩：%1$s</string>
+    <string name="home_never_played">尚未遊玩</string>
+    <string name="home_no_matching_instances">沒有符合這些篩選條件的實例</string>
+    <string name="home_clear_filters">清除篩選條件</string>
+    <string name="home_installed_version_count">已安裝 %1$d 個</string>
+    <string name="home_badge_selected">目前選取</string>
+    <string name="home_badge_pinned">已置頂</string>
+    <string name="home_badge_installed">已安裝</string>
+    <string name="home_new_instance">新增實例</string>
+    <string name="home_view_all">檢視全部</string>
+    <string name="home_view_all_versions">檢視全部 %1$d 個版本</string>
+    <string name="home_empty_library_title">版本庫是空的</string>
+    <string name="home_empty_library_summary">安裝 Minecraft 版本即可開始。</string>
+    <string name="home_empty_jump_in_title">目前沒有可快速啟動的版本</string>
+    <string name="home_empty_jump_in_summary">安裝版本，或在版本庫中置頂版本以便快速啟動。</string>
+    <string name="home_versions_refreshing">正在重新整理已安裝的版本…</string>
+    <string name="home_cards_title">首頁卡片</string>
+    <string name="home_cards_summary">已儲存的快速啟動卡片。</string>
+    <string name="home_news_title">新聞與更新</string>
+    <string name="home_news_summary">前往發行頁面查看已發布的版本與更新說明。</string>
+    <string name="home_news_open">查看發行版本</string>
     <string name="generic_cancel">取消</string>
     <string name="generic_confirm">確認</string>
     <string name="generic_error">錯誤</string>
@@ -159,6 +199,7 @@
     <string name="main_launch_game">啟動遊戲</string>
     <string name="launch_check_mods">檢查模組</string>
     <string name="main_task_menu">任務選單</string>
+    <string name="main_file_manager">檔案管理員</string>
     <!--  下載  -->
     <string name="download_category_game">遊戲</string>
     <string name="download_category_modpack">模組包</string>
@@ -525,6 +566,9 @@
     <string name="account_microsoft_exit_by_user">您離開了網頁畫面，已為您取消了微軟登入流程</string>
     <string name="account_advanced">進階設定</string>
     <string name="account_local_create_account">建立離線帳號</string>
+    <string name="account_local_create_button">建立帳號</string>
+    <string name="account_local_add_skin">新增皮膚</string>
+    <string name="account_local_add_cape">新增自訂披風</string>
     <string name="account_local_uuid_tip_1">UUID 是 Minecraft 玩家的唯一身分識別碼。</string>
     <string name="account_local_uuid_tip_2">不同的啟動器可能會產生不同的 UUID。</string>
     <string name="account_local_uuid_tip_3">在切換啟動器時保持 UUID 不變，遊戲即可持續識別你的角色，並保留背包物品等資料。</string>
@@ -1008,6 +1052,8 @@
     <!--  關於  -->
     <string name="about_launcher_title">關於啟動器</string>
     <string name="about_launcher_version">啟動器版本：%s</string>
+    <string name="about_launcher_owner_text">Mirai Launcher 的所有者與維護者。</string>
+    <string name="about_launcher_owner_link">GitHub 個人頁面</string>
     <string name="about_launcher_author_movtery_title">墨北 MovTery</string>
     <string name="about_launcher_author_movtery_text">%s 的作者</string>
     <string name="about_launcher_project_link">專案連結</string>
@@ -1036,6 +1082,9 @@
     <string name="upgrade_version_size">大小：%s</string>
     <string name="upgrade_version_create_at">更新時間：%s</string>
     <string name="upgrade_get_remote_failed">取得更新失敗，請稍後再試</string>
+    <string name="upgrade_manifest_unavailable">Mirai 尚未發布更新資訊。</string>
+    <string name="upgrade_open_releases">查看發佈版本</string>
+    <string name="upgrade_rate_limited">請稍後再檢查更新。</string>
     <string name="upgrade_is_latest">目前已是最新版本</string>
     <string name="upgrade_cloud_drive">網路硬碟</string>
     <!--  Url  -->

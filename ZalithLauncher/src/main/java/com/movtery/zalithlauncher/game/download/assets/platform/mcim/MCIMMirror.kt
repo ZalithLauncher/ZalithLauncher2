@@ -18,10 +18,8 @@
 
 package com.movtery.zalithlauncher.game.download.assets.platform.mcim
 
-import com.movtery.zalithlauncher.game.addons.mirror.MirrorPriority
-import com.movtery.zalithlauncher.game.addons.mirror.orderCandidates
-import com.movtery.zalithlauncher.game.addons.mirror.resolveMirrorPriority
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.utils.isChinaMainland
 
 private const val ROOT = "https://mod.mcimirror.top"
@@ -33,41 +31,50 @@ private val REPLACE_MIRROR_HOLDERS = listOf(
     "https://cdn.modrinth.com"
 )
 
-private fun assetPlatformPriority(): MirrorPriority =
-    resolveMirrorPriority(AllSettings.assetPlatformSource.getValue(), mainland = true)
+private fun orderWithMirrorFallback(
+    official: List<String>,
+    mirrored: List<String>
+): List<String> {
+    val preference = AllSettings.assetPlatformSource.getValue()
+    return when {
+        preference == MirrorSourceType.OFFICIAL -> official
+        preference == MirrorSourceType.MIRROR || isChinaMainland() -> mirrored + official
+        else -> official + mirrored
+    }
+}
 
 /**
- * 按是否中国大陆决定是否启用 MCIM 镜像，并按偏好生成有序候选链接
+ * Add the MCIM download URL as a fallback in Auto mode, or try it first when selected.
  */
 fun String.mapMCIMMirrorUrls(): List<String> {
-    if (!isChinaMainland()) return listOf(this)
-
     val mirroredUrl = REPLACE_MIRROR_HOLDERS.find { key ->
         startsWith(key)
     }?.let { origin ->
         replaceFirst(origin, ROOT)
-    }
+    } ?: return listOf(this)
 
-    return orderCandidates(official = this, mirror = mirroredUrl, priority = assetPlatformPriority())
+    return orderWithMirrorFallback(
+        official = listOf(this),
+        mirrored = listOf(mirroredUrl)
+    )
 }
 
 /**
- * 多链接形式：把数组内可被镜像替换的链接生成镜像版本，按偏好穿插到原列表前/后
+ * Add mirror alternatives for all supplied download URLs, preserving the selected source order.
  */
 fun Array<String>.mapMCIMMirrorUrls(): List<String> {
-    if (!isChinaMainland()) return toList()
-
-    val sources = mapNotNull { url ->
+    val officialUrls = toList()
+    val mirroredUrls = mapNotNull { url ->
         REPLACE_MIRROR_HOLDERS.find { key ->
             url.startsWith(key)
         }?.let { origin ->
             url.replaceFirst(origin, ROOT)
         }
     }
-    if (sources.isEmpty()) return toList()
+    if (mirroredUrls.isEmpty()) return officialUrls
 
-    return when (assetPlatformPriority()) {
-        MirrorPriority.OFFICIAL -> this.toList()
-        MirrorPriority.MIRROR_FIRST -> sources + this.toList()
-    }
+    return orderWithMirrorFallback(
+        official = officialUrls,
+        mirrored = mirroredUrls
+    )
 }

@@ -22,6 +22,7 @@
   import com.movtery.zalithlauncher.game.renderer.renderers.FreedrenoRenderer
   import com.movtery.zalithlauncher.game.renderer.renderers.GL4ESRenderer
   import com.movtery.zalithlauncher.game.renderer.renderers.KopperZinkRenderer
+  import com.movtery.zalithlauncher.game.renderer.renderers.LTWRenderer
   import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
   import com.movtery.zalithlauncher.game.renderer.renderers.NGGL4ESRenderer
   import com.movtery.zalithlauncher.game.renderer.renderers.PanfrostRenderer
@@ -56,6 +57,7 @@
           addRenderers(
               NGGL4ESRenderer,
               GL4ESRenderer,
+              LTWRenderer,
               KopperZinkRenderer,
               MobileGluesRenderer,
               VirGLRenderer,

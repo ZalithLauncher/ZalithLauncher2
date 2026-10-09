@@ -64,6 +64,7 @@ import com.movtery.zalithlauncher.ui.activities.EXTRA_LAUNCH_VERSION
 import com.movtery.zalithlauncher.ui.activities.EXTRA_OPEN_LOG
 import com.movtery.zalithlauncher.notification.NotificationManager
 import com.movtery.zalithlauncher.path.PathManager
+import com.movtery.zalithlauncher.path.URL_RELEASES
 import com.movtery.zalithlauncher.path.URL_SUPPORT
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
@@ -74,6 +75,7 @@ import com.movtery.zalithlauncher.ui.buildAppendedText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.guide.NextTipLabel
 import com.movtery.zalithlauncher.ui.guide.rememberAppGuides
+import com.movtery.zalithlauncher.ui.screens.main.MainScreen
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.Background
@@ -81,7 +83,6 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.LaunchGameOperatio
 import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialog
 import com.movtery.zalithlauncher.ui.screens.content.navigateToLogView
 import com.movtery.zalithlauncher.ui.screens.content.navigateToWeb
-import com.movtery.zalithlauncher.ui.screens.main.MainScreen
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenu
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenuOperation
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.ShareLinkOperation
@@ -214,6 +215,10 @@ class MainActivity : BaseAppCompatActivity() {
         //加载插件
         PluginLoader.loadAllPlugins(this, false)
         refreshData()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            backgroundViewModel.seedDefaultBackground(applicationContext)
+        }
 
         //注册文件管理器事件监听
         fmEventRegistrar = FileManagerEventRegistrar(this, ::onFileManagerEvent).also { it.start() }
@@ -454,7 +459,7 @@ class MainActivity : BaseAppCompatActivity() {
                 )
 
                 //游戏日志分享菜单
-                val logFile = logShareViewModel.currentLogFile
+                                val logFile = logShareViewModel.currentLogFile
                 if (logShareViewModel.showMenu && logFile != null) {
                     LogShareMenu(
                         operation = LogShareMenuOperation.ShowMenu,
@@ -581,7 +586,7 @@ class MainActivity : BaseAppCompatActivity() {
     private fun checkUpdate() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val success = launcherUpgradeViewModel.checkManually(
+                launcherUpgradeViewModel.checkManually(
                     onInProgress = {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@MainActivity, getString(R.string.generic_in_progress), Toast.LENGTH_SHORT).show()
@@ -591,11 +596,32 @@ class MainActivity : BaseAppCompatActivity() {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@MainActivity, getString(R.string.upgrade_is_latest), Toast.LENGTH_SHORT).show()
                         }
+                    },
+                    onManifestUnavailable = {
+                        withContext(Dispatchers.Main) {
+                            MaterialAlertDialogBuilder(this@MainActivity)
+                                .setTitle(R.string.upgrade_title)
+                                .setMessage(R.string.upgrade_manifest_unavailable)
+                                .setPositiveButton(R.string.upgrade_open_releases) { dialog, _ ->
+                                    openLink(URL_RELEASES)
+                                    dialog.dismiss()
+                                }
+                                .setNegativeButton(R.string.generic_cancel) { dialog, _ ->
+                                    dialog.dismiss()
+                                }
+                                .showThemed()
+                        }
+                    },
+                    onRemoteFailure = {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@MainActivity, getString(R.string.upgrade_get_remote_failed), Toast.LENGTH_SHORT).show()
+                        }
                     }
                 )
-                if (!success) throw RuntimeException()
             } catch (_: TooFrequentOperationException) {
-                //太频繁了
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@MainActivity, getString(R.string.upgrade_rate_limited), Toast.LENGTH_SHORT).show()
+                }
                 return@launch
             } catch (_: Exception) {
                 withContext(Dispatchers.Main) {
@@ -817,7 +843,6 @@ class MainActivity : BaseAppCompatActivity() {
         }
         return super.dispatchKeyEvent(event)
     }
-
       companion object {
           private var sInstance: MainActivity? = null
 
@@ -843,7 +868,6 @@ class MainActivity : BaseAppCompatActivity() {
               // No-op stub: ZL2 handles mouse toggle differently.
           }
       }
-  
 }
 
 /**

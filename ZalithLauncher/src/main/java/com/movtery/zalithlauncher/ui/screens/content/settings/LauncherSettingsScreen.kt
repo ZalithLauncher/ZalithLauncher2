@@ -256,6 +256,7 @@ fun LauncherSettingsScreen(
                                 ColorThemeType.URBAN_ASH -> stringResource(R.string.theme_color_urban_ash)
                                 ColorThemeType.VERDANT_DAWN -> stringResource(R.string.theme_color_verdant_dawn)
                                 ColorThemeType.CUSTOM -> stringResource(R.string.generic_custom)
+                                ColorThemeType.MIRAI -> stringResource(R.string.theme_color_mirai)
                             }
                         },
                         maxItemsInEachRow = 5,
@@ -960,7 +961,6 @@ private fun CustomBackground(
                         backgroundViewModel.import(context, result[0] /* 取决于上面的allowMultiple，此处一定会是单个元素的列表 */)
                     },
                     onError = { th ->
-                        backgroundViewModel.delete()
                         submitError(
                             ErrorViewModel.ThrowableMessage(
                                 title = androidText(importErrorText),

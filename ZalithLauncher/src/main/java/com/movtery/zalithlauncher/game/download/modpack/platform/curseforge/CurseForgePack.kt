@@ -113,7 +113,7 @@ class CurseForgePack(
             } else {
                 ModFile(
                     outputFile = File(modsFolder, manifestFile.fileName),
-                    downloadUrls = listOf(manifestFile.getFileUrl()!!)
+                    downloadUrls = manifestFile.getFileUrl()!!.mapMCIMMirrorUrls()
                 )
             }
             task.updateProgress(

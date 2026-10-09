@@ -24,7 +24,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ZalithLauncher"
+rootProject.name = "MiraiLauncher"
 include(":ZalithLauncher")
 include(":LWJGL")
 include(":LWJGL:patches")
@@ -39,3 +39,5 @@ include(":CardGrid")
 include(":Terracotta")
 include(":InputMap")
 include(":Guide")
+include(":ltw")
+project(":ltw").projectDir = file("third_party/LTW/ltw")

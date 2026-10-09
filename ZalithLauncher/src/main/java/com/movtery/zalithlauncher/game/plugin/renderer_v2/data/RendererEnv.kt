@@ -64,7 +64,7 @@ class RendererEnv(
 
                 is RendererConfig.Env.SelectableEnv -> {
                     val mmkvKey = "$prefix${env.key}"
-                    val summary = env.getTitleMetaString()?.let { genSummary(it) }
+                    val title = env.getTitleMetaString()?.let { genSummary(it) }
                     val unit = EnvSettingUnit.Selectable(
                         mmkvKey = mmkvKey,
                         rawEnv = env,
@@ -73,7 +73,7 @@ class RendererEnv(
                             add(env.items.defaultValue)
                             addAll(env.items.values)
                         },
-                        summary = summary
+                        title = title
                     )
                     unit.init()
                     unit.initCheck()
@@ -88,13 +88,13 @@ class RendererEnv(
 
                 is RendererConfig.Env.CustomizableEnv -> {
                     val mmkvKey = "$prefix${env.key}"
-                    val summary = env.getTitleMetaString()?.let { genSummary(it) }
+                    val title = env.getTitleMetaString()?.let { genSummary(it) }
                     val default = env.defaultValue ?: ""
                     val unit = EnvSettingUnit.Customizable(
                         mmkvKey = mmkvKey,
                         rawEnv = env,
                         defaultValue = default,
-                        summary = summary
+                        title = title
                     )
                     unit.init()
                     units[env.key] = unit
@@ -102,14 +102,14 @@ class RendererEnv(
 
                 is RendererConfig.Env.ToggleableEnv -> {
                     val mmkvKey = "$prefix${env.key}"
-                    val summary = env.getTitleMetaString()?.let { genSummary(it) }
+                    val title = env.getTitleMetaString()?.let { genSummary(it) }
                     val default = if (env.toggle) env.value else ""
                     val unit = EnvSettingUnit.Toggleable(
                         mmkvKey = mmkvKey,
                         rawEnv = env,
                         defaultValue = default,
                         envValue = env.value,
-                        summary = summary
+                        title = title
                     )
                     unit.init()
                     units[env.key] = unit

@@ -86,6 +86,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialog
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.path.URL_ORIGINAL_PROJECT
+import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.MainScreenMode
@@ -144,6 +145,7 @@ import com.movtery.zalithlauncher.viewmodel.ModifyVersionViewModel
 import com.movtery.zalithlauncher.viewmodel.ModpackImportViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 import com.movtery.zalithlauncher.viewmodel.sendKeepScreen
+import com.movtery.zalithlauncher.viewmodel.sendToast
 
 @Composable
 fun MainScreen(
@@ -760,6 +762,17 @@ private fun NavigationUI(
                             eventViewModel.sendEvent(
                                 EventViewModel.Event.Launch.Game(version)
                             )
+                        },
+                        onQuickPlayServer = { version, address ->
+                            val target = (version ?: VersionsManager.currentVersion.value)?.takeIf { it.isValid() }
+                            if (target != null) {
+                                eventViewModel.sendEvent(
+                                    EventViewModel.Event.Launch.PlayServer(target, address)
+                                )
+                            } else {
+                                eventViewModel.sendToast(androidText(R.string.game_launch_no_version))
+                                screenBackStackModel.mainScreen.navigateTo(NormalNavKey.VersionsManager)
+                            }
                         },
                         onOpenLink = {
                             eventViewModel.sendEvent(EventViewModel.Event.OpenLink(it))

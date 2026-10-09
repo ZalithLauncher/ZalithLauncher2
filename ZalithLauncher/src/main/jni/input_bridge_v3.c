@@ -456,6 +456,7 @@ typedef uint32_t SDL_PropertiesID;
 typedef void (*SDL_MainThreadCallback)(void *userdata);
 typedef bool (*sdlStartTextInput_t)(SDL_Window *, SDL_PropertiesID);
 typedef bool (*sdlStopTextInput_t)(SDL_Window *);
+typedef bool (*sdlIsTextInputActive_t)(SDL_Window *);
 typedef bool (*sdlRunOnMainThread_t)(SDL_MainThreadCallback, void *, bool);
 
 // SDL 主窗口指针，由 exithook/sdl_hook.c 在窗口创建/销毁时同步（两库不反链接，经导出函数回填）
@@ -510,6 +511,23 @@ Java_com_movtery_zalithlauncher_game_sdl_SdlBridge_setNativeTextInputActive(__at
         LOG_TO_E("<%s> %s", "SDL", "setNativeTextInputActive: SDL_RunOnMainThread dispatch failed");
     }
     return result ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_movtery_zalithlauncher_game_sdl_SdlBridge_isNativeTextInputActive(__attribute__((unused)) JNIEnv* env, __attribute__((unused)) jclass clazz) {
+    if (sSdlPrimaryWindow == NULL) return JNI_FALSE;
+    void *handle = dlopen("libSDL3.so", RTLD_NOW);
+    if (handle == NULL) {
+        LOG_TO_E("<%s> %s", "SDL", "isNativeTextInputActive: libSDL3.so dlopen failed");
+        return JNI_FALSE;
+    }
+    sdlIsTextInputActive_t isActive = (sdlIsTextInputActive_t) dlsym(handle, "SDL_TextInputActive");
+    if (isActive == NULL) {
+        LOG_TO_E("<%s> %s", "SDL", "isNativeTextInputActive: SDL_TextInputActive not found");
+        return JNI_FALSE;
+    }
+    // 仅读取激活标志，无需像 setNativeTextInputActive 那样经 SDL_RunOnMainThread 投递
+    return isActive(sSdlPrimaryWindow) ? JNI_TRUE : JNI_FALSE;
 }
 
 JNIEXPORT jobject JNICALL

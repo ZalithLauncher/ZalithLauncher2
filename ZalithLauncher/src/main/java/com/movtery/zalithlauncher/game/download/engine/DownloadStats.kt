@@ -54,8 +54,16 @@ class DownloadStats {
 
     fun registerFile(expectedSize: Long) {
         totalFilesCounter.incrementAndGet()
-        if (expectedSize > 0) {
-            totalBytesCounter.accumulateAndGet(expectedSize) { previous, add ->
+        registerBytes(expectedSize)
+    }
+
+    /**
+     * 把字节数补进字节分母，不影响文件计数；
+     * 用于下载前未知大小的文件在完成时补记实际大小
+     */
+    fun registerBytes(bytes: Long) {
+        if (bytes > 0) {
+            totalBytesCounter.accumulateAndGet(bytes) { previous, add ->
                 if (previous < 0) add else previous + add
             }
         }

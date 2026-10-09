@@ -108,6 +108,7 @@ import com.movtery.zalithlauncher.ui.screens.content.home.LocalActionMenuDrag
 import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragAnchor
 import com.movtery.zalithlauncher.ui.screens.content.home.actionMenuDragExclusion
 import com.movtery.zalithlauncher.ui.screens.content.home.rememberActionMenuDragState
+import com.movtery.zalithlauncher.ui.screens.content.home.server.LocalServerCardQuickPlay
 import com.movtery.zalithlauncher.ui.screens.content.home.version.LocalHomeCardLauncher
 import com.movtery.zalithlauncher.ui.screens.content.home.version.LocalHomeCardVersionSettings
 import com.movtery.zalithlauncher.ui.screens.game.elements.PerformanceSettingsDialog
@@ -131,6 +132,7 @@ fun LauncherScreen(
     backStackViewModel: ScreenBackStackViewModel,
     navigateToVersions: (Version) -> Unit,
     onLaunchGame: (Version?) -> Unit,
+    onQuickPlayServer: (Version?, String) -> Unit,
     onOpenLink: (String) -> Unit,
     startGuideOnce: (GuideKeys.Keys) -> Unit,
 ) {
@@ -206,20 +208,21 @@ fun LauncherScreen(
                         }
                     }
                 ) {
-                    ContentMenu(
-                        modifier = Modifier
-                            .guideNode(
-                                key = GuideKeys.Main.Step.CardTip,
-                                holeRadius = 0.dp
-                            )
-                            .weight(ContentWeight)
-                            .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
-                        isVisible = isVisible,
-                        onLaunchGame = { version ->
-                            onLaunchGame(version)
-                        },
-                        onOpenVersionSettings = navigateToVersions
-                    )
+                ContentMenu(
+                    modifier = Modifier
+                        .guideNode(
+                            key = GuideKeys.Main.Step.CardTip,
+                            holeRadius = 0.dp
+                        )
+                        .weight(ContentWeight)
+                        .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
+                    isVisible = isVisible,
+                    onLaunchGame = { version ->
+                        onLaunchGame(version)
+                    },
+                    onQuickPlayServer = onQuickPlayServer,
+                    onOpenVersionSettings = navigateToVersions
+                )
                 }
 
                 // ActionMenu 对接到了 End，留出空位
@@ -265,6 +268,7 @@ fun LauncherScreen(
 private fun ContentMenu(
     isVisible: Boolean,
     onLaunchGame: (Version) -> Unit,
+    onQuickPlayServer: (Version?, String) -> Unit,
     onOpenVersionSettings: (Version) -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -276,10 +280,12 @@ private fun ContentMenu(
 
     CompositionLocalProvider(
         LocalHomeCardLauncher provides onLaunchGame,
-        LocalHomeCardVersionSettings provides onOpenVersionSettings
+        LocalHomeCardVersionSettings provides onOpenVersionSettings,
+        LocalServerCardQuickPlay provides onQuickPlayServer
     ) {
         HomeGrid(
             state = gridState,
+            isVisible = isVisible,
             modifier = modifier
                 .fillMaxSize()
                 .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }

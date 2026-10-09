@@ -70,6 +70,10 @@ final class SdlImeController {
     }
 
     static void reset() {
+        post(SdlImeController::doReset);
+    }
+
+    private static void doReset() {
         if (mEdit != null) {
             ViewParent parent = mEdit.getParent();
             if (parent instanceof ViewGroup) {
@@ -111,7 +115,7 @@ final class SdlImeController {
         if (visible && isUnwantedImeVisible()) {
             // IME 在通道关闭后自行弹出时强制按回
             Log.w(TAG, "IME: unwanted visibility while text input channel is closed, forcing hide");
-            forceHideIme();
+            SDLActivity.commandHandler.post(SdlImeController::forceHideIme);
             return;
         }
         if (mKeyboardShown == visible) {

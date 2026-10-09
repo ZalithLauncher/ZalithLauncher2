@@ -518,9 +518,12 @@ private class GameTextSender(private val scope: CoroutineScope) {
 
     private suspend fun sendMessage(text: String, inGame: Boolean) {
         withContext(Dispatchers.Main) {
+            // 仅 SDL 渲染路径（MC 26.3+）经 SDL 通道提交；仅手柄子系统初始化 SDL 时游戏输入仍走 GLFW 桥
+            val useSdl = SdlBridge.sdlEnabled && SdlBridge.isSdlRenderActive()
+
             fun sendText() {
                 for (ch in text) {
-                    if (SdlBridge.sdlEnabled) {
+                    if (useSdl) {
                         SdlTextSender.sendChar(ch)
                     } else {
                         LWJGLCharSender.sendChar(ch)
@@ -532,12 +535,14 @@ private class GameTextSender(private val scope: CoroutineScope) {
                 //根据options.txt中的配置，找到打开聊天栏的键
                 //如果找不到，则忽略这次事件
                 mapToKeycode(OPEN_CHAT, OPEN_CHAT_VALUE)?.let { openChat ->
-                    if (SdlBridge.sdlEnabled) {
+                    if (useSdl) {
                         SdlTextSender.sendKey(openChat)
-                        delay(50L.milliseconds)
-                        sendText()
-                        delay(50L.milliseconds)
-                        SdlTextSender.sendEnter()
+                        // 等待游戏侧激活文本输入通道，未激活就提交的文本会被 SDL 丢弃
+                        if (SdlTextSender.awaitTextInputActive()) {
+                            sendText()
+                            delay(50L.milliseconds)
+                            SdlTextSender.sendEnter()
+                        }
                     } else {
                         CallbackBridge.sendKeyPress(openChat)
                         delay(50L.milliseconds)

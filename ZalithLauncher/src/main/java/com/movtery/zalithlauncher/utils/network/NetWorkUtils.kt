@@ -126,7 +126,8 @@ suspend fun <T> withSpeedReport(
     withSpeedReport(
         onTimeReport = {
             val currentBytes = bytesWritten.getAndSet(0L)
-            onSpeedReport(currentBytes)
+            //下载引擎的回滚增量可能使单秒采样为负，速率不应为负
+            onSpeedReport(currentBytes.coerceAtLeast(0L))
         },
         onClear = {
             bytesWritten.set(0L)

@@ -29,7 +29,6 @@ import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServerDao
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.androidText
-import com.movtery.zalithlauncher.utils.isInGreaterChina
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.isNetworkAvailable
 import kotlinx.coroutines.CoroutineScope
@@ -39,7 +38,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.apache.commons.io.FileUtils
-import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
 import java.util.concurrent.CopyOnWriteArrayList
@@ -65,9 +63,6 @@ object AccountsManager {
     private val _refreshWardrobe = MutableStateFlow(false)
     /** Controls refreshing all account wardrobes */
     val refreshWardrobe = _refreshWardrobe.asStateFlow()
-
-    private val _isOffline = MutableStateFlow(false)
-    val isOffline = _isOffline.asStateFlow()
 
     //本次启动器会话内已通过服务端校验的账号
     private val sessionValidatedAccounts: MutableSet<String> = ConcurrentHashMap.newKeySet()
@@ -243,10 +238,7 @@ object AccountsManager {
      * Syncs current account state with UI flows
      */
     private fun refreshCurrentAccountState() {
-        val currentAccount = getCurrentAccount()
-        val isOffline = false // Reserved for future logic
-        _currentAccountFlow.update { if (isOffline) null else currentAccount }
-        _isOffline.update { isOffline }
+        _currentAccountFlow.update { getCurrentAccount() }
     }
 
     /**
@@ -309,7 +301,13 @@ object AccountsManager {
 
     fun hasMicrosoftAccount(): Boolean = _accounts.any { it.isMicrosoftAccount() }
 
-    fun loadFromProfileID(profileId: String, accountType: String? = null): Account? =
+    /**
+     * 通过账号的profileId读取账号
+     */
+    fun loadFromProfileID(
+        profileId: String,
+        accountType: String? = null
+    ): Account? =
         _accounts.find { it.profileId == profileId && (accountType == null || it.accountType == accountType) }
 
     fun isAccountExists(uniqueUUID: String): Boolean =

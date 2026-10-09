@@ -123,7 +123,14 @@ object VersionsManager {
                 Logger.debug(TAG, "Version list refreshed, refreshing the current version now.")
                 refreshCurrentVersion()
 
-                listeners.forEach { it() }
+                listeners.forEach { listener ->
+                    runCatching { listener() }.onFailure { e ->
+                        Logger.error(TAG, "A version refresh listener threw an exception.", e)
+                    }
+                }
+
+                //清理随已失效的旧版本对象创建的 ViewModelStore（仍被承载屏幕持有的会被跳过）
+                VersionViewModelStores.clearStale(newVersions)
 
                 _isRefreshing.update { false }
             }

@@ -275,7 +275,6 @@ private fun AccountManageContent(
 ) {
     val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
     val currentAccount = profileUiState.currentAccount
-    val isOffline = profileUiState.isOffline
     val context = LocalContext.current
 
 
@@ -397,11 +396,7 @@ private fun AccountManageContent(
             ScalingActionButton(
                 modifier = Modifier.fillMaxWidth(),
                 onClick = {
-                    if (isOffline) {
-                        actions.onIntent(AccountManageIntent.UpdateMicrosoftLoginOp(MicrosoftLoginOperation.Tip))
-                    } else {
-                        actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
-                    }
+                    actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
                 }
             ) {
                 MarqueeText(text = stringResource(R.string.account_add_new_account))

@@ -466,6 +466,7 @@ class GameInstaller(
                     ),
                     icon = R.drawable.ic_build_outlined,
                     task = getOptiFineInstallTask(
+                        downloader = downloader,
                         tempGameDir = tempGameDir,
                         tempMinecraftDir = tempMinecraftDir,
                         tempInstallerJar = targetInstaller,

@@ -58,6 +58,7 @@ import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.notification.NotificationManager
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.base.VersionViewModelStoreScope
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -114,45 +115,47 @@ fun VersionSettingsScreen(
         }
     }
 
-    BaseScreen(
-        screenKey = key,
-        currentKey = backScreenViewModel.mainScreen.currentKey
-    ) { isVisible ->
-        Row(modifier = Modifier.fillMaxSize()) {
-            TabMenu(
-                isVisible = isVisible,
-                backStack = key.backStack,
-                versionsScreenKey = key.currentKey,
-                modifier = Modifier.fillMaxHeight()
-            )
+    VersionViewModelStoreScope(version = key.version) {
+        BaseScreen(
+            screenKey = key,
+            currentKey = backScreenViewModel.mainScreen.currentKey
+        ) { isVisible ->
+            Row(modifier = Modifier.fillMaxSize()) {
+                TabMenu(
+                    isVisible = isVisible,
+                    backStack = key.backStack,
+                    versionsScreenKey = key.currentKey,
+                    modifier = Modifier.fillMaxHeight()
+                )
 
-            NavigationUI(
-                modifier = Modifier.fillMaxHeight(),
-                key = key,
-                modifyViewModel = modifyViewModel,
-                backScreenViewModel = backScreenViewModel,
-                versionsScreenKey = key.currentKey,
-                onCurrentKeyChange = { newKey ->
-                    key.currentKey = newKey
-                },
-                backToMainScreen = backToMainScreen,
-                onExport = onExportModpack,
-                version = key.version,
-                onModify = { payload ->
-                    if (modifyViewModel.installOperation !is ModifyOperation.None) {
-                        //不是待修改状态，拒绝此次修改
-                        return@NavigationUI
-                    }
-                    if (!NotificationManager.checkNotificationEnabled(context)) {
-                        //警告通知权限
-                        modifyViewModel.installOperation = ModifyOperation.WarningForNotification(payload)
-                    } else {
-                        modifyViewModel.installOperation = ModifyOperation.Confirm(payload)
-                    }
-                },
-                eventViewModel = eventViewModel,
-                submitError = submitError
-            )
+                NavigationUI(
+                    modifier = Modifier.fillMaxHeight(),
+                    key = key,
+                    modifyViewModel = modifyViewModel,
+                    backScreenViewModel = backScreenViewModel,
+                    versionsScreenKey = key.currentKey,
+                    onCurrentKeyChange = { newKey ->
+                        key.currentKey = newKey
+                    },
+                    backToMainScreen = backToMainScreen,
+                    onExport = onExportModpack,
+                    version = key.version,
+                    onModify = { payload ->
+                        if (modifyViewModel.installOperation !is ModifyOperation.None) {
+                            //不是待修改状态，拒绝此次修改
+                            return@NavigationUI
+                        }
+                        if (!NotificationManager.checkNotificationEnabled(context)) {
+                            //警告通知权限
+                            modifyViewModel.installOperation = ModifyOperation.WarningForNotification(payload)
+                        } else {
+                            modifyViewModel.installOperation = ModifyOperation.Confirm(payload)
+                        }
+                    },
+                    eventViewModel = eventViewModel,
+                    submitError = submitError
+                )
+            }
         }
     }
 }

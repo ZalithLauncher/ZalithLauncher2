@@ -29,14 +29,17 @@ import com.movtery.zalithlauncher.coroutine.TaskLogOutput
 import com.movtery.zalithlauncher.coroutine.withTaskLogOutput
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.addons.modloader.optifine.OptiFineVersion
+import com.movtery.zalithlauncher.game.download.game.GameLibDownloader
 import com.movtery.zalithlauncher.game.download.game.isOldVersion
 import com.movtery.zalithlauncher.game.download.jvm_server.runJvmRetryRuntimes
 import com.movtery.zalithlauncher.game.download.jvm_server.stopAllNonMainProcesses
+import com.movtery.zalithlauncher.game.version.download.BaseMinecraftDownloader
 import com.movtery.zalithlauncher.game.version.download.parseTo
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.GSON
+import com.movtery.zalithlauncher.utils.file.ensureDirectory
 import com.movtery.zalithlauncher.utils.file.ensureParentDirectory
 import com.movtery.zalithlauncher.utils.file.extractEntryToFile
 import com.movtery.zalithlauncher.utils.file.readText
@@ -75,6 +78,7 @@ fun isMinecraft17Plus(version: String): Boolean {
 }
 
 fun getOptiFineInstallTask(
+    downloader: BaseMinecraftDownloader,
     tempGameDir: File,
     tempMinecraftDir: File,
     tempInstallerJar: File,
@@ -147,14 +151,21 @@ fun getOptiFineInstallTask(
             val tempOfFolder = File(tempVersionFolder, optifineVersion.version)
             val tempOfJson = File(tempOfFolder, "${optifineVersion.version}.json")
             val tempMcJson = File(tempVersionFolder, "${optifineVersion.inherit}/${optifineVersion.inherit}.json")
-            tempOfJson.writeText(
-                createOptiFineJson(
-                    vanillaJson = tempMcJson,
-                    optifineVersion = optifineVersion,
-                    mavenVersion = mavenVersion,
-                    launchWrapperLibs = launchWrapperLibs
-                )
+            val optiFineJson = createOptiFineJson(
+                vanillaJson = tempMcJson,
+                optifineVersion = optifineVersion,
+                mavenVersion = mavenVersion,
+                launchWrapperLibs = launchWrapperLibs
             )
+            tempOfJson.writeText(optiFineJson)
+
+            //补全 OptiFine 组件依赖的类库（如旧版本依赖的 launchwrapper）
+            val libDownloader = GameLibDownloader(
+                downloader = downloader,
+                gameJson = optiFineJson
+            )
+            libDownloader.schedule(task, tempLibrariesFolder.ensureDirectory(), false)
+            libDownloader.download(task)
         }
     )
 }

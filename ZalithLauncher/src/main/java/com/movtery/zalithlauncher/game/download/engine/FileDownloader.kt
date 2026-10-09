@@ -33,5 +33,9 @@ class FileDownloader(
             sha1 = request.sha1,
             onBytes = stats::addBytes
         )
+        //下载前未知大小的文件：分子已随下载计入，这里把实际大小补进分母
+        if (request.expectedSize <= 0) {
+            stats.registerBytes(request.targetFile.length())
+        }
     }
 }

@@ -467,6 +467,7 @@
     <string name="account_label_email">填寫電子郵件或使用者名稱</string>
     <string name="account_label_password">填寫密碼</string>
     <string name="account_change_skin">更換皮膚</string>
+    <string name="account_wardrobe">衣櫥</string>
     <string name="account_change_skin_arm_style">手臂樣式</string>
     <string name="account_change_skin_arm_wide">粗手臂</string>
     <string name="account_change_skin_arm_slim">細手臂</string>
@@ -1092,6 +1093,12 @@
     <string name="servers_list_delete_server_text">你確定要刪除伺服器 %s 嗎？</string>
     <string name="servers_list_edit_server">編輯伺服器</string>
     <string name="servers_list_copy_server_address">複製伺服器位址</string>
+    <!--  伺服器卡片  -->
+    <string name="home_server_card_settings">伺服器卡片設定</string>
+    <string name="home_server_card_quick_launch">快速啟動按鈕</string>
+    <string name="home_server_card_version_current">當前選擇版本</string>
+    <string name="home_server_card_version_specific">特定遊戲版本</string>
+    <string name="home_server_card_refresh_failed">重新整理伺服器資訊失敗</string>
     <string name="settings_launcher_animate_extent_title">動畫強度</string>
     <string name="settings_launcher_animate_extent_summary">調整啟動器的動畫強度</string>
     <string name="settings_launcher_log_retention_days_title">日誌保留天數</string>

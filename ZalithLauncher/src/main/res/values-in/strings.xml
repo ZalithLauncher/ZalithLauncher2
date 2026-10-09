@@ -395,7 +395,7 @@
     <string name="multirt_runtime_version_arch">Arsitektur: %s</string>
     <string name="multirt_no_java_8">Java 8 diperlukan untuk fitur ini, tetapi tidak ditemukan.</string>
     <string name="execute_jar_title">Jalankan .Jar</string>
-    <string name="versions_manage_game_path_default">Folder Game Default</string>
+    <string name="versions_manage_game_path_default">Folder Game Bawaan</string>
     <string name="versions_manage_game_path_add_new">Tambahkan Folder Game</string>
     <string name="versions_manage_game_path_edit_title">Ubah Nama Folder Game</string>
     <string name="versions_manage_game_path_delete_title">Hapus Folder Game</string>
@@ -1448,4 +1448,8 @@
     <string name="guide_tip_finish">Ketuk area kosong mana pun untuk mengakhiri panduan</string>
     <string name="festivals_halloween">Selamat Halloween!</string>
     <string name="festivals_valentines">Selamat Hari Valentine!</string>
+    <string name="launch_check_mods">Mengecek Mod</string>
+    <string name="cape_name_twisted">Twisted</string>
+    <string name="cape_name_hero">Hero</string>
+    <string name="cape_name_aurora">Aurora</string>
 </resources>

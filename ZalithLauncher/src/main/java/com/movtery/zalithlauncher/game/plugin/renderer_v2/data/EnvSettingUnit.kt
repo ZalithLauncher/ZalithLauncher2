@@ -25,12 +25,12 @@ import com.movtery.zalithlauncher.setting.unit.AbstractSettingUnit
 
 /**
  * 渲染器可配置环境变量的设置单元（sealed）
- * @param summary 该配置项的描述文本，由插件提供
+ * @param title 该配置项的标题文本，由插件提供
  */
 sealed class EnvSettingUnit(
     mmkvKey: String,
     defaultValue: String,
-    val summary: String?,
+    val title: String?,
 ) : AbstractSettingUnit<String>(mmkvKey, defaultValue) {
 
     override fun getValue(): String {
@@ -53,8 +53,8 @@ sealed class EnvSettingUnit(
         val rawEnv: RendererConfig.Env.SelectableEnv,
         defaultValue: String,
         val values: List<String>,
-        summary: String? = null,
-    ) : EnvSettingUnit(mmkvKey, defaultValue, summary) {
+        title: String? = null,
+    ) : EnvSettingUnit(mmkvKey, defaultValue, title) {
         private val checkKey = "${mmkvKey}:check"
 
         /**
@@ -90,8 +90,8 @@ sealed class EnvSettingUnit(
         mmkvKey: String,
         val rawEnv: RendererConfig.Env.CustomizableEnv,
         defaultValue: String,
-        summary: String? = null,
-    ) : EnvSettingUnit(mmkvKey, defaultValue, summary)
+        title: String? = null,
+    ) : EnvSettingUnit(mmkvKey, defaultValue, title)
 
     /**
      * 开关式环境变量：启用/禁用该环境变量
@@ -104,8 +104,8 @@ sealed class EnvSettingUnit(
         val rawEnv: RendererConfig.Env.ToggleableEnv,
         defaultValue: String,
         val envValue: String,
-        summary: String? = null,
-    ) : EnvSettingUnit(mmkvKey, defaultValue, summary) {
+        title: String? = null,
+    ) : EnvSettingUnit(mmkvKey, defaultValue, title) {
         /** 当前开关是否启用 */
         val isEnabled: Boolean get() = state.isNotEmpty()
     }

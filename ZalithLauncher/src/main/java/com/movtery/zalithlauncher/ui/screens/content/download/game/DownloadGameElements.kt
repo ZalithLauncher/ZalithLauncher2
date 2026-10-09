@@ -127,6 +127,27 @@ private fun AddonTextLayout(
 private fun AddonTextLayout(
     modifier: Modifier = Modifier,
     title: String,
+    summary: AndroidStringText
+) {
+    AddonTextLayout(
+        modifier = modifier,
+        title = title,
+        summary = {
+            AndroidStringText(
+                text = summary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    )
+}
+
+/**
+ * 简易 Addon 文本占位
+ */
+@Composable
+private fun AddonTextLayout(
+    modifier: Modifier = Modifier,
+    title: String,
     summary: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
@@ -364,15 +385,10 @@ private fun <E> AddonListHeader(
                 AddonTextLayout(
                     modifier = Modifier.weight(1f),
                     title = title,
-                    summary = {
-                        AndroidStringText(
-                            text = androidText(
-                                R.string.download_game_addon_list_load_error,
-                                state.message
-                            ),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    },
+                    summary = androidText(
+                        R.string.download_game_addon_list_load_error,
+                        state.message
+                    )
                 )
                 IconButton(
                     modifier = Modifier

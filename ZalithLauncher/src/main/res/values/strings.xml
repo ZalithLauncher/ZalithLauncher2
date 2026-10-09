@@ -629,6 +629,7 @@
     <string name="account_label_email">Email or Username</string>
     <string name="account_label_password">Password</string>
     <string name="account_change_skin">Change Skin</string>
+    <string name="account_wardrobe">Wardrobe</string>
     <string name="account_change_skin_arm_style">Arm Style</string>
     <string name="account_change_skin_arm_wide">Wide Arms</string>
     <string name="account_change_skin_arm_slim">Slim Arms</string>
@@ -1116,6 +1117,12 @@
     <string name="servers_list_delete_server_text">Are you sure you want to delete server %s?</string>
     <string name="servers_list_edit_server">Edit Server</string>
     <string name="servers_list_copy_server_address">Copy Address</string>
+    <!-- Server card -->
+    <string name="home_server_card_settings">Server Card Settings</string>
+    <string name="home_server_card_quick_launch">Quick launch button</string>
+    <string name="home_server_card_version_current">Current selected version</string>
+    <string name="home_server_card_version_specific">Specific version</string>
+    <string name="home_server_card_refresh_failed">Failed to refresh server info</string>
     <!-- Game -->
     <string name="minecraft_download_stat_download_task">Preparing downloads</string>
     <string name="minecraft_download_stat_verify_task">Preparing verifications</string>

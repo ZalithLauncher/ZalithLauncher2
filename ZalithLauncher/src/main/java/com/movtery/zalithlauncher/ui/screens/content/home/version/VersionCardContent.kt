@@ -47,6 +47,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
@@ -66,6 +67,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
+import com.movtery.zalithlauncher.ui.screens.content.home.CardIconShape
 
 /** 版本卡片启动回调 */
 val LocalHomeCardLauncher = staticCompositionLocalOf<(Version) -> Unit> { {} }
@@ -234,7 +236,9 @@ private fun TallContent(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     VersionIconImage(
-                        modifier = Modifier.size(iconSize),
+                        modifier = Modifier
+                            .size(iconSize)
+                            .clip(CardIconShape),
                         version = version
                     )
                     Column(
@@ -345,7 +349,9 @@ private fun RowContent(
         verticalAlignment = Alignment.CenterVertically
     ) {
         VersionIconImage(
-            modifier = Modifier.size(iconSize),
+            modifier = Modifier
+                .size(iconSize)
+                .clip(CardIconShape),
             version = version
         )
         CardTexts(

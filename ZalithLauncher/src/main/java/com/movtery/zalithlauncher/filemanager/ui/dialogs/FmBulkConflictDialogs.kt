@@ -144,16 +144,15 @@ private fun FmBulkActionItem(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = colors,
-        headlineContent = {
-            Text(text = text)
-        },
         leadingContent = {
             Icon(
                 painter = icon,
                 contentDescription = null
             )
         }
-    )
+    ) {
+        Text(text = text)
+    }
 }
 
 /**

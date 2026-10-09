@@ -67,6 +67,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -493,20 +495,6 @@ fun AccountItem(
                 )
             }
             Row {
-                //更换皮肤/披风
-                Row {
-                    IconButton(
-                        onClick = { openChangeSkinDialog() },
-                        enabled = account.isSkinChangeAllowed()
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            painter = painterResource(R.drawable.ic_checkroom),
-                            contentDescription = stringResource(R.string.account_change_skin)
-                        )
-                    }
-                }
-
                 //刷新
                 IconButton(
                     onClick = onRefreshClick,
@@ -519,26 +507,62 @@ fun AccountItem(
                     )
                 }
 
-                //复制 UUID
-                IconButton(
-                    onClick = onCopyUUID
-                ) {
-                    Icon(
-                        modifier = Modifier.size(22.dp),
-                        painter = painterResource(R.drawable.ic_copy_all_outlined),
-                        contentDescription = stringResource(R.string.account_local_uuid_copy)
-                    )
-                }
-
-                //删除
-                IconButton(
-                    onClick = onDeleteClick
-                ) {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        painter = painterResource(R.drawable.ic_delete_outlined),
-                        contentDescription = stringResource(R.string.generic_delete)
-                    )
+                //更多操作
+                var menuExpanded by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            painter = painterResource(R.drawable.ic_more_vert),
+                            contentDescription = stringResource(R.string.generic_more)
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                        shape = MaterialTheme.shapes.large,
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.account_wardrobe)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_checkroom),
+                                    contentDescription = null
+                                )
+                            },
+                            enabled = account.isSkinChangeAllowed(),
+                            onClick = {
+                                menuExpanded = false
+                                openChangeSkinDialog()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.account_local_uuid_copy)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_copy_all_outlined),
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onCopyUUID()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.generic_delete)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_delete_outlined),
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onDeleteClick()
+                            }
+                        )
+                    }
                 }
             }
         }

@@ -179,6 +179,7 @@ class ChecksumMismatchException(
  * 候选源顺序下载的核心实现：单源内至多重试 [DEFAULT_RETRY] 次（间隔 200ms），
  * 手动跟随重定向（上限 20 跳），Range 断点续传（强校验），连接与读取超时 10s；
  * 4xx 视为该源无货（不重试、立即换下一候选），写盘损坏从头重试且不消耗重试次数。
+ * 失败重试中被丢弃的字节会从统计中回滚，[Fetcher.downloadFile] 的 onBytes 回调因此可能收到负增量。
  */
 object Fetcher {
     const val DEFAULT_RETRY = 5
@@ -192,7 +193,8 @@ object Fetcher {
      * 按候选源顺序下载文件；全部候选耗尽后抛 [AllSourcesFailedException]，
      * message 内含每个源，因果链保留最后一次失败。
      *
-     * @param onBytes 每次成功落盘的增量字节回调（未压缩口径）
+     * @param onBytes 落盘字节的带符号增量回调（未压缩口径）：失败重试丢弃的字节以负增量回滚，
+     * 全部增量的代数和等于最终落盘大小
      */
     suspend fun downloadFile(
         urls: List<String>,
@@ -230,17 +232,39 @@ object Fetcher {
     }
 
     /** 单个候选源的跨尝试状态：落盘上下文与续传资格在重试间延续 */
-    private class CandidateState {
+    private class CandidateState(
+        private val onBytes: (Long) -> Unit
+    ) {
         var sink: FileSink? = null
         var resume: ResumeContext? = null
 
-        /** 丢弃落盘上下文：关闭并删除临时文件 */
+        /** 当前 sink 存续期间已上报统计的字节数 */
+        private var countedBytes = 0L
+
+        /** 落盘字节增量上报，正负均可（负数为回滚） */
+        fun reportBytes(delta: Long) {
+            countedBytes += delta
+            onBytes(delta)
+        }
+
+        /** 丢弃落盘上下文：关闭并删除临时文件，并回滚该 sink 已计入统计的字节 */
         fun discardSink() {
             val current = sink
             if (current != null) {
                 runCatching { current.close() }
                 sink = null
             }
+            if (countedBytes != 0L) {
+                onBytes(-countedBytes)
+                countedBytes = 0L
+            }
+        }
+
+        /** 下载成功提交：已计入的字节随目标文件落地，此后不再回滚 */
+        fun commitSink() {
+            sink = null
+            resume = null
+            countedBytes = 0L
         }
     }
 
@@ -253,7 +277,7 @@ object Fetcher {
         retry: Int,
         onBytes: (Long) -> Unit
     ) {
-        val state = CandidateState()
+        val state = CandidateState(onBytes)
         val exceptions = mutableListOf<Exception>()
         var retryLimit = retry
         var retryTime = 0
@@ -266,7 +290,7 @@ object Fetcher {
 
                 try {
                     val result = runInterruptible(Dispatchers.IO) {
-                        attempt(url, targetFile, sha1, state, onBytes)
+                        attempt(url, targetFile, sha1, state)
                     }
                     if (result == AttemptResult.DONE) return
                     //续传失效或 416：从头重来且不消耗重试次数
@@ -298,8 +322,7 @@ object Fetcher {
         url: URL,
         targetFile: File,
         sha1: String?,
-        state: CandidateState,
-        onBytes: (Long) -> Unit
+        state: CandidateState
     ): AttemptResult {
         var redirects: MutableList<URL>? = null
 
@@ -380,7 +403,7 @@ object Fetcher {
         var bodyConsumed = false
         try {
             inputStream = connection.inputStream
-            transfer(state.sink!!, state.resume, inputStream, contentLength, contentEncoding, onBytes)
+            transfer(state.sink!!, state.resume, inputStream, contentLength, contentEncoding, state::reportBytes)
             inputStream = null
             bodyConsumed = true
         } catch (e: Throwable) {
@@ -402,8 +425,7 @@ object Fetcher {
             state.discardSink()
             throw e
         }
-        state.resume = null
-        state.sink = null
+        state.commitSink()
         return AttemptResult.DONE
     }
 
@@ -415,24 +437,23 @@ object Fetcher {
         contentEncoding: ContentEncoding,
         onBytes: (Long) -> Unit
     ) {
-        val counter = CountingInputStream(rawInput)
-        contentEncoding.wrap(counter).use { input ->
+        contentEncoding.wrap(rawInput).use { input ->
             val buffer = ByteArray(BUFFER_SIZE)
-            var lastDownloaded = 0L
+            var written = 0L
             while (true) {
                 if (Thread.currentThread().isInterrupted) throw InterruptedIOException("Cancelled")
                 val len = input.read(buffer)
                 if (len == -1) break
                 sink.write(buffer, 0, len)
                 resume?.addBytes(len.toLong())
-                onBytes(counter.downloaded - lastDownloaded)
-                lastDownloaded = counter.downloaded
+                written += len
+                onBytes(len.toLong())
             }
             if (Thread.currentThread().isInterrupted) throw InterruptedIOException("Cancelled")
-            onBytes(counter.downloaded - lastDownloaded)
 
-            if (contentLength >= 0 && counter.downloaded != contentLength) {
-                throw IOException("Unexpected file size: ${counter.downloaded}, expected: $contentLength")
+            //gzip 响应的 content-length 是压缩口径，与落盘字节数不可比，截断由 GZIPInputStream 的尾部校验兜底
+            if (contentEncoding == ContentEncoding.IDENTITY && contentLength >= 0 && written != contentLength) {
+                throw IOException("Unexpected file size: $written, expected: $contentLength")
             }
         }
     }
@@ -453,27 +474,5 @@ object Fetcher {
         if (connection == null) return
         runCatching { connection.errorStream?.close() }
         connection.disconnect()
-    }
-
-    private class CountingInputStream(input: InputStream) : InputStream() {
-        private val delegate = input
-        var downloaded = 0L
-            private set
-
-        override fun read(): Int {
-            val value = delegate.read()
-            if (value >= 0) downloaded++
-            return value
-        }
-
-        override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
-            val count = delegate.read(buffer, offset, length)
-            if (count >= 0) downloaded += count
-            return count
-        }
-
-        override fun close() {
-            delegate.close()
-        }
     }
 }

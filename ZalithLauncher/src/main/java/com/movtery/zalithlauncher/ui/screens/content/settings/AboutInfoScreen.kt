@@ -242,6 +242,13 @@ fun AboutInfoScreen(
                             openLink = { openLink("https://github.com/PojavLauncherTeam/PojavLauncher") }
                         )
                         LinkIconItem(
+                            icon = painterResource(R.drawable.ic_mirai_mark),
+                            title = stringResource(R.string.about_acknowledgements_mirai),
+                            text = stringResource(R.string.about_acknowledgements_mirai_text, BuildKeys.LAUNCHER_SHORT_NAME),
+                            openLink = { openLink("https://github.com/entitybrian69-bit/Mirai-launcher") },
+                            useImage = false
+                        )
+                        LinkIconItem(
                             icon = painterResource(R.drawable.ic_github),
                             title = stringResource(R.string.about_acknowledgements_github_community),
                             text = stringResource(R.string.about_acknowledgements_github_community_text),

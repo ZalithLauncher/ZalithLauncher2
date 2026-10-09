@@ -255,7 +255,7 @@ object MobileFpsBooster {
             requestMethod = "GET"
             connectTimeout = 8000
             readTimeout = 8000
-            setRequestProperty("User-Agent", "MiraiLauncher/2.6.1 (Android)")
+            setRequestProperty("User-Agent", "ZalithLauncher/2.6.1 (Android)")
         }
 
         if (conn.responseCode != 200) return false
@@ -287,7 +287,7 @@ object MobileFpsBooster {
             requestMethod = "GET"
             connectTimeout = 10000
             readTimeout = 15000
-            setRequestProperty("User-Agent", "MiraiLauncher/2.6.1 (Android)")
+            setRequestProperty("User-Agent", "ZalithLauncher/2.6.1 (Android)")
         }
         if (dlConn.responseCode != 200) return false
 

@@ -480,7 +480,7 @@ object ModDependencyResolver {
             val conn = (URL(apiUrl).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 8000
                 readTimeout = 8000
-                setRequestProperty("User-Agent", "MiraiLauncher/2.6.1 (Android)")
+                setRequestProperty("User-Agent", "ZalithLauncher/2.6.1 (Android)")
             }
             if (conn.responseCode != 200) return false
 
@@ -501,7 +501,7 @@ object ModDependencyResolver {
             val dlConn = (URL(downloadUrl).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 10000
                 readTimeout = 15000
-                setRequestProperty("User-Agent", "MiraiLauncher/2.6.1 (Android)")
+                setRequestProperty("User-Agent", "ZalithLauncher/2.6.1 (Android)")
             }
             if (dlConn.responseCode == 200) {
                 val tempFile = File(modsDir, "$fileName.tmp")
@@ -533,7 +533,7 @@ object ModDependencyResolver {
             val conn = (URL(url).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 8000
                 readTimeout = 8000
-                setRequestProperty("User-Agent", "MiraiLauncher/2.6.1 (Android)")
+                setRequestProperty("User-Agent", "ZalithLauncher/2.6.1 (Android)")
             }
             if (conn.responseCode != 200) return null
             val json = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })

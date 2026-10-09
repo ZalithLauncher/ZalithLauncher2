@@ -836,8 +836,6 @@ fun BabricList(
         onReload = onReload
     )
 }
-
-private fun isOptiFineCompatibleWithForge(
 /**
  * 判断指定 OptiFine 是否与指定 Forge 兼容
  */

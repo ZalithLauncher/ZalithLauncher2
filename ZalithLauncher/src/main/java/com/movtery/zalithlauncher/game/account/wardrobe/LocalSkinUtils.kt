@@ -126,18 +126,6 @@ suspend fun validateCapeFile(capeFile: File): Boolean = withContext(Dispatchers.
 }
 
 /**
- * 检查披风像素合法性，Minecraft披风标准为64x32像素
- */
-suspend fun validateCapeFile(capeFile: File): Boolean {
-    return withContext(Dispatchers.IO) {
-        val options = BitmapFactory.Options()
-        options.inJustDecodeBounds = true
-        BitmapFactory.decodeFile(capeFile.absolutePath, options)
-        options.outWidth == 64 && options.outHeight == 32
-    }
-}
-
-/**
  * 是否为双层皮肤：64x64
  */
 fun BitmapFactory.Options.isDualLayerSkin(): Boolean {

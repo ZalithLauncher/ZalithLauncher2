@@ -1486,8 +1486,7 @@ private fun ModIcon(
 
     DisabledStateIcon(
         modifier = modifier,
-        isDisabled = mod.localMod.file.isDisabled(),
-        disableContainerSize = disableContainerSize
+        isDisabled = mod.localMod.file.isDisabled()
     ) { colorFilter ->
         val projectInfo = mod.projectInfo
         val localIcon = mod.localMod.icon

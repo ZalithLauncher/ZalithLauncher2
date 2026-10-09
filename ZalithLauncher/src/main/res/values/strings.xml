@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="launcher_brand_name">Mirai Launcher</string>
-    <string name="launcher_brand_short">Mirai</string>
+    <string name="launcher_brand_name">Zalith Launcher</string>
+    <string name="launcher_brand_short">Zalith</string>
     <string name="app_unofficial_modified">Unofficial Modified Version</string>
     <string name="home_welcome_title">Ready for your next world?</string>
     <string name="home_welcome_subtitle">Launch an installation, explore content, and make it yours.</string>
@@ -1653,6 +1653,10 @@
     <string name="about_acknowledgements_github_community_text">All issue reporters and contributors from the GitHub community</string>
     <string name="about_acknowledgements_weblate_community">Weblate Community</string>
     <string name="about_acknowledgements_weblate_community_text">All translators who participated in community language localization</string>
+    <string name="about_acknowledgements_mirai">Mirai Launcher</string>
+    <string name="about_acknowledgements_mirai_text">%s incorporates code, UI, and optimizations from Mirai Launcher</string>
+    <string name="about_launcher_upstream_title">Original project contributors</string>
+    <string name="about_launcher_upstream_text">With thanks to MovTery and the Zalith Launcher 2 contributors for the work Zalith builds on.</string>
     <string name="about_plugin_title">Loaded Plugins</string>
     <string name="about_library_title">Third-Party Libraries</string>
     <!--  Check for Updates  -->
@@ -1665,7 +1669,7 @@
     <string name="upgrade_version_size">Size: %s</string>
     <string name="upgrade_version_create_at">Updated At: %s</string>
     <string name="upgrade_get_remote_failed">Failed to check for updates. Please try again later.</string>
-    <string name="upgrade_manifest_unavailable">No Mirai update information has been published yet.</string>
+    <string name="upgrade_manifest_unavailable">No update information has been published yet.</string>
     <string name="upgrade_open_releases">Open releases</string>
     <string name="upgrade_rate_limited">Please wait a few seconds before checking again.</string>
     <string name="upgrade_is_latest">You are already on the latest version</string>

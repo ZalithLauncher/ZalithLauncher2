@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="launcher_brand_name">Mirai 啟動器</string>
-    <string name="launcher_brand_short">Mirai</string>
+    <string name="launcher_brand_name">Zalith 啟動器</string>
+    <string name="launcher_brand_short">Zalith</string>
     <string name="app_unofficial_modified">非官方修改版</string>
     <string name="home_welcome_subtitle">啟動遊戲、探索內容，打造自己的體驗。</string>
     <string name="home_play">啟動遊戲</string>
@@ -1071,6 +1071,10 @@
     <string name="about_acknowledgements_github_community_text">GitHub 社群的所有議題提出者和貢獻者</string>
     <string name="about_acknowledgements_weblate_community">Weblate 社群</string>
     <string name="about_acknowledgements_weblate_community_text">所有參與社群語言在地化的翻譯者</string>
+    <string name="about_acknowledgements_mirai">Mirai 啟動器</string>
+    <string name="about_acknowledgements_mirai_text">%s 包含了來自 Mirai 啟動器的代碼、介面與最佳化</string>
+    <string name="about_launcher_upstream_title">原始專案貢獻者</string>
+    <string name="about_launcher_upstream_text">感謝 MovTery 以及 Zalith Launcher 2 的貢獻者們奠定的基礎。</string>
     <string name="about_plugin_title">已載入的外掛程式</string>
     <string name="about_library_title">額外引入的相依性項目</string>
     <string name="upgrade_title">檢查更新</string>
@@ -1082,7 +1086,7 @@
     <string name="upgrade_version_size">大小：%s</string>
     <string name="upgrade_version_create_at">更新時間：%s</string>
     <string name="upgrade_get_remote_failed">取得更新失敗，請稍後再試</string>
-    <string name="upgrade_manifest_unavailable">Mirai 尚未發布更新資訊。</string>
+    <string name="upgrade_manifest_unavailable">尚未發布更新資訊。</string>
     <string name="upgrade_open_releases">查看發佈版本</string>
     <string name="upgrade_rate_limited">請稍後再檢查更新。</string>
     <string name="upgrade_is_latest">目前已是最新版本</string>

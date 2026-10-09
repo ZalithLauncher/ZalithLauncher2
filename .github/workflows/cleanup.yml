@@ -3,6 +3,12 @@ name: Cleanup
 on:
   workflow_call:
   workflow_dispatch:
+   inputs:
+     cleanup_all_releases:
+      type: boolean
+      description: "Whether to Delete All Releases"
+      required: true
+      default: false
 
 concurrency:
   group: clean
@@ -11,9 +17,7 @@ concurrency:
 jobs:
   cleanup:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      actions: write
+    permissions: write-all
     timeout-minutes: 10
     steps:
       - name: Checkout
@@ -21,11 +25,21 @@ jobs:
 
       - name: Delete Older Releases and Workflows
         uses: ophub/delete-releases-workflows@main
+        if: ${{ inputs.cleanup_all_releases == false }}
         with:
           delete_releases: true
-          delete_tags: false
-          releases_keep_latest: 198
-          delete_workflows: true
-          workflows_keep_day: 90
+          delete_tags: true
+          releases_keep_latest: 200
+          delete_workflows: false
           releases_keep_keyword: stable/beta/update
-          gh_token: ${{ secrets.PERSONAL_ACCESS_TOKEN || secrets.GITHUB_TOKEN }}
+          gh_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete All Releases and Older Workflows
+        uses: ophub/delete-releases-workflows@main
+        if: ${{ inputs.cleanup_all_releases == true }}
+        with:
+          delete_releases: true
+          delete_tags: true
+          releases_keep_latest: 0
+          delete_workflows: false
+          gh_token: ${{ secrets.GITHUB_TOKEN }}

@@ -41,7 +41,7 @@ val ciKeyAlias        = System.getenv("KEYSTORE_ALIAS")
 
 val signingKeystore   = if (ciKeystorePath != null) file(ciKeystorePath) else file("zalith_launcher_debug.jks")
 val signingStorePass  = ciStorePassword  ?: defaultStorePassword
-val signingKeyPass    = ciKeyPassword    ?: defaultKeyPassword
+val signingKeyPass    = ciKeyPassword    ?: ciStorePassword ?: defaultKeyPassword
 val signingAlias      = ciKeyAlias       ?: "movtery_zalith_debug"
 // P12/PKCS12 keystores require storeType = "PKCS12"; JKS files use the default ("JKS")
 val signingStoreType  = if (ciKeystorePath?.endsWith(".p12", ignoreCase = true) == true) "PKCS12" else "JKS"

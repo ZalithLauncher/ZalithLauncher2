@@ -366,6 +366,7 @@
     <string name="game_menu_option_input_method">입력 방식 전환</string>
     <string name="game_menu_option_switch_fps">FPS 표시</string>
     <string name="game_menu_option_switch_memory">메모리 표시</string>
+    <string name="game_menu_option_request_max_refresh_rate">최대 재생 빈도 요청</string>
     <string name="game_menu_option_menu_ball_opacity">메뉴 오버레이 투명도</string>
     <string name="game_menu_option_send_keycode">키코드 전송</string>
     <string name="game_menu_option_replacement_control">컨트롤 배치 변경</string>
@@ -821,6 +822,8 @@
     <string name="settings_renderer_full_screen_title">게임 전체화면</string>
     <string name="settings_renderer_sustained_performance_title">성능 지속 모드</string>
     <string name="settings_renderer_sustained_performance_summary">이 기능을 활성화하면 장시간 안정적인 성능이 제공되지만, 과열을 방지하기 위해 반응 속도가 떨어질 수 있습니다</string>
+    <string name="settings_renderer_max_refresh_rate_title">최대 재생 빈도 요청</string>
+    <string name="settings_renderer_max_refresh_rate_summary">게임 실행 중 현재 해상도에서 지원되는 최대 재생 빈도를 시스템에 요청하여, 낮은 재생 빈도 모드로 인한 프레임 제한을 방지합니다. 비활성화하면 시스템의 적응형 재생 빈도로 돌아갑니다</string>
     <string name="settings_renderer_shader_dump_title">쉐이더 로그 파일 생성</string>
     <string name="settings_renderer_shader_dump_summary">그래픽 렌더링을 원활하게 디버깅, 분석하기 위해 런타임 중에 변환된 쉐이더 코드를 파일로 출력합니다</string>
     <string name="settings_renderer_zink_driver_adreno">현재 기기에서 Adreno GPU를 감지했습니다. 이 옵션을 활성화하면 Zink 렌더러가 오작동할 수 있습니다. 정말로 활성화하시겠습니까?</string>

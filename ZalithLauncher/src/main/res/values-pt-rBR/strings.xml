@@ -374,6 +374,7 @@
     <string name="game_menu_option_input_method">Teclado virtual</string>
     <string name="game_menu_option_switch_fps">Contador de FPS</string>
     <string name="game_menu_option_switch_memory">Mostrar o uso da memória RAM</string>
+    <string name="game_menu_option_request_max_refresh_rate">Solicitar Taxa de Atualização Máxima</string>
     <string name="game_menu_option_menu_ball_opacity">Opacidade do menu flutuante</string>
     <string name="game_menu_option_send_keycode">Enviar Tecla</string>
     <string name="game_menu_option_hotbar_rule">Regra de Posicionamento da Barra de Atalhos</string>
@@ -729,6 +730,8 @@
     <string name="settings_renderer_full_screen_summary">Ativar o modo de tela cheia, ignorando áreas seguras como entalhes e furos na tela</string>
     <string name="settings_renderer_sustained_performance_title">Modo de desempenho estável</string>
     <string name="settings_renderer_sustained_performance_summary">Quando ativado, o sistema oferece desempenho mais estável para o jogo, adequado para longas sessões de jogo, mas pode reduzir ligeiramente a capacidade de resposta do dispositivo para evitar superaquecimento</string>
+    <string name="settings_renderer_max_refresh_rate_title">Solicitar Taxa de Atualização Máxima</string>
+    <string name="settings_renderer_max_refresh_rate_summary">Enquanto o jogo está em execução, solicita ao sistema a maior taxa de atualização suportada na resolução atual para evitar que os quadros sejam limitados a modos mais baixos; desative para voltar à taxa adaptativa do sistema</string>
     <string name="settings_renderer_shader_dump_title">Registro de Shader</string>
     <string name="settings_renderer_shader_dump_summary">Gere o código de shader convertido em um arquivo de log durante a execução do jogo para facilitar a depuração e a análise da renderização gráfica</string>
     <string name="settings_renderer_vulkan_driver_system_title">Usar o driver Vulkan do sistema</string>

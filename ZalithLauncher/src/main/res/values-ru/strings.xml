@@ -362,6 +362,8 @@
     <string name="settings_renderer_full_screen_summary">Игнорирует вырез под фронтальную камеру и даёт дополнительное место для изображение под ней</string>
     <string name="settings_renderer_sustained_performance_title">Режим стабильной производительности</string>
     <string name="settings_renderer_sustained_performance_summary">При включении снижает производительность устройства для предотвращения тротлинга, подходит для длительных мучений телефона</string>
+    <string name="settings_renderer_max_refresh_rate_title">Запросить максимальную частоту обновления</string>
+    <string name="settings_renderer_max_refresh_rate_summary">Во время игры запрашивать максимальную частоту обновления, поддерживаемую при текущем разрешении, чтобы система не ограничивала частоту кадров более низкими режимами; при отключении используется адаптивная частота системы</string>
     <string name="settings_renderer_shader_dump_title">Логирование шейдеров</string>
     <string name="settings_renderer_shader_dump_summary">Выводить преобразованный код шейдеров во время работы игры в лог-файл для упрощения отладки и анализа рендеринга графики</string>
     <string name="settings_renderer_vulkan_driver_system_title">Использовать системный драйвер Vulkan</string>
@@ -892,6 +894,7 @@
     <string name="settings_control_mouse_pointer_not_allowed_summary">В Minecraft 1.21.9+ указатель мыши меняется на значок «Недоступно» при наведении на отключённые компоненты</string>
     <string name="settings_control_mouse_pointer_common_summary">Эта форма указателя мыши поддерживается в Minecraft 1.21.9+</string>
     <string name="game_menu_option_switch_memory">Отображение памяти</string>
+    <string name="game_menu_option_request_max_refresh_rate">Запросить максимальную частоту обновления</string>
     <string name="settings_game_java_memory_used_text">Использовано: %1$d МБ / %2$d МБ</string>
     <string name="settings_game_java_memory_allocation_text">Выделено: %d МБ</string>
     <string name="theme_color_picker_edit_hex">Редактировать HEX-код</string>

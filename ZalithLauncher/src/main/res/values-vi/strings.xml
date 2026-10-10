@@ -525,6 +525,8 @@
     <string name="settings_renderer_full_screen_summary">Kéo căng game ra toàn màn hình, bỏ qua vùng an toàn</string>
     <string name="settings_renderer_sustained_performance_title">Chế độ hiệu năng bền bỉ</string>
     <string name="settings_renderer_sustained_performance_summary">Bật lên để chơi lâu, hạn chế nóng máy nhưng có thể giảm phản hồi</string>
+    <string name="settings_renderer_max_refresh_rate_title">Yêu cầu tần số quét tối đa</string>
+    <string name="settings_renderer_max_refresh_rate_summary">Khi trò chơi đang chạy, yêu cầu tần số quét cao nhất được hỗ trợ ở độ phân giải hiện tại để tránh hệ thống giới hạn khung hình ở các mức tần số thấp hơn; tắt để quay về tần số thích ứng của hệ thống</string>
     <string name="settings_renderer_shader_dump_title">Xuất log shader</string>
     <string name="settings_renderer_shader_dump_summary">Ghi shader đã chuyển đổi ra log, dành cho debug đồ họa</string>
     <string name="settings_renderer_vulkan_driver_system_title">Dùng driver Vulkan hệ thống</string>
@@ -846,6 +848,7 @@
     <string name="version_summary_fools_potato">Khoai tây độc bị lãng quên, giờ nâng cấp lên tầm sử thi!</string>
     <string name="version_summary_fools_creaft_mine">Giờ bạn có thể chế tạo mọi thứ, kể cả thế giới!</string>
     <string name="game_menu_option_switch_memory">Hiện RAM</string>
+    <string name="game_menu_option_request_max_refresh_rate">Yêu cầu tần số quét tối đa</string>
     <string name="game_menu_option_controls_opacity">Độ mờ layout</string>
     <string name="account_microsoft_exit_by_user">Bạn rời khỏi web, hủy đăng nhập.</string>
     <string name="cape_name_copper">Cape đồng</string>

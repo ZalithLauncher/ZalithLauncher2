@@ -304,6 +304,7 @@
     <string name="game_menu_option_input_method">Cambiar método de entrada</string>
     <string name="game_menu_option_switch_fps">Visualización de FPS</string>
     <string name="game_menu_option_switch_memory">Visualización de memoria</string>
+    <string name="game_menu_option_request_max_refresh_rate">Solicitar frecuencia de actualización máxima</string>
     <string name="game_menu_option_send_keycode">Enviar código de tecla</string>
     <string name="game_menu_option_replacement_control">Reemplazar diseño de controles</string>
     <string name="download_assets_category_information">HUD e información</string>
@@ -696,6 +697,8 @@
     <string name="settings_renderer_full_screen_summary">Habilitar modo de pantalla completa, ignorando áreas seguras como muescas y perforaciones</string>
     <string name="settings_renderer_sustained_performance_title">Modo de rendimiento sostenido</string>
     <string name="settings_renderer_sustained_performance_summary">Cuando está habilitado, el sistema proporciona un rendimiento más estable para el juego, adecuado para sesiones de juego largas, pero puede reducir ligeramente la capacidad de respuesta del dispositivo para evitar el sobrecalentamiento</string>
+    <string name="settings_renderer_max_refresh_rate_title">Solicitar frecuencia de actualización máxima</string>
+    <string name="settings_renderer_max_refresh_rate_summary">Mientras el juego se está ejecutando, solicita al sistema la frecuencia de actualización más alta admitida en la resolución actual para evitar que los fotogramas se limiten a modos más bajos; al desactivarlo, vuelve a la frecuencia adaptativa del sistema</string>
     <string name="settings_renderer_shader_dump_title">Registro de Shaders</string>
     <string name="settings_renderer_shader_dump_summary">Enviar el código de shader convertido durante el tiempo de ejecución del juego a un archivo de registro para facilitar la depuración y el análisis de renderizado de gráficos</string>
     <string name="settings_renderer_vulkan_driver_system_title">Usar controlador Vulkan del sistema</string>

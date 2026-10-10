@@ -316,6 +316,14 @@ fun RendererSettingsScreen(
                         summary = stringResource(R.string.settings_renderer_sustained_performance_summary)
                     )
 
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.requestMaxRefreshRate,
+                        title = stringResource(R.string.settings_renderer_max_refresh_rate_title),
+                        summary = stringResource(R.string.settings_renderer_max_refresh_rate_summary)
+                    )
+
                     if (checkVulkanSupport(LocalContext.current.packageManager)) {
                         var adrenoGPUAlert by remember { mutableStateOf(false) }
 

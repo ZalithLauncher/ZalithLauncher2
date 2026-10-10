@@ -425,6 +425,7 @@
     <string name="game_menu_option_fps_display_mode_number">Number</string>
     <string name="game_menu_option_fps_display_mode_chart">Chart</string>
     <string name="game_menu_option_switch_memory">Memory Display</string>
+    <string name="game_menu_option_request_max_refresh_rate">Request Max Refresh Rate</string>
     <string name="game_menu_option_menu_ball_opacity">Menu Overlay Opacity</string>
     <string name="game_menu_option_send_keycode">Send Keycode</string>
     <string name="game_menu_option_replacement_control">Replace Control Layout</string>
@@ -916,6 +917,8 @@
     <string name="settings_renderer_full_screen_summary">Enable fullscreen mode, ignoring safe areas like notches and punch-holes</string>
     <string name="settings_renderer_sustained_performance_title">Sustained Performance Mode</string>
     <string name="settings_renderer_sustained_performance_summary">When enabled, the system provides more stable performance for the game, suitable for long play sessions, but may slightly reduce device responsiveness to prevent overheating</string>
+    <string name="settings_renderer_max_refresh_rate_title">Request Max Refresh Rate</string>
+    <string name="settings_renderer_max_refresh_rate_summary">While the game is running, request the highest refresh rate supported at the current resolution to avoid the frame rate being limited by lower refresh tiers; disable to fall back to the system-adaptive refresh rate</string>
     <string name="settings_renderer_shader_dump_title">Shader Logging</string>
     <string name="settings_renderer_shader_dump_summary">Output the converted shader code during game runtime to a log file for easier debugging and graphics rendering analysis</string>
     <string name="settings_renderer_vulkan_driver_system_title">Use System Vulkan Driver</string>

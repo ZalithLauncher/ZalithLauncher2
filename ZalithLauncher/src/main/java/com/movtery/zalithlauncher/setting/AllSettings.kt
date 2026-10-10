@@ -99,6 +99,11 @@ object AllSettings : SettingsRegistry() {
     val sustainedPerformance = boolSetting("sustainedPerformance", false)
 
     /**
+     * 请求最高刷新率：游戏运行时请求系统切到同分辨率最高刷新率档位（关闭则回落系统自适应刷新）
+     */
+    val requestMaxRefreshRate = boolSetting("requestMaxRefreshRate", true)
+
+    /**
      * 使用系统的 Vulkan 驱动
      */
     val zinkPreferSystemDriver = boolSetting("zinkPreferSystemDriver", false)

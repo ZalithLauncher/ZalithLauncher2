@@ -783,6 +783,8 @@
     <string name="settings_launcher_full_screen_summary">ノッチやパンチホールなどの領域を無視して、ランチャーのページを全画面に表示します</string>
     <string name="settings_renderer_sustained_performance_title">継続的なパフォーマンスモード</string>
     <string name="settings_renderer_sustained_performance_summary">有効にしたら、システムはゲームに対してより安定したパフォーマンスを出し、長時間のプレイに適していますが、発熱を防ぐためにデバイスの応答速度がわずかに低下する可能性があります</string>
+    <string name="settings_renderer_max_refresh_rate_title">最大リフレッシュレートを要求</string>
+    <string name="settings_renderer_max_refresh_rate_summary">ゲーム実行中、システムに現在の解像度でサポートされる最大リフレッシュレートを要求し、低いリフレッシュレートモードによるフレームレート制限を防ぎます。無効にするとシステムのアダプティブリフレッシュレートに戻ります</string>
     <string name="settings_renderer_shader_dump_title">シェーダーのログ出力</string>
     <string name="settings_renderer_shader_dump_summary">ゲーム中に変換されたシェーダーコードをログファイルに出力してグラッフィクレンダリングのデバッグや分析を容易にします</string>
     <string name="settings_renderer_resolution_scale_summary">値を低くするとパフォーマンスが良くなり、値を高くするとグラフィックの品質が上がります。必要に応じて変更してください</string>
@@ -872,6 +874,7 @@
     <string name="settings_control_mouse_pointer_not_allowed_summary">MC 1.21.9+ では、インタラクティブできるコンポーネント上でマウスポインターを禁止の形に切り替える機能をサポートしています</string>
     <string name="settings_control_mouse_pointer_common_summary">MC 1.21.9+ はこのマウスポインターをサポートしています</string>
     <string name="game_menu_option_switch_memory">メモリを表示</string>
+    <string name="game_menu_option_request_max_refresh_rate">最大リフレッシュレートを要求</string>
     <string name="settings_game_java_memory_used_text">使用量: %1$dMB/ %2$dMB</string>
     <string name="settings_game_java_memory_allocation_text">割り当て済み: %dMB</string>
     <string name="theme_color_picker_edit_hex">Hexを編集</string>

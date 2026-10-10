@@ -468,6 +468,8 @@
     <string name="versions_config_follow_global_if_blank">Biarkan kosong untuk menggunakan pengaturan global</string>
     <string name="versions_config_disable_if_blank">Biarkan kosong untuk menonaktifkan</string>
     <string name="settings_renderer_sustained_performance_summary">Kalau diaktifkan, sistem akan kasih performa yang lebih stabil buat game, cocok buat main lama, tapi mungkin sedikit ngurangin responsivitas perangkat biar nggak cepat panas</string>
+    <string name="settings_renderer_max_refresh_rate_title">Minta Laju Penyegaran Maksimum</string>
+    <string name="settings_renderer_max_refresh_rate_summary">Saat game berjalan, minta sistem untuk memakai laju penyegaran tertinggi yang didukung pada resolusi saat ini supaya frame rate tidak dibatasi mode yang lebih rendah; matikan untuk kembali ke laju adaptif sistem</string>
     <string name="settings_tab_java_manage">Java</string>
     <string name="settings_tab_control_manage">Kontrol</string>
     <string name="settings_tab_info_about">Tentang</string>
@@ -819,6 +821,7 @@
     <string name="version_summary_fools_potato">Selama bertahun-tahun, Poisonous Potato diabaikan dan diremehkan, jadi kami memberinya buff yang epik!</string>
     <string name="version_summary_fools_creaft_mine">Sekarang Anda dapat membuat apa saja—bahkan seluruh dunia!</string>
     <string name="game_menu_option_switch_memory">Tampilan RAM</string>
+    <string name="game_menu_option_request_max_refresh_rate">Minta Laju Penyegaran Maksimum</string>
     <string name="game_menu_option_controls_opacity">Opasitas Layout Kontrol</string>
     <string name="account_microsoft_exit_by_user">Anda meninggalkan halaman web, jadi proses login Microsoft telah dibatalkan untuk Anda.</string>
     <string name="cape_name_none">Tidak Ada</string>

@@ -496,6 +496,8 @@
     <string name="settings_renderer_full_screen_summary">Oyun ekranını tam ekran yapar, çentikli ekranlar, delikli ekranlar gibi ekran güvenlik alanlarını görmezden gelir</string>
     <string name="settings_renderer_sustained_performance_title">Sürekli Performans Modu</string>
     <string name="settings_renderer_sustained_performance_summary">Etkinleştirildiğinde, sistem oyuna daha kararlı bir performans sunar; uzun süreli oyunlar için uygundur, ancak aşırı ısınmayı önlemek için cihazın tepki hızını biraz düşürebilir</string>
+    <string name="settings_renderer_max_refresh_rate_title">Maksimum Yenileme Hızı İste</string>
+    <string name="settings_renderer_max_refresh_rate_summary">Oyun çalışırken, karenin daha düşük yenileme modlarıyla sınırlandırılmasını önlemek için sistemden geçerli çözünürlükte desteklenen en yüksek yenileme hızını iste; kapatırsanız sistemin uyarlanabilir yenileme hızına geri döner</string>
     <string name="settings_renderer_shader_dump_title">Gölgelengirici Günlüğü</string>
     <string name="settings_renderer_shader_dump_summary">Oyun çalışırken dönüştürülen shader kodunu günlük dosyasına aktarır; grafik render sürecini hata ayıklama veya analiz için kolaylaştırır</string>
     <string name="settings_renderer_vulkan_driver_system_title">Sistem Vulkan Sürücüsünü Kullan</string>
@@ -708,6 +710,7 @@
     <string name="game_menu_option_input_method">Klavye\'yi Aç</string>
     <string name="game_menu_option_switch_fps">Fps Göstergesi</string>
     <string name="game_menu_option_switch_memory">Ram Göstergesi</string>
+    <string name="game_menu_option_request_max_refresh_rate">Maksimum Yenileme Hızı İste</string>
     <string name="game_menu_option_menu_ball_opacity">Menü Şeffaflığı</string>
     <string name="game_menu_option_send_keycode">Tuş Gönder</string>
     <string name="game_menu_option_replacement_control">Kontrol Düzenini Değiştir</string>

@@ -382,6 +382,7 @@
     <string name="game_menu_option_fps_display_mode_number">數字</string>
     <string name="game_menu_option_fps_display_mode_chart">圖表</string>
     <string name="game_menu_option_switch_memory">記憶體顯示</string>
+    <string name="game_menu_option_request_max_refresh_rate">請求最高更新率</string>
     <string name="game_menu_option_menu_ball_opacity">選單懸浮窗不透明度</string>
     <string name="game_menu_option_send_keycode">發送鍵值</string>
     <string name="game_menu_option_replacement_control">更換控制佈局</string>
@@ -821,6 +822,8 @@
     <string name="settings_renderer_full_screen_summary">使遊戲頁面全螢幕化，忽略瀏海螢幕、挖孔螢幕等螢幕的安全區域</string>
     <string name="settings_renderer_sustained_performance_title">啟用持續效能模式</string>
     <string name="settings_renderer_sustained_performance_summary">啟用後，系統會為遊戲提供更穩定的效能輸出，適用於長時間遊玩，但可能略微降低裝置回應速度以防止過熱</string>
+    <string name="settings_renderer_max_refresh_rate_title">請求最高更新率</string>
+    <string name="settings_renderer_max_refresh_rate_summary">遊戲執行時請求系統切換到當前解析度支援的更高更新率檔位，避免幀率被系統限制在較低的更新率檔位；關閉後回落為系統自適應更新率</string>
     <string name="settings_renderer_shader_dump_title">著色器日誌輸出</string>
     <string name="settings_renderer_shader_dump_summary">將遊戲執行時轉換後的著色器代碼輸出到日誌檔案，便於偵錯或分析圖形渲染過程</string>
     <string name="settings_renderer_vulkan_driver_system_title">使用系統 Vulkan 驅動程式</string>

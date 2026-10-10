@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.settings
 
+import android.content.Context
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
@@ -25,6 +26,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -37,6 +39,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -84,6 +87,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.movtery.zalithlauncher.layoutconverter.LayoutConverter
 import com.movtery.layer_controller.data.lang.createTranslatable
 import com.movtery.layer_controller.layout.ControlLayout
 import com.movtery.layer_controller.layout.EmptyControlLayout
@@ -110,6 +114,9 @@ import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
+import com.movtery.zalithlauncher.ui.components.PositionButton
+import com.movtery.zalithlauncher.ui.components.PositionFilledTonalButton
+import com.movtery.zalithlauncher.ui.components.ButtonPosition
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
@@ -147,6 +154,10 @@ private sealed interface ControlOperation {
     data object CreateNew : ControlOperation
     /** 删除控制布局 */
     data class Delete(val data: ControlData) : ControlOperation
+    /** 分享控制布局弹窗 */
+    data class Share(val data: ControlData) : ControlOperation
+    /** FCL 导出确认弹窗 */
+    data class ShareFclConfirm(val data: ControlData) : ControlOperation
     /** 编辑普通的文本 */
     data class EditText(
         val data: ControlData,
@@ -198,6 +209,28 @@ private class ControlViewModel : ViewModel() {
                 FileUtils.deleteQuietly(file)
             }
             ControlManager.refresh()
+        }
+    }
+
+    /**
+     * 将控制布局转换为 FCL 格式并通过系统分享
+     */
+    fun shareAsFcl(
+        data: ControlData,
+        context: Context
+    ) {
+        viewModelScope.launch {
+            try {
+                val outputFile = withContext(Dispatchers.IO) {
+                    val file = File(context.cacheDir, "${data.file.nameWithoutExtension}_fcl.json")
+                    val error = LayoutConverter.convertZl2ToFcl(data.file, file)
+                    if (error != null) throw IllegalStateException(error)
+                    file
+                }
+                shareFile(context, outputFile)
+            } catch (_: Exception) {
+                // 转换失败时静默处理，不弹出提示
+            }
         }
     }
 
@@ -258,6 +291,12 @@ fun ControlManageScreen(
                     message = androidText(e.getMessageOrToString())
                 )
             }
+        },
+        onShareZl2 = { data ->
+            shareFile(context, data.file)
+        },
+        onShareFcl = { data ->
+            viewModel.shareAsFcl(data, context)
         }
     )
 
@@ -314,7 +353,7 @@ fun ControlManageScreen(
                     data = selectedLayout,
                     locale = locale,
                     onShareLayout = { data ->
-                        shareFile(context, data.file)
+                        viewModel.operation = ControlOperation.Share(data)
                     },
                     onEditLayout = { data ->
                         startEditorActivity(context, data.file)
@@ -343,7 +382,9 @@ private fun ControlOperation(
     changeOperation: (ControlOperation) -> Unit,
     onCreate: (name: String, author: String, versionName: String) -> Unit,
     onDelete: (ControlData) -> Unit,
-    onSave: (ControlData) -> Unit
+    onSave: (ControlData) -> Unit,
+    onShareZl2: (ControlData) -> Unit,
+    onShareFcl: (ControlData) -> Unit
 ) {
     when (operation) {
         is ControlOperation.None -> {}
@@ -351,6 +392,27 @@ private fun ControlOperation(
             CreateNewLayoutDialog(
                 onDismissRequest = { changeOperation(ControlOperation.None) },
                 onCreate = onCreate
+            )
+        }
+        is ControlOperation.Share -> {
+            ControlShareDialog(
+                onDismissRequest = { changeOperation(ControlOperation.None) },
+                onShareZl2 = {
+                    onShareZl2(operation.data)
+                    changeOperation(ControlOperation.None)
+                },
+                onShareFcl = {
+                    changeOperation(ControlOperation.ShareFclConfirm(operation.data))
+                }
+            )
+        }
+        is ControlOperation.ShareFclConfirm -> {
+            ControlShareFclConfirmDialog(
+                onDismissRequest = { changeOperation(ControlOperation.None) },
+                onExport = {
+                    onShareFcl(operation.data)
+                    changeOperation(ControlOperation.None)
+                }
             )
         }
         is ControlOperation.Delete -> {
@@ -1091,5 +1153,132 @@ private fun PreviewCreateNewLayoutDialog() {
     CreateNewLayoutDialog(
         onDismissRequest = {},
         onCreate = { _, _, _ -> }
+    )
+}
+
+/**
+ * 控制布局管理页面通用的对话框容器
+ */
+@Composable
+private fun ControlDialogSurface(
+    onDismissRequest: () -> Unit,
+    modifier: Modifier = Modifier,
+    horizontalAlignment: Alignment.Horizontal = Alignment.CenterHorizontally,
+    verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(16.dp),
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismissRequest
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .heightIn(max = rememberDialogMaxHeight())
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                modifier = modifier
+                    .padding(all = 6.dp)
+                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
+                    .wrapContentHeight(),
+                shape = MaterialTheme.shapes.extraLarge,
+                color = cardColor(false),
+                contentColor = onCardColor(),
+                shadowElevation = 6.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = horizontalAlignment,
+                    verticalArrangement = verticalArrangement,
+                    content = content,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 选择控制布局分享方式弹窗
+ */
+@Composable
+private fun ControlShareDialog(
+    onDismissRequest: () -> Unit,
+    onShareZl2: () -> Unit,
+    onShareFcl: () -> Unit
+) {
+    ControlDialogSurface(onDismissRequest = onDismissRequest) {
+        Text(
+            text = stringResource(R.string.control_share_method_title),
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            PositionButton(
+                onClick = {
+                    onDismissRequest()
+                    onShareZl2()
+                },
+                position = ButtonPosition.Top,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.control_share_as_zl2))
+            }
+
+            PositionButton(
+                onClick = {
+                    onDismissRequest()
+                    onShareFcl()
+                },
+                position = ButtonPosition.Middle,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.control_share_as_fcl))
+            }
+
+            PositionFilledTonalButton(
+                onClick = onDismissRequest,
+                position = ButtonPosition.Bottom,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(stringResource(R.string.generic_cancel))
+            }
+        }
+    }
+}
+
+@Composable
+@Preview(showBackground = true)
+private fun PreviewControlShareDialog() {
+    ControlShareDialog(
+        onDismissRequest = {},
+        onShareZl2 = {},
+        onShareFcl = {}
+    )
+}
+
+/**
+ * FCL 导出前确认弹窗
+ */
+@Composable
+private fun ControlShareFclConfirmDialog(
+    onDismissRequest: () -> Unit,
+    onExport: () -> Unit
+) {
+    SimpleAlertDialog(
+        title = stringResource(R.string.generic_tip),
+        text = {
+            Text(text = stringResource(R.string.control_share_fcl_confirm_message1))
+            Spacer(Modifier.height(8.dp))
+            Text(text = stringResource(R.string.control_share_fcl_confirm_message2))
+            Spacer(Modifier.height(8.dp))
+            Text(text = stringResource(R.string.control_share_fcl_confirm_message3))
+        },
+        confirmText = stringResource(R.string.control_share_fcl_confirm_export),
+        onConfirm = onExport,
+        onCancel = onDismissRequest,
+        onDismissRequest = onDismissRequest
     )
 }

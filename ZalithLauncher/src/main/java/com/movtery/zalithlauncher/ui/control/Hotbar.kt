@@ -132,7 +132,6 @@ private val keyList = listOf(
  * 点击、滑动快捷栏，会计算指针处于哪个槽位中，并触发 [sendKeycode] 回调
  *
  * @param isGrabbing 处于鼠标抓获模式下，才会开启判定箱
- * @param isGrabbing 处于鼠标抓获模式下，才会开启判定箱
  * @param displayLayout 游戏画面的显示布局（包含渲染分辨率、显示分辨率与黑边偏移）
  */
 @Composable
@@ -159,9 +158,6 @@ fun BoxScope.MinecraftHotbar(
             LaunchedEffect(
                 isGrabbing, optionsChangeKey, windowChangeKey, displayLayout, density
             ) {
-                if (isGrabbing) {
-                    MCOptions.checkReload()
-                }
                 val guiScale = getMCGuiScale(displayLayout.renderSize.width, displayLayout.renderSize.height)
                 // Minecraft 原生快捷栏规范：182 GUI 像素宽（1px 边框 + 9*20px 槽位 + 1px 边框），22 GUI 像素高（1px + 20px + 1px）
                 // 乘上 scaleX / scaleY 保证在任何渲染比例（如 50%, 75%）及自定义分辨率拉伸下均精确对应屏幕物理像素
@@ -197,34 +193,6 @@ fun BoxScope.MinecraftHotbar(
         }
     }
 
-    val calculateSlot: (Float) -> Int = remember(rule, displayLayout, hotbarSize, density) {
-        when (rule) {
-            HotbarRule.Auto -> {
-                { x: Float ->
-                    val guiScale = getMCGuiScale(displayLayout.renderSize.width, displayLayout.renderSize.height)
-                    val borderPx = 1f * guiScale * displayLayout.scaleX
-                    val slotWidthPx = 20f * guiScale * displayLayout.scaleX
-                    if (slotWidthPx > 0) {
-                        ((x - borderPx) / slotWidthPx).toInt().coerceIn(0, hotbarList.size - 1)
-                    } else {
-                        0
-                    }
-                }
-            }
-            HotbarRule.Custom -> {
-                { x: Float ->
-                    val totalWidth = with(density) { hotbarSize.width.toPx() }
-                    val slotWidth = if (hotbarList.isNotEmpty()) totalWidth / hotbarList.size else 1f
-                    if (slotWidth > 0) {
-                        (x / slotWidth).toInt().coerceIn(0, hotbarList.size - 1)
-                    } else {
-                        0
-                    }
-                }
-            }
-        }
-    }
-
     Box(
         modifier = Modifier
             .size(hotbarSize)
@@ -243,8 +211,10 @@ fun BoxScope.MinecraftHotbar(
                 modifier = Modifier
                     .fillMaxSize()
                     .mainTouchLogic(
+                        slotCount = hotbarList.size,
                         hotbarSize = hotbarSize,
-                        calculateSlot = calculateSlot,
+                        density = density,
+                        rule = rule,
                         longClickDelay = AllSettings.hotbarLongClickDelay.state.toLong(),
                         onClick = { index ->
                             val keycode = calculateSlotKeycode(index)
@@ -294,8 +264,10 @@ private data class DownSlot(
 )
 
 private fun Modifier.mainTouchLogic(
+    slotCount: Int,
     hotbarSize: DpSize,
-    calculateSlot: (x: Float) -> Int,
+    density: Density,
+    rule: HotbarRule,
     longClickDelay: Long,
     enableDoubleClick: Boolean,
     enableLongClick: Boolean,
@@ -305,7 +277,7 @@ private fun Modifier.mainTouchLogic(
     onOccupiedPointer: (PointerId) -> Unit,
     onReleasePointer: (PointerId) -> Unit
 ): Modifier = this.pointerInput(
-    hotbarSize, calculateSlot, longClickDelay, enableDoubleClick, enableLongClick
+    slotCount, hotbarSize, density, rule, longClickDelay, enableDoubleClick, enableLongClick
 ) {
     val touchSlop = viewConfiguration.touchSlop
     val doubleTapTimeout = viewConfiguration.doubleTapTimeoutMillis
@@ -333,7 +305,7 @@ private fun Modifier.mainTouchLogic(
                             }
 
                             val x = change.position.x
-                            val slotIndex = calculateSlot(x)
+                            val slotIndex = calculateSlotIndex(x, hotbarSize, slotCount, density, rule)
                             //碰到就视为点击，避免后续逻辑临时切物品栏导致游戏状态不同步
                             onClick(slotIndex)
 
@@ -367,7 +339,7 @@ private fun Modifier.mainTouchLogic(
                         change.pressed && change.previousPressed -> {
                             val state = states[pointerId] ?: return@forEach
                             //滑动时实时计算并更新当前槽位
-                            state.currentSlotIndex = calculateSlot(change.position.x)
+                            state.currentSlotIndex = calculateSlotIndex(change.position.x, hotbarSize, slotCount, density, rule)
 
                             if (enableLongClick) {
                                 val distance = (change.position - state.initialPosition).getDistance()
@@ -431,6 +403,29 @@ private fun Modifier.mainTouchLogic(
                     }
                 }
             }
+        }
+    }
+}
+
+private fun calculateSlotIndex(
+    x: Float,
+    hotbarSize: DpSize,
+    slotCount: Int,
+    density: Density,
+    rule: HotbarRule
+): Int {
+    val totalWidth = with(density) { hotbarSize.width.toPx() }
+    if (totalWidth <= 0f) return 0
+    return when (rule) {
+        HotbarRule.Auto -> {
+            // Minecraft 原生快捷栏规范：总宽 182 GUI 像素（1px 边框 + 9 个 20px 槽位 + 1px 边框）
+            // 无论画面缩放比例如何，槽位在判定箱内的相对几何比例固定不变
+            val guiX = (x / totalWidth) * 182f
+            ((guiX - 1f) / 20f).toInt().coerceIn(0, slotCount - 1)
+        }
+        HotbarRule.Custom -> {
+            val slotWidth = totalWidth / slotCount
+            (x / slotWidth).toInt().coerceIn(0, slotCount - 1)
         }
     }
 }

@@ -139,6 +139,41 @@ fun rememberGameRenderSize(screenSize: IntSize): IntSize {
 }
 
 /**
+ * 根据规则计算游戏画面的显示布局
+ * 百分比规则铺满全屏
+ * 自定义规则等比缩放至屏幕可容纳的最大尺寸并居中
+ */
+fun computeGameDisplayLayout(
+    screenSize: IntSize,
+    rule: ResolutionRule,
+    percentage: Int,
+    customWidth: Int,
+    customHeight: Int
+): GameDisplayLayout {
+    val renderSize = computeGameRenderSize(screenSize, rule, percentage, customWidth, customHeight)
+    return if (rule == ResolutionRule.CUSTOM) {
+        computeGameDisplayLayout(screenSize, renderSize)
+    } else {
+        GameDisplayLayout(
+            renderSize = renderSize,
+            displaySize = screenSize,
+            offset = IntOffset.Zero
+        )
+    }
+}
+
+/**
+ * 读取当前设置，计算游戏画面的显示布局
+ */
+fun currentGameDisplayLayout(screenSize: IntSize): GameDisplayLayout = computeGameDisplayLayout(
+    screenSize = screenSize,
+    rule = AllSettings.resolutionRule.getValue(),
+    percentage = AllSettings.resolutionRatio.getValue(),
+    customWidth = AllSettings.customResolutionWidth.getValue(),
+    customHeight = AllSettings.customResolutionHeight.getValue()
+)
+
+/**
  * 可观察版本：任意相关设置变化时重新计算游戏画面的显示布局
  */
 @Composable
@@ -148,34 +183,7 @@ fun rememberGameDisplayLayout(screenSize: IntSize): GameDisplayLayout {
     val customWidth = AllSettings.customResolutionWidth.state
     val customHeight = AllSettings.customResolutionHeight.state
     return remember(screenSize, rule, percentage, customWidth, customHeight) {
-        val renderSize = computeGameRenderSize(screenSize, rule, percentage, customWidth, customHeight)
-        if (rule == ResolutionRule.CUSTOM) {
-            computeGameDisplayLayout(screenSize, renderSize)
-        } else {
-            GameDisplayLayout(
-                renderSize = renderSize,
-                displaySize = screenSize,
-                offset = IntOffset.Zero
-            )
-        }
-    }
-}
-
-/**
- * 依据当前设置计算游戏画面的显示布局
- * 百分比规则铺满全屏
- * 自定义规则等比缩放至屏幕可容纳的最大尺寸并居中
- */
-fun currentGameDisplayLayout(screenSize: IntSize): GameDisplayLayout {
-    val renderSize = computeGameRenderSize(screenSize)
-    return if (AllSettings.resolutionRule.getValue() == ResolutionRule.CUSTOM) {
-        computeGameDisplayLayout(screenSize, renderSize)
-    } else {
-        GameDisplayLayout(
-            renderSize = renderSize,
-            displaySize = screenSize,
-            offset = IntOffset.Zero
-        )
+        computeGameDisplayLayout(screenSize, rule, percentage, customWidth, customHeight)
     }
 }
 

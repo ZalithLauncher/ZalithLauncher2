@@ -116,6 +116,7 @@ import com.movtery.zalithlauncher.ui.screens.game.multiplayer.TerracottaOperatio
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.rememberTerracottaViewModel
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
 import com.movtery.zalithlauncher.utils.currentGameDisplayLayout
+import com.movtery.zalithlauncher.utils.rememberGameDisplayLayout
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.EditorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
@@ -701,7 +702,7 @@ fun GameScreen(
             }
 
             //物品栏触发层
-            val gameDisplayLayout = currentGameDisplayLayout(screenSize)
+            val gameDisplayLayout = rememberGameDisplayLayout(screenSize)
             MinecraftHotbar(
                 screenSize = screenSize,
                 rule = AllSettings.hotbarRule.state,
@@ -711,7 +712,7 @@ fun GameScreen(
                     CallbackBridge.sendKeyPress(keycode)
                 },
                 isGrabbing = isGrabbing,
-                displayOffset = gameDisplayLayout.offset,
+                displayLayout = gameDisplayLayout,
                 onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) }
             )

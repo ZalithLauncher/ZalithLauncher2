@@ -232,23 +232,29 @@ fun ensureCustomResolutionInitialized(context: Context) {
 }
 
 /**
- * 根据渲染分辨率、配置项与旧版字体模式计算 Minecraft 的有效 GUI 缩放倍数 (GUI Scale)
+ * 根据渲染分辨率、配置项与版本 Unicode 行为计算 Minecraft 的有效 GUI 缩放倍数 (GUI Scale)
  *
- * 遵循 Minecraft 原版 ScaledResolution 算法规范：
+ * 遵循 Minecraft 原版 ScaledResolution / Window.calculateScaleFactor 算法与官方缺陷规范：
  * 1. 当 configuredGuiScale 在有效范围内（1..maxScale）时使用配置值，否则（0 或超出）自动取 maxScale；
- * 2. 在旧版本（< 1.13）Unicode 模式下（如 CJK 语言环境或开启 forceUnicodeFont），受官方漏洞 MC-124469 影响，
- *    大于 1 的奇数缩放倍数会强制递减 1 降为偶数；1.13-pre6 修复该问题后现代高版本不再降级。
+ * 2. 旧版本（< 1.13）：受 MC-124469 影响，Unicode 模式下（显式开启 forceUnicodeFont 或使用中文等 CJK 语言），
+ *    为了避免 GNU Unifont 点阵字体半像素模糊走样，大于 1 的奇数缩放倍数会强制递减 1 降为偶数（如 3 -> 2）；
+ * 3. 现代版本（>= 1.13）：受 MC-133435 影响（至今官方未修复），当显式开启 forceUnicodeFont 时，
+ *    奇数缩放倍数会被游戏强制递增 1 进位为偶数（如 1 -> 2, 3 -> 4, 5 -> 6）。
  *
  * @param renderWidth 游戏渲染宽度
  * @param renderHeight 游戏渲染高度
  * @param configuredGuiScale options.txt 中配置的 guiScale（0 表示 Auto）
- * @param isLegacyUnicode 是否处于旧版本 Unicode 强制降级模式 (MC-124469)
+ * @param isLowerThan113 是否为 1.13 以下旧版本
+ * @param isLegacyUnicode 是否处于旧版 Unicode 模式（隐式中文或显式 forceUnicodeFont）
+ * @param forceUnicodeFont options.txt 中是否开启 forceUnicodeFont
  */
 fun computeMCGuiScale(
     renderWidth: Int,
     renderHeight: Int,
     configuredGuiScale: Int = 0,
-    isLegacyUnicode: Boolean = false
+    isLowerThan113: Boolean = false,
+    isLegacyUnicode: Boolean = false,
+    forceUnicodeFont: Boolean = false
 ): Int {
     if (renderWidth <= 0 || renderHeight <= 0) return 4
     val maxScale = minOf(renderWidth / 320, renderHeight / 240).coerceAtLeast(1)
@@ -257,9 +263,19 @@ fun computeMCGuiScale(
     } else {
         maxScale
     }
-    if (isLegacyUnicode && scale % 2 != 0 && scale != 1) {
-        scale--
+
+    if (isLowerThan113) {
+        // 旧版本 MC-124469：奇数降为偶数 (3 -> 2)
+        if (isLegacyUnicode && scale % 2 != 0 && scale != 1) {
+            scale--
+        }
+    } else {
+        // 现代版本 MC-133435：开启 Unicode 时奇数进位为偶数 (1 -> 2, 3 -> 4, 5 -> 6)
+        if (forceUnicodeFont && scale % 2 != 0) {
+            scale++
+        }
     }
+
     return scale
 }
 
@@ -267,11 +283,14 @@ fun computeMCGuiScale(
  * 读取当前 MCOptions 配置，计算指定渲染尺寸下的有效 GUI 缩放倍数
  */
 fun currentMCGuiScale(renderWidth: Int, renderHeight: Int): Int {
+    MCOptions.checkReload()
     val configuredScale = MCOptions.get("guiScale")?.toIntOrNull() ?: 0
     return computeMCGuiScale(
         renderWidth = renderWidth,
         renderHeight = renderHeight,
         configuredGuiScale = configuredScale,
-        isLegacyUnicode = MCOptions.isLegacyUnicodeScale()
+        isLowerThan113 = MCOptions.isLowerThan113(),
+        isLegacyUnicode = MCOptions.isLegacyUnicodeScale(),
+        forceUnicodeFont = MCOptions.isForceUnicodeFont()
     )
 }

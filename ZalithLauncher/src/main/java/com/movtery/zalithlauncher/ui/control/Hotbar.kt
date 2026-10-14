@@ -151,7 +151,6 @@ fun BoxScope.MinecraftHotbar(
 
     var hotbarSize by remember { mutableStateOf(DpSize(0.dp, 0.dp)) }
     val hotbarUpdateAnim = remember { Animatable(0f) }
-
     when (rule) {
         HotbarRule.Auto -> {
             val optionsChangeKey by MCOptions.refreshKey.collectAsStateWithLifecycle()
@@ -207,6 +206,7 @@ fun BoxScope.MinecraftHotbar(
                 else Modifier
             )
     ) {
+
         if (isGrabbing) {
             Box(
                 modifier = Modifier

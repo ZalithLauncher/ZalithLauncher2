@@ -54,7 +54,7 @@ object MCOptions {
             parameterMap.clear()
             fileObserver?.stopWatching()
 
-            val optionsFile = getOptionsFile()
+            val optionsFile = getOptionsFile() ?: return
             optionsFile.parentFile?.takeIf { !it.exists() }?.mkdirs()
             if (!optionsFile.exists()) {
                 optionsFile.createWithDefaults(context)
@@ -78,7 +78,7 @@ object MCOptions {
     }
 
     private fun loadInternal() {
-        val optionsFile = getOptionsFile()
+        val optionsFile = getOptionsFile() ?: return
         if (!optionsFile.exists()) return
 
         runCatching {
@@ -104,7 +104,7 @@ object MCOptions {
      */
     fun checkReload() {
         synchronized(lock) {
-            val optionsFile = getOptionsFile()
+            val optionsFile = getOptionsFile() ?: return
             if (optionsFile.exists() && optionsFile.lastModified() != lastLoadedTime) {
                 loadInternal()
             }
@@ -134,29 +134,29 @@ object MCOptions {
 
     fun getVersion(): Version? = if (::version.isInitialized) version else null
 
-    /**
-     * 判断当前 Minecraft 环境是否需要触发旧版 Unicode 偶数降级 (MC-124469)。
-     *
-     * 规则说明：
-     * 1. Minecraft 1.12 及更早版本存在官方漏洞 MC-124469：在 Unicode 模式下（开启 [forceUnicodeFont]
-     *    或使用中文等 CJK 语言），渲染器为了避免奇数倍点阵字体重影，会将大于 1 的奇数 scaleFactor 强制降为偶数；
-     * 2. Minecraft 1.13-pre6 修复了 MC-124469，现代高版本重构了字体引擎，无论是否开启 Unicode 字体，
-     *    均不会再发生 GUI Scale 奇数降偶数现象。
-     */
-    fun isLegacyUnicodeScale(): Boolean {
+    fun isLowerThan113(): Boolean {
         val mcVer = getVersion()?.getVersionInfo()?.minecraftVersion
             ?: getVersion()?.getVersionName()
-        val isLowerThan113 = mcVer?.isLowerVer("1.13") ?: false
-        if (!isLowerThan113) return false
+        return mcVer?.isLowerVer("1.13") ?: false
+    }
 
+    /**
+     * 判断当前 Minecraft 环境计算 GUI Scale 时是否会触发旧版 Unicode 偶数降级 (MC-124469)。
+     */
+    fun shouldDegradeUnicodeScale(): Boolean {
+        if (!isLowerThan113()) return false
         if (get("forceUnicodeFont") == "true") return true
         val lang = get("lang")?.lowercase()
         return lang != null && (lang.startsWith("zh") || lang.startsWith("ja") || lang.startsWith("ko"))
     }
 
+    fun isLegacyUnicodeScale(): Boolean = shouldDegradeUnicodeScale()
+
+    fun isForceUnicodeFont(): Boolean = get("forceUnicodeFont") == "true"
+
     fun save() {
         synchronized(lock) {
-            getOptionsFile().takeIf { it.exists() }?.let { file ->
+            getOptionsFile()?.takeIf { it.exists() }?.let { file ->
                 try {
                     fileObserver?.stopWatching()
                     writeFileAtomically(file)
@@ -184,7 +184,10 @@ object MCOptions {
         }
     }
 
-    private fun getOptionsFile() = File(version.getGameDir(), "options.txt")
+    private fun getOptionsFile(): File? {
+        if (!::version.isInitialized) return null
+        return File(version.getGameDir(), "options.txt")
+    }
 
     private fun setupFileObserver() {
         fileObserver?.stopWatching()
@@ -195,7 +198,7 @@ object MCOptions {
 
     @Suppress("DEPRECATION")
     private fun createPlatformFileObserver(): FileObserver? {
-        val parentDir = getOptionsFile().parentFile ?: return null
+        val parentDir = getOptionsFile()?.parentFile ?: return null
         if (!parentDir.exists()) parentDir.mkdirs()
 
         val eventMask = FileObserver.MODIFY or FileObserver.CLOSE_WRITE or FileObserver.MOVED_TO or FileObserver.CREATE

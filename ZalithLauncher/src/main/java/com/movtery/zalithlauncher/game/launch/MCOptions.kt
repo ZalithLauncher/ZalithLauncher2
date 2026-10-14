@@ -23,6 +23,7 @@ import android.os.Build
 import android.os.FileObserver
 import com.movtery.zalithlauncher.context.copyAssetFile
 import com.movtery.zalithlauncher.game.version.installed.Version
+import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -130,6 +131,28 @@ object MCOptions {
     }
 
     fun containsKey(key: String): Boolean = parameterMap.containsKey(key)
+
+    fun getVersion(): Version? = if (::version.isInitialized) version else null
+
+    /**
+     * 判断当前 Minecraft 环境是否需要触发旧版 Unicode 偶数降级 (MC-124469)。
+     *
+     * 规则说明：
+     * 1. Minecraft 1.12 及更早版本存在官方漏洞 MC-124469：在 Unicode 模式下（开启 [forceUnicodeFont]
+     *    或使用中文等 CJK 语言），渲染器为了避免奇数倍点阵字体重影，会将大于 1 的奇数 scaleFactor 强制降为偶数；
+     * 2. Minecraft 1.13-pre6 修复了 MC-124469，现代高版本重构了字体引擎，无论是否开启 Unicode 字体，
+     *    均不会再发生 GUI Scale 奇数降偶数现象。
+     */
+    fun isLegacyUnicodeScale(): Boolean {
+        val mcVer = getVersion()?.getVersionInfo()?.minecraftVersion
+            ?: getVersion()?.getVersionName()
+        val isLowerThan113 = mcVer?.isLowerVer("1.13") ?: false
+        if (!isLowerThan113) return false
+
+        if (get("forceUnicodeFont") == "true") return true
+        val lang = get("lang")?.lowercase()
+        return lang != null && (lang.startsWith("zh") || lang.startsWith("ja") || lang.startsWith("ko"))
+    }
 
     fun save() {
         synchronized(lock) {

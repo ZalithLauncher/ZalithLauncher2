@@ -76,6 +76,7 @@ import com.movtery.zalithlauncher.game.launch.MCOptions
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.utils.GameDisplayLayout
 import com.movtery.zalithlauncher.utils.currentGameDisplayLayout
+import com.movtery.zalithlauncher.utils.currentMCGuiScale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -158,7 +159,7 @@ fun BoxScope.MinecraftHotbar(
             LaunchedEffect(
                 isGrabbing, optionsChangeKey, windowChangeKey, displayLayout, density
             ) {
-                val guiScale = getMCGuiScale(displayLayout.renderSize.width, displayLayout.renderSize.height)
+                val guiScale = currentMCGuiScale(displayLayout.renderSize.width, displayLayout.renderSize.height)
                 // Minecraft 原生快捷栏规范：182 GUI 像素宽（1px 边框 + 9*20px 槽位 + 1px 边框），22 GUI 像素高（1px + 20px + 1px）
                 // 乘上 scaleX / scaleY 保证在任何渲染比例（如 50%, 75%）及自定义分辨率拉伸下均精确对应屏幕物理像素
                 val hotbarPhysicalWidth = 182f * guiScale * displayLayout.scaleX
@@ -427,17 +428,6 @@ private fun calculateSlotIndex(
             val slotWidth = totalWidth / slotCount
             (x / slotWidth).toInt().coerceIn(0, slotCount - 1)
         }
-    }
-}
-
-private fun getMCGuiScale(renderWidth: Int, renderHeight: Int): Int {
-    if (renderWidth <= 0 || renderHeight <= 0) return 4
-    val configuredGuiScale = MCOptions.get("guiScale")?.toIntOrNull() ?: 0
-    val maxScale = minOf(renderWidth / 320, renderHeight / 240).coerceAtLeast(1)
-    return if (configuredGuiScale in 1..maxScale) {
-        configuredGuiScale
-    } else {
-        maxScale
     }
 }
 

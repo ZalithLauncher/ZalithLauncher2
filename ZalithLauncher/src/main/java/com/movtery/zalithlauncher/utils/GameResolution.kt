@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import com.movtery.zalithlauncher.game.launch.MCOptions
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import kotlin.math.roundToInt
@@ -228,4 +229,49 @@ fun ensureCustomResolutionInitialized(context: Context) {
     val screenSize = getRealScreenSize(context)
     AllSettings.customResolutionWidth.save(screenSize.width)
     AllSettings.customResolutionHeight.save(screenSize.height)
+}
+
+/**
+ * 根据渲染分辨率、配置项与旧版字体模式计算 Minecraft 的有效 GUI 缩放倍数 (GUI Scale)
+ *
+ * 遵循 Minecraft 原版 ScaledResolution 算法规范：
+ * 1. 当 configuredGuiScale 在有效范围内（1..maxScale）时使用配置值，否则（0 或超出）自动取 maxScale；
+ * 2. 在旧版本（< 1.13）Unicode 模式下（如 CJK 语言环境或开启 forceUnicodeFont），受官方漏洞 MC-124469 影响，
+ *    大于 1 的奇数缩放倍数会强制递减 1 降为偶数；1.13-pre6 修复该问题后现代高版本不再降级。
+ *
+ * @param renderWidth 游戏渲染宽度
+ * @param renderHeight 游戏渲染高度
+ * @param configuredGuiScale options.txt 中配置的 guiScale（0 表示 Auto）
+ * @param isLegacyUnicode 是否处于旧版本 Unicode 强制降级模式 (MC-124469)
+ */
+fun computeMCGuiScale(
+    renderWidth: Int,
+    renderHeight: Int,
+    configuredGuiScale: Int = 0,
+    isLegacyUnicode: Boolean = false
+): Int {
+    if (renderWidth <= 0 || renderHeight <= 0) return 4
+    val maxScale = minOf(renderWidth / 320, renderHeight / 240).coerceAtLeast(1)
+    var scale = if (configuredGuiScale in 1..maxScale) {
+        configuredGuiScale
+    } else {
+        maxScale
+    }
+    if (isLegacyUnicode && scale % 2 != 0 && scale != 1) {
+        scale--
+    }
+    return scale
+}
+
+/**
+ * 读取当前 MCOptions 配置，计算指定渲染尺寸下的有效 GUI 缩放倍数
+ */
+fun currentMCGuiScale(renderWidth: Int, renderHeight: Int): Int {
+    val configuredScale = MCOptions.get("guiScale")?.toIntOrNull() ?: 0
+    return computeMCGuiScale(
+        renderWidth = renderWidth,
+        renderHeight = renderHeight,
+        configuredGuiScale = configuredScale,
+        isLegacyUnicode = MCOptions.isLegacyUnicodeScale()
+    )
 }

@@ -23,7 +23,6 @@ import android.os.Build
 import android.os.FileObserver
 import com.movtery.zalithlauncher.context.copyAssetFile
 import com.movtery.zalithlauncher.game.version.installed.Version
-import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -133,26 +132,6 @@ object MCOptions {
     fun containsKey(key: String): Boolean = parameterMap.containsKey(key)
 
     fun getVersion(): Version? = if (::version.isInitialized) version else null
-
-    fun isLowerThan113(): Boolean {
-        val mcVer = getVersion()?.getVersionInfo()?.minecraftVersion
-            ?: getVersion()?.getVersionName()
-        return mcVer?.isLowerVer("1.13") ?: false
-    }
-
-    /**
-     * 判断当前 Minecraft 环境计算 GUI Scale 时是否会触发旧版 Unicode 偶数降级 (MC-124469)。
-     */
-    fun shouldDegradeUnicodeScale(): Boolean {
-        if (!isLowerThan113()) return false
-        if (get("forceUnicodeFont") == "true") return true
-        val lang = get("lang")?.lowercase()
-        return lang != null && (lang.startsWith("zh") || lang.startsWith("ja") || lang.startsWith("ko"))
-    }
-
-    fun isLegacyUnicodeScale(): Boolean = shouldDegradeUnicodeScale()
-
-    fun isForceUnicodeFont(): Boolean = get("forceUnicodeFont") == "true"
 
     fun save() {
         synchronized(lock) {

@@ -73,10 +73,10 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
 import com.movtery.zalithlauncher.game.keycodes.mapToKeycode
 import com.movtery.zalithlauncher.game.launch.MCOptions
+import com.movtery.zalithlauncher.game.launch.currentMCGuiScale
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.utils.GameDisplayLayout
 import com.movtery.zalithlauncher.utils.currentGameDisplayLayout
-import com.movtery.zalithlauncher.utils.currentMCGuiScale
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay

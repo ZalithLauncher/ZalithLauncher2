@@ -38,6 +38,7 @@ object MCOptions {
     private val parameterMap = ConcurrentHashMap<String, String>()
     private var fileObserver: FileObserver? = null
     private lateinit var version: Version
+    private var lastLoadedTime: Long = 0L
 
     private val _refreshKey = MutableStateFlow(false)
     /** options.txt 文件刷新 */
@@ -52,7 +53,7 @@ object MCOptions {
             parameterMap.clear()
             fileObserver?.stopWatching()
 
-            val optionsFile = getOptionsFile()
+            val optionsFile = getOptionsFile() ?: return
             optionsFile.parentFile?.takeIf { !it.exists() }?.mkdirs()
             if (!optionsFile.exists()) {
                 optionsFile.createWithDefaults(context)
@@ -76,8 +77,11 @@ object MCOptions {
     }
 
     private fun loadInternal() {
-        val optionsFile = getOptionsFile()
+        val optionsFile = getOptionsFile() ?: return
+        if (!optionsFile.exists()) return
+
         runCatching {
+            lastLoadedTime = optionsFile.lastModified()
             val newMap = optionsFile.readLines()
                 .mapNotNull { line ->
                     line.indexOf(':').takeIf { it > 0 }?.let { idx ->
@@ -91,6 +95,18 @@ object MCOptions {
             _refreshKey.update { it.not() }
         }.onFailure {
             Logger.warning(TAG, "Failed to load options!", it)
+        }
+    }
+
+    /**
+     * 检查并重新加载 options.txt（若文件被外部修改）
+     */
+    fun checkReload() {
+        synchronized(lock) {
+            val optionsFile = getOptionsFile() ?: return
+            if (optionsFile.exists() && optionsFile.lastModified() != lastLoadedTime) {
+                loadInternal()
+            }
         }
     }
 
@@ -115,12 +131,15 @@ object MCOptions {
 
     fun containsKey(key: String): Boolean = parameterMap.containsKey(key)
 
+    fun getVersion(): Version? = if (::version.isInitialized) version else null
+
     fun save() {
         synchronized(lock) {
-            getOptionsFile().takeIf { it.exists() }?.let { file ->
+            getOptionsFile()?.takeIf { it.exists() }?.let { file ->
                 try {
                     fileObserver?.stopWatching()
                     writeFileAtomically(file)
+                    lastLoadedTime = file.lastModified()
                 } finally {
                     fileObserver?.startWatching()
                 }
@@ -144,36 +163,38 @@ object MCOptions {
         }
     }
 
-    private fun getOptionsFile() = File(version.getGameDir(), "options.txt")
+    private fun getOptionsFile(): File? {
+        if (!::version.isInitialized) return null
+        return File(version.getGameDir(), "options.txt")
+    }
 
     private fun setupFileObserver() {
         fileObserver?.stopWatching()
-        fileObserver = createPlatformFileObserver().apply {
+        fileObserver = createPlatformFileObserver()?.apply {
             startWatching()
         }
     }
 
     @Suppress("DEPRECATION")
-    private fun createPlatformFileObserver(): FileObserver {
-        val observeTarget = getOptionsFile()
+    private fun createPlatformFileObserver(): FileObserver? {
+        val parentDir = getOptionsFile()?.parentFile ?: return null
+        if (!parentDir.exists()) parentDir.mkdirs()
+
+        val eventMask = FileObserver.MODIFY or FileObserver.CLOSE_WRITE or FileObserver.MOVED_TO or FileObserver.CREATE
 
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            object : FileObserver(observeTarget, MODIFY) {
+            object : FileObserver(parentDir, eventMask) {
                 override fun onEvent(event: Int, path: String?) {
-                    if (event and MODIFY != 0) {
-                        synchronized(lock) {
-                            loadInternal()
-                        }
+                    if (path == null || path == "options.txt") {
+                        checkReload()
                     }
                 }
             }
         } else {
-            object : FileObserver(observeTarget.absolutePath, MODIFY) {
+            object : FileObserver(parentDir.absolutePath, eventMask) {
                 override fun onEvent(event: Int, path: String?) {
-                    if (event and MODIFY != 0) {
-                        synchronized(lock) {
-                            loadInternal()
-                        }
+                    if (path == null || path == "options.txt") {
+                        checkReload()
                     }
                 }
             }

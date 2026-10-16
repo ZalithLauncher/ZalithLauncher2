@@ -73,8 +73,10 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
 import com.movtery.zalithlauncher.game.keycodes.mapToKeycode
 import com.movtery.zalithlauncher.game.launch.MCOptions
+import com.movtery.zalithlauncher.game.launch.currentMCGuiScale
 import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.utils.rememberGameRenderSize
+import com.movtery.zalithlauncher.utils.GameDisplayLayout
+import com.movtery.zalithlauncher.utils.currentGameDisplayLayout
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -131,7 +133,7 @@ private val keyList = listOf(
  * 点击、滑动快捷栏，会计算指针处于哪个槽位中，并触发 [sendKeycode] 回调
  *
  * @param isGrabbing 处于鼠标抓获模式下，才会开启判定箱
- * @param displayOffset 游戏画面的黑边偏移，用于对齐自定义分辨率下的快捷栏位置
+ * @param displayLayout 游戏画面的显示布局（包含渲染分辨率、显示分辨率与黑边偏移）
  */
 @Composable
 fun BoxScope.MinecraftHotbar(
@@ -141,7 +143,7 @@ fun BoxScope.MinecraftHotbar(
     heightPercentage: Float,
     sendKeycode: (key: Int) -> Unit,
     isGrabbing: Boolean = false,
-    displayOffset: IntOffset = IntOffset.Zero,
+    displayLayout: GameDisplayLayout = currentGameDisplayLayout(screenSize),
     onOccupiedPointer: (PointerId) -> Unit,
     onReleasePointer: (PointerId) -> Unit
 ) {
@@ -149,21 +151,21 @@ fun BoxScope.MinecraftHotbar(
 
     var hotbarSize by remember { mutableStateOf(DpSize(0.dp, 0.dp)) }
     val hotbarUpdateAnim = remember { Animatable(0f) }
-
     when (rule) {
         HotbarRule.Auto -> {
             val optionsChangeKey by MCOptions.refreshKey.collectAsStateWithLifecycle()
             val windowChangeKey by ZLBridgeStates.windowChangeKey.collectAsStateWithLifecycle()
-            val renderSize = rememberGameRenderSize(screenSize)
             LaunchedEffect(
-                isGrabbing, optionsChangeKey, screenSize, density,
-                renderSize, windowChangeKey
+                isGrabbing, optionsChangeKey, windowChangeKey, displayLayout, density
             ) {
-                val guiScale = getMCGuiScale(renderSize.width, renderSize.height)
-                val slotSize = guiScale * 20
+                val guiScale = currentMCGuiScale(displayLayout.renderSize.width, displayLayout.renderSize.height)
+                // Minecraft 原生快捷栏规范：182 GUI 像素宽（1px 边框 + 9*20px 槽位 + 1px 边框），22 GUI 像素高（1px + 20px + 1px）
+                // 乘上 scaleX / scaleY 保证在任何渲染比例（如 50%, 75%）及自定义分辨率拉伸下均精确对应屏幕物理像素
+                val hotbarPhysicalWidth = 182f * guiScale * displayLayout.scaleX
+                val hotbarPhysicalHeight = 22f * guiScale * displayLayout.scaleY
 
                 with(density) {
-                    hotbarSize = DpSize((slotSize * hotbarList.size).toDp(), slotSize.toDp())
+                    hotbarSize = DpSize(hotbarPhysicalWidth.toDp(), hotbarPhysicalHeight.toDp())
                 }
             }
         }
@@ -171,7 +173,7 @@ fun BoxScope.MinecraftHotbar(
             var isInitialized by remember { mutableStateOf(false) }
 
             LaunchedEffect(
-                widthPercentage, heightPercentage
+                widthPercentage, heightPercentage, screenSize, density
             ) {
                 val width = (screenSize.width * widthPercentage).toInt()
                 val height = (screenSize.height * heightPercentage).toInt()
@@ -197,13 +199,14 @@ fun BoxScope.MinecraftHotbar(
             .align(Alignment.BottomCenter)
             .offset {
                 //跟随游戏画面的显示区域，对齐黑边偏移
-                IntOffset(x = 0, y = -displayOffset.y)
+                IntOffset(x = 0, y = -displayLayout.offset.y)
             }
             .then(
                 if (rule == HotbarRule.Custom) Modifier.background(Color.Red.copy(alpha = hotbarUpdateAnim.value))
                 else Modifier
             )
     ) {
+
         if (isGrabbing) {
             Box(
                 modifier = Modifier
@@ -212,6 +215,7 @@ fun BoxScope.MinecraftHotbar(
                         slotCount = hotbarList.size,
                         hotbarSize = hotbarSize,
                         density = density,
+                        rule = rule,
                         longClickDelay = AllSettings.hotbarLongClickDelay.state.toLong(),
                         onClick = { index ->
                             val keycode = calculateSlotKeycode(index)
@@ -264,6 +268,7 @@ private fun Modifier.mainTouchLogic(
     slotCount: Int,
     hotbarSize: DpSize,
     density: Density,
+    rule: HotbarRule,
     longClickDelay: Long,
     enableDoubleClick: Boolean,
     enableLongClick: Boolean,
@@ -273,7 +278,7 @@ private fun Modifier.mainTouchLogic(
     onOccupiedPointer: (PointerId) -> Unit,
     onReleasePointer: (PointerId) -> Unit
 ): Modifier = this.pointerInput(
-    slotCount, hotbarSize, density, longClickDelay, enableDoubleClick, enableLongClick
+    slotCount, hotbarSize, density, rule, longClickDelay, enableDoubleClick, enableLongClick
 ) {
     val touchSlop = viewConfiguration.touchSlop
     val doubleTapTimeout = viewConfiguration.doubleTapTimeoutMillis
@@ -301,7 +306,7 @@ private fun Modifier.mainTouchLogic(
                             }
 
                             val x = change.position.x
-                            val slotIndex = calculateSlotIndex(x, hotbarSize, slotCount, density)
+                            val slotIndex = calculateSlotIndex(x, hotbarSize, slotCount, density, rule)
                             //碰到就视为点击，避免后续逻辑临时切物品栏导致游戏状态不同步
                             onClick(slotIndex)
 
@@ -335,7 +340,7 @@ private fun Modifier.mainTouchLogic(
                         change.pressed && change.previousPressed -> {
                             val state = states[pointerId] ?: return@forEach
                             //滑动时实时计算并更新当前槽位
-                            state.currentSlotIndex = calculateSlotIndex(change.position.x, hotbarSize, slotCount, density)
+                            state.currentSlotIndex = calculateSlotIndex(change.position.x, hotbarSize, slotCount, density, rule)
 
                             if (enableLongClick) {
                                 val distance = (change.position - state.initialPosition).getDistance()
@@ -403,21 +408,27 @@ private fun Modifier.mainTouchLogic(
     }
 }
 
-private fun getMCGuiScale(width: Int, height: Int): Int {
-    val guiScale = MCOptions.get("guiScale")?.toIntOrNull() ?: 4
-    val scale = minOf(width / 320, height / 240).coerceAtLeast(1)
-    return if (scale < guiScale || guiScale == 0) scale else guiScale
-}
-
 private fun calculateSlotIndex(
     x: Float,
     hotbarSize: DpSize,
     slotCount: Int,
-    density: Density
+    density: Density,
+    rule: HotbarRule
 ): Int {
     val totalWidth = with(density) { hotbarSize.width.toPx() }
-    val slotWidth = totalWidth / slotCount
-    return (x / slotWidth).toInt().coerceIn(0, slotCount - 1)
+    if (totalWidth <= 0f) return 0
+    return when (rule) {
+        HotbarRule.Auto -> {
+            // Minecraft 原生快捷栏规范：总宽 182 GUI 像素（1px 边框 + 9 个 20px 槽位 + 1px 边框）
+            // 无论画面缩放比例如何，槽位在判定箱内的相对几何比例固定不变
+            val guiX = (x / totalWidth) * 182f
+            ((guiX - 1f) / 20f).toInt().coerceIn(0, slotCount - 1)
+        }
+        HotbarRule.Custom -> {
+            val slotWidth = totalWidth / slotCount
+            (x / slotWidth).toInt().coerceIn(0, slotCount - 1)
+        }
+    }
 }
 
 private fun calculateSlotKeycode(

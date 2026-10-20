@@ -577,7 +577,7 @@ private fun VersionItemLayout(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_link),
-                        contentDescription = "Wiki"
+                        contentDescription = stringResource(R.string.download_assets_wiki_link)
                     )
                 }
             }

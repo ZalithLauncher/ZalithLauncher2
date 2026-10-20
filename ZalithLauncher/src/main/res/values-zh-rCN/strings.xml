@@ -56,6 +56,8 @@
     <string name="generic_all">全部</string>
     <string name="generic_enabled">已启用</string>
     <string name="generic_disabled">已禁用</string>
+    <string name="generic_expanded">已展开</string>
+    <string name="generic_collapsed">已收起</string>
     <string name="generic_unspecified">未指定</string>
     <string name="generic_save">保存</string>
     <string name="generic_saved">已保存</string>
@@ -1278,6 +1280,7 @@
     <string name="control_editor_exit_message">您确定要直接退出吗，这会导致您的任何更改都无法被保存。若需要保存，请检查编辑器菜单。</string>
     <string name="control_editor_exit_confirm">直接退出</string>
     <!--  关于  -->
+    <string name="about_license">许可证</string>
     <string name="about_launcher_title">关于启动器</string>
     <string name="about_launcher_version">启动器版本：%s</string>
     <string name="about_launcher_author_movtery_title">墨北MovTery</string>

@@ -25,6 +25,8 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -33,6 +35,7 @@ import androidx.compose.runtime.NonRestartableComposable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -80,19 +83,25 @@ fun <E: Enum<E>> EnumSettingsCard(
             FlowRow(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .selectableGroup()
                     .animateContentSize(animationSpec = getAnimateTween()),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 maxItemsInEachRow = maxItemsInEachRow
             ) {
                 entries.forEach { enum ->
-                    Row {
+                    Row(
+                        modifier = Modifier.selectable(
+                            selected = value == enum,
+                            enabled = getRadioEnable(enum),
+                            role = Role.RadioButton,
+                            onClick = { onRadioClick(enum) }
+                        )
+                    ) {
                         val radioText = getRadioText(enum)
                         RadioButton(
                             enabled = getRadioEnable(enum),
                             selected = value == enum,
-                            onClick = {
-                                onRadioClick(enum)
-                            }
+                            onClick = null
                         )
                         Text(
                             text = radioText,

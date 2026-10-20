@@ -56,6 +56,8 @@
     <string name="generic_all">All</string>
     <string name="generic_enabled">Enabled</string>
     <string name="generic_disabled">Disabled</string>
+    <string name="generic_expanded">Expanded</string>
+    <string name="generic_collapsed">Collapsed</string>
     <string name="generic_unspecified">Unspecified</string>
     <string name="generic_save">Save</string>
     <string name="generic_saved">Saved</string>
@@ -1279,6 +1281,7 @@
     <string name="control_editor_exit_message">Are you sure you want to exit directly? This will cause any changes to be unsaved. If you need to save, please check the editor menu.</string>
     <string name="control_editor_exit_confirm">Exit Directly</string>
     <!-- About -->
+    <string name="about_license">License</string>
     <string name="about_launcher_title">About Launcher</string>
     <string name="about_launcher_version">Launcher Version: %s</string>
     <string name="about_launcher_author_movtery_title">MovTery</string>

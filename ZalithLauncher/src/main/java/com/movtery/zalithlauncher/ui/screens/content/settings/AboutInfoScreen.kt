@@ -345,7 +345,7 @@ private fun LinkIconItem(
                         Icon(
                             modifier = Modifier.size(22.dp),
                             painter = painterResource(R.drawable.ic_copyright_outlined),
-                            contentDescription = "License"
+                            contentDescription = stringResource(R.string.about_license)
                         )
                     }
                 }

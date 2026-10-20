@@ -49,6 +49,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -101,10 +103,14 @@ private fun <E> BaseListSettingsCard(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
+                val expandStateDescription = stringResource(
+                    if (expanded) R.string.generic_expanded else R.string.generic_collapsed
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable(enabled = enabled) { onExpandChange(!expanded) }
+                        .semantics { stateDescription = expandStateDescription }
                         .padding(all = 16.dp)
                 ) {
                     Column(

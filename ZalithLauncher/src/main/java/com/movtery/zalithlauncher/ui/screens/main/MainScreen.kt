@@ -65,6 +65,9 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
@@ -389,10 +392,17 @@ private fun <E: TitledNavKey> TopBar(
                         targetOffsetY = { -50 }
                     ) + fadeOut()
                 ) {
+                    val taskMenuState = stringResource(
+                        if (isTasksExpanded) R.string.generic_expanded else R.string.generic_collapsed
+                    )
                     Row(
                         modifier = Modifier
                             .clip(shape = MaterialTheme.shapes.large)
                             .clickable { changeExpandedState() }
+                            .semantics {
+                                role = Role.Button
+                                stateDescription = taskMenuState
+                            }
                             .padding(all = 8.dp)
                             .width(120.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),

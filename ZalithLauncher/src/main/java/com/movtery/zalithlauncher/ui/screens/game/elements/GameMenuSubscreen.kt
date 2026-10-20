@@ -86,19 +86,23 @@ import com.movtery.zalithlauncher.utils.ensureCustomResolutionInitialized
 import com.movtery.zalithlauncher.utils.getRealScreenSize
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 
-private data class IconTab(val iconRes: Int, val iconSize: Dp = 18.dp)
+private data class IconTab(
+    val iconRes: Int,
+    val titleRes: Int,
+    val iconSize: Dp = 18.dp
+)
 
 private val controlTabs = listOf(
     //概览
-    IconTab(R.drawable.ic_dashboard_filled),
+    IconTab(R.drawable.ic_dashboard_filled, R.string.game_menu_tab_overview),
     //虚拟鼠标设置
-    IconTab(R.drawable.ic_mouse_filled, iconSize = 16.dp),
+    IconTab(R.drawable.ic_mouse_filled, R.string.game_menu_tab_mouse, iconSize = 16.dp),
     //手柄设置
-    IconTab(R.drawable.ic_sports_esports_filled),
+    IconTab(R.drawable.ic_sports_esports_filled, R.string.game_menu_tab_gamepad),
     //手势控制设置
-    IconTab(R.drawable.ic_touch_app_filled),
+    IconTab(R.drawable.ic_touch_app_filled, R.string.game_menu_tab_gesture),
     //陀螺仪设置
-    IconTab(R.drawable.ic_mobile_rotate_filled)
+    IconTab(R.drawable.ic_mobile_rotate_filled, R.string.game_menu_tab_gyroscope)
 )
 
 @Composable
@@ -147,7 +151,7 @@ fun GameMenuSubscreen(
                                 Icon(
                                     modifier = Modifier.size(iconTab.iconSize),
                                     painter = painterResource(iconTab.iconRes),
-                                    contentDescription = null
+                                    contentDescription = stringResource(iconTab.titleRes)
                                 )
                             }
                         )

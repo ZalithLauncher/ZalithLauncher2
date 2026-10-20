@@ -415,6 +415,11 @@
     <string name="version_summary_fools_creaft_mine">现在你可以合成任何东西，甚至合成整个世界！</string>
     <string name="version_summary_fools_herd_craft">别整理背包了，你的物品和方块想跟你一起浪！</string>
     <!--  启动游戏  -->
+    <string name="game_menu_tab_overview">概览</string>
+    <string name="game_menu_tab_mouse">虚拟鼠标</string>
+    <string name="game_menu_tab_gamepad">手柄</string>
+    <string name="game_menu_tab_gesture">手势控制</string>
+    <string name="game_menu_tab_gyroscope">陀螺仪</string>
     <string name="game_launch_no_version">未选择游戏版本！</string>
     <string name="game_launch_no_account">未登录游戏账号！</string>
     <string name="game_auto_pick_runtime_failed">未找到合适的运行环境，已设置为当前版本选择的运行环境。</string>

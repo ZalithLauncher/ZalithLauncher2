@@ -415,6 +415,11 @@
     <string name="version_summary_fools_creaft_mine">Now you can craft anything—even an entire world!</string>
     <string name="version_summary_fools_herd_craft">Stop organizing your inventory—your items and blocks want to run wild with you!</string>
     <!-- Game Launch -->
+    <string name="game_menu_tab_overview">Overview</string>
+    <string name="game_menu_tab_mouse">Virtual mouse</string>
+    <string name="game_menu_tab_gamepad">Gamepad</string>
+    <string name="game_menu_tab_gesture">Touch gestures</string>
+    <string name="game_menu_tab_gyroscope">Gyroscope</string>
     <string name="game_launch_no_version">No game version selected!</string>
     <string name="game_launch_no_account">No account logged in!</string>
     <string name="game_auto_pick_runtime_failed">No compatible runtime found. Using selected version\'s runtime.</string>

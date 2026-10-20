@@ -57,6 +57,7 @@
     <string name="generic_enabled">已启用</string>
     <string name="generic_disabled">已禁用</string>
     <string name="generic_expanded">已展开</string>
+    <string name="generic_edit_value">编辑数值</string>
     <string name="generic_collapsed">已收起</string>
     <string name="generic_unspecified">未指定</string>
     <string name="generic_save">保存</string>

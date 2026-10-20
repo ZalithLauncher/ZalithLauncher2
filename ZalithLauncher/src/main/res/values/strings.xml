@@ -57,6 +57,7 @@
     <string name="generic_enabled">Enabled</string>
     <string name="generic_disabled">Disabled</string>
     <string name="generic_expanded">Expanded</string>
+    <string name="generic_edit_value">Edit value</string>
     <string name="generic_collapsed">Collapsed</string>
     <string name="generic_unspecified">Unspecified</string>
     <string name="generic_save">Save</string>

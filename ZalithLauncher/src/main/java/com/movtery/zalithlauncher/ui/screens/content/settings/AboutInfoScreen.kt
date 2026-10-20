@@ -547,7 +547,7 @@ private fun LibraryInfoItem(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_link),
-                    contentDescription = null
+                    contentDescription = stringResource(R.string.generic_open_link)
                 )
             }
         }

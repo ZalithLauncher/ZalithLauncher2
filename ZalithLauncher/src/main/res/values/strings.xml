@@ -19,6 +19,15 @@
     <string name="generic_main_menu">Main Menu</string>
     <string name="generic_download">Download</string>
     <string name="generic_done">Done</string>
+    <string name="generic_rotate_screen">Rotate screen</string>
+    <string name="generic_select_all">Select all</string>
+    <string name="generic_deselect_all">Deselect all</string>
+    <string name="generic_update">Update</string>
+    <string name="generic_toggle_sort_order">Toggle sort order</string>
+    <string name="generic_search_previous">Previous match</string>
+    <string name="generic_search_next">Next match</string>
+    <string name="generic_auto_scroll">Auto scroll</string>
+    <string name="generic_scroll_to_bottom">Scroll to bottom</string>
     <string name="generic_close">Close</string>
     <string name="generic_clear">Clear</string>
     <string name="generic_import">Import</string>

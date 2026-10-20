@@ -19,6 +19,15 @@
     <string name="generic_main_menu">主菜单</string>
     <string name="generic_download">下载</string>
     <string name="generic_done">完成</string>
+    <string name="generic_rotate_screen">旋转屏幕</string>
+    <string name="generic_select_all">全选</string>
+    <string name="generic_deselect_all">取消全选</string>
+    <string name="generic_update">更新</string>
+    <string name="generic_toggle_sort_order">切换排序顺序</string>
+    <string name="generic_search_previous">上一个匹配</string>
+    <string name="generic_search_next">下一个匹配</string>
+    <string name="generic_auto_scroll">自动滚动</string>
+    <string name="generic_scroll_to_bottom">滚动到底部</string>
     <string name="generic_close">关闭</string>
     <string name="generic_clear">清除</string>
     <string name="generic_import">导入</string>

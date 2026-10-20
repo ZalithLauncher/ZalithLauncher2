@@ -412,7 +412,7 @@ private fun <E: TitledNavKey> TopBar(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_folder_filled),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.fm_activity_name)
                     )
                 }
 

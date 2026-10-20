@@ -47,6 +47,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
@@ -211,7 +214,7 @@ fun LogBox(
                         Icon(
                             modifier = Modifier.size(18.dp),
                             painter = painterResource(R.drawable.ic_close),
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.generic_close)
                         )
                     }
                     //清理
@@ -227,7 +230,7 @@ fun LogBox(
                         Icon(
                             modifier = Modifier.size(18.dp),
                             painter = painterResource(R.drawable.ic_delete_outlined),
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.generic_clear)
                         )
                     }
                     //自动滚动
@@ -244,7 +247,7 @@ fun LogBox(
                         Icon(
                             modifier = Modifier.size(18.dp),
                             painter = painterResource(R.drawable.ic_list_down),
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.generic_auto_scroll)
                         )
                     }
                     //滚动到底部
@@ -257,7 +260,7 @@ fun LogBox(
                         Icon(
                             modifier = Modifier.size(18.dp),
                             painter = painterResource(R.drawable.ic_arrow_cool_down),
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.generic_scroll_to_bottom)
                         )
                     }
                 }
@@ -272,7 +275,10 @@ private fun LogBoxIconButton(
     toggle: Boolean,
     icon: @Composable (() -> Unit)
 ) {
+    // TalkBack cannot see the highlight that marks a toggled button, so say it out loud
+    val toggleState = if (toggle) stringResource(R.string.generic_enabled) else stringResource(R.string.generic_disabled)
     IconButton(
+        modifier = Modifier.semantics { stateDescription = toggleState },
         onClick = onClick,
         colors = IconButtonDefaults.iconButtonColors(
             containerColor = if (toggle) {

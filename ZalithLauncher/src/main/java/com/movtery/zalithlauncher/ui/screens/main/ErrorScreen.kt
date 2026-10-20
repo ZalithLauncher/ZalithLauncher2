@@ -158,7 +158,7 @@ private fun ErrorScreenLandscape(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_fullscreen_exit),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.generic_rotate_screen)
                     )
                 }
             }
@@ -238,7 +238,7 @@ private fun ErrorScreenPortrait(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_mobile_rotate_filled),
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.generic_rotate_screen)
                         )
                     }
 

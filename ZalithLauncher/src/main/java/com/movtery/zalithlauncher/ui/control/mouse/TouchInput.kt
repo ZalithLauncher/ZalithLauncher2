@@ -49,8 +49,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
+import com.movtery.zalithlauncher.bridge.CURSOR_ENABLED
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
+import com.movtery.zalithlauncher.setting.enums.MouseTouchBlockMode
 import com.movtery.zalithlauncher.ui.components.FocusableBox
 import com.movtery.zalithlauncher.ui.control.input.TouchCharInput
 import kotlinx.coroutines.Job
@@ -86,6 +89,27 @@ fun rememberTextInputActive(): Boolean {
  * 判定双指同时按下的最大时间间隔（ms）
  */
 private const val SCROLL_GESTURE_DOWN_WINDOW_MILLIS = 200L
+
+/**
+ * 判断触摸按下位置是否落在被阻止的半屏内
+ */
+private fun isHalfScreenBlocked(
+    mode: MouseTouchBlockMode,
+    cursorMode: CursorMode,
+    position: Offset,
+    layoutWidth: Int
+): Boolean {
+    // 仅鼠标抓获时生效
+    if (cursorMode != CURSOR_DISABLED) return false
+    if (layoutWidth <= 0) return false
+
+    val halfWidth = layoutWidth / 2f
+    return when (mode) {
+        MouseTouchBlockMode.NONE -> false
+        MouseTouchBlockMode.LEFT -> position.x < halfWidth
+        MouseTouchBlockMode.RIGHT -> position.x >= halfWidth
+    }
+}
 /**
  * 双指滑动滚动时，滑动该距离对应滚动一次滚轮
  */
@@ -94,6 +118,8 @@ private val SCROLL_GESTURE_SCROLL_DISTANCE = 6.dp
 /**
  * 原始触摸控制模拟层
  * @param controlMode               控制模式：SLIDE（滑动控制）、CLICK（点击控制）
+ * @param touchBlockMode            半屏触摸阻止模式，被阻止半屏内开始的触摸不参与虚拟鼠标处理（仅指针被游戏抓取时生效）
+ * @param cursorMode                当前指针抓取模式
  * @param enableMouseClick          是否开启虚拟鼠标点击操作（仅适用于滑动控制）
  * @param longPressTimeoutMillis    长按触发检测时长
  * @param requestPointerCapture     是否使用鼠标抓取方案
@@ -118,6 +144,8 @@ private val SCROLL_GESTURE_SCROLL_DISTANCE = 6.dp
 fun TouchpadLayout(
     modifier: Modifier = Modifier,
     controlMode: MouseControlMode = MouseControlMode.SLIDE,
+    touchBlockMode: MouseTouchBlockMode = MouseTouchBlockMode.NONE,
+    cursorMode: CursorMode = CURSOR_ENABLED,
     enableMouseClick: Boolean = true,
     longPressTimeoutMillis: Long = -1L,
     requestPointerCapture: Boolean = true,
@@ -146,6 +174,8 @@ fun TouchpadLayout(
     //确保 pointerInput 中总是调用到最新的回调，避免闭包捕获旧值
     val currentOnTouch by rememberUpdatedState(onTouch)
     val currentControlMode by rememberUpdatedState(controlMode)
+    val currentTouchBlockMode by rememberUpdatedState(touchBlockMode)
+    val currentCursorMode by rememberUpdatedState(cursorMode)
     val currentEnableMouseClick by rememberUpdatedState(enableMouseClick)
     val currentLongPressTimeoutMillis by rememberUpdatedState(longPressTimeoutMillis)
     val currentOnTap by rememberUpdatedState(onTap)
@@ -207,6 +237,10 @@ fun TouchpadLayout(
                                     .filter { it.changedToDown() }
                                     .forEach { change ->
                                         if (change.type != PointerType.Touch) {
+                                            return@forEach
+                                        }
+
+                                        if (isHalfScreenBlocked(currentTouchBlockMode, currentCursorMode, change.position, size.width)) {
                                             return@forEach
                                         }
 

@@ -978,6 +978,10 @@
     <string name="settings_control_mouse_control_mode_summary">Choose the virtual mouse control method: swipe the screen to move the cursor, or tap the screen to specify the cursor position</string>
     <string name="settings_control_mouse_control_mode_slide">Swipe Control</string>
     <string name="settings_control_mouse_control_mode_click">Tap Control</string>
+    <string name="settings_control_mouse_block_touch_title">Block Virtual Mouse Touch Input</string>
+    <string name="settings_control_mouse_block_touch_summary">Choose whether to block virtual mouse touches on half of the screen to prevent accidental input</string>
+    <string name="settings_control_mouse_block_touch_left">Block Left Half</string>
+    <string name="settings_control_mouse_block_touch_right">Block Right Half</string>
     <string name="settings_control_mouse_enable_click_title">Touchpad Mode</string>
     <string name="settings_control_mouse_enable_click_summary">Tapping the screen is treated as a left mouse click, long press as a left click hold; this setting does not affect physical mouse control or tap control</string>
     <string name="settings_control_mouse_pointer_arrow_title">Virtual Mouse Pointer (Default)</string>

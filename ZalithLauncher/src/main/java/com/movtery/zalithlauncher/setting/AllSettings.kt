@@ -37,6 +37,7 @@ import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
 import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
+import com.movtery.zalithlauncher.setting.enums.MouseTouchBlockMode
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import com.movtery.zalithlauncher.ui.control.HotbarRule
 import com.movtery.zalithlauncher.ui.control.gamepad.JoystickMode
@@ -244,6 +245,11 @@ object AllSettings : SettingsRegistry() {
      * 虚拟鼠标控制模式
      */
     val mouseControlMode = enumSetting("mouseControlMode", MouseControlMode.SLIDE)
+
+    /**
+     * 阻止半屏触摸虚拟鼠标
+     */
+    val mouseTouchBlockMode = enumSetting("mouseTouchBlockMode", MouseTouchBlockMode.NONE)
 
     /**
      * 鼠标控制长按延迟

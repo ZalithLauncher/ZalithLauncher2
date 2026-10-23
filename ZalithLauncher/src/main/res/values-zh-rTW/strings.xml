@@ -881,6 +881,10 @@
     <string name="settings_control_mouse_control_mode_summary">選擇虛擬滑鼠的操作方式：滑動螢幕移動游標，或點擊螢幕指定位置</string>
     <string name="settings_control_mouse_control_mode_slide">滑動控制</string>
     <string name="settings_control_mouse_control_mode_click">點擊控制</string>
+    <string name="settings_control_mouse_block_touch_title">阻止觸控虛擬滑鼠輸入</string>
+    <string name="settings_control_mouse_block_touch_summary">選擇是否阻止半屏虛擬滑鼠觸控，以避免誤觸操作</string>
+    <string name="settings_control_mouse_block_touch_left">阻止左半屏</string>
+    <string name="settings_control_mouse_block_touch_right">阻止右半屏</string>
     <string name="settings_control_mouse_enable_click_title">觸控板式操作</string>
     <string name="settings_control_mouse_enable_click_summary">點擊螢幕視為滑鼠左鍵，長按視為長按左鍵操作；此設定不會影響實體滑鼠控制或點擊控制</string>
     <string name="settings_control_mouse_pointer_arrow_title">虛擬滑鼠指標（預設）</string>

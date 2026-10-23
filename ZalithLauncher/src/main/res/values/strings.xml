@@ -19,6 +19,15 @@
     <string name="generic_main_menu">Main Menu</string>
     <string name="generic_download">Download</string>
     <string name="generic_done">Done</string>
+    <string name="generic_rotate_screen">Rotate screen</string>
+    <string name="generic_select_all">Select all</string>
+    <string name="generic_deselect_all">Deselect all</string>
+    <string name="generic_update">Update</string>
+    <string name="generic_toggle_sort_order">Toggle sort order</string>
+    <string name="generic_search_previous">Previous match</string>
+    <string name="generic_search_next">Next match</string>
+    <string name="generic_auto_scroll">Auto scroll</string>
+    <string name="generic_scroll_to_bottom">Scroll to bottom</string>
     <string name="generic_close">Close</string>
     <string name="generic_clear">Clear</string>
     <string name="generic_import">Import</string>
@@ -47,6 +56,9 @@
     <string name="generic_all">All</string>
     <string name="generic_enabled">Enabled</string>
     <string name="generic_disabled">Disabled</string>
+    <string name="generic_expanded">Expanded</string>
+    <string name="generic_edit_value">Edit value</string>
+    <string name="generic_collapsed">Collapsed</string>
     <string name="generic_unspecified">Unspecified</string>
     <string name="generic_save">Save</string>
     <string name="generic_saved">Saved</string>
@@ -403,6 +415,11 @@
     <string name="version_summary_fools_creaft_mine">Now you can craft anything—even an entire world!</string>
     <string name="version_summary_fools_herd_craft">Stop organizing your inventory—your items and blocks want to run wild with you!</string>
     <!-- Game Launch -->
+    <string name="game_menu_tab_overview">Overview</string>
+    <string name="game_menu_tab_mouse">Virtual mouse</string>
+    <string name="game_menu_tab_gamepad">Gamepad</string>
+    <string name="game_menu_tab_gesture">Touch gestures</string>
+    <string name="game_menu_tab_gyroscope">Gyroscope</string>
     <string name="game_launch_no_version">No game version selected!</string>
     <string name="game_launch_no_account">No account logged in!</string>
     <string name="game_auto_pick_runtime_failed">No compatible runtime found. Using selected version\'s runtime.</string>
@@ -1268,6 +1285,7 @@
     <string name="control_editor_exit_message">Are you sure you want to exit directly? This will cause any changes to be unsaved. If you need to save, please check the editor menu.</string>
     <string name="control_editor_exit_confirm">Exit Directly</string>
     <!-- About -->
+    <string name="about_license">License</string>
     <string name="about_launcher_title">About Launcher</string>
     <string name="about_launcher_version">Launcher Version: %s</string>
     <string name="about_launcher_author_movtery_title">MovTery</string>

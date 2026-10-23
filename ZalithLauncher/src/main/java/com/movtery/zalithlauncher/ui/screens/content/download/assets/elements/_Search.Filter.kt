@@ -70,6 +70,8 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -553,9 +555,13 @@ private fun FilterHeader(
     onExpandToggle: () -> Unit,
     onClear: () -> Unit
 ) {
+    val expandStateDescription = stringResource(
+        if (expanded) R.string.generic_expanded else R.string.generic_collapsed
+    )
     Row(
         modifier = Modifier
             .clickable(onClick = onExpandToggle)
+            .semantics { stateDescription = expandStateDescription }
             .padding(vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

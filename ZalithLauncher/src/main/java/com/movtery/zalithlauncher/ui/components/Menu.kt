@@ -600,7 +600,10 @@ fun MenuSliderLayout(
                     style = MaterialTheme.typography.titleSmall
                 )
                 Text(
-                    modifier = Modifier.clickable(enabled = enabled) {
+                    modifier = Modifier.clickable(
+                        enabled = enabled,
+                        onClickLabel = stringResource(R.string.generic_edit_value)
+                    ) {
                         showInputDialog = true
                     },
                     text = "$value${suffix ?: ""}",
@@ -683,7 +686,10 @@ fun MenuSliderLayout(
                     style = MaterialTheme.typography.titleSmall
                 )
                 Text(
-                    modifier = Modifier.clickable(enabled = enabled) {
+                    modifier = Modifier.clickable(
+                        enabled = enabled,
+                        onClickLabel = stringResource(R.string.generic_edit_value)
+                    ) {
                         showInputDialog = true
                     },
                     text = getTextString(value),

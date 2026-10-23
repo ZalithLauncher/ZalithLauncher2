@@ -496,7 +496,7 @@ private fun ResourcePackHeader(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_delete_outlined),
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.generic_delete)
                             )
                         }
 
@@ -505,7 +505,7 @@ private fun ResourcePackHeader(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_select_all),
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.generic_select_all)
                             )
                         }
 
@@ -516,7 +516,7 @@ private fun ResourcePackHeader(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_deselect),
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.generic_deselect_all)
                             )
                         }
 

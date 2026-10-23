@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
@@ -139,7 +140,11 @@ fun SimpleTextSlider(
                     modifier = Modifier
                         .then(
                             if (onTextClick != null) {
-                                Modifier.clickable(enabled = enabled, onClick = onTextClick)
+                                Modifier.clickable(
+                                    enabled = enabled,
+                                    onClickLabel = stringResource(R.string.generic_edit_value),
+                                    onClick = onTextClick
+                                )
                             } else Modifier
                         )
                 ) {

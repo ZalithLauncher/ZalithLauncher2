@@ -704,7 +704,7 @@ private fun EditorSearchBar(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_arrow_upward),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.generic_search_previous)
                     )
                 }
 
@@ -715,7 +715,7 @@ private fun EditorSearchBar(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_arrow_downward),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.generic_search_next)
                     )
                 }
 
@@ -725,7 +725,7 @@ private fun EditorSearchBar(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_close),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.generic_close)
                     )
                 }
             }
@@ -748,7 +748,7 @@ private fun EditorSearchBar(
                                 R.drawable.ic_keyboard_arrow_right
                             }
                         ),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.fm_editor_replace)
                     )
                 }
 

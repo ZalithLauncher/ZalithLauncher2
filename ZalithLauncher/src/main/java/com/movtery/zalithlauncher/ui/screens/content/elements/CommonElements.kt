@@ -189,7 +189,7 @@ fun SortByDropdownMenu(
                             Icon(
                                 modifier = Modifier.rotate(rotation),
                                 painter = painterResource(R.drawable.ic_keyboard_double_arrow_up),
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.generic_toggle_sort_order)
                             )
                         }
                     }

@@ -666,17 +666,17 @@ private fun ScreenshotHeader(
                         IconButton(onClick = onDeleteAll) {
                             Icon(
                                 painterResource(R.drawable.ic_delete_outlined),
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.generic_delete)
                             )
                         }
                         IconButton(onClick = onSelectAll) {
                             Icon(
                                 painterResource(R.drawable.ic_select_all),
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.generic_select_all)
                             )
                         }
                         IconButton(onClick = { if (isFilesSelected) onClearFilesSelected() }) {
-                            Icon(painterResource(R.drawable.ic_deselect), contentDescription = null)
+                            Icon(painterResource(R.drawable.ic_deselect), contentDescription = stringResource(R.string.generic_deselect_all))
                         }
                         Spacer(modifier = Modifier.width(6.dp))
                         VerticalDivider(

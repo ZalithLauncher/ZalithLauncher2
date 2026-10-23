@@ -127,12 +127,12 @@ fun FmAppBar(
                 if (isLandscape) {
                     Icon(
                         painter = painterResource(R.drawable.ic_fullscreen_exit),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.generic_rotate_screen)
                     )
                 } else {
                     Icon(
                         painter = painterResource(R.drawable.ic_mobile_rotate_filled),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.generic_rotate_screen)
                     )
                 }
             }

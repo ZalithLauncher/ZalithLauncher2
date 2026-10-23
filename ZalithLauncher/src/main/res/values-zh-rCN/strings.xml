@@ -19,6 +19,15 @@
     <string name="generic_main_menu">主菜单</string>
     <string name="generic_download">下载</string>
     <string name="generic_done">完成</string>
+    <string name="generic_rotate_screen">旋转屏幕</string>
+    <string name="generic_select_all">全选</string>
+    <string name="generic_deselect_all">取消全选</string>
+    <string name="generic_update">更新</string>
+    <string name="generic_toggle_sort_order">切换排序顺序</string>
+    <string name="generic_search_previous">上一个匹配</string>
+    <string name="generic_search_next">下一个匹配</string>
+    <string name="generic_auto_scroll">自动滚动</string>
+    <string name="generic_scroll_to_bottom">滚动到底部</string>
     <string name="generic_close">关闭</string>
     <string name="generic_clear">清除</string>
     <string name="generic_import">导入</string>
@@ -47,6 +56,9 @@
     <string name="generic_all">全部</string>
     <string name="generic_enabled">已启用</string>
     <string name="generic_disabled">已禁用</string>
+    <string name="generic_expanded">已展开</string>
+    <string name="generic_edit_value">编辑数值</string>
+    <string name="generic_collapsed">已收起</string>
     <string name="generic_unspecified">未指定</string>
     <string name="generic_save">保存</string>
     <string name="generic_saved">已保存</string>
@@ -403,6 +415,11 @@
     <string name="version_summary_fools_creaft_mine">现在你可以合成任何东西，甚至合成整个世界！</string>
     <string name="version_summary_fools_herd_craft">别整理背包了，你的物品和方块想跟你一起浪！</string>
     <!--  启动游戏  -->
+    <string name="game_menu_tab_overview">概览</string>
+    <string name="game_menu_tab_mouse">虚拟鼠标</string>
+    <string name="game_menu_tab_gamepad">手柄</string>
+    <string name="game_menu_tab_gesture">手势控制</string>
+    <string name="game_menu_tab_gyroscope">陀螺仪</string>
     <string name="game_launch_no_version">未选择游戏版本！</string>
     <string name="game_launch_no_account">未登录游戏账号！</string>
     <string name="game_auto_pick_runtime_failed">未找到合适的运行环境，已设置为当前版本选择的运行环境。</string>
@@ -1267,6 +1284,7 @@
     <string name="control_editor_exit_message">您确定要直接退出吗，这会导致您的任何更改都无法被保存。若需要保存，请检查编辑器菜单。</string>
     <string name="control_editor_exit_confirm">直接退出</string>
     <!--  关于  -->
+    <string name="about_license">许可证</string>
     <string name="about_launcher_title">关于启动器</string>
     <string name="about_launcher_version">启动器版本：%s</string>
     <string name="about_launcher_author_movtery_title">墨北MovTery</string>

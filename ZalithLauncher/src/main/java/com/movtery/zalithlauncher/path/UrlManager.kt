@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.path
 import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.utils.network.ResilientDns
+import com.movtery.zalithlauncher.utils.network.TLSSecurity
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
@@ -113,6 +114,17 @@ val GLOBAL_JSON = Json {
     coerceInputValues = true
 }
 
+/**
+ * Coil 图片加载使用的 Ktor 客户端
+ */
+val IMAGE_LOADER_CLIENT: HttpClient by lazy {
+    HttpClient(OkHttp) {
+        engine {
+            preconfigured = createOkHttpClientBuilder().build()
+        }
+    }
+}
+
 val GLOBAL_CLIENT = HttpClient(OkHttp) {
     install(HttpTimeout) {
         requestTimeoutMillis = TIME_OUT
@@ -156,6 +168,7 @@ fun createRequestBuilder(url: String, body: RequestBody?): Request.Builder {
 fun createOkHttpClientBuilder(action: (OkHttpClient.Builder) -> Unit = { }): OkHttpClient.Builder {
     return OkHttpClient.Builder()
         .dns(ResilientDns) //系统 DNS 解析失败时，自动回退到 DoH 解析
+        .sslSocketFactory(TLSSecurity.sslSocketFactory, TLSSecurity.trustManager)
         .protocols(listOf(Protocol.HTTP_1_1))
         .callTimeout(TIME_OUT, TimeUnit.MILLISECONDS)
         .addInterceptor(CURSEFORGE_INTERCEPTOR)
@@ -182,6 +195,7 @@ private fun buildDownloadClient(
 ): OkHttpClient {
     return OkHttpClient.Builder()
         .dns(ResilientDns) //系统 DNS 解析失败时，自动回退到 DoH 解析
+        .sslSocketFactory(TLSSecurity.sslSocketFactory, TLSSecurity.trustManager)
         .apply { allowedProtocols?.let { protocols(it) } } //不指定时默认协商 h2：单条多路复用连接承载海量小请求
         .connectionPool(ConnectionPool(64, 5, TimeUnit.MINUTES))
         .connectTimeout(15, TimeUnit.SECONDS)

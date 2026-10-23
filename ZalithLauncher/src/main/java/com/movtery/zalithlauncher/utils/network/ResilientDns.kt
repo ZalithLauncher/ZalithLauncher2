@@ -53,6 +53,7 @@ object ResilientDns : Dns {
         OkHttpClient.Builder()
             .connectTimeout(5, TimeUnit.SECONDS)
             .readTimeout(5, TimeUnit.SECONDS)
+            .sslSocketFactory(TLSSecurity.sslSocketFactory, TLSSecurity.trustManager)
             .build()
     }
 

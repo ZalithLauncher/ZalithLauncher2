@@ -114,6 +114,25 @@
     <string name="guide_editor_add_widgets_text">كونترول قەۋىتى تاللانغاندىن كېيىن، ئۇنىڭغا خالىغان تىپتىكى كونترول قوشالايسىز</string>
     <string name="guide_editor_styles_title">كونتروللارنىڭ سىرتقى كۆرۈنۈشىنى ئۆزگەرتمەكچىمۇسىز؟</string>
     <string name="guide_editor_styles_text">كونتروللارغا سىرتقى كۆرۈنۈشلەرنى قۇرالايسىز، بۇ ئارقىلىق تېزلا قايتا ئىشلەتكىلى ۋە ئالماشتۇرغىلى بولىدۇ</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">ئۇسلۇب توپلىمى</string>
+    <string name="control_editor_style_cabinet_empty">ئۇسلۇب توپلىمى قۇرۇق. كونترول سىرتقى كۆرۈنۈش تىزىملىكى ياكى ئۇسلۇب تىزىملىكىدىن ئۇسلۇب قوشالايسىز.</string>
+    <string name="control_editor_style_cabinet_favorite">ئۇسلۇب توپلىمىغا قوشۇش</string>
+    <string name="control_editor_style_cabinet_favorited">ئۇسلۇب توپلىمىغا قوشۇلدى</string>
+    <string name="control_editor_style_cabinet_add_to_layout">ھازىرقى كونترول ئورۇنلاشتۇرۇلۇشىغا قوشۇش</string>
+    <string name="control_editor_style_cabinet_added_to_layout">ھازىرقى كونترول ئورۇنلاشتۇرۇلۇشىغا قوشۇلدى</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">ئۇسلۇب ئاللىبۇرۇن مەۋجۇت</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">ئوخشاش ID دىكى ئۇسلۇب ھازىرقى كونترول ئورۇنلاشتۇرۇلۇشىدا ئاللىبۇرۇن مەۋجۇت.</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">نۇسخا سۈپىتىدە قوشۇش</string>
+    <string name="control_editor_style_cabinet_conflict_title">ئۇسلۇب ئاللىبۇرۇن توپلانغان</string>
+    <string name="control_editor_style_cabinet_conflict_message">ئوخشاش ID دىكى ئۇسلۇب ئۇسلۇب توپلىمىدا ئاللىبۇرۇن بار</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">مەۋجۇدىنى ئالماشتۇرۇش</string>
+    <string name="control_editor_style_cabinet_conflict_independent">ئايرىم نۇسخا سۈپىتىدە ساقلاش</string>
+    <string name="control_editor_style_cabinet_delete">توپلانغان ئۇسلۇب %s نى ئۆچۈرمەكچىمۇسىز؟</string>
+
+    <string name="guide_editor_style_cabinet_title">ياقتۇرغان ئۇسلۇبلىرىڭىزنى ئورتاق توپلامغا قوشالايسىز!</string>
+    <string name="guide_editor_style_cabinet_text">ئۇسلۇب توپلىمى ئومۇمىي بولۇپ، قايسى كونترول ئورۇنلاشتۇرۇلۇشىنى تەھرىرلىسىڭىزمۇ، بۇ يەردىكى ئۇسلۇبلارنى كۆرەلەيسىز~</string>
+    <string name="guide_editor_style_cabinet_note">بۇ يەردىن توپلانغان ئۇسلۇبلارنى ھازىرقى كونترول ئورۇنلاشتۇرۇلۇشىغا قوشۇپ ئىشلىتەلەيسىز~</string>
     <string name="guide_editor_preview">كونترول ئورۇنلاشتۇرۇشىڭىزنى سىناش ئۈچۈن ئالدىن كۆرۈش ئىقتىدارىدىن پايدىلىنىڭ</string>
     <string name="guide_editor_save">تەھرىرلەش تاماملانغاندىن كېيىن، كونترول ئورۇنلاشتۇرۇشىنى ساقلاشنى ئۇنتۇڭ!</string>
     <string name="guide_tip_blank">بوش ئورۇننى چېكىپ كېيىنكى قەدەمگە ئۆتۈڭ</string>

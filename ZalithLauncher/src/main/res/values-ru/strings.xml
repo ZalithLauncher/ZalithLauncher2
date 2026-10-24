@@ -1222,6 +1222,25 @@
     <string name="guide_editor_add_widgets_text">После выбора слоя вы можете добавлять на него элементы управления любого типа</string>
     <string name="guide_editor_styles_title">Хотите изменить внешний вид элементов управления?</string>
     <string name="guide_editor_styles_text">Вы можете создавать варианты оформления для элементов управления, чтобы быстро использовать их повторно и переключаться между ними</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">Коллекция стилей</string>
+    <string name="control_editor_style_cabinet_empty">Коллекция стилей пуста. Добавить стили можно из списка вариантов оформления или списка стилей джойстика.</string>
+    <string name="control_editor_style_cabinet_favorite">Добавить в коллекцию стилей</string>
+    <string name="control_editor_style_cabinet_favorited">Стиль добавлен в коллекцию</string>
+    <string name="control_editor_style_cabinet_add_to_layout">Добавить в текущую раскладку управления</string>
+    <string name="control_editor_style_cabinet_added_to_layout">Добавлено в текущую раскладку управления</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">Стиль уже существует</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">Стиль с таким же ID уже есть в текущей раскладке управления.</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">Добавить как копию</string>
+    <string name="control_editor_style_cabinet_conflict_title">Стиль уже в коллекции</string>
+    <string name="control_editor_style_cabinet_conflict_message">Стиль с таким же ID уже есть в коллекции стилей</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">Перезаписать существующий</string>
+    <string name="control_editor_style_cabinet_conflict_independent">Сохранить как отдельную копию</string>
+    <string name="control_editor_style_cabinet_delete">Вы уверены, что хотите удалить стиль из коллекции %s?</string>
+
+    <string name="guide_editor_style_cabinet_title">Понравившиеся стили можно добавлять в общую коллекцию стилей!</string>
+    <string name="guide_editor_style_cabinet_text">Коллекция стилей общая: при редактировании любой раскладки управления вы всегда увидите стили из неё~</string>
+    <string name="guide_editor_style_cabinet_note">Здесь можно добавить стили из коллекции в текущую раскладку управления~</string>
     <string name="guide_editor_preview">Проверить раскладку можно в режиме предпросмотра.</string>
     <string name="guide_editor_save">Закончив редактирование, не забудьте сохранить раскладку!</string>
     <string name="guide_tip_blank">Коснитесь пустого места, чтобы перейти к следующему шагу</string>

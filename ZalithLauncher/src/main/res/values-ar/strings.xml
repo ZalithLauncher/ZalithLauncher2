@@ -547,6 +547,25 @@
     <string name="guide_editor_add_widgets_text">بعد تحديد طبقة تحكم، يمكنك إضافة أي نوع من عناصر التحكم إليها</string>
     <string name="guide_editor_styles_title">هل تريد تغيير مظهر عناصر التحكم؟</string>
     <string name="guide_editor_styles_text">يمكنك إنشاء مظاهر لعناصر التحكم لإعادة استخدامها والتبديل بينها بسرعة</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">مجموعة الأنماط</string>
+    <string name="control_editor_style_cabinet_empty">مجموعة الأنماط فارغة. يمكنك إضافة الأنماط من قائمة مظهر عناصر التحكم أو قائمة أنماط عصا التحكم.</string>
+    <string name="control_editor_style_cabinet_favorite">إضافة إلى مجموعة الأنماط</string>
+    <string name="control_editor_style_cabinet_favorited">تمت إضافة النمط إلى المجموعة</string>
+    <string name="control_editor_style_cabinet_add_to_layout">إضافة إلى تخطيط التحكم الحالي</string>
+    <string name="control_editor_style_cabinet_added_to_layout">تمت الإضافة إلى تخطيط التحكم الحالي</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">النمط موجود بالفعل</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">يوجد نمط بنفس المعرّف في تخطيط التحكم الحالي.</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">إضافة كنسخة</string>
+    <string name="control_editor_style_cabinet_conflict_title">النمط مضاف إلى المجموعة بالفعل</string>
+    <string name="control_editor_style_cabinet_conflict_message">يوجد نمط بنفس المعرّف في مجموعة الأنماط</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">الكتابة فوق الموجود</string>
+    <string name="control_editor_style_cabinet_conflict_independent">حفظ كنسخة مستقلة</string>
+    <string name="control_editor_style_cabinet_delete">هل تريد بالتأكيد حذف النمط المضاف إلى المجموعة %s؟</string>
+
+    <string name="guide_editor_style_cabinet_title">يمكنك أيضًا إضافة أنماطك المفضلة إلى مجموعة الأنماط المشتركة!</string>
+    <string name="guide_editor_style_cabinet_text">مجموعة الأنماط عامة: مهما كان تخطيط التحكم الذي تحرره، سترى الأنماط الموجودة فيها~</string>
+    <string name="guide_editor_style_cabinet_note">من هنا يمكنك إضافة الأنماط المفضلة إلى تخطيط التحكم الحالي لاستخدامها~</string>
     <string name="guide_editor_preview">استخدم وضع المعاينة لتجربة تخطيط التحكم الخاص بك</string>
     <string name="guide_editor_save">بعد الانتهاء من التحرير، لا تنسَ حفظ تخطيط التحكم!</string>
     <string name="guide_tip_blank">انقر على أي منطقة فارغة للانتقال إلى الخطوة التالية</string>

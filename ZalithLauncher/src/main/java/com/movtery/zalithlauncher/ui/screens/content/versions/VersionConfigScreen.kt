@@ -87,6 +87,7 @@ import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.Toggleable
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.platform.getMaxMemoryForSettings
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
+import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 
 private const val TAG = "VersionConfigScreen"
@@ -338,8 +339,13 @@ private fun VersionConfigs(
         )
 
         val controls by ControlManager.dataList.collectAsStateWithLifecycle()
+        val unspecifiedName = stringResource(R.string.generic_unspecified)
         val controlsIdList = getIDList(controls.filter { it.isSupport }) {
-            IDItem(it.file.name, it.controlLayout.info.name.translate())
+            IDItem(
+                it.file.name,
+                it.controlLayout.info.name.translate()
+                    .takeIf { name -> name.isNotEmptyOrBlank() } ?: unspecifiedName
+            )
         }
         ListSettingsCard(
             modifier = Modifier.fillMaxWidth(),

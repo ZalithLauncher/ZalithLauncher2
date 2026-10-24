@@ -187,6 +187,13 @@ private fun rememberEditorGuides() = rememberGuide {
             Text(stringResource(R.string.guide_editor_styles_text))
         }
     }
+    entry(GuideKeys.Editor.Step.StyleCabinet) {
+        GuideCard {
+            Text(stringResource(R.string.guide_editor_style_cabinet_title))
+            Text(stringResource(R.string.guide_editor_style_cabinet_text))
+            Text(stringResource(R.string.guide_editor_style_cabinet_note))
+        }
+    }
     entry(GuideKeys.Editor.Step.Preview) {
         GuideCard {
             Text(stringResource(R.string.guide_editor_preview))

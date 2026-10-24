@@ -404,6 +404,25 @@
     <string name="guide_editor_add_widgets_text">เมื่อเลือกเลเยอร์การควบคุมแล้ว คุณจะเพิ่มปุ่มควบคุมได้ทุกประเภท</string>
     <string name="guide_editor_styles_title">อยากปรับรูปลักษณ์ของปุ่มควบคุมไหม?</string>
     <string name="guide_editor_styles_text">คุณสามารถสร้างรูปลักษณ์สำหรับปุ่มควบคุมเพื่อนำกลับมาใช้ใหม่และสลับไปมาได้อย่างรวดเร็ว</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">คอลเลกชันสไตล์</string>
+    <string name="control_editor_style_cabinet_empty">คอลเลกชันสไตล์ยังว่างอยู่ คุณสามารถเพิ่มสไตล์ได้จากรายการรูปลักษณ์ปุ่มควบคุมหรือรายการสไตล์จอยสติ๊ก</string>
+    <string name="control_editor_style_cabinet_favorite">เพิ่มไปยังคอลเลกชันสไตล์</string>
+    <string name="control_editor_style_cabinet_favorited">เพิ่มสไตล์ไปยังคอลเลกชันแล้ว</string>
+    <string name="control_editor_style_cabinet_add_to_layout">เพิ่มไปยังเลย์เอาต์ควบคุมปัจจุบัน</string>
+    <string name="control_editor_style_cabinet_added_to_layout">เพิ่มไปยังเลย์เอาต์ควบคุมปัจจุบันแล้ว</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">สไตล์นี้มีอยู่แล้ว</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">มีสไตล์ที่ใช้ ID เดียวกันอยู่ในเลย์เอาต์ควบคุมปัจจุบันแล้ว</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">เพิ่มเป็นสำเนา</string>
+    <string name="control_editor_style_cabinet_conflict_title">สไตล์นี้ถูกเก็บไว้แล้ว</string>
+    <string name="control_editor_style_cabinet_conflict_message">มีสไตล์ที่ใช้ ID เดียวกันอยู่ในคอลเลกชันสไตล์แล้ว</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">เขียนทับของเดิม</string>
+    <string name="control_editor_style_cabinet_conflict_independent">เก็บเป็นสำเนาแยก</string>
+    <string name="control_editor_style_cabinet_delete">แน่ใจหรือไม่ว่าต้องการลบสไตล์ที่เก็บไว้ %s?</string>
+
+    <string name="guide_editor_style_cabinet_title">คุณยังสามารถเพิ่มสไตล์ที่ชอบไปยังคอลเลกชันสไตล์ที่ใช้ร่วมกันได้ด้วย!</string>
+    <string name="guide_editor_style_cabinet_text">คอลเลกชันสไตล์ใช้ร่วมกันทั้งหมด ไม่ว่าจะกำลังแก้ไขเลย์เอาต์ควบคุมตัวไหน ก็มองเห็นสไตล์ในนี้ได้เสมอ~</string>
+    <string name="guide_editor_style_cabinet_note">ที่นี่คุณสามารถเพิ่มสไตล์ที่เก็บไว้ไปยังเลย์เอาต์ควบคุมปัจจุบันเพื่อใช้งานได้~</string>
     <string name="guide_editor_preview">ทดสอบเลย์เอาต์ปุ่มควบคุมด้วยโหมดดูตัวอย่างได้เลย</string>
     <string name="guide_editor_save">แก้ไขเสร็จแล้วอย่าลืมบันทึกเลย์เอาต์ปุ่มควบคุม!</string>
     <string name="guide_tip_blank">แตะบริเวณว่างเพื่อไปยังขั้นตอนถัดไป</string>

@@ -1170,6 +1170,25 @@
     <string name="guide_editor_add_widgets_text">コントロールレイヤーを選択すると、任意の種類のコントロールを追加できます</string>
     <string name="guide_editor_styles_title">コントロールの見た目を変えたいときは？</string>
     <string name="guide_editor_styles_text">コントロールの外観を作成しておけば、簡単に再利用や切り替えができます</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">スタイルコレクション</string>
+    <string name="control_editor_style_cabinet_empty">スタイルコレクションは空です。コントロールの外観リストやジョイスティックのスタイルリストからスタイルを追加できます。</string>
+    <string name="control_editor_style_cabinet_favorite">スタイルコレクションに追加</string>
+    <string name="control_editor_style_cabinet_favorited">スタイルをコレクションに追加しました</string>
+    <string name="control_editor_style_cabinet_add_to_layout">現在のコントロールレイアウトに追加</string>
+    <string name="control_editor_style_cabinet_added_to_layout">現在のコントロールレイアウトに追加しました</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">スタイルは既に存在します</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">同じ ID のスタイルが現在のコントロールレイアウトに既に存在します。</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">コピーとして追加</string>
+    <string name="control_editor_style_cabinet_conflict_title">スタイルは既にコレクション済みです</string>
+    <string name="control_editor_style_cabinet_conflict_message">同じ ID のスタイルは既にスタイルコレクションにあります</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">既存のものを上書き</string>
+    <string name="control_editor_style_cabinet_conflict_independent">別のコピーとして保存</string>
+    <string name="control_editor_style_cabinet_delete">コレクション済みのスタイル %s を削除してもよろしいですか？</string>
+
+    <string name="guide_editor_style_cabinet_title">お気に入りのスタイルを共通のスタイルコレクションに追加することもできます！</string>
+    <string name="guide_editor_style_cabinet_text">スタイルコレクションは全体共通です。どのコントロールレイアウトを編集していても、ここにあるスタイルをいつでも見られます~</string>
+    <string name="guide_editor_style_cabinet_note">ここから、コレクションしたスタイルを現在のコントロールレイアウトに追加して使うことができます~</string>
     <string name="guide_editor_preview">プレビュー機能を使ってコントロールレイアウトを試してみましょう。</string>
     <string name="guide_editor_save">編集が終わったら、コントロールレイアウトの保存を忘れずに！</string>
     <string name="guide_tip_blank">空いている場所をタップして次に進みましょう</string>

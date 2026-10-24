@@ -32,6 +32,7 @@ import com.movtery.zalithlauncher.game.control.ControlManager
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleListDialog
 import com.movtery.zalithlauncher.ui.components.SimpleListItem
+import com.movtery.zalithlauncher.ui.screens.main.control_editor.orUnspecified
 import java.io.File
 
 sealed interface ReplacementControlState {
@@ -88,7 +89,7 @@ private fun ReplacementControlDialog(
             itemLayout = { item, isCurrent, onClick ->
                 SimpleListItem(
                     selected = isCurrent,
-                    itemName = item.controlLayout.info.name.translate(locale),
+                    itemName = item.controlLayout.info.name.translate(locale).orUnspecified(),
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onClick
                 )

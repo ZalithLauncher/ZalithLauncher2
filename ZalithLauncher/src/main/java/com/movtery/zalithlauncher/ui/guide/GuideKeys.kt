@@ -52,6 +52,8 @@ sealed interface GuideKeys : GuideKey {
             data object AddButtons : Step
             /** 创建控件样式 */
             data object AddStyles : Step
+            /** 样式收藏柜 */
+            data object StyleCabinet : Step
             /** 预览控制布局 */
             data object Preview : Step
             /** 保存 */

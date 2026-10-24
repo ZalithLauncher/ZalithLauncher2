@@ -1257,6 +1257,20 @@
     <string name="control_editor_edit_joystick_style_list_empty">No joystick styles in the current control layout</string>
     <string name="control_editor_edit_joystick_style_list_name">Joystick Style Name</string>
     <string name="control_editor_edit_joystick_style_list_delete">Are you sure you want to delete the joystick style %s?</string>
+    <string name="control_editor_style_cabinet">Style Cabinet</string>
+    <string name="control_editor_style_cabinet_empty">The style cabinet is empty. You can add styles from the control appearance list or the joystick style list.</string>
+    <string name="control_editor_style_cabinet_favorite">Add to Style Cabinet</string>
+    <string name="control_editor_style_cabinet_favorited">Style favorited</string>
+    <string name="control_editor_style_cabinet_add_to_layout">Add to Current Control Layout</string>
+    <string name="control_editor_style_cabinet_added_to_layout">Added to the current control layout</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">Style Already Exists</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">A style with the same ID already exists in the current control layout</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">Add as Copy</string>
+    <string name="control_editor_style_cabinet_conflict_title">Style Already Favorited</string>
+    <string name="control_editor_style_cabinet_conflict_message">A style with the same ID is already in the style cabinet</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">Overwrite Existing</string>
+    <string name="control_editor_style_cabinet_conflict_independent">Favorite as Copy</string>
+    <string name="control_editor_style_cabinet_delete">Are you sure you want to delete the favorited style %s?</string>
     <string name="control_editor_special_joystick_style_delete_title">Delete Joystick Style</string>
     <string name="control_editor_special_joystick_style_joystick_color">Joystick Color</string>
     <string name="control_editor_special_joystick_style_joystick_can_lock_color">Joystick Color (Lockable)</string>
@@ -1532,6 +1546,9 @@
     <string name="guide_editor_styles_title">Want to change how your controls look?</string>
     <!-- Body explaining control appearances, which can be created once and reused across controls -->
     <string name="guide_editor_styles_text">You can create appearances for your controls so they can be quickly reused and switched between</string>
+    <string name="guide_editor_style_cabinet_title">You can also add your favorite styles to the shared style cabinet!</string>
+    <string name="guide_editor_style_cabinet_text">The style cabinet is global: no matter which control layout you are editing, the styles inside are always there~</string>
+    <string name="guide_editor_style_cabinet_note">From here, you can add the favorited styles to the current control layout for use~</string>
     <!-- Guide card for the preview option in the editor menu; preview mode lets the user test the control layout -->
     <string name="guide_editor_preview">Use the preview mode to test out your control layout</string>
     <!-- Final guide card reminding the user to save the control layout -->

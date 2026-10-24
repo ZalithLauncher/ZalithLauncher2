@@ -1011,6 +1011,25 @@
     <string name="guide_editor_add_widgets_text">컨트롤 레이어를 선택한 후 원하는 유형의 컨트롤을 추가할 수 있습니다</string>
     <string name="guide_editor_styles_title">컨트롤의 모양을 바꾸고 싶으신가요?</string>
     <string name="guide_editor_styles_text">컨트롤의 외관을 만들어 두면 빠르게 재사용하고 전환할 수 있습니다</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">스타일 컬렉션</string>
+    <string name="control_editor_style_cabinet_empty">스타일 컬렉션이 비어 있습니다. 컨트롤 외관 목록 또는 조이스틱 스타일 목록에서 스타일을 추가할 수 있습니다.</string>
+    <string name="control_editor_style_cabinet_favorite">스타일 컬렉션에 추가</string>
+    <string name="control_editor_style_cabinet_favorited">스타일을 컬렉션에 추가했습니다</string>
+    <string name="control_editor_style_cabinet_add_to_layout">현재 컨트롤 레이아웃에 추가</string>
+    <string name="control_editor_style_cabinet_added_to_layout">현재 컨트롤 레이아웃에 추가했습니다</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">스타일이 이미 존재합니다</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">같은 ID의 스타일이 현재 컨트롤 레이아웃에 이미 존재합니다.</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">사본으로 추가</string>
+    <string name="control_editor_style_cabinet_conflict_title">스타일이 이미 컬렉션되어 있습니다</string>
+    <string name="control_editor_style_cabinet_conflict_message">같은 ID의 스타일이 이미 스타일 컬렉션에 있습니다</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">기존 항목 덮어쓰기</string>
+    <string name="control_editor_style_cabinet_conflict_independent">별도 사본으로 컬렉션</string>
+    <string name="control_editor_style_cabinet_delete">컬렉션된 스타일 %s을(를) 삭제하시겠습니까?</string>
+
+    <string name="guide_editor_style_cabinet_title">마음에 드는 스타일을 공용 컬렉션에 추가할 수도 있어요!</string>
+    <string name="guide_editor_style_cabinet_text">스타일 컬렉션은 전역으로 적용되어, 어떤 컨트롤 레이아웃을 편집할 때도 이 안의 스타일을 볼 수 있어요~</string>
+    <string name="guide_editor_style_cabinet_note">여기서 컬렉션된 스타일을 현재 컨트롤 레이아웃에 추가해 사용할 수 있어요~</string>
     <string name="guide_editor_preview">미리보기 기능으로 컨트롤 레이아웃을 테스트해 보세요!</string>
     <string name="guide_editor_save">편집을 마쳤다면 컨트롤 레이아웃 저장을 잊지 마세요!</string>
     <string name="guide_tip_blank">빈 화면을 탭하면 다음으로 넘어갑니다</string>

@@ -1415,6 +1415,25 @@
     <string name="guide_editor_add_widgets_text">Depois de selecionar uma camada de controle, você pode adicionar a ela qualquer tipo de controle</string>
     <string name="guide_editor_styles_title">Quer mudar a aparência dos seus controles?</string>
     <string name="guide_editor_styles_text">Você pode criar aparências para seus controles para reutilizá-los e alternar entre eles rapidamente</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">Coleção de estilos</string>
+    <string name="control_editor_style_cabinet_empty">A coleção de estilos está vazia. Você pode adicionar estilos pela lista de aparências de controle ou pela lista de estilos do joystick.</string>
+    <string name="control_editor_style_cabinet_favorite">Adicionar à coleção de estilos</string>
+    <string name="control_editor_style_cabinet_favorited">Estilo adicionado à coleção</string>
+    <string name="control_editor_style_cabinet_add_to_layout">Adicionar ao layout de controle atual</string>
+    <string name="control_editor_style_cabinet_added_to_layout">Adicionado ao layout de controle atual</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">O estilo já existe</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">Já existe um estilo com o mesmo ID no layout de controle atual.</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">Adicionar como cópia</string>
+    <string name="control_editor_style_cabinet_conflict_title">O estilo já está na coleção</string>
+    <string name="control_editor_style_cabinet_conflict_message">Já existe um estilo com o mesmo ID na coleção de estilos</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">Sobrescrever existente</string>
+    <string name="control_editor_style_cabinet_conflict_independent">Salvar como cópia separada</string>
+    <string name="control_editor_style_cabinet_delete">Tem certeza de que deseja excluir o estilo salvo %s?</string>
+
+    <string name="guide_editor_style_cabinet_title">Você também pode adicionar seus estilos favoritos à coleção de estilos compartilhada!</string>
+    <string name="guide_editor_style_cabinet_text">A coleção de estilos é global: não importa qual layout de controle você esteja editando, os estilos dela estarão sempre aqui~</string>
+    <string name="guide_editor_style_cabinet_note">Aqui você pode adicionar os estilos salvos ao layout de controle atual para usá-los~</string>
     <string name="guide_editor_preview">Use o modo de pré-visualização para testar seu layout de controle</string>
     <string name="guide_editor_save">Ao terminar de editar, não se esqueça de salvar o layout de controle!</string>
     <string name="guide_tip_blank">Toque em qualquer área em branco para ir para o próximo passo</string>

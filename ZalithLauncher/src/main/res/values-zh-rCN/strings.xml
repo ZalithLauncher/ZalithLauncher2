@@ -1264,6 +1264,20 @@
     <string name="control_editor_edit_joystick_style_list_empty">当前控制布局还没有摇杆样式</string>
     <string name="control_editor_edit_joystick_style_list_name">摇杆样式名称</string>
     <string name="control_editor_edit_joystick_style_list_delete">确定要删除摇杆样式 %s？</string>
+    <string name="control_editor_style_cabinet">样式收藏柜</string>
+    <string name="control_editor_style_cabinet_empty">收藏柜是空的，可在控件外观列表或摇杆样式列表中将样式加入收藏柜</string>
+    <string name="control_editor_style_cabinet_favorite">加入收藏柜</string>
+    <string name="control_editor_style_cabinet_favorited">已收藏该样式</string>
+    <string name="control_editor_style_cabinet_add_to_layout">加入当前控制布局</string>
+    <string name="control_editor_style_cabinet_added_to_layout">已加入当前控制布局</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">样式已存在</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">当前控制布局中已存在相同 ID 的样式</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">独立加入</string>
+    <string name="control_editor_style_cabinet_conflict_title">样式已收藏</string>
+    <string name="control_editor_style_cabinet_conflict_message">收藏柜中已存在相同 ID 的样式</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">覆盖现有</string>
+    <string name="control_editor_style_cabinet_conflict_independent">独立收藏</string>
+    <string name="control_editor_style_cabinet_delete">确定要删除收藏的样式 %s 吗？</string>
     <string name="control_editor_exit_message">您确定要直接退出吗，这会导致您的任何更改都无法被保存。若需要保存，请检查编辑器菜单。</string>
     <string name="control_editor_exit_confirm">直接退出</string>
     <!--  关于  -->
@@ -1489,6 +1503,9 @@
     <string name="guide_editor_add_widgets_text">选中控件层之后，你可以为其添加任意类型的控件~</string>
     <string name="guide_editor_styles_title">想调整控件的外观？</string>
     <string name="guide_editor_styles_text">你可以为控件们创建一些外观，以便于快速复用、切换不同的外观</string>
+    <string name="guide_editor_style_cabinet_title">你也可以将喜欢的样式添加到通用的收藏柜中！</string>
+    <string name="guide_editor_style_cabinet_text">样式收藏柜是全局性的，编辑任意控制布局时，都可以看到这里面的样式哦~</string>
+    <string name="guide_editor_style_cabinet_note">在这里，你可以将收藏的样式加入到当前的控制布局内使用~</string>
     <string name="guide_editor_preview">可通过预览功能来测试你的控制布局哦~</string>
     <string name="guide_editor_save">完成编辑后，记得保存控制布局！</string>
     <string name="guide_tip_blank">点击空白处进入下一步</string>

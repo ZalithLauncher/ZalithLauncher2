@@ -276,6 +276,25 @@
     <string name="guide_editor_add_widgets_text">Kapag nakapili na ng control layer, maaari kang magdagdag dito ng anumang uri ng control</string>
     <string name="guide_editor_styles_title">Gusto mo bang baguhin ang itsura ng mga control?</string>
     <string name="guide_editor_styles_text">Maaari kang gumawa ng mga itsura para sa mga control para madaling magamit muli at mapalitan</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">Koleksyon ng estilo</string>
+    <string name="control_editor_style_cabinet_empty">Walang laman ang koleksyon ng estilo. Maaari kang magdagdag ng mga estilo mula sa listahan ng itsura ng control o sa listahan ng mga estilo ng joystick.</string>
+    <string name="control_editor_style_cabinet_favorite">Idagdag sa koleksyon ng estilo</string>
+    <string name="control_editor_style_cabinet_favorited">Naidagdag na ang estilo sa koleksyon</string>
+    <string name="control_editor_style_cabinet_add_to_layout">Idagdag sa kasalukuyang layout ng kontrol</string>
+    <string name="control_editor_style_cabinet_added_to_layout">Naidagdag na sa kasalukuyang layout ng kontrol</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">Mayroon nang ganitong estilo</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">Mayroon nang estilo na may parehong ID sa kasalukuyang layout ng kontrol.</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">Idagdag bilang kopya</string>
+    <string name="control_editor_style_cabinet_conflict_title">Nasa koleksyon na ang estilo</string>
+    <string name="control_editor_style_cabinet_conflict_message">Mayroon nang estilo na may parehong ID sa koleksyon ng estilo</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">I-overwrite ang umiiral</string>
+    <string name="control_editor_style_cabinet_conflict_independent">I-save bilang hiwalay na kopya</string>
+    <string name="control_editor_style_cabinet_delete">Sigurado ka bang gusto mong burahin ang naka-save na estilo na %s?</string>
+
+    <string name="guide_editor_style_cabinet_title">Maaari mo ring idagdag ang mga paborito mong estilo sa pinagsasamang koleksyon ng estilo!</string>
+    <string name="guide_editor_style_cabinet_text">Pangkalahatan ang koleksyon ng estilo — anuman ang control layout na ine-edit mo, makikita mo palagi ang mga estilo rito~</string>
+    <string name="guide_editor_style_cabinet_note">Dito maaari mong idagdag ang mga naka-save na estilo sa kasalukuyang control layout para magamit~</string>
     <string name="guide_editor_preview">Gamitin ang preview mode para subukan ang control layout mo</string>
     <string name="guide_editor_save">Kapag tapos nang mag-edit, huwag kalimutang i-save ang control layout!</string>
     <string name="guide_tip_blank">I-tap ang anumang walang lamang bahagi para tumuloy sa susunod na hakbang</string>

@@ -123,6 +123,7 @@ import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.ImportMultipleFileButton
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_translatable.EditTranslatableTextDialog
+import com.movtery.zalithlauncher.ui.screens.main.control_editor.orUnspecified
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -356,7 +357,7 @@ private fun ControlOperation(
         is ControlOperation.Delete -> {
             val data = operation.data
             val layoutName = if (data.isSupport) {
-                data.controlLayout.info.name.translate()
+                data.controlLayout.info.name.translate().orUnspecified()
             } else {
                 data.file.name
             }
@@ -614,7 +615,11 @@ private fun ControlLayoutItem(
                 ) {
                     MarqueeText(
                         modifier = Modifier.weight(1f, fill = false),
-                        text = if (data.isSupport) info.name.translate(locale) else data.file.name,
+                        text = if (data.isSupport) {
+                            info.name.translate(locale).orUnspecified()
+                        } else {
+                            data.file.name
+                        },
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -705,11 +710,10 @@ private fun ControlLayoutInfo(
                 contentPadding = PaddingValues(all = 12.dp)
             ) {
                 item {
-                    val name = info.name.translate(locale)
                     ControlInfoItem(
                         modifier = Modifier.fillMaxWidth(),
                         title = stringResource(R.string.control_manage_create_new_name),
-                        value = if (name.isEmptyOrBlank()) stringResource(R.string.generic_unspecified) else name,
+                        value = info.name.translate(locale).orUnspecified(),
                         onEdit = {
                             onEditText(data, info.name, EditTextType.NAME)
                         }
@@ -717,11 +721,10 @@ private fun ControlLayoutInfo(
                 }
 
                 item {
-                    val author = info.author.translate(locale)
                     ControlInfoItem(
                         modifier = Modifier.fillMaxWidth(),
                         title = stringResource(R.string.control_manage_create_new_author),
-                        value = if (author.isEmptyOrBlank()) stringResource(R.string.generic_unspecified) else author,
+                        value = info.author.translate(locale).orUnspecified(),
                         onEdit = {
                             onEditText(data, info.author, EditTextType.AUTHOR)
                         }
@@ -729,11 +732,10 @@ private fun ControlLayoutInfo(
                 }
 
                 item {
-                    val versionName = info.versionName
                     ControlInfoItem(
                         modifier = Modifier.fillMaxWidth(),
                         title = stringResource(R.string.control_manage_create_new_version_name),
-                        value = if (versionName.isEmptyOrBlank()) stringResource(R.string.generic_unspecified) else versionName,
+                        value = info.versionName.orUnspecified(),
                         onEdit = {
                             onEditVersion(data)
                         }

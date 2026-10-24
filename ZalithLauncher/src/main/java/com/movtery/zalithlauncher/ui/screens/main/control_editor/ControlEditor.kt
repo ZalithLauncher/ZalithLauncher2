@@ -31,9 +31,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
@@ -58,32 +55,14 @@ import com.movtery.layer_controller.data.VisibilityType
 import com.movtery.layer_controller.data.createAdaptiveButtonSize
 import com.movtery.layer_controller.data.createWidgetWithUUID
 import com.movtery.layer_controller.data.lang.createTranslatable
-import com.movtery.layer_controller.event.ClickEvent
-import com.movtery.layer_controller.layout.createNewLayer
-import com.movtery.layer_controller.observable.ObservableButtonStyle
-import com.movtery.layer_controller.observable.ObservableControlLayer
-import com.movtery.layer_controller.observable.ObservableJoystickStyle
-import com.movtery.layer_controller.observable.ObservableWidget
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.ui.components.MenuState
-import com.movtery.zalithlauncher.ui.components.ProgressDialog
-import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
-import com.movtery.zalithlauncher.ui.components.SimpleEditDialog
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
 import com.movtery.zalithlauncher.ui.guide.GuideKeys
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_joystick.EditJoystickStyleDialog
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_joystick.JoystickStyleListDialog
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_layer.EditControlLayerDialog
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_layer.EditSwitchLayersVisibilityDialog
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_style.EditButtonStyleDialog
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_style.StyleListDialog
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_translatable.EditTranslatableTextDialog
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_widget.EditWidgetDialog
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_widget.SelectLayers
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_widget.SelectedWidgetData
-import com.movtery.zalithlauncher.utils.string.getMessageOrToString
+import com.movtery.zalithlauncher.ui.screens.main.control_editor.style_cabinet.OpenCabinetSource
 import com.movtery.zalithlauncher.viewmodel.EditorViewModel
 import java.io.File
 
@@ -124,14 +103,7 @@ fun BoxWithConstraintsScope.ControlEditor(
         ControlEditorLayer(
             observedLayout = viewModel.observableLayout,
             selectedWidget = viewModel.selectedWidget?.data,
-            onButtonTap = { data, layer ->
-                val current = viewModel.selectedWidget?.data
-                viewModel.selectedWidget = SelectedWidgetData(data, layer)
-                if (current == data) {
-                    //选中后再点击一次，打开编辑菜单
-                    viewModel.editorOperation = EditorOperation.SelectButton
-                }
-            },
+            onButtonTap = viewModel::onWidgetTapped,
             onBackgroundClick = {
                 //点击背景层时清除选中的控件
                 viewModel.selectedWidget = null
@@ -141,11 +113,7 @@ fun BoxWithConstraintsScope.ControlEditor(
                 ActionButton(
                     painter = painterResource(R.drawable.ic_settings_filled),
                     text = stringResource(R.string.generic_setting),
-                    onClick = {
-                        if (viewModel.selectedWidget != null) {
-                            viewModel.editorOperation = EditorOperation.SelectButton
-                        }
-                    }
+                    onClick = viewModel::openWidgetEditor
                 )
                 //复制控件
                 ActionButton(
@@ -154,9 +122,7 @@ fun BoxWithConstraintsScope.ControlEditor(
                     onClick = {
                         val widget = viewModel.selectedWidget
                         if (widget != null) {
-                            val data = widget.data
-                            val layer = widget.layer
-                            viewModel.editorWidgetOperation = EditorWidgetOperation.CloneButton(data, layer)
+                            viewModel.requestCloneWidget(widget.data, widget.layer)
                         }
                     }
                 )
@@ -167,9 +133,7 @@ fun BoxWithConstraintsScope.ControlEditor(
                     onClick = {
                         val widget = viewModel.selectedWidget
                         if (widget != null) {
-                            val data = widget.data
-                            val layer = widget.layer
-                            viewModel.editorWidgetOperation = EditorWidgetOperation.DeleteButton(data, layer)
+                            viewModel.requestDeleteWidget(widget.data, widget.layer)
                         }
                     }
                 )
@@ -194,19 +158,12 @@ fun BoxWithConstraintsScope.ControlEditor(
             viewModel.selectedLayer = layer
         },
         createLayer = {
-            val newLayer = viewModel.observableLayout.addLayer(
-                layer = createNewLayer(defaultLayerName = defaultLayerName)
-            )
-            viewModel.editorOperation = EditorOperation.EditLayer(newLayer)
+            viewModel.createLayer(defaultLayerName)
         },
-        onAttribute = { layer ->
-            viewModel.editorOperation = EditorOperation.EditLayer(layer)
-        },
+        onAttribute = viewModel::editLayer,
         onHideSwitch = { layer ->
             layer.editorHide = layer.editorHide.not()
-            if (layer.editorHide && viewModel.selectedWidget?.layer == layer) {
-                viewModel.selectedWidget = null
-            }
+            viewModel.onLayerHideChanged(layer.editorHide, layer)
         },
         addNewButton = {
             viewModel.addWidget(layers) { layer ->
@@ -264,11 +221,10 @@ fun BoxWithConstraintsScope.ControlEditor(
                 )
             }
         },
-        openStyleList = {
-            viewModel.editorOperation = EditorOperation.OpenStyleList
-        },
-        openJoystickStyleList = {
-            viewModel.editorOperation = EditorOperation.OpenJoystickStyleList
+        openStyleList = viewModel::openStyleList,
+        openJoystickStyleList = viewModel::openJoystickStyleList,
+        openStyleCabinet = {
+            viewModel.openStyleCabinet(OpenCabinetSource.Menu)
         },
         isLayerFocus = viewModel.isLayerFocus,
         onLayerFocusChanged = { viewModel.isLayerFocus = it },
@@ -311,131 +267,24 @@ fun BoxWithConstraintsScope.ControlEditor(
         visible = viewModel.editorOperation == EditorOperation.SelectButton,
         styles = styles,
         joystickStyles = joystickStyles,
-        onDismissRequest = {
-            viewModel.editorOperation = EditorOperation.None
-        },
+        onDismissRequest = viewModel::dismissOperation,
         onDelete = { data, layer ->
-            viewModel.editorWidgetOperation = EditorWidgetOperation.DeleteButton(data, layer)
+            viewModel.requestDeleteWidget(data, layer)
         },
         onClone = { data, layer ->
-            viewModel.editorWidgetOperation = EditorWidgetOperation.CloneButton(data, layer)
+            viewModel.requestCloneWidget(data, layer)
         },
-        onEditWidgetText = { string ->
-            viewModel.editorWidgetOperation = EditorWidgetOperation.EditWidgetText(string)
-        },
+        onEditWidgetText = viewModel::editWidgetText,
         switchControlLayers = { data, type ->
-            viewModel.editorWidgetOperation = EditorWidgetOperation.SwitchLayersVisibility(data, type)
+            viewModel.switchLayersVisibility(data, type)
         },
-        sendText = { data ->
-            viewModel.editorWidgetOperation = EditorWidgetOperation.SendText(data)
-        },
-        openStyleList = {
-            viewModel.editorOperation = EditorOperation.OpenStyleList
-        },
-        openJoystickStyleList = {
-            viewModel.editorOperation = EditorOperation.OpenJoystickStyleList
-        }
+        sendText = viewModel::sendText,
+        openStyleList = viewModel::openStyleList,
+        openJoystickStyleList = viewModel::openJoystickStyleList
     )
 
-    EditButtonStyleDialog(
-        visible = viewModel.editorOperation == EditorOperation.EditButtonStyle,
-        style = viewModel.selectedStyle,
-        onClose = {
-            viewModel.editorOperation = EditorOperation.None
-        }
-    )
-
-    EditJoystickStyleDialog(
-        visible = viewModel.editorOperation == EditorOperation.EditJoystickStyle,
-        style = viewModel.selectedJoystickStyle,
-        onClose = {
-            viewModel.editorOperation = EditorOperation.None
-        },
-    )
-
-    EditorOperation(
-        operation = viewModel.editorOperation,
-        changeOperation = { viewModel.editorOperation = it },
-        onDeleteLayer = { layer ->
-            val isWidgetLayer = viewModel.selectedWidget?.layer == layer
-            viewModel.removeLayer(layer)
-            if (isWidgetLayer) {
-                viewModel.selectedWidget = null
-            }
-        },
-        onMergeDownward = { layer ->
-            viewModel.observableLayout.mergeDownward(layer)
-        },
-        onCopy = { layer ->
-            val baseLayer = layer.pack()
-            val newLayer = viewModel.observableLayout.addLayer(
-                layer = createNewLayer(
-                    defaultLayerName = defaultLayerName
-                ).copy(
-                    hide = baseLayer.hide,
-                    hideWhenMouse = baseLayer.hideWhenMouse,
-                    hideWhenGamepad = baseLayer.hideWhenGamepad,
-                    visibilityType = baseLayer.visibilityType,
-                    normalButtons = baseLayer.normalButtons,
-                    textBoxes = baseLayer.textBoxes,
-                    joystickButtons = baseLayer.joystickButtons
-                )
-            )
-            viewModel.editorOperation = EditorOperation.EditLayer(newLayer)
-        },
-        onHideChange = { hide, layer ->
-            if (hide && viewModel.selectedWidget?.layer == layer) {
-                viewModel.selectedWidget = null
-            }
-        },
-        onEditStyle = { style ->
-            viewModel.selectedStyle = style
-            viewModel.editorOperation = EditorOperation.EditButtonStyle
-        },
-        onCreateStyle = { name ->
-            viewModel.createNewStyle(name)
-        },
-        onCloneStyle = { style ->
-            viewModel.cloneStyle(style)
-        },
-        onDeleteStyle = { style ->
-            viewModel.removeStyle(style)
-        },
-        onDeleteJoystickStyle = { style ->
-            viewModel.removeJoystickStyle(style)
-        },
-        onEditJoystickStyle = { style ->
-            viewModel.selectedJoystickStyle = style
-            viewModel.editorOperation = EditorOperation.EditJoystickStyle
-        },
-        onCreateJoystickStyle = { name ->
-            viewModel.createNewJoystickStyle(name)
-        },
-        onCloneJoystickStyle = { style ->
-            viewModel.cloneJoystickStyle(style)
-        },
-        styles = styles,
-        joystickStyles = joystickStyles
-    )
-
-    EditorWidgetOperation(
-        operation = viewModel.editorWidgetOperation,
-        changeOperation = { viewModel.editorWidgetOperation = it },
-        controlLayers = layers,
-        onCloneWidgets = { widget, layers ->
-            viewModel.cloneWidgetToLayers(widget, layers)
-        },
-        onDeleteWidget = { widget, layer ->
-            viewModel.removeWidget(layer, widget)
-            viewModel.selectedWidget = null
-            viewModel.editorOperation = EditorOperation.None
-        }
-    )
-
-    EditorWarningOperation(
-        operation = viewModel.editorWarningOperation,
-        changeOperation = { viewModel.editorWarningOperation = it }
-    )
+    //全部对话框
+    EditorDialogHost(viewModel)
 }
 
 @Composable
@@ -469,303 +318,6 @@ private fun ActionButton(
                 text = text,
                 style = MaterialTheme.typography.labelLarge
             )
-        }
-    }
-}
-
-@Composable
-private fun EditorOperation(
-    operation: EditorOperation,
-    changeOperation: (EditorOperation) -> Unit,
-    onDeleteLayer: (ObservableControlLayer) -> Unit,
-    onMergeDownward: (ObservableControlLayer) -> Unit,
-    onCopy: (ObservableControlLayer) -> Unit,
-    onHideChange: (Boolean, ObservableControlLayer) -> Unit,
-    onEditStyle: (ObservableButtonStyle) -> Unit,
-    onCreateStyle: (name: String) -> Unit,
-    onCloneStyle: (ObservableButtonStyle) -> Unit,
-    onDeleteStyle: (ObservableButtonStyle) -> Unit,
-    onEditJoystickStyle: (ObservableJoystickStyle) -> Unit,
-    onCreateJoystickStyle: (name: String) -> Unit,
-    onCloneJoystickStyle: (ObservableJoystickStyle) -> Unit,
-    onDeleteJoystickStyle: (ObservableJoystickStyle) -> Unit,
-    styles: List<ObservableButtonStyle>,
-    joystickStyles: List<ObservableJoystickStyle>
-) {
-    when (operation) {
-        is EditorOperation.None,
-        is EditorOperation.SelectButton,
-        is EditorOperation.EditButtonStyle,
-        is EditorOperation.EditJoystickStyle -> {}
-
-        is EditorOperation.EditLayer -> {
-            val layer = operation.layer
-            EditControlLayerDialog(
-                layer = layer,
-                onDismissRequest = {
-                    changeOperation(EditorOperation.None)
-                },
-                onDelete = {
-                    changeOperation(EditorOperation.DeleteLayer(layer))
-                },
-                onMergeDownward = {
-                    onMergeDownward(layer)
-                },
-                onCopy = {
-                    onCopy(layer)
-                },
-                onHideChange = { value ->
-                    onHideChange(value, layer)
-                },
-            )
-        }
-        is EditorOperation.DeleteLayer -> {
-            val layer = operation.layer
-            SimpleAlertDialog(
-                title = stringResource(R.string.generic_delete),
-                text = stringResource(R.string.control_editor_layers_delete, layer.name),
-                onDismiss = {
-                    changeOperation(EditorOperation.None)
-                },
-                onConfirm = {
-                    onDeleteLayer(layer)
-                    changeOperation(EditorOperation.None)
-                }
-            )
-        }
-        is EditorOperation.OpenStyleList -> {
-            StyleListDialog(
-                styles = styles,
-                onEditStyle = onEditStyle,
-                onCreate = {
-                    changeOperation(EditorOperation.CreateStyle)
-                },
-                onClone = { style ->
-                    onCloneStyle(style)
-                },
-                onDelete = { style ->
-                    changeOperation(EditorOperation.DeleteButtonStyle(style))
-                },
-                onClose = {
-                    changeOperation(EditorOperation.None)
-                }
-            )
-        }
-        is EditorOperation.CreateStyle -> {
-            var name by remember { mutableStateOf("") }
-            SimpleEditDialog(
-                title = stringResource(R.string.control_editor_edit_style_config_name),
-                value = name,
-                onValueChange = { name = it },
-                singleLine = true,
-                onDismissRequest = {
-                    changeOperation(EditorOperation.None)
-                },
-                onConfirm = {
-                    onCreateStyle(name)
-                    changeOperation(EditorOperation.OpenStyleList)
-                }
-            )
-        }
-        is EditorOperation.DeleteButtonStyle -> {
-            val style = operation.style
-            SimpleAlertDialog(
-                title = stringResource(R.string.generic_delete),
-                text = stringResource(R.string.control_editor_edit_style_config_delete, style.name),
-                onDismiss = {
-                    changeOperation(EditorOperation.None)
-                },
-                onConfirm = {
-                    onDeleteStyle(style)
-                    changeOperation(EditorOperation.None)
-                }
-            )
-        }
-        is EditorOperation.DeleteJoystickStyle -> {
-            val style = operation.style
-            SimpleAlertDialog(
-                title = stringResource(R.string.control_editor_special_joystick_style_delete_title),
-                text = stringResource(R.string.control_editor_edit_joystick_style_list_delete, style.name),
-                confirmText = stringResource(R.string.generic_delete),
-                onConfirm = {
-                    onDeleteJoystickStyle(style)
-                    changeOperation(EditorOperation.None)
-                },
-                onDismiss = {
-                    changeOperation(EditorOperation.None)
-                }
-            )
-        }
-        is EditorOperation.OpenJoystickStyleList -> {
-            JoystickStyleListDialog(
-                styles = joystickStyles,
-                onEditStyle = onEditJoystickStyle,
-                onCreate = {
-                    changeOperation(EditorOperation.CreateJoystickStyle)
-                },
-                onClone = { style ->
-                    onCloneJoystickStyle(style)
-                },
-                onDelete = { style ->
-                    changeOperation(EditorOperation.DeleteJoystickStyle(style))
-                },
-                onClose = {
-                    changeOperation(EditorOperation.None)
-                }
-            )
-        }
-        is EditorOperation.CreateJoystickStyle -> {
-            var name by remember { mutableStateOf("") }
-            SimpleEditDialog(
-                title = stringResource(R.string.control_editor_edit_joystick_style_list_name),
-                value = name,
-                onValueChange = { name = it },
-                singleLine = true,
-                onDismissRequest = {
-                    changeOperation(EditorOperation.None)
-                },
-                onConfirm = {
-                    onCreateJoystickStyle(name)
-                    changeOperation(EditorOperation.OpenJoystickStyleList)
-                }
-            )
-        }
-        is EditorOperation.Saving -> {
-            ProgressDialog(
-                title = stringResource(R.string.control_manage_saving)
-            )
-        }
-        is EditorOperation.SaveFailed -> {
-            SimpleAlertDialog(
-                title = stringResource(R.string.control_manage_failed_to_save),
-                text = operation.error.getMessageOrToString()
-            ) {
-                changeOperation(EditorOperation.None)
-            }
-        }
-    }
-}
-
-@Composable
-private fun EditorWidgetOperation(
-    operation: EditorWidgetOperation,
-    changeOperation: (EditorWidgetOperation) -> Unit,
-    controlLayers: List<ObservableControlLayer>,
-    onCloneWidgets: (ObservableWidget, List<ObservableControlLayer>) -> Unit,
-    onDeleteWidget: (ObservableWidget, ObservableControlLayer) -> Unit,
-) {
-    when (operation) {
-        is EditorWidgetOperation.None -> {}
-        is EditorWidgetOperation.CloneButton -> {
-            val data = operation.data
-            val layer = operation.layer
-            SelectLayers(
-                layers= controlLayers,
-                initLayer = layer,
-                onDismissRequest = {
-                    changeOperation(EditorWidgetOperation.None)
-                },
-                title = stringResource(R.string.control_editor_edit_dialog_clone_widget_title),
-                confirmText = stringResource(R.string.control_editor_edit_dialog_clone_widget),
-                onConfirm = { layers ->
-                    onCloneWidgets(data, layers)
-                    changeOperation(EditorWidgetOperation.None)
-                }
-            )
-        }
-        is EditorWidgetOperation.DeleteButton -> {
-            val data = operation.data
-            val layer = operation.layer
-            SimpleAlertDialog(
-                title = stringResource(R.string.generic_delete),
-                text = stringResource(R.string.control_editor_edit_dialog_delete_widget),
-                onDismiss = {
-                    changeOperation(EditorWidgetOperation.None)
-                },
-                onConfirm = {
-                    onDeleteWidget(data, layer)
-                    changeOperation(EditorWidgetOperation.None)
-                }
-            )
-        }
-        is EditorWidgetOperation.EditWidgetText -> {
-            EditTranslatableTextDialog(
-                text = operation.string,
-                singleLine = false,
-                onClose = {
-                    changeOperation(EditorWidgetOperation.None)
-                }
-            )
-        }
-        is EditorWidgetOperation.SendText -> {
-            val data = operation.data
-            //文本内容
-            var value by remember {
-                mutableStateOf(data.clickEvents.find { it.type == ClickEvent.Type.SendText }?.key ?: "")
-            }
-            SimpleEditDialog(
-                title = stringResource(R.string.control_editor_edit_event_launcher_send_text),
-                value = value,
-                onValueChange = { new ->
-                    value = new
-                },
-                extraBody = {
-                    Text(
-                        text = stringResource(R.string.control_editor_edit_event_launcher_send_text_summary),
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                },
-                label = {
-                    Text(text = stringResource(R.string.control_editor_edit_event_launcher_send_text_hint))
-                },
-                singleLine = true,
-                onConfirm = {
-                    //清除所有发送文本事件，如果文本不为空则再添加
-                    data.onRemoveAllEvents(ClickEvent.Type.SendText)
-                    if (value.isNotEmpty()) {
-                        data.onAddEvent(ClickEvent(ClickEvent.Type.SendText, value))
-                    }
-                    changeOperation(EditorWidgetOperation.None)
-                }
-            )
-        }
-        is EditorWidgetOperation.SwitchLayersVisibility -> {
-            val data = operation.data
-            val type = operation.type
-            EditSwitchLayersVisibilityDialog(
-                data = data,
-                layers = controlLayers,
-                type = type,
-                onDismissRequest = {
-                    changeOperation(EditorWidgetOperation.None)
-                }
-            )
-        }
-    }
-}
-
-@Composable
-private fun EditorWarningOperation(
-    operation: EditorWarningOperation,
-    changeOperation: (EditorWarningOperation) -> Unit
-) {
-    when (operation) {
-        is EditorWarningOperation.None -> {}
-        is EditorWarningOperation.WarningNoLayers -> {
-            SimpleAlertDialog(
-                title = stringResource(R.string.control_editor_menu_no_layers_title),
-                text = stringResource(R.string.control_editor_menu_no_layers_message)
-            ) {
-                changeOperation(EditorWarningOperation.None)
-            }
-        }
-        is EditorWarningOperation.WarningNoSelectLayer -> {
-            SimpleAlertDialog(
-                title = stringResource(R.string.control_editor_menu_no_selected_layer_title),
-                text = stringResource(R.string.control_editor_menu_no_selected_layer_message)
-            ) {
-                changeOperation(EditorWarningOperation.None)
-            }
         }
     }
 }

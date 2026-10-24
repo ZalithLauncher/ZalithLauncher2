@@ -1223,6 +1223,25 @@
     <string name="guide_editor_add_widgets_text">Sau khi chọn layer, bạn có thể thêm nút điều khiển thuộc bất kỳ loại nào vào đó</string>
     <string name="guide_editor_styles_title">Muốn thay đổi giao diện của nút điều khiển?</string>
     <string name="guide_editor_styles_text">Bạn có thể tạo các giao diện cho nút điều khiển để tái sử dụng và chuyển đổi nhanh chóng</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">Bộ sưu tập kiểu</string>
+    <string name="control_editor_style_cabinet_empty">Bộ sưu tập kiểu đang trống. Bạn có thể thêm kiểu từ danh sách giao diện nút điều khiển hoặc danh sách kiểu joystick.</string>
+    <string name="control_editor_style_cabinet_favorite">Thêm vào bộ sưu tập kiểu</string>
+    <string name="control_editor_style_cabinet_favorited">Đã thêm kiểu vào bộ sưu tập</string>
+    <string name="control_editor_style_cabinet_add_to_layout">Thêm vào layout điều khiển hiện tại</string>
+    <string name="control_editor_style_cabinet_added_to_layout">Đã thêm vào layout điều khiển hiện tại</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">Kiểu đã tồn tại</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">Kiểu có cùng ID đã tồn tại trong layout điều khiển hiện tại.</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">Thêm bản sao</string>
+    <string name="control_editor_style_cabinet_conflict_title">Kiểu đã được lưu vào bộ sưu tập</string>
+    <string name="control_editor_style_cabinet_conflict_message">Kiểu có cùng ID đã có trong bộ sưu tập kiểu</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">Ghi đè bản hiện có</string>
+    <string name="control_editor_style_cabinet_conflict_independent">Lưu thành bản sao riêng</string>
+    <string name="control_editor_style_cabinet_delete">Chắc chắn muốn xóa kiểu đã lưu %s?</string>
+
+    <string name="guide_editor_style_cabinet_title">Bạn cũng có thể thêm các kiểu yêu thích vào bộ sưu tập kiểu dùng chung!</string>
+    <string name="guide_editor_style_cabinet_text">Bộ sưu tập kiểu mang tính toàn cục: dù đang chỉnh sửa layout điều khiển nào, bạn cũng luôn thấy các kiểu trong đây~</string>
+    <string name="guide_editor_style_cabinet_note">Tại đây, bạn có thể thêm các kiểu đã lưu vào layout điều khiển hiện tại để sử dụng~</string>
     <string name="guide_editor_preview">Bạn có thể dùng chế độ xem trước để thử bố cục điều khiển</string>
     <string name="guide_editor_save">Sau khi chỉnh sửa xong, đừng quên lưu bố cục điều khiển!</string>
     <string name="guide_tip_blank">Chạm vào vùng trống để chuyển sang bước tiếp theo</string>

@@ -20,6 +20,25 @@
     <string name="guide_editor_add_widgets_text">Kui juhtimiskiht on valitud, saad sellele lisada mis tahes tüüpi juhtimiselemente</string>
     <string name="guide_editor_styles_title">Kas soovid juhtimiselementide välimust muuta?</string>
     <string name="guide_editor_styles_text">Saad luua juhtimiselementidele välimusi, et neid kiiresti taaskasutada ja vahetada</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">Stiilikogu</string>
+    <string name="control_editor_style_cabinet_empty">Stiilikogu on tühi. Stiile saab lisada juhtimiselementide välimuste loendist või juhtpulga stiilide loendist.</string>
+    <string name="control_editor_style_cabinet_favorite">Lisa stiilikogusse</string>
+    <string name="control_editor_style_cabinet_favorited">Stiil lisati kogusse</string>
+    <string name="control_editor_style_cabinet_add_to_layout">Lisa praegusesse juhtimispaigutusse</string>
+    <string name="control_editor_style_cabinet_added_to_layout">Lisatud praegusesse juhtimispaigutusse</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">Stiil on juba olemas</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">Sama ID-ga stiil on praeguses juhtimispaigutuses juba olemas.</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">Lisa koopiana</string>
+    <string name="control_editor_style_cabinet_conflict_title">Stiil on juba kogus</string>
+    <string name="control_editor_style_cabinet_conflict_message">Sama ID-ga stiil on stiilikogus juba olemas</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">Kirjuta olemasolev üle</string>
+    <string name="control_editor_style_cabinet_conflict_independent">Salvesta eraldi koopiana</string>
+    <string name="control_editor_style_cabinet_delete">Kas soovid kindlasti kustutada kogutud stiili %s?</string>
+
+    <string name="guide_editor_style_cabinet_title">Lemmikstiile saab lisada ka ühisesse stiilikogusse!</string>
+    <string name="guide_editor_style_cabinet_text">Stiilikogu on globaalne: millist juhtimispaigutust sa ei redigeeriks, näed seal alati kogu stiile~</string>
+    <string name="guide_editor_style_cabinet_note">Siin saad lisada kogutud stiile praegusesse juhtimispaigutusse kasutamiseks~</string>
     <string name="guide_editor_preview">Testi oma juhtimispaigutust eelvaate režiimis</string>
     <string name="guide_editor_save">Kui redigeerimine on lõpetatud, ära unusta juhtimispaigutust salvestada!</string>
     <string name="guide_tip_blank">Puuduta mõnda tühja kohta, et liikuda järgmisele sammule</string>

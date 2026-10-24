@@ -1212,6 +1212,25 @@
     <string name="guide_editor_add_widgets_text">Bir kontrol katmanı seçtikten sonra içine her türden kontrol ekleyebilirsiniz</string>
     <string name="guide_editor_styles_title">Kontrollerinizin görünümünü değiştirmek ister misiniz?</string>
     <string name="guide_editor_styles_text">Kontroller için görünümler oluşturabilir; bunları hızlıca yeniden kullanıp aralarında geçiş yapabilirsiniz</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">Stil koleksiyonu</string>
+    <string name="control_editor_style_cabinet_empty">Stil koleksiyonu boş. Kontrollerin görünüm listesinden ya da joystick stil listesinden stil ekleyebilirsiniz.</string>
+    <string name="control_editor_style_cabinet_favorite">Stil koleksiyonuna ekle</string>
+    <string name="control_editor_style_cabinet_favorited">Stil koleksiyona eklendi</string>
+    <string name="control_editor_style_cabinet_add_to_layout">Geçerli kontrol şemasına ekle</string>
+    <string name="control_editor_style_cabinet_added_to_layout">Geçerli kontrol şemasına eklendi</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">Stil zaten mevcut</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">Aynı kimliğe sahip bir stil, geçerli kontrol şemasında zaten mevcut.</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">Kopya olarak ekle</string>
+    <string name="control_editor_style_cabinet_conflict_title">Stil zaten koleksiyonda</string>
+    <string name="control_editor_style_cabinet_conflict_message">Aynı kimliğe sahip bir stil, stil koleksiyonunda zaten mevcut</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">Mevcut olanın üzerine yaz</string>
+    <string name="control_editor_style_cabinet_conflict_independent">Ayrı bir kopya olarak kaydet</string>
+    <string name="control_editor_style_cabinet_delete">Kaydedilen %s stilini silmek istediğinizden emin misiniz?</string>
+
+    <string name="guide_editor_style_cabinet_title">Beğendiğiniz stilleri ortak stil koleksiyonuna da ekleyebilirsiniz!</string>
+    <string name="guide_editor_style_cabinet_text">Stil koleksiyonu geneldir: hangi kontrol şemasını düzenliyor olursanız olun, buradaki stilleri her zaman görebilirsiniz~</string>
+    <string name="guide_editor_style_cabinet_note">Buradan kaydettiğiniz stilleri geçerli kontrol şemasına ekleyip kullanabilirsiniz~</string>
     <string name="guide_editor_preview">Kontrol düzenini test etmek için önizleme modunu kullanabilirsin</string>
     <string name="guide_editor_save">Düzenlemeyi bitirdiğinde kontrol düzenini kaydetmeyi unutma!</string>
     <string name="guide_tip_blank">Sonraki adıma geçmek için boş bir yere dokunun</string>

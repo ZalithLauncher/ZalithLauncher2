@@ -48,7 +48,7 @@ import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutItem
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutTextItem
-import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
+import com.movtery.zalithlauncher.ui.screens.main.control_editor.orUnspecified
 
 /**
  * 为控件选择外观
@@ -151,7 +151,7 @@ private fun ChoseStyleItem(
             Spacer(modifier = Modifier.height(4.dp))
             MarqueeText(
                 modifier = Modifier.fillMaxWidth(),
-                text = style.name.takeIf { it.isNotEmptyOrBlank() } ?: stringResource(R.string.generic_unspecified),
+                text = style.name.orUnspecified(),
                 textAlign = TextAlign.Center
             )
             RadioButton(

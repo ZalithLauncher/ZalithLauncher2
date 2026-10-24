@@ -1415,6 +1415,25 @@
     <string name="guide_editor_add_widgets_text">Setelah lapisan kontrol dipilih, kamu bisa menambahkan kontrol jenis apa pun ke sana</string>
     <string name="guide_editor_styles_title">Ingin mengubah tampilan kontrolmu?</string>
     <string name="guide_editor_styles_text">Kamu bisa membuat tampilan untuk kontrol agar cepat digunakan kembali dan ditukar</string>
+    <!--  样式收藏柜  -->
+    <string name="control_editor_style_cabinet">Koleksi Gaya</string>
+    <string name="control_editor_style_cabinet_empty">Koleksi gaya masih kosong. Kamu bisa menambahkan gaya dari daftar tampilan kontrol atau daftar gaya joystick.</string>
+    <string name="control_editor_style_cabinet_favorite">Tambahkan ke Koleksi Gaya</string>
+    <string name="control_editor_style_cabinet_favorited">Gaya telah ditambahkan ke koleksi</string>
+    <string name="control_editor_style_cabinet_add_to_layout">Tambahkan ke Layout Kontrol Saat Ini</string>
+    <string name="control_editor_style_cabinet_added_to_layout">Telah ditambahkan ke layout kontrol saat ini</string>
+    <string name="control_editor_style_cabinet_add_conflict_title">Gaya Sudah Ada</string>
+    <string name="control_editor_style_cabinet_add_conflict_message">Gaya dengan ID yang sama sudah ada di layout kontrol saat ini.</string>
+    <string name="control_editor_style_cabinet_add_conflict_independent">Tambahkan sebagai Salinan</string>
+    <string name="control_editor_style_cabinet_conflict_title">Gaya Sudah Ada di Koleksi</string>
+    <string name="control_editor_style_cabinet_conflict_message">Gaya dengan ID yang sama sudah ada di koleksi gaya</string>
+    <string name="control_editor_style_cabinet_conflict_overwrite">Timpa yang Ada</string>
+    <string name="control_editor_style_cabinet_conflict_independent">Simpan sebagai Salinan Terpisah</string>
+    <string name="control_editor_style_cabinet_delete">Yakin ingin menghapus gaya yang dikoleksi %s?</string>
+
+    <string name="guide_editor_style_cabinet_title">Kamu juga bisa menambahkan gaya favorit ke koleksi gaya bersama!</string>
+    <string name="guide_editor_style_cabinet_text">Koleksi gaya bersifat global: layout kontrol apa pun yang sedang kamu edit, gaya di dalamnya selalu bisa dilihat~</string>
+    <string name="guide_editor_style_cabinet_note">Di sini, kamu bisa menambahkan gaya yang dikoleksi ke layout kontrol saat ini untuk digunakan~</string>
     <string name="guide_editor_preview">Gunakan mode pratinjau untuk menguji tata letak kontrolmu</string>
     <string name="guide_editor_save">Setelah selesai mengedit, jangan lupa menyimpan tata letak kontrol!</string>
     <string name="guide_tip_blank">Ketuk area kosong mana pun untuk lanjut ke langkah berikutnya</string>

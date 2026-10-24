@@ -78,6 +78,9 @@ class ControlEditorActivity : BaseAppCompatActivity() {
         //初始化控制布局
         editorViewModel.initLayout(layout)
 
+        //加载样式收藏柜
+        editorViewModel.styleCabinet.load()
+
         //绑定返回键按下事件，防止直接退出导致控制布局丢失所有变更
         //提醒用户保存并退出
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {

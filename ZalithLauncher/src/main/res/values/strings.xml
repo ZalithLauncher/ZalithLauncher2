@@ -230,7 +230,7 @@
     <!-- Second introduction paragraph describing the PojavLauncher core -->
     <string name="welcome_screen_intro_core">Powered by PojavLauncher, it provides a modern game launch and management experience.</string>
     <!-- Heading of the agreement links on the welcome screen -->
-    <string name="welcome_screen_agreement_title">User Agreements</string>
+    <string name="welcome_screen_agreement_title">VOXUS legal documents</string>
     <!-- Checkbox label for explicitly accepting the displayed agreements -->
     <string name="welcome_screen_agreement_confirmation">I have read and agree to the documents above.</string>
     <!-- Message shown when an agreement document cannot be loaded -->

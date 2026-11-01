@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
 import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -39,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
@@ -136,7 +138,7 @@ fun DownloadScreen(
         currentKey = backScreenViewModel.mainScreen.currentKey,
         useClassEquality = true
     ) { isVisible: Boolean ->
-        Row(modifier = Modifier.fillMaxSize()) {
+        Row(modifier = Modifier.fillMaxSize().background(Color(0xFF100B18))) {
             TabMenu(
                 modifier = Modifier.fillMaxHeight(),
                 isVisible = isVisible,
@@ -187,6 +189,25 @@ private fun TabMenu(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(12.dp))
+        Column(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = "VOXUS",
+                color = Color(0xFFB98AFF),
+                style = MaterialTheme.typography.titleSmall
+            )
+            Text(
+                text = "TERMINAL",
+                color = Color(0xFF8D7BA8),
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+        HorizontalDivider(
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 8.dp),
+            color = Color(0xFF49306B)
+        )
         downloadsList.forEach { item ->
             if (item.division) {
                 HorizontalDivider(

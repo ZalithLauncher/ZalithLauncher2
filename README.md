@@ -35,7 +35,7 @@ O AETHER é um projeto independente. Não é afiliado, mantido ou endossado pelo
 ### 构建步骤
 
 ```bash
-git clone https://github.com/tarachukalucas-cyber/VOXUS-laucher.git
+git clone -b aether/v2.0 https://github.com/tarachukalucas-cyber/VOXUS-laucher.git
 # 使用 Android Studio 打开项目并进行构建
 ```
 
@@ -105,4 +105,4 @@ O código deste projeto segue a licença **[GPL-3.0](LICENSE)**.
 | tm4e (TextMate for Eclipse)           | Copyright © Eclipse Foundation                                                                                | EPL-2.0 License      | [链接↗](https://github.com/eclipse-tm4e/tm4e)                                      |
 | XZ for Java                           | Copyright © The XZ for Java authors and contributors                                                          | 0BSD License         | [链接↗](https://tukaani.org/xz/java.html)                                          |
 
-AETHER Launcher 1.0 development build trigger.
+AETHER Launcher 2.0 — versão independente em desenvolvimento.

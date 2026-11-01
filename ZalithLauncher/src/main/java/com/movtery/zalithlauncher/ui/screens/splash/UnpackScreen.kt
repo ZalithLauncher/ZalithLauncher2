@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.ui.screens.splash
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,6 +48,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -78,6 +80,7 @@ fun UnpackScreen(
         Row(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color(0xFF241044))
                 .padding(all = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -187,8 +190,8 @@ private fun TaskItem(
     Surface(
         modifier = modifier,
         shape = MaterialTheme.shapes.large,
-        color = itemColor(),
-        contentColor = onItemColor(),
+        color = Color(0xFF49306B),
+        contentColor = Color(0xFFF5EEFF),
     ) {
         Row {
             Column(

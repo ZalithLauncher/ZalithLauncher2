@@ -3,7 +3,7 @@ name: Build APK
 on:
   push:
     branches:
-      - voxus/rebrand
+      - aether/v2.0
   workflow_dispatch:
     inputs:
       variant:
@@ -100,7 +100,7 @@ jobs:
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew
-          ./gradlew :VOXUS:assemble${{ env.BUILD_VARIANT }} -Darch=${{ matrix.arch }}
+          ./gradlew :AETHER:assemble${{ env.BUILD_VARIANT }} -Darch=${{ matrix.arch }}
 
       - name: Upload Release APK for ${{ matrix.arch }}
         if: env.BUILD_VARIANT == 'Release'

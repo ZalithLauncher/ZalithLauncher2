@@ -39,6 +39,7 @@ jobs:
       fail-fast: false
 
     env:
+      BUILD_VARIANT: ${{ github.event.inputs.variant || 'Debug' }}
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
       OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
@@ -98,10 +99,10 @@ jobs:
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew
-          ./gradlew ZalithLauncher:assemble${{ (github.event.inputs.variant || 'Debug') }} -Darch=${{ matrix.arch }}
+          ./gradlew ZalithLauncher:assemble${{ env.BUILD_VARIANT }} -Darch=${{ matrix.arch }}
 
       - name: Upload Release APK for ${{ matrix.arch }}
-        if: inputs.variant == 'Release'
+        if: env.BUILD_VARIANT == 'Release'
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
@@ -117,7 +118,7 @@ jobs:
           path: ZalithLauncher/build/outputs/mapping/release/mapping.txt
 
       - name: Upload Debug APK for ${{ matrix.arch }}
-        if: inputs.variant == 'Debug'
+        if: env.BUILD_VARIANT == 'Debug'
         continue-on-error: true
         uses: actions/upload-artifact@v7
         with:

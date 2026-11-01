@@ -39,6 +39,9 @@ import java.util.concurrent.TimeUnit
 
 private const val TAG = "MinecraftVersions"
 
+/** The only Minecraft version this build offers. */
+const val PINNED_MINECRAFT_VERSION = "1.21.4"
+
 object MinecraftVersions {
     private var manifest: VersionManifest? = null
 
@@ -58,7 +61,7 @@ object MinecraftVersions {
         } else {
             manifest ?: getVersionManifest(force = false)
         }
-        val versions = vm.versions.mapVersion()
+        val versions = vm.versions.filter { it.id == PINNED_MINECRAFT_VERSION }.mapVersion()
         _allVersions.update { versions }
     }
 

@@ -135,12 +135,12 @@ fun AboutInfoScreen(
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text(
-                            text = "VOXUS Launcher",
+                            text = "AETHER Launcher",
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "Inspirado no Zalith Launcher 2. O VOXUS é um projeto independente e modificado. Os avisos de copyright, a licença GPL-3.0 e as licenças das bibliotecas utilizadas são mantidos conforme suas condições.",
+                            text = "AETHER Launcher 2.0 é uma edição independente baseada no projeto original Zalith Launcher 2 e no núcleo PojavLauncher. Mantemos os créditos, avisos de copyright, a licença GPL-3.0 e as licenças de todas as bibliotecas utilizadas.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

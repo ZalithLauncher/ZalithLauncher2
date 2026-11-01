@@ -63,14 +63,9 @@ import com.movtery.inputmap.keycodes.ControlEventKeycode
 import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
 import com.movtery.inputmap.keycodes.OPEN_CHAT
 import com.movtery.inputmap.keycodes.OPEN_CHAT_VALUE
-import com.movtery.layer_controller.ControlBoxLayout
 import com.movtery.layer_controller.data.HideLayerWhen
 import com.movtery.layer_controller.event.ClickEvent
 import com.movtery.layer_controller.event.EventHandler
-import com.movtery.layer_controller.layout.ControlLayout
-import com.movtery.layer_controller.layout.EmptyControlLayout
-import com.movtery.layer_controller.layout.loadLayoutFromFile
-import com.movtery.layer_controller.observable.ObservableControlLayout
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
@@ -102,6 +97,10 @@ import com.movtery.zalithlauncher.ui.control.gyroscope.isGyroscopeAvailable
 import com.movtery.zalithlauncher.ui.control.hotbarPercentage
 import com.movtery.zalithlauncher.ui.control.input.TextInputMode
 import com.movtery.zalithlauncher.ui.control.mouse.SwitchableMouseLayout
+import com.movtery.zalithlauncher.ui.control.pojav.PojavControlLayer
+import com.movtery.zalithlauncher.ui.control.pojav.PojavLayoutStore
+import com.movtery.zalithlauncher.ui.control.pojav.SPECIALBTN_KEYBOARD
+import com.movtery.zalithlauncher.ui.control.pojav.SPECIALBTN_MENU
 import com.movtery.zalithlauncher.ui.screens.game.elements.DraggableGameBall
 import com.movtery.zalithlauncher.ui.screens.game.elements.ForceCloseOperation
 import com.movtery.zalithlauncher.ui.screens.game.elements.GameMenuSubscreen
@@ -114,10 +113,7 @@ import com.movtery.zalithlauncher.ui.screens.game.elements.SendKeycodeOperation
 import com.movtery.zalithlauncher.ui.screens.game.elements.SendKeycodeState
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.TerracottaOperation
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.rememberTerracottaViewModel
-import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
 import com.movtery.zalithlauncher.utils.currentGameDisplayLayout
-import com.movtery.zalithlauncher.utils.logging.Logger
-import com.movtery.zalithlauncher.viewmodel.EditorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import com.movtery.zalithlauncher.viewmodel.sendToast
@@ -129,8 +125,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.lwjgl.glfw.CallbackBridge
 import java.io.File
@@ -254,13 +248,14 @@ private class GameViewModel(
         }
     }
 
-    var editorRefresh by mutableIntStateOf(0)
-        private set
-    /** 可观察的控制布局 */
-    var observableLayout by mutableStateOf<ObservableControlLayout?>(null)
-        private set
-    /** 当前控制布局文件 */
+    /** 当前控制布局文件（Pojav 格式）；为空时使用默认布局文件 */
     var currentControlFile by mutableStateOf<File?>(null)
+        private set
+    /** 控制布局重载计数（变化时重新加载布局） */
+    var layoutReload by mutableIntStateOf(0)
+        private set
+    /** 编辑器返回键信号 */
+    var editorBackSignal by mutableIntStateOf(0)
         private set
     /** 控制布局：控件层隐藏状态 */
     var controlLayerHideState by mutableStateOf(HideLayerWhen.None)
@@ -281,7 +276,7 @@ private class GameViewModel(
     /** 游戏内消息发送器 */
     val gameTextSender = GameTextSender(viewModelScope)
 
-    /** 控制布局控件点击事件处理器 */
+    /** 控制布局控件点击事件处理器（手柄等仍使用） */
     val eventHandler = EventHandler { event, pressed ->
         onKeyEvent(event, pressed)
     }
@@ -324,46 +319,27 @@ private class GameViewModel(
         }
     }
 
+    /** Pojav 控件的特殊按钮：切换输入法 */
+    fun requestKeyboard() {
+        onChangeTextInputMode(null)
+    }
+
+    /** 更换控制布局文件（Pojav 格式；格式不符时自动使用默认布局） */
     fun replaceControlLayout(layoutFile: File) {
-        viewModelScope.launch(Dispatchers.Main) {
-            loadControlLayout(layoutFile)
-        }
+        currentControlFile = layoutFile
+        layoutReload++
     }
 
-    private val layoutMutex = Mutex()
-    suspend fun loadControlLayout(layoutFile: File? = version.getControlPath()) {
-        layoutMutex.withLock {
-            withContext(Dispatchers.Main) {
-                observableLayout = null
-                val layout = withContext(Dispatchers.IO) {
-                    delay(10L.milliseconds) //刻意等待一会再加载
-                    currentControlFile = layoutFile
-                    getLayout(layoutFile)
-                }
-                //将控制布局加载为可供Compose加载的形式
-                observableLayout = ObservableControlLayout(layout)
-            }
-        }
-    }
-
-    private fun getLayout(layoutFile: File? = currentControlFile): ControlLayout {
-        return layoutFile?.let {
-            try {
-                loadLayoutFromFile(it)
-            } catch (e: Exception) {
-                Logger.warning(TAG, "Failed to load control layout: $it", e)
-                null
-            }
-        } ?: EmptyControlLayout
+    fun requestEditorBack() {
+        editorBackSignal++
     }
 
     /**
      * 开始编辑控制布局模式
      */
-    fun startControlEditor(editorVM: EditorViewModel) {
+    fun startControlEditor() {
         if (!isEditingLayout) {
             clearState()
-            editorVM.initLayout(getLayout())
             isEditingLayout = true
         }
     }
@@ -372,12 +348,9 @@ private class GameViewModel(
      * 退出编辑控制布局模式（如果当前确实正在编辑控制布局）
      */
     fun exitControlEditor() {
-        viewModelScope.launch(Dispatchers.Main) {
-            if (isEditingLayout) {
-                isEditingLayout = false
-                loadControlLayout(currentControlFile)
-                editorRefresh++
-            }
+        if (isEditingLayout) {
+            isEditingLayout = false
+            layoutReload++
         }
     }
 
@@ -398,12 +371,6 @@ private class GameViewModel(
         onChangeTextInputMode(TextInputMode.DISABLE)
         moveOnlyPointers.clear()
         occupiedPointers.clear()
-    }
-
-    init {
-        viewModelScope.launch(Dispatchers.Main) {
-            loadControlLayout()
-        }
     }
 
     override fun onCleared() {
@@ -554,15 +521,6 @@ private fun rememberGameViewModel(
 }
 
 @Composable
-private fun rememberEditorViewModel(
-    key: String
-)= viewModel(
-    key = key
-) {
-    EditorViewModel()
-}
-
-@Composable
 fun GameScreen(
     version: Version,
     gameHandler: GameHandler,
@@ -581,7 +539,8 @@ fun GameScreen(
     val viewModel = rememberGameViewModel(version) { mode ->
         eventViewModel.sendEvent(EventViewModel.Event.Game.SwitchIme(mode))
     }
-    val editorViewModel = rememberEditorViewModel("ControlEditor_Times=${viewModel.editorRefresh}")
+    val defaultLayoutFile = remember(context) { PojavLayoutStore.defaultFile(context) }
+    val layoutFile = viewModel.currentControlFile ?: defaultLayoutFile
     val cursorMode by ZLBridgeStates.cursorMode.collectAsStateWithLifecycle()
     val isGrabbing = remember(cursorMode) {
         cursorMode == CURSOR_DISABLED
@@ -666,39 +625,46 @@ fun GameScreen(
                 )
             }
 
-            //控制布局层
-            ControlBoxLayout(
+            //虚拟鼠标控制层（位于 Pojav 控制层下方）
+            MouseControlLayout(
+                isTouchProxyEnabled = isTouchProxyEnabled,
                 modifier = Modifier.fillMaxSize(),
-                observedLayout = viewModel.observableLayout,
-                eventHandler = viewModel.eventHandler,
-                checkOccupiedPointers = { viewModel.occupiedPointers.contains(it) },
-                opacity = { (AllSettings.controlsOpacity.state.toFloat() / 100f).coerceIn(0f, 1f) },
-                markPointerAsMoveOnly = { viewModel.moveOnlyPointers.add(it) },
+                cursorMode = cursorMode,
+                screenSize = screenSize,
+                onInputAreaRectUpdated = onInputAreaRectUpdated,
+                textInputMode = textInputMode,
+                isMoveOnlyPointer = { viewModel.moveOnlyPointers.contains(it) },
                 onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
-                onReleasePointer = { viewModel.occupiedPointers.remove(it) },
-                isCursorGrabbing = isGrabbing,
-                hideLayerWhen = viewModel.controlLayerHideState,
-                isDark = isLauncherInDarkTheme()
-            ) {
-                //虚拟鼠标控制层
-                MouseControlLayout(
-                    isTouchProxyEnabled = isTouchProxyEnabled,
-                    modifier = Modifier.fillMaxSize(),
-                    cursorMode = cursorMode,
-                    screenSize = screenSize,
-                    onInputAreaRectUpdated = onInputAreaRectUpdated,
-                    textInputMode = textInputMode,
-                    isMoveOnlyPointer = { viewModel.moveOnlyPointers.contains(it) },
-                    onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
-                    onReleasePointer = {
-                        viewModel.occupiedPointers.remove(it)
-                        viewModel.moveOnlyPointers.remove(it)
-                    },
-                    onMouseMoved = { viewModel.switchControlLayer(HideLayerWhen.WhenMouse) },
-                    onTouch = { viewModel.switchControlLayer(HideLayerWhen.None) },
-                    gamepadViewModel = gamepadViewModel.takeIf { AllSettings.gamepadControl.state }
-                )
-            }
+                onReleasePointer = {
+                    viewModel.occupiedPointers.remove(it)
+                    viewModel.moveOnlyPointers.remove(it)
+                },
+                onMouseMoved = { viewModel.switchControlLayer(HideLayerWhen.WhenMouse) },
+                onTouch = { viewModel.switchControlLayer(HideLayerWhen.None) },
+                gamepadViewModel = gamepadViewModel.takeIf { AllSettings.gamepadControl.state }
+            )
+
+            //Pojav 风格控制布局层
+            PojavControlLayer(
+                modifier = Modifier.fillMaxSize(),
+                layoutFile = layoutFile,
+                reloadKey = viewModel.layoutReload,
+                visible = viewModel.controlLayerHideState == HideLayerWhen.None,
+                opacity = (AllSettings.controlsOpacity.state.toFloat() / 100f).coerceIn(0f, 1f),
+                isGrabbing = isGrabbing,
+                editMode = false,
+                backSignal = viewModel.editorBackSignal,
+                cameraSensitivity = AllSettings.mouseCaptureSensitivity.state / 100f,
+                onSpecial = { code ->
+                    when (code) {
+                        SPECIALBTN_KEYBOARD -> viewModel.requestKeyboard()
+                        SPECIALBTN_MENU -> viewModel.switchMenu()
+                    }
+                },
+                onPointerOccupied = { viewModel.occupiedPointers.add(PointerId(it.toLong())) },
+                onPointerReleased = { viewModel.occupiedPointers.remove(PointerId(it.toLong())) },
+                onExitEditor = { }
+            )
 
             //物品栏触发层
             val gameDisplayLayout = currentGameDisplayLayout(screenSize)
@@ -771,9 +737,7 @@ fun GameScreen(
             onSendKeycode = { viewModel.sendKeycodeState = SendKeycodeState.ShowDialog },
             onReplacementControl = { viewModel.replacementControlState = ReplacementControlState.Show },
             onEditLayout = {
-                viewModel.startControlEditor(
-                    editorVM = editorViewModel
-                )
+                viewModel.startControlEditor()
             },
             onShowToast = { text, duration ->
                 eventViewModel.sendToast(text, duration)
@@ -796,23 +760,22 @@ fun GameScreen(
         )
 
         if (viewModel.isEditingLayout) {
-            viewModel.currentControlFile?.let {
-                ControlEditor(
-                    viewModel = editorViewModel,
-                    targetFile = it,
-                    exit = {
-                        viewModel.exitControlEditor()
-                    },
-                    menuExit = {
-                        editorViewModel.showExitEditorDialog(
-                            context = context,
-                            onExit = {
-                                viewModel.exitControlEditor()
-                            }
-                        )
-                    }
-                )
-            }
+            //Pojav 风格控制布局编辑器
+            PojavControlLayer(
+                modifier = Modifier.fillMaxSize(),
+                layoutFile = layoutFile,
+                reloadKey = viewModel.layoutReload,
+                visible = true,
+                opacity = 1f,
+                isGrabbing = false,
+                editMode = true,
+                backSignal = viewModel.editorBackSignal,
+                cameraSensitivity = 1f,
+                onSpecial = { },
+                onPointerOccupied = { },
+                onPointerReleased = { },
+                onExitEditor = { viewModel.exitControlEditor() }
+            )
         } else {
             if (AllSettings.showMenuBall.state) {
                 //在这里根据设置决定是否启用帧率捕获协程
@@ -855,13 +818,8 @@ fun GameScreen(
                 when (event) {
                     is EventViewModel.Event.Game.OnBack -> {
                         if (viewModel.isEditingLayout) {
-                            //处于控制布局编辑模式
-                            editorViewModel.onBackPressed(
-                                context = context,
-                                onExit = {
-                                    viewModel.exitControlEditor()
-                                }
-                            )
+                            //处于控制布局编辑模式：交给编辑器处理（保存/放弃/取消）
+                            viewModel.requestEditorBack()
                         } else if (!AllSettings.showMenuBall.getValue()) {
                             viewModel.switchMenu()
                         } else {

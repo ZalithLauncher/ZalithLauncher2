@@ -27,6 +27,7 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -673,6 +674,7 @@ fun ModsManagerScreen(
         VersionChunkBackground(
             modifier = Modifier
                 .fillMaxSize()
+                .background(Color(0xFF100B18))
                 .padding(all = 12.dp)
                 .animated(ctx),
             paddingValues = PaddingValues()

@@ -299,7 +299,7 @@ object MobileGluesRenderer : ConfigurableRenderer {
     }
 
     private fun writeFileAtomically(file: File, content: String): Boolean {
-        val tmpFile = file.resolve("${file.name}.tmp")
+        val tmpFile = File(file.absoluteFile.parentFile, "${file.name}.tmp")
         return runCatching {
             val parent = requireNotNull(file.absoluteFile.parentFile)
             if (!parent.isDirectory) parent.mkdirs()

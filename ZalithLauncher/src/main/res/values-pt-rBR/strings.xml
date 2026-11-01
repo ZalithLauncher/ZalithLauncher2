@@ -1469,7 +1469,7 @@
     <string name="welcome_screen_subtitle">Venha e experimente algo novo.</string>
     <string name="welcome_screen_intro_primary">Bem-vindo ao %1$s, um launcher de terceiros Minecraft: Java Edition projetado para dispositivos Android.</string>
     <string name="welcome_screen_intro_core">Desenvolvido pelo PojavLauncher, ele oferece uma experiência moderna de lançamento e gerenciamento de jogos.</string>
-    <string name="welcome_screen_agreement_title">Contratos do Usuário</string>
+    <string name="welcome_screen_agreement_title">Documentos legais do VOXUS</string>
     <string name="welcome_screen_agreement_confirmation">Li e concordo com os documentos acima.</string>
     <string name="agreement_content_unavailable">Este documento não está disponível.</string>
     <string name="agreement_update_title">Contratos atualizados</string>

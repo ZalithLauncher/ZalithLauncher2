@@ -414,16 +414,9 @@ fun RendererSummaryLayout(renderer: RendererInterface) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(text = stringResource(R.string.renderer_version_support), style = MaterialTheme.typography.labelSmall)
+                if (minVer != null || maxVer != null) {
+                    Text(text = stringResource(R.string.renderer_version_support), style = MaterialTheme.typography.labelSmall)
 
-                if (minVer == null && maxVer == null) {
-                    Text(
-                        text = stringResource(
-                            if (renderer is Plugin) R.string.generic_unknown else R.string.renderer_version_all
-                        ),
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                } else {
                     minVer?.let {
                         Text(text = ">= $it", style = MaterialTheme.typography.labelSmall)
                     }

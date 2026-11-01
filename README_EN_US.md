@@ -1,6 +1,4 @@
-# Zalith Launcher 2
-![Downloads](https://img.shields.io/github/downloads/ZalithLauncher/ZalithLauncher2/total)
-[![Sponsor](https://img.shields.io/badge/sponsor-30363D?logo=GitHub-Sponsors)](https://afdian.com/a/MovTery)
+# AETHER Launcher 2.0
 
 [简体中文](README.md) | [繁體中文](README_ZH_TW.md)
 
@@ -8,15 +6,14 @@
 > [!IMPORTANT]
 > This project is **completely separate** from [ZalithLauncher](https://github.com/ZalithLauncher/ZalithLauncher).  
 
-**Zalith Launcher 2** is a newly designed launcher for **Android devices** tailored for [Minecraft: Java Edition](https://www.minecraft.net/). The project uses [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) as its core launching engine and features a modern UI built with **Jetpack Compose** and **Material Design 3**.  
+**AETHER Launcher 2.0** is a newly designed launcher for **Android devices** tailored for [Minecraft: Java Edition](https://www.minecraft.net/). The project uses [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) as its core launching engine and features a modern UI built with **Jetpack Compose** and **Material Design 3**.  
 We are currently building our official website [zalithlauncher.cn](https://zalithlauncher.cn)  
 Additionally, we are aware that a third-party website has been set up using the name “Zalith Launcher”, appearing to be official. Please note: **this site was not created by us**. It exploits the name to display ads for profit. We **do not participate in, endorse, or trust** such content.  
 Please stay vigilant and **protect your personal privacy**!
 
 ## 🌐 Language and Translation Support
 
-We are using the Weblate platform to translate Zalith Launcher 2. You're welcome to join our [Weblate project](https://hosted.weblate.org/projects/zalithlauncher2) and contribute to the translations!  
-Thank you to every language contributor for helping make Zalith Launcher 2 more multilingual and global!
+Translations and localization for AETHER Launcher are maintained independently by this project.
 
 ## 📦 Build Instructions (For Developers)
 
@@ -33,7 +30,7 @@ Thank you to every language contributor for helping make Zalith Launcher 2 more 
 ### Build Steps
 
 ```bash
-git clone git@github.com:ZalithLauncher/ZalithLauncher2.git
+git clone -b aether/v2.0 https://github.com/tarachukalucas-cyber/VOXUS-laucher.git
 # Open the project in Android Studio and build
 ```
 

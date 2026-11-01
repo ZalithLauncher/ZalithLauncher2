@@ -1,10 +1,9 @@
 # AETHER Launcher
-[![Sponsor](https://img.shields.io/badge/sponsor-30363D?logo=GitHub-Sponsors)](https://afdian.com/a/MovTery)
 
 [English](README_EN_US.md) | [繁體中文](README_ZH_TW.md)
 
 
- > [!IMPORTANT]
+> [!IMPORTANT]
 > AETHER Launcher é uma versão modificada e não oficial, baseada em projetos de código aberto indicados nos créditos e na licença abaixo.
 
 **AETHER Launcher** é um launcher Android não oficial e modificado, baseado no projeto ZalithLauncher2, para [Minecraft: Java Edition](https://www.minecraft.net/) 启动器。项目使用 [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) 作为启动核心，采用 **Jetpack Compose** 与 **Material Design 3** 构建现代化 UI 体验。  

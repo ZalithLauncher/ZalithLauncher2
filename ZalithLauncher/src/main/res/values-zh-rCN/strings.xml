@@ -24,6 +24,8 @@
     <string name="generic_import">导入</string>
     <string name="generic_enable">启用</string>
     <string name="generic_disable">禁用</string>
+    <string name="generic_move_up">上移</string>
+    <string name="generic_move_down">下移</string>
     <string name="generic_open_link">在浏览器访问</string>
     <string name="generic_cannot_empty">内容不能为空！</string>
     <string name="generic_input_invalid_character">名称内包含无效字符：“%s”</string>
@@ -928,6 +930,13 @@
     <string name="renderer_config_mg_noerror_off">不忽略错误</string>
     <string name="renderer_config_mg_noerror_shader">忽略着色器与程序错误</string>
     <string name="renderer_config_mg_noerror_framebuffer">同时忽略帧缓冲错误</string>
+    <string name="renderer_config_mg_multidraw_order_title">MultiDraw 方案排序</string>
+    <string name="renderer_config_mg_multidraw_order_desc">越靠前越优先；运行中某方案失效时会按此顺序向后回退</string>
+    <string name="renderer_config_mg_multidraw_exception_desc">启用后为此函数使用独立方案排序，不再跟随全局排序</string>
+    <string name="renderer_config_mg_multidraw_native">原生 / 原生 EXT</string>
+    <string name="renderer_config_mg_multidraw_native_desc">自动匹配 GLES 核心或扩展中同形的函数（若存在）</string>
+    <string name="renderer_config_mg_multidraw_unroll">逐条绘制</string>
+    <string name="renderer_config_mg_multidraw_compute">计算着色器</string>
     <string name="renderer_config_mg_depthfix_title">ANGLE 深度清除修复</string>
     <string name="renderer_config_mg_depthfix_desc">ANGLE 后端下深度清除异常的修复；若世界渲染穿透可尝试开启</string>
     <string name="renderer_config_mg_glversion_title">报告的 OpenGL 版本</string>

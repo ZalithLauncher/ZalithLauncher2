@@ -51,7 +51,7 @@ object MobileGluesRenderer : ConfigurableRenderer {
             id = "enableANGLE",
             title = R.string.renderer_config_mg_angle_title,
             description = R.string.renderer_config_mg_angle_desc,
-            default = 1
+            default = 0
         ) {
             option(0, R.string.renderer_config_mg_angle_disable_when_possible)
             option(1, R.string.renderer_config_mg_angle_enable_when_possible)
@@ -68,6 +68,98 @@ object MobileGluesRenderer : ConfigurableRenderer {
             option(1, R.string.renderer_config_mg_noerror_off)
             option(2, R.string.renderer_config_mg_noerror_shader)
             option(3, R.string.renderer_config_mg_noerror_framebuffer)
+        }
+        orderedChoice(
+            id = "multidrawOrder",
+            title = R.string.renderer_config_mg_multidraw_order_title,
+            description = R.string.renderer_config_mg_multidraw_order_desc,
+            default = listOf(
+                "native", "multiindirect", "multibasevertex", "multiarrays",
+                "indirect", "basevertex", "unroll", "compute"
+            )
+        ) {
+            option(
+                "native",
+                R.string.renderer_config_mg_multidraw_native,
+                R.string.renderer_config_mg_multidraw_native_desc
+            )
+            option("multiindirect", "MultiIndirect")
+            option("multibasevertex", "MultiBaseVertex")
+            option("multiarrays", "MultiArrays")
+            option("indirect", "Indirect")
+            option("basevertex", "BaseVertex")
+            option("unroll", R.string.renderer_config_mg_multidraw_unroll)
+            option("compute", R.string.renderer_config_mg_multidraw_compute)
+        }
+        orderedChoice(
+            id = "multidrawOrderArrays",
+            title = "glMultiDrawArrays",
+            description = R.string.renderer_config_mg_multidraw_exception_desc,
+            default = listOf("multiarrays", "multiindirect", "unroll"),
+            defaultEnabled = false,
+            inheritFrom = "multidrawOrder",
+            nativeValue = "multiarrays"
+        ) {
+            option("multiarrays", "MultiArrays")
+            option("multiindirect", "MultiIndirect")
+            option("unroll", R.string.renderer_config_mg_multidraw_unroll)
+        }
+        orderedChoice(
+            id = "multidrawOrderElements",
+            title = "glMultiDrawElements",
+            description = R.string.renderer_config_mg_multidraw_exception_desc,
+            default = listOf("multiarrays", "multiindirect", "multibasevertex", "indirect", "unroll"),
+            defaultEnabled = false,
+            inheritFrom = "multidrawOrder",
+            nativeValue = "multiarrays"
+        ) {
+            option("multiarrays", "MultiArrays")
+            option("multiindirect", "MultiIndirect")
+            option("multibasevertex", "MultiBaseVertex")
+            option("indirect", "Indirect")
+            option("unroll", R.string.renderer_config_mg_multidraw_unroll)
+        }
+        orderedChoice(
+            id = "multidrawOrderElementsBaseVertex",
+            title = "glMultiDrawElementsBaseVertex",
+            description = R.string.renderer_config_mg_multidraw_exception_desc,
+            default = listOf(
+                "multibasevertex", "multiindirect", "indirect", "basevertex", "unroll", "compute"
+            ),
+            defaultEnabled = false,
+            inheritFrom = "multidrawOrder",
+            nativeValue = "multibasevertex"
+        ) {
+            option("multibasevertex", "MultiBaseVertex")
+            option("multiindirect", "MultiIndirect")
+            option("indirect", "Indirect")
+            option("basevertex", "BaseVertex")
+            option("unroll", R.string.renderer_config_mg_multidraw_unroll)
+            option("compute", R.string.renderer_config_mg_multidraw_compute)
+        }
+        orderedChoice(
+            id = "multidrawOrderArraysIndirect",
+            title = "glMultiDrawArraysIndirect",
+            description = R.string.renderer_config_mg_multidraw_exception_desc,
+            default = listOf("multiindirect", "indirect"),
+            defaultEnabled = false,
+            inheritFrom = "multidrawOrder",
+            nativeValue = "multiindirect"
+        ) {
+            option("multiindirect", "MultiIndirect")
+            option("indirect", "Indirect")
+        }
+        orderedChoice(
+            id = "multidrawOrderElementsIndirect",
+            title = "glMultiDrawElementsIndirect",
+            description = R.string.renderer_config_mg_multidraw_exception_desc,
+            default = listOf("multiindirect", "indirect"),
+            defaultEnabled = false,
+            inheritFrom = "multidrawOrder",
+            nativeValue = "multiindirect"
+        ) {
+            option("multiindirect", "MultiIndirect")
+            option("indirect", "Indirect")
         }
         switch(
             id = "angleDepthClearFixMode",

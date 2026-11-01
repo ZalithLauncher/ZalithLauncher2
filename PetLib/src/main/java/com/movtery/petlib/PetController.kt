@@ -62,6 +62,8 @@ private fun wrapPi(angle: Float): Float {
  * 内部独占一个渲染线程；除 release 外所有方法都可从任意线程调用，
  * 实际的原生调用全部排队到该线程执行。释放后调用任何方法均为无操作。
  *
+ * 若原生库未打包（构建时跳过了 Rust 编译），控制器退化为无操作，不会崩溃。
+ *
  * @param skin 初始皮肤数据
  * @param arm 手臂模型，null 自动检测
  * @param defaultYaw 默认偏航角（弧度），回正回到该角度
@@ -76,8 +78,13 @@ class PetController(
     private val handler = Handler(thread.looper)
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    // ptr == 0 表示原生库不可用或已释放，post() 会据此丢弃所有原生调用
     @Volatile
-    private var ptr: Long = PetLibNative.nativeCreate(skin, ArmModel.codeOf(arm))
+    private var ptr: Long = if (PetLibNative.AVAILABLE) {
+        PetLibNative.nativeCreate(skin, ArmModel.codeOf(arm))
+    } else {
+        0L
+    }
 
     @Volatile
     private var released = false
@@ -348,7 +355,7 @@ class PetController(
         handler.post {
             surfaceRef.set(null)
             attachedSurface = null
-            PetLibNative.nativeDestroy(ptr)
+            if (ptr != 0L) PetLibNative.nativeDestroy(ptr)
             ptr = 0
             backBuffer = null
             frontBuffer = null
@@ -409,6 +416,8 @@ class PetController(
     }
 
     private fun renderOneFrame() {
+        // 原生库不可用或已释放：不渲染
+        if (ptr == 0L) return
         val surface = surfaceRef.get() ?: return
         val width = widthHint.get()
         val height = heightHint.get()

@@ -23,8 +23,8 @@ val launcherVersionCode = (project.findProperty("launcher_version_code") as? Str
 val launcherVersionName = project.findProperty("launcher_version_name") as? String ?: error("The \"launcher_version_name\" property is not set in gradle.properties.")
 
 val defaultOAuthClientID = project.findProperty("oauth_client_id") as? String
-val defaultStorePassword = project.findProperty("default_store_password") as? String ?: error("The \"default_store_password\" property is not set in gradle.properties.")
-val defaultKeyPassword = project.findProperty("default_key_password") as? String ?: error("The \"default_key_password\" property is not set in gradle.properties.")
+val defaultStorePassword = project.findProperty("default_store_password") as? String ?: ""
+val defaultKeyPassword = project.findProperty("default_key_password") as? String ?: ""
 val defaultCurseForgeApiKey = project.findProperty("curseforge_api_key") as? String
 
 val projectArch: String = System.getProperty("arch", "all")
@@ -87,7 +87,6 @@ android {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-            signingConfig = signingConfigs.getByName("debugBuild")
         }
     }
 

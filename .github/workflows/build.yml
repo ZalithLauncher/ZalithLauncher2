@@ -39,7 +39,7 @@ jobs:
       fail-fast: false
 
     env:
-      BUILD_VARIANT: ${{ github.event.inputs.variant || 'Debug' }}
+      BUILD_VARIANT: ${{ inputs.variant || github.event.inputs.variant || 'Debug' }}
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
       OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
@@ -49,6 +49,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
         with:
+          ref: ${{ github.event.release.tag_name || github.ref }}
           submodules: recursive
 
       - name: Set up JDK 21

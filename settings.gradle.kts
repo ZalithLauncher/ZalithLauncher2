@@ -24,9 +24,9 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "VOXUSLauncher"
+rootProject.name = "AETHERLauncher"
 include(":ZalithLauncher")
-project(":ZalithLauncher").name = "VOXUS"
+project(":ZalithLauncher").name = "AETHER"
 include(":LWJGL")
 include(":LWJGL:patches")
 project(":LWJGL:patches").projectDir = file("LWJGL/patches")

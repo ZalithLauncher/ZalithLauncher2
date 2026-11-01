@@ -240,10 +240,6 @@ object MobileGluesRenderer : ConfigurableRenderer {
 
     override fun getRendererSummary(): String = "OpenGL 4.0"
 
-    override fun getMaxMCVersion(): String = "26.3-snapshot-3"
-
-    override fun getDisplayMaxMCVersion(): String = "26.2"
-
     override fun getConfiguredEnv(config: ResolvedRendererConfig): Map<String, String> {
         val mgDir = File(PathManager.DIR_FILES_PRIVATE, "mobileglues")
         writeMobileGluesConfig(mgDir, config.jsonFields)

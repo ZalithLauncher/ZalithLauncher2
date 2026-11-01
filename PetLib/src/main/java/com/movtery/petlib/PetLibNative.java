@@ -24,8 +24,19 @@ import android.graphics.Bitmap;
  * PetLib 原生接口，静态方法与 libpetlib 的 JNI 符号一一对应。
  */
 final class PetLibNative {
+    /** libpetlib 是否加载成功；构建时跳过了 Rust 编译则为 false */
+    static final boolean AVAILABLE;
+
     static {
-        System.loadLibrary("petlib");
+        boolean ok;
+        try {
+            System.loadLibrary("petlib");
+            ok = true;
+        } catch (UnsatisfiedLinkError e) {
+            android.util.Log.w("PetLib", "libpetlib not available, PetLib disabled: " + e);
+            ok = false;
+        }
+        AVAILABLE = ok;
     }
 
     private PetLibNative() {

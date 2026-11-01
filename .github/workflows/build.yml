@@ -100,7 +100,7 @@ jobs:
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew
-          ./gradlew ZalithLauncher:assemble${{ env.BUILD_VARIANT }} -Darch=${{ matrix.arch }}
+          ./gradlew :VOXUS:assemble${{ env.BUILD_VARIANT }} -Darch=${{ matrix.arch }}
 
       - name: Upload Release APK for ${{ matrix.arch }}
         if: env.BUILD_VARIANT == 'Release'

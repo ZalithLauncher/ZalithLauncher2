@@ -46,6 +46,9 @@ data class ResolvedRendererConfig(
                 is SingleChoiceEntry -> {
                     if (resolved.enabled != false) put(target.key, resolved.value.asString())
                 }
+                is OrderedChoiceEntry -> {
+                    if (resolved.enabled != false) put(target.key, resolved.value.asString())
+                }
                 is NumberEntry -> effectiveNumberValue(entry, resolved.value)?.let {
                     put(target.key, it.asString())
                 }
@@ -68,6 +71,9 @@ data class ResolvedRendererConfig(
                     put(target.key, ConfigScalar.IntValue(if (enabled) 1 else 0))
                 }
                 is SingleChoiceEntry -> {
+                    if (resolved.enabled != false) put(target.key, resolved.value)
+                }
+                is OrderedChoiceEntry -> {
                     if (resolved.enabled != false) put(target.key, resolved.value)
                 }
                 is NumberEntry -> {
@@ -98,19 +104,23 @@ fun resolveEntry(
     rendererId: String,
     entry: ConfigEntry,
     localStore: RendererConfigStore?,
-    globalStore: RendererConfigStore? = null
+    globalStore: RendererConfigStore? = null,
+    inheritedValues: Map<String, ConfigScalar> = emptyMap()
 ): ResolvedEntryState {
     val localValue = localStore?.getValue(rendererId, entry.id)
     val globalValue = globalStore?.takeIf { it !== localStore }?.getValue(rendererId, entry.id)
+    val localEnabled = localStore?.getEnabled(rendererId, entry.id)
+    val globalEnabled = globalStore?.takeIf { it !== localStore }?.getEnabled(rendererId, entry.id)
     val enabled = if (entry.defaultEnabled != null) {
-        localStore?.getEnabled(rendererId, entry.id)
-            ?: globalStore?.takeIf { it !== localStore }?.getEnabled(rendererId, entry.id)
-            ?: entry.defaultEnabled
+        localEnabled ?: globalEnabled ?: entry.defaultEnabled
     } else null
+    val orderedEntry = entry as? OrderedChoiceEntry
+    val defaultValue = orderedEntry?.defaultValue(inheritedValues[orderedEntry.inheritFrom])
+        ?: entry.defaultValue
     return ResolvedEntryState(
-        value = entry.coerce(localValue ?: globalValue ?: entry.defaultValue),
+        value = entry.coerce(localValue ?: globalValue ?: defaultValue),
         enabled = enabled,
-        explicit = localValue != null || globalValue != null
+        explicit = localValue != null || globalValue != null || localEnabled != null || globalEnabled != null
     )
 }
 
@@ -122,18 +132,22 @@ fun resolveRendererConfig(
     spec: RendererConfigSpec,
     versionStore: VersionRendererConfigStore? = null,
     globalStore: RendererConfigStore = GlobalRendererConfigStore
-): ResolvedRendererConfig = ResolvedRendererConfig(
-    fixedEnv = spec.fixedEnv,
-    entries = spec.entries.map { entry ->
-        val state = resolveEntry(rendererId, entry, versionStore, globalStore)
-        ResolvedConfigEntry(
-            entry = entry,
-            value = state.value,
-            enabled = state.enabled,
-            explicit = state.explicit
-        )
-    }
-)
+): ResolvedRendererConfig {
+    val inheritedValues = mutableMapOf<String, ConfigScalar>()
+    return ResolvedRendererConfig(
+        fixedEnv = spec.fixedEnv,
+        entries = spec.entries.map { entry ->
+            val state = resolveEntry(rendererId, entry, versionStore, globalStore, inheritedValues)
+            inheritedValues[entry.id] = state.value
+            ResolvedConfigEntry(
+                entry = entry,
+                value = state.value,
+                enabled = state.enabled,
+                explicit = state.explicit
+            )
+        }
+    )
+}
 
 private fun effectiveNumberValue(entry: NumberEntry, value: ConfigScalar): ConfigScalar? =
     if ((value as? ConfigScalar.StringValue)?.value?.isEmpty() == true) entry.emptyValue else value

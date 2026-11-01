@@ -44,6 +44,8 @@
     <string name="generic_import">Import</string>
     <string name="generic_enable">Enable</string>
     <string name="generic_disable">Disable</string>
+    <string name="generic_move_up">Move up</string>
+    <string name="generic_move_down">Move down</string>
     <string name="generic_open_link">Open in Browser</string>
     <string name="generic_cannot_empty">Content cannot be empty!</string>
     <string name="generic_input_invalid_character">Invalid character in name: \"%s\"</string>
@@ -1762,6 +1764,20 @@
     <string name="renderer_config_mg_noerror_shader">Ignore Shader and Program Errors</string>
     <!-- GL error handling option that also ignores framebuffer errors -->
     <string name="renderer_config_mg_noerror_framebuffer">Also Ignore Framebuffer Errors</string>
+    <!-- Title of the global MultiDraw backend order in MobileGlues renderer settings -->
+    <string name="renderer_config_mg_multidraw_order_title">MultiDraw Strategy Order</string>
+    <!-- Description explaining how MobileGlues uses the global MultiDraw backend order -->
+    <string name="renderer_config_mg_multidraw_order_desc">Higher strategies are preferred; failed strategies fall back in this order</string>
+    <!-- Description of the checkbox enabling a function-specific MultiDraw order -->
+    <string name="renderer_config_mg_multidraw_exception_desc">Enable to use an independent strategy order instead of the global order</string>
+    <!-- MultiDraw strategy matching a native GLES core or extension function -->
+    <string name="renderer_config_mg_multidraw_native">Native / Native EXT</string>
+    <!-- Description of the native MultiDraw strategy -->
+    <string name="renderer_config_mg_multidraw_native_desc">Matches the equivalent GLES core or extension function when available</string>
+    <!-- MultiDraw backend that submits every draw separately -->
+    <string name="renderer_config_mg_multidraw_unroll">Draw One by One</string>
+    <!-- MultiDraw backend using compute shaders -->
+    <string name="renderer_config_mg_multidraw_compute">Compute Shader</string>
     <!-- Title of the ANGLE depth clear fix in MobileGlues renderer settings -->
     <string name="renderer_config_mg_depthfix_title">ANGLE Depth Clear Fix</string>
     <!-- Description of the ANGLE depth clear fix in MobileGlues renderer settings -->

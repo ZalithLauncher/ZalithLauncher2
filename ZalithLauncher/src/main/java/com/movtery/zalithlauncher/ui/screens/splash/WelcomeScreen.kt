@@ -63,6 +63,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -115,7 +116,7 @@ fun WelcomeScreen(
         }
 
         BoxWithConstraints(
-            modifier = modifier.background(MaterialTheme.colorScheme.background),
+            modifier = modifier.background(Color(0xFF241044)),
             contentAlignment = Alignment.Center
         ) {
             if (maxWidth >= 800.dp && maxHeight >= 500.dp) {
@@ -267,8 +268,8 @@ private fun WelcomeTerminal(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(36.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+        color = Color(0xFF382064),
+        contentColor = Color(0xFFF5EEFF)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Box(

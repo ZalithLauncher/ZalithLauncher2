@@ -1,3 +1,10 @@
+# NusaLauncher
+
+> [!NOTE]
+> **NusaLauncher** is an unofficial, community fork of [Zalith Launcher 2](https://github.com/ZalithLauncher/ZalithLauncher2) by MovTery and contributors. It is **not affiliated with or endorsed by** the official Zalith Launcher project. Licensed under GPL-3.0, same as upstream. Offline accounts are supported; Microsoft accounts are optional.
+
+---
+
 # Zalith Launcher 2
 ![Downloads](https://img.shields.io/github/downloads/ZalithLauncher/ZalithLauncher2/total)
 [![Sponsor](https://img.shields.io/badge/sponsor-30363D?logo=GitHub-Sponsors)](https://afdian.com/a/MovTery)

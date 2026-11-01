@@ -64,8 +64,8 @@ android {
     }
 
     defaultConfig {
-        applicationId = zalithPackageName
-        applicationIdSuffix = ".v2"
+        // NusaLauncher: own applicationId; code namespace stays upstream's so merges stay easy
+        applicationId = "com.pickocore.nusalauncher"
         minSdk = 26
         targetSdk = 34
         versionCode = launcherVersionCode

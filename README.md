@@ -1,14 +1,14 @@
-# VOXUS Launcher
+# AETHER Launcher
 [![Sponsor](https://img.shields.io/badge/sponsor-30363D?logo=GitHub-Sponsors)](https://afdian.com/a/MovTery)
 
 [English](README_EN_US.md) | [繁體中文](README_ZH_TW.md)
 
 
-> [!IMPORTANT]
-> VOXUS Launcher é uma versão modificada e não oficial, baseada no projeto original indicado nos créditos e na licença abaixo.
+ > [!IMPORTANT]
+> AETHER Launcher é uma versão modificada e não oficial, baseada em projetos de código aberto indicados nos créditos e na licença abaixo.
 
-**VOXUS Launcher** é um launcher Android não oficial e modificado, baseado no projeto ZalithLauncher2, para [Minecraft: Java Edition](https://www.minecraft.net/) 启动器。项目使用 [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) 作为启动核心，采用 **Jetpack Compose** 与 **Material Design 3** 构建现代化 UI 体验。  
-O VOXUS é um projeto independente. Não é afiliado, mantido ou endossado pelos desenvolvedores do projeto original.
+**AETHER Launcher** é um launcher Android não oficial e modificado, baseado no projeto ZalithLauncher2, para [Minecraft: Java Edition](https://www.minecraft.net/) 启动器。项目使用 [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) 作为启动核心，采用 **Jetpack Compose** 与 **Material Design 3** 构建现代化 UI 体验。  
+O AETHER é um projeto independente. Não é afiliado, mantido ou endossado pelos desenvolvedores dos projetos originais.
 
 
 
@@ -36,7 +36,7 @@ O VOXUS é um projeto independente. Não é afiliado, mantido ou endossado pelos
 ### 构建步骤
 
 ```bash
-git clone git@github.com:ZalithLauncher/ZalithLauncher2.git
+git clone https://github.com/tarachukalucas-cyber/VOXUS-laucher.git
 # 使用 Android Studio 打开项目并进行构建
 ```
 
@@ -52,7 +52,7 @@ O código deste projeto segue a licença **[GPL-3.0](LICENSE)**.
 1. 当你分发该程序的修改版本时，你必须以合理方式修改该程序的名称或版本号，以示其与原始版本不同。(依据 [GPLv3, 7(c)](https://github.com/ZalithLauncher/ZalithLauncher2/blob/969827b/LICENSE#L372-L374))
    - 修改版本 **不得在名称中包含原程序名称 “ZalithLauncher” 或其缩写 “ZL”，也不得使用与官方名称相近、可能导致混淆的名称**。
    - 所有修改版本 **必须在程序启动页面或主界面中以明显方式标注其为“非官方修改版”**。
-   - O nome do aplicativo VOXUS pode ser configurado em [gradle.properties](./ZalithLauncher/gradle.properties).
+   - O nome do aplicativo AETHER pode ser configurado em [gradle.properties](./ZalithLauncher/gradle.properties).
 
 2. 你不得移除该程序所显示的版权声明。(依据 [GPLv3, 7(b)](https://github.com/ZalithLauncher/ZalithLauncher2/blob/969827b/LICENSE#L368-L370))
 
@@ -106,4 +106,4 @@ O código deste projeto segue a licença **[GPL-3.0](LICENSE)**.
 | tm4e (TextMate for Eclipse)           | Copyright © Eclipse Foundation                                                                                | EPL-2.0 License      | [链接↗](https://github.com/eclipse-tm4e/tm4e)                                      |
 | XZ for Java                           | Copyright © The XZ for Java authors and contributors                                                          | 0BSD License         | [链接↗](https://tukaani.org/xz/java.html)                                          |
 
-VOXUS Launcher 1.0 development build trigger.
+AETHER Launcher 1.0 development build trigger.

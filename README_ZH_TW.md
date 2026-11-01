@@ -7,19 +7,15 @@
 > 該專案與 [ZalithLauncher](https://github.com/ZalithLauncher/ZalithLauncher) 屬於兩個完全不同的專案  
 
 **AETHER Launcher 2.0** 是一個全新設計、面向 **Android 裝置** 的 [Minecraft: Java Edition](https://www.minecraft.net/) 啟動器。專案使用 [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) 作為啟動核心，採用 **Jetpack Compose** 與 **Material Design 3** 構建現代化 UI 體驗。  
-我們目前正在搭建自己的官方網站 [zalithlauncher.cn](https://zalithlauncher.cn)  
-此外，我們已注意到有第三方使用「Zalith Launcher」名稱搭建了一個看似官方的網站。請注意：**該網站並非我們創建**，其透過冒用名義並植入廣告牟利。我們對此類行為**不參與、不認可、不信任**。  
-請務必提高警覺，**謹防個人隱私資訊洩露**！
+AETHER Launcher 是獨立的非官方社群修改版本，與上游專案沒有隸屬或背書關係。
+
+*！
 
 
 
 ## 🌐 語言與翻譯支援
 
 AETHER Launcher 的翻譯與在地化由本專案獨立維護。
-
-
-
-
 
 ## 📦 構建方式（開發者）
 

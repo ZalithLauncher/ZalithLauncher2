@@ -3050,4 +3050,30 @@
     <string name="guide_tip_blank">Tap any blank area to continue to the next step</string>
     <!-- Next-step hint shown near a screen corner during the final guide step; tapping any blank area finishes the whole guide -->
     <string name="guide_tip_finish">Tap any blank area to finish the guide</string>
+    <!-- NusaLauncher: local crash diagnosis -->
+    <string name="crash_diag_header">Likely cause (local analysis)</string>
+    <string name="crash_diag_out_of_memory_title">Out of memory</string>
+    <string name="crash_diag_out_of_memory_hint">Increase the game RAM in version settings, close other apps, or lower render distance and remove heavy mods.</string>
+    <string name="crash_diag_java_version_title">Wrong Java version</string>
+    <string name="crash_diag_java_version_hint">This game or mod needs a different Java. Set the Java runtime to Auto, or pick the version the game requires.</string>
+    <string name="crash_diag_disk_full_title">Storage is full</string>
+    <string name="crash_diag_disk_full_hint">Free up some space on your device, then launch again.</string>
+    <string name="crash_diag_mod_dependency_title">Missing or incompatible mod</string>
+    <string name="crash_diag_mod_dependency_hint">A mod needs another mod or a different version. Install the missing dependency, or remove the mod that was reported.</string>
+    <string name="crash_diag_mixin_failure_title">Mod conflict</string>
+    <string name="crash_diag_mixin_failure_hint">A mod failed to patch the game. Update the mod to match your Minecraft version, or remove it.</string>
+    <string name="crash_diag_corrupt_file_title">Corrupted game file</string>
+    <string name="crash_diag_corrupt_file_hint">A game or mod file is damaged. Re-download the version, or remove the mod that was reported.</string>
+    <string name="crash_diag_main_class_missing_title">Game files are incomplete</string>
+    <string name="crash_diag_main_class_missing_hint">The game did not finish installing. Re-install or re-download this version.</string>
+    <string name="crash_diag_shader_compile_title">Renderer cannot compile shaders</string>
+    <string name="crash_diag_shader_compile_hint">Your renderer does not support this Minecraft version. Try another renderer in settings, or use an older stable version such as 1.21.1.</string>
+    <string name="crash_diag_opengl_unsupported_title">OpenGL not supported</string>
+    <string name="crash_diag_opengl_unsupported_hint">The selected renderer cannot start on this device. Switch to a different renderer in settings.</string>
+    <string name="crash_diag_native_crash_title">Native crash</string>
+    <string name="crash_diag_native_crash_hint">A low-level crash happened, often from the renderer or GPU driver. Try another renderer, and disable heavy shaders or mods.</string>
+    <string name="crash_diag_runtime_load_failed_title">Java runtime failed to load</string>
+    <string name="crash_diag_runtime_load_failed_hint">Re-install the Java runtime in settings, or select a different one.</string>
+    <string name="crash_diag_low_memory_kill_title">Closed by Android (low memory)</string>
+    <string name="crash_diag_low_memory_kill_hint">Android stopped the game to free memory. Lower the game RAM, close background apps, and reduce render distance.</string>
 </resources>

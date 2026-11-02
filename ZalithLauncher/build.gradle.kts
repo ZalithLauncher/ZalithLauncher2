@@ -1,7 +1,9 @@
 import com.android.build.api.variant.FilterConfiguration.FilterType.ABI
 import com.android.build.api.variant.impl.VariantOutputImpl
 import com.android.build.gradle.tasks.MergeSourceSetFolders
+import groovy.json.JsonOutput
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.security.MessageDigest
 
 plugins {
     alias(libs.plugins.android.application)
@@ -37,6 +39,69 @@ fun getKeyFromLocal(envKey: String, fileName: String? = null, default: String? =
     } ?: default ?: run {
         logger.warn("BUILD: $envKey not set; related features may throw exceptions.")
         ""
+    }
+}
+
+fun File.sha1Hex(): String {
+    val digest = MessageDigest.getInstance("SHA-1")
+    inputStream().use { stream ->
+        val buffer = ByteArray(8192)
+        while (true) {
+            val count = stream.read(buffer)
+            if (count < 0) break
+            digest.update(buffer, 0, count)
+        }
+    }
+    return digest.digest().joinToString("") { "%02x".format(it) }
+}
+
+fun writeAssetManifest(assetsDir: File, componentPath: String) {
+    val componentDir = File(assetsDir, componentPath)
+    require(componentDir.isDirectory) { "Missing component assets: $componentDir" }
+    val files = componentDir.walkTopDown()
+        .filter { it.isFile }
+        .map { it.relativeTo(componentDir) }
+        .filter { it.invariantSeparatorsPath != "version" && it.invariantSeparatorsPath != "manifest.json" }
+        .sortedBy { it.invariantSeparatorsPath }
+        .map { relativePath ->
+            val path = relativePath.invariantSeparatorsPath
+            val file = File(componentDir, path)
+            linkedMapOf(
+                "path" to path,
+                "size" to file.length(),
+                "sha1" to file.sha1Hex()
+            )
+        }
+        .toList()
+    require(files.isNotEmpty()) { "Component assets are empty: $componentDir" }
+
+    val manifest = linkedMapOf(
+        "formatVersion" to 1,
+        "component" to componentPath,
+        "algorithm" to "SHA-1",
+        "files" to files
+    )
+    File(componentDir, "manifest.json").writeText(
+        JsonOutput.prettyPrint(JsonOutput.toJson(manifest)) + "\n"
+    )
+}
+
+fun writeComponentAssetManifests(assetsDir: File) {
+    val componentPaths = mutableListOf(
+        "components/auth_libs",
+        "components/caciocavallo",
+        "components/caciocavallo17",
+        "components/launcher",
+        "runtimes/jna"
+    )
+    val lwjglRoot = File(assetsDir, "app_runtime/lwjgl")
+    require(lwjglRoot.isDirectory) { "Missing LWJGL assets: $lwjglRoot" }
+    lwjglRoot.listFiles()
+        ?.filter { it.isDirectory }
+        ?.sortedBy { it.name }
+        ?.forEach { componentPaths += "app_runtime/lwjgl/${it.name}" }
+    componentPaths.forEach {
+        writeAssetManifest(assetsDir, it)
     }
 }
 
@@ -167,41 +232,46 @@ androidComponents {
                             }
                         }
 
-                        if (projectArch == "all") return@doLast
-                        val abi = when (projectArch) {
-                            "arm" -> "armeabi-v7a"
-                            "arm64" -> "arm64-v8a"
-                            "x86" -> "x86"
-                            "x86_64" -> "x86_64"
-                            else -> return@doLast
-                        }
-                        val lwjglVersions = file("libs").listFiles { f ->
-                            f.name.matches(Regex("lwjgl-\\d+\\.\\d+\\.\\d+-natives-release\\.aar"))
-                        }
-                            ?.map { Regex("lwjgl-(\\d+\\.\\d+\\.\\d+)-natives-release\\.aar").find(it.name)!!.groupValues[1] }
-                            ?: emptyList()
-                        lwjglVersions.forEach { version ->
-                            val nativesDir = File(assetsDir, "app_runtime/lwjgl/$version/natives")
-                            if (nativesDir.isDirectory) {
-                                nativesDir.listFiles()?.forEach { dir ->
-                                    if (dir.isDirectory && dir.name != abi) {
-                                        logger.lifecycle("Removing non-target-arch natives: $dir")
-                                        dir.deleteRecursively()
+                        if (projectArch != "all") {
+                            val abi = when (projectArch) {
+                                "arm" -> "armeabi-v7a"
+                                "arm64" -> "arm64-v8a"
+                                "x86" -> "x86"
+                                "x86_64" -> "x86_64"
+                                else -> error("Unknown project architecture: $projectArch")
+                            }
+                            val lwjglVersions = file("libs").listFiles { f ->
+                                f.name.matches(Regex("lwjgl-\\d+\\.\\d+\\.\\d+-natives-release\\.aar"))
+                            }?.map {
+                                Regex("lwjgl-(\\d+\\.\\d+\\.\\d+)-natives-release\\.aar").find(it.name)!!.groupValues[1]
+                            } ?: emptyList()
+
+                            lwjglVersions.forEach { version ->
+                                val nativesDir =
+                                    File(assetsDir, "app_runtime/lwjgl/$version/natives")
+                                if (nativesDir.isDirectory) {
+                                    nativesDir.listFiles()?.forEach { dir ->
+                                        if (dir.isDirectory && dir.name != abi) {
+                                            logger.lifecycle("Removing non-target-arch natives: $dir")
+                                            dir.deleteRecursively()
+                                        }
+                                    }
+                                }
+                            }
+
+                            File(assetsDir, "runtimes/jna").listFiles()?.forEach { versionDir ->
+                                val nativesDir = File(versionDir, "natives")
+                                if (nativesDir.isDirectory) {
+                                    nativesDir.listFiles()?.forEach { dir ->
+                                        if (dir.isDirectory && dir.name != abi) {
+                                            logger.lifecycle("Removing non-target-arch JNA natives: $dir")
+                                            dir.deleteRecursively()
+                                        }
                                     }
                                 }
                             }
                         }
-                        File(assetsDir, "runtimes/jna").listFiles()?.forEach { versionDir ->
-                            val nativesDir = File(versionDir, "natives")
-                            if (nativesDir.isDirectory) {
-                                nativesDir.listFiles()?.forEach { dir ->
-                                    if (dir.isDirectory && dir.name != abi) {
-                                        logger.lifecycle("Removing non-target-arch JNA natives: $dir")
-                                        dir.deleteRecursively()
-                                    }
-                                }
-                            }
-                        }
+                        writeComponentAssetManifests(assetsDir)
                     }
                 }
 

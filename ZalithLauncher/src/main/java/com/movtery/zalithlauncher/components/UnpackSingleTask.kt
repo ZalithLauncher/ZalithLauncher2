@@ -19,15 +19,17 @@
 package com.movtery.zalithlauncher.components
 
 import android.content.Context
-import android.content.res.AssetManager
 import com.movtery.zalithlauncher.context.copyAssetFile
-import com.movtery.zalithlauncher.utils.file.readString
+import com.movtery.zalithlauncher.utils.file.ensureDirectory
 import com.movtery.zalithlauncher.utils.logging.Logger
+import com.movtery.zalithlauncher.utils.string.getMessageOrToString
+import kotlinx.coroutines.CancellationException
 import org.apache.commons.io.FileUtils
 import java.io.File
-import java.io.FileInputStream
 import java.io.IOException
-import java.io.InputStream
+import java.nio.file.AtomicMoveNotSupportedException
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 private const val TAG = "UnpackSingleTask"
 
@@ -37,109 +39,154 @@ abstract class UnpackSingleTask(
     val assetsDirName: String,
     val fileDirName: String,
 ) : AbstractUnpackTask() {
-    private lateinit var am: AssetManager
-    private lateinit var versionFile: File
-    private lateinit var input: InputStream
-    private var isCheckFailed: Boolean = false
-
-    init {
-        runCatching {
-            am = context.assets
-            versionFile = File("$rootDir/$fileDirName/version")
-            input = am.open("$assetsDirName/version")
-        }.onFailure { e ->
-            Logger.warning(TAG, "Failed to init asset version. assetsPath=$assetsDirName/version", e)
-            isCheckFailed = true
-        }
+    open fun selectFiles(manifest: AssetManifest): List<ComponentFile> {
+        return manifest.files.map { it.toComponentFile() }
     }
 
-    fun isCheckFailed() = isCheckFailed
+    private fun loadComponentFiles(): List<ComponentFile> {
+        val manifest = context.assets.open("$assetsDirName/$ASSET_MANIFEST_FILE").use { input ->
+            val json = input.bufferedReader().use { it.readText() }
+            parseAssetManifest(json, assetsDirName)
+        }
+        return selectFiles(manifest).also { validateComponentFiles(it) }
+    }
 
-    override fun checkState(): InstallableItem.State {
-        if (isCheckFailed) return InstallableItem.State.NOT_EXISTS
+    override suspend fun checkState(): InstallableItem.State {
+        val files = try {
+            loadComponentFiles()
+        } catch (e: Exception) {
+            Logger.error(TAG, "Failed to load asset manifest: $assetsDirName", e)
+            updateMessage(e.getMessageOrToString())
+            return InstallableItem.State.FAILED
+        }
 
-        return if (!versionFile.exists()) {
-            requestEmptyParentDir(versionFile)
-            Logger.info(TAG, "$fileDirName: Pack was installed manually, or does not exist...")
-            InstallableItem.State.NOT_STARTED
-        } else {
-            runCatching {
-                val fis = FileInputStream(versionFile)
-                val release1 = input.readString()
-                val release2 = fis.readString()
-                if (release1 != release2) {
-                    requestEmptyParentDir(versionFile)
-                    InstallableItem.State.PENDING
-                } else {
-                    Logger.info(TAG, "$fileDirName: Pack is up-to-date with the launcher, continuing...")
-                    InstallableItem.State.FINISHED
-                }
-            }.onFailure { e ->
-                Logger.error("CheckComponent", "An exception occurred while detecting the assets resource.", e)
-            }.getOrElse {
-                //检查失败，要求重新进行安装
-                InstallableItem.State.NOT_STARTED
+        val dir = File(rootDir, fileDirName)
+        if (!dir.exists()) return InstallableItem.State.NOT_STARTED
+        if (!dir.isDirectory) return InstallableItem.State.PENDING
+
+        return try {
+            val ignoredMetadata = setOf(ASSET_MANIFEST_FILE, LEGACY_VERSION_FILE)
+            if (verifyComponentDirectory(dir, files, ignoredMetadata)) {
+                Logger.info(TAG, "$fileDirName: Pack passed SHA-1 verification, continuing...")
+                InstallableItem.State.FINISHED
+            } else {
+                Logger.info(TAG, "$fileDirName: Pack failed SHA-1 verification, reinstalling...")
+                InstallableItem.State.PENDING
             }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logger.warning(TAG, "Failed to verify component: $fileDirName", e)
+            InstallableItem.State.PENDING
         }
     }
 
     override suspend fun run() {
-        val dir = File(rootDir, fileDirName)
-        FileUtils.deleteDirectory(dir)
+        updateMessage(null)
+        val files = loadComponentFiles()
+        val target = File(rootDir, fileDirName)
+        val parent = target.parentFile ?: throw IOException("Target has no parent: $target")
+        parent.ensureDirectory()
 
-        copyAssetDirectory(assetsDirName, dir)
-
-        context.copyAssetFile(
-            fileName = "$assetsDirName/version",
-            output = File(dir, "version"),
-            overwrite = true
-        )
-        val fileCount = dir.walkTopDown().count { it.isFile }
-        Logger.info(TAG, "$fileDirName: unpacked $fileCount files")
+        val staging = File(parent, ".${target.name}.installing")
+        val backup = File(parent, ".${target.name}.backup")
+        recoverInterruptedCommit(target, staging, backup)
+        installComponent(target, staging, backup, files)
     }
 
-    /**
-     * 递归复制 assets 目录下的所有文件。
-     * 组件资产里可能存在子目录（如 lwjgl3/<ver>/natives/<abi>/），
-     * 而 copyAssetFile 仅支持文件，这里对子目录做递归处理。
-     */
-    private suspend fun copyAssetDirectory(assetPath: String, outputDir: File) {
-        outputDir.mkdirs()
-        val children = am.list(assetPath) ?: emptyArray()
-        Logger.debug(TAG, "copyAssetDirectory: $assetPath (${children.size} entries)")
-        children.forEach { child ->
-            val childAssetPath = "$assetPath/$child"
-            val childOutput = File(outputDir, child)
-            if (isAssetDirectory(childAssetPath)) {
-                copyAssetDirectory(childAssetPath, childOutput)
-            } else {
-                context.copyAssetFile(childAssetPath, childOutput, overwrite = true)
-                moreProgress(childOutput)
+    private fun recoverInterruptedCommit(target: File, staging: File, backup: File) {
+        if (!target.exists() && backup.exists()) {
+            movePath(backup, target)
+        }
+        if (target.exists() && backup.exists()) {
+            deletePath(backup)
+        }
+        if (staging.exists()) {
+            deletePath(staging)
+        }
+    }
+
+    private suspend fun installComponent(
+        target: File,
+        staging: File,
+        backup: File,
+        files: List<ComponentFile>
+    ) {
+        try {
+            if (!staging.mkdir()) throw IOException("Failed to create staging directory: $staging")
+            files.forEach { componentFile ->
+                val output = File(staging, componentFile.outputPath)
+                context.copyAssetFile(
+                    fileName = "$assetsDirName/${componentFile.assetPath}",
+                    output = output,
+                    overwrite = false
+                )
+                moreProgress(output)
+            }
+
+            if (!verifyComponentDirectory(staging, files)) {
+                throw IOException("Staged component failed SHA-1 verification: $fileDirName")
+            }
+            commitComponent(target, staging, backup)
+            Logger.info(TAG, "$fileDirName: unpacked and verified ${files.size} files")
+        } finally {
+            if (staging.exists()) {
+                runCatching {
+                    deletePath(staging)
+                }.onFailure { e ->
+                    Logger.warning(TAG, "Failed to clean staging directory: $staging", e)
+                }
             }
         }
     }
 
-    private fun isAssetDirectory(assetPath: String): Boolean {
-        // 目录无法用 open() 打开，而 list() 能列出其子项；空目录会误判为文件，但组件内不存在空目录
-        return try {
-            am.open(assetPath).close()
-            false
-        } catch (_: IOException) {
-            true
+    private fun commitComponent(target: File, staging: File, backup: File) {
+        var backupCreated = false
+        var committed = false
+        try {
+            if (target.exists()) {
+                movePath(target, backup)
+                backupCreated = true
+            }
+            movePath(staging, target)
+            committed = true
+        } catch (e: Exception) {
+            if (!target.exists() && backupCreated && backup.exists()) {
+                runCatching {
+                    movePath(backup, target)
+                }.onFailure { rollback ->
+                    e.addSuppressed(rollback)
+                }
+            }
+            throw e
+        } finally {
+            if (committed && backup.exists()) {
+                runCatching {
+                    deletePath(backup)
+                }.onFailure { e ->
+                    Logger.warning(TAG, "Failed to clean component backup: $backup", e)
+                }
+            }
         }
     }
 
-    /**
-     * 执行更多操作
-     */
+    private fun movePath(source: File, target: File) {
+        try {
+            Files.move(source.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE)
+        } catch (_: AtomicMoveNotSupportedException) {
+            Files.move(source.toPath(), target.toPath())
+        } catch (_: UnsupportedOperationException) {
+            Files.move(source.toPath(), target.toPath())
+        }
+    }
+
+    private fun deletePath(file: File) {
+        if (file.isDirectory) {
+            FileUtils.deleteDirectory(file)
+        } else if (file.exists() && !file.delete()) {
+            throw IOException("Failed to delete: $file")
+        }
+    }
+
     open suspend fun moreProgress(file: File) {}
-
-    private fun requestEmptyParentDir(file: File) {
-        file.parentFile!!.apply {
-            if (exists() and isDirectory) {
-                FileUtils.deleteDirectory(this)
-            }
-            mkdirs()
-        }
-    }
 }

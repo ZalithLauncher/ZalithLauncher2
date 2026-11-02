@@ -31,6 +31,6 @@ abstract class AbstractUnpackTask {
         _taskMessage.update { message }
     }
 
-    abstract fun checkState(): InstallableItem.State
+    abstract suspend fun checkState(): InstallableItem.State
     abstract suspend fun run()
 }

@@ -7,6 +7,7 @@
     <string name="generic_warning">警告</string>
     <string name="generic_back">返回</string>
     <string name="generic_refresh">刷新</string>
+    <string name="generic_retry">重试</string>
     <string name="generic_reset">重置</string>
     <string name="generic_delete">删除</string>
     <string name="generic_rename">重命名</string>

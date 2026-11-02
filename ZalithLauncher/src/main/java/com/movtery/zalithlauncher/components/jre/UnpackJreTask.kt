@@ -55,7 +55,7 @@ class UnpackJreTask(
 
     fun isCheckFailed() = isCheckFailed
 
-    override fun checkState(): InstallableItem.State {
+    override suspend fun checkState(): InstallableItem.State {
         if (isCheckFailed) return InstallableItem.State.NOT_EXISTS
 
         return runCatching {

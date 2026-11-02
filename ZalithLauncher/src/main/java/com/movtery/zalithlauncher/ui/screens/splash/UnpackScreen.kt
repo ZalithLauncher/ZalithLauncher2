@@ -42,9 +42,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -82,18 +79,20 @@ fun UnpackScreen(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             UnpackTaskList(
-                isVisible = isVisible,
-                items = items,
                 modifier = Modifier
                     .weight(7f)
-                    .fillMaxHeight()
+                    .fillMaxHeight(),
+                isVisible = isVisible,
+                items = items,
+
             )
 
             ActionMenu(
-                isVisible = isVisible,
                 modifier = Modifier
                     .weight(3f)
                     .fillMaxHeight(),
+                isVisible = isVisible,
+                items = items,
                 onAgreeClick = onAgreeClick
             )
         }
@@ -103,11 +102,15 @@ fun UnpackScreen(
 @Composable
 private fun ActionMenu(
     isVisible: Boolean,
+    items: List<InstallableItem>,
     modifier: Modifier = Modifier,
     onAgreeClick: () -> Unit = {}
 ) {
-    var installing by remember { mutableStateOf(false) }
-
+    val states = items.map { item ->
+        item.state.collectAsStateWithLifecycle().value
+    }
+    val installing = states.any { it == InstallableItem.State.RUNNING }
+    val hasFailed = states.any { it == InstallableItem.State.FAILED }
     val ctx = rememberAnimatedContext(isVisible = isVisible)
 
     Column(
@@ -130,14 +133,19 @@ private fun ActionMenu(
         }
 
         ScalingActionButton(
-            enabled = !installing,
+            enabled = !installing && states.any {
+                it == InstallableItem.State.NOT_STARTED ||
+                it == InstallableItem.State.PENDING ||
+                it == InstallableItem.State.FAILED
+            },
             modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                installing = true
-                onAgreeClick()
-            }
+            onClick = onAgreeClick
         ) {
-            MarqueeText(text = stringResource(R.string.splash_screen_agree))
+            MarqueeText(
+                text = stringResource(
+                    if (hasFailed) R.string.generic_retry else R.string.splash_screen_agree
+                )
+            )
         }
     }
 }
@@ -207,7 +215,7 @@ private fun TaskItem(
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
-                if (state == InstallableItem.State.RUNNING) {
+                if (state == InstallableItem.State.RUNNING || state == InstallableItem.State.FAILED) {
                     message?.let { taskMessage ->
                         Text(
                             text = taskMessage,
@@ -247,6 +255,13 @@ private fun TaskItem(
                     Icon(
                         modifier = iconModifier,
                         painter = painterResource(R.drawable.ic_check),
+                        contentDescription = null
+                    )
+                }
+                InstallableItem.State.FAILED -> {
+                    Icon(
+                        modifier = iconModifier,
+                        painter = painterResource(R.drawable.ic_warning_filled),
                         contentDescription = null
                     )
                 }

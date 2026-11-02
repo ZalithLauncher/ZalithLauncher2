@@ -1515,7 +1515,7 @@
     <string name="renderer_config_mg_fsr1_balanced">Balanceado</string>
     <string name="renderer_config_mg_fsr1_performance">Desempenho</string>
     <string name="renderer_config_sfpew_relaxed_context_title">Contexto Relaxado</string>
-    <string name="renderer_config_sfpew_relaxed_context_desc">Otimização assumindo que o jogo mantém um contexto GL por thread durante toda a sua vida útil; reduz significativamente a sobrecarga de operações matriciais. Desative se a renderização falhar</string>
+    <string name="renderer_config_sfpew_relaxed_context_desc">Considerando que cada thread no jogo utiliza apenas um contexto GL durante todo o seu ciclo de vida e que as verificações de contexto são ignoradas em cada chamada, verifique como o jogo utiliza os contextos de thread. Caso ocorram erros de renderização, desative esta opção.</string>
     <string name="settings_launcher_swap_anim_enabled_title">Ativar animação de transição de página</string>
     <string name="settings_launcher_swap_anim_enabled_summary">Se deve reproduzir animações de transição ao trocar de páginas</string>
     <string name="about_sponsors_title">Patrocinadores do Launcher</string>
@@ -1524,4 +1524,16 @@
     <string name="sponsors_empty">Nenhum dado disponível</string>
     <string name="sponsors_last_month_title">Patrocinadores do mês passado</string>
     <string name="sponsors_last_month_summary">Aqui estão os patrocinadores que apoiaram %s no mês passado. Obrigado por todo o seu apoio!</string>
+    <string name="generic_move_up">Mover para cima</string>
+    <string name="generic_move_down">Deslizar para baixo</string>
+    <string name="renderer_config_mg_multidraw_order_title">Ordem da estratégia MultiDraw</string>
+    <string name="renderer_config_mg_multidraw_order_desc">Estratégias superiores são preferidas; estratégias com falha recorrem a esta ordem</string>
+    <string name="renderer_config_mg_multidraw_exception_desc">Habilitar para usar uma ordem de estratégia independente em vez da ordem global</string>
+    <string name="renderer_config_mg_multidraw_native">Nativo / Extensão Nativa</string>
+    <string name="renderer_config_mg_multidraw_native_desc">Corresponde à função equivalente do núcleo GLES ou à função de extensão, quando disponível</string>
+    <string name="renderer_config_mg_multidraw_unroll">Sorteio Um por Um</string>
+    <string name="renderer_config_mg_multidraw_compute">Shader de Computação</string>
+    <string name="settings_renderer_sfpew_plugin_layer_title">Camada de compatibilidade SFPEW (plugins de renderização)</string>
+    <string name="settings_renderer_sfpew_plugin_layer_summary">Adiciona SimpleFPEWrapper ao renderizador plugins sem suporte a pipeline de função fixa para renderização legado da OpenGL 1.x/2.1</string>
+    <string name="renderer_version_all">Todas as versões</string>
 </resources>

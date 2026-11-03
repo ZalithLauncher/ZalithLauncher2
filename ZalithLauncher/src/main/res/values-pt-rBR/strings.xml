@@ -1481,6 +1481,8 @@
     <string name="account_microsoft_login_method_system_browser">Navegador do Sistema (Recomendado)</string>
     <string name="account_microsoft_login_method_internal_browser">Navegador Integrado</string>
     <string name="settings_renderer_config_reset_message">Redefinir todas as configurações de %s para seus valores padrão?</string>
+    <string name="renderer_config_mg_sfpew_title">Camada de Compatibilidade SFPEW</string>
+    <string name="renderer_config_mg_sfpew_desc">Faz as chamadas EGL e OpenGL do renderizador passarem pela camada SimpleFPEWrapper; tente desativar se o jogo tiver problemas de renderização. Ela será desativada automaticamente ao detectar certos mods emuladores de FPE</string>
     <string name="renderer_config_mg_count_launch_title">Relatório da Sessão de Inicialização</string>
     <string name="renderer_config_mg_count_launch_desc">Relatar apenas sessões de jogos iniciadas a partir do inicializador, excluindo benchmarks e ferramentas</string>
     <string name="renderer_config_mg_angle_title">Backend ANGLE</string>

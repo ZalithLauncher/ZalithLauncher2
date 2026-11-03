@@ -1737,6 +1737,10 @@
     <string name="settings_renderer_config_title">Renderer Configuration</string>
     <!-- Confirmation text for resetting all settings of one renderer; %s is the renderer name -->
     <string name="settings_renderer_config_reset_message">Reset all %s settings to their default values?</string>
+    <!-- Title of the SFPEW compatibility layer switch in MobileGlues renderer settings -->
+    <string name="renderer_config_mg_sfpew_title">SFPEW Compatibility Layer</string>
+    <!-- Description of the SFPEW compatibility layer switch in MobileGlues renderer settings -->
+    <string name="renderer_config_mg_sfpew_desc">Route the renderer\'s EGL and OpenGL calls through the SimpleFPEWrapper layer, and try turning this off if the game has rendering issues. It is disabled automatically when certain FPE emulator mods are detected</string>
     <!-- Title of the launch session reporting switch in MobileGlues renderer settings -->
     <string name="renderer_config_mg_count_launch_title">Launch Session Reporting</string>
     <!-- Description of the launch session reporting switch in MobileGlues renderer settings -->

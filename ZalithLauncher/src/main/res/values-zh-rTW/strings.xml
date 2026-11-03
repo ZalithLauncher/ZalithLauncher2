@@ -823,6 +823,8 @@
     <string name="settings_renderer_global_vulkan_driver_title">Vulkan 驅動程式</string>
     <string name="settings_renderer_config_title">渲染器設定</string>
     <string name="settings_renderer_config_reset_message">要將 %s 的所有設定還原為預設值嗎？</string>
+    <string name="renderer_config_mg_sfpew_title">SFPEW 相容層</string>
+    <string name="renderer_config_mg_sfpew_desc">讓渲染器的 EGL 與 OpenGL 呼叫經過 SimpleFPEWrapper 相容層包裝，遊戲出現渲染問題時可嘗試關閉。偵測到部分 FPE 模擬模組時會自動停用</string>
     <string name="renderer_config_mg_count_launch_title">啟動工作階段統計</string>
     <string name="renderer_config_mg_count_launch_desc">僅統計經啟動器啟動的遊戲工作階段，基準測試與工具不計入</string>
     <string name="renderer_config_mg_angle_title">ANGLE 後端</string>

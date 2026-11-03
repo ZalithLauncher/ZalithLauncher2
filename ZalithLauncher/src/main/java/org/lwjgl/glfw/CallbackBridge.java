@@ -512,6 +512,8 @@ public class CallbackBridge {
     @Keep public static native void nativeSetWindowAttrib(int attrib, int value);
     @Keep public static native void nativeSetGrabbing(boolean grab);
     @Keep public static native int getCurrentFps();
+    /** NusaLauncher: {frames, avgFps, low1pctFps, maxMs, jitterMs, stutters, medianMs} or null */
+    @Keep public static native float[] getFrameStats(int frames);
 
     private static native ByteBuffer nativeCreateGamepadButtonBuffer();
     private static native ByteBuffer nativeCreateGamepadAxisBuffer();

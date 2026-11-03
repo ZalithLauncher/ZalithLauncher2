@@ -19,12 +19,12 @@
 package com.movtery.zalithlauncher.components.jre
 
 import android.content.Context
+import com.movtery.zalithlauncher.components.AssetManifest
+import com.movtery.zalithlauncher.components.ComponentFile
 import com.movtery.zalithlauncher.components.UnpackSingleTask
-import com.movtery.zalithlauncher.context.copyAssetFile
+import com.movtery.zalithlauncher.components.toComponentFile
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.utils.device.Architecture
-import org.apache.commons.io.FileUtils
-import java.io.File
 
 class UnpackJnaTask(context: Context) : UnpackSingleTask(
     context = context,
@@ -32,28 +32,20 @@ class UnpackJnaTask(context: Context) : UnpackSingleTask(
     assetsDirName = "runtimes/jna",
     fileDirName = "jna"
 ) {
-    override suspend fun run() {
-        val dir = File(rootDir, fileDirName)
-        FileUtils.deleteDirectory(dir)
-
+    override fun selectFiles(manifest: AssetManifest): List<ComponentFile> {
         val abi = Architecture.archAsStringAndroid(Architecture.getDeviceArchitecture())
-        context.assets.list(assetsDirName)
-            ?.filter { it != "version" }
-            ?.forEach { version ->
-                val nativesDir = "$assetsDirName/$version/natives/$abi"
-                if (context.assets.list(nativesDir)?.contains("libjnidispatch.so") == true) {
-                    context.copyAssetFile(
-                        fileName = "$nativesDir/libjnidispatch.so",
-                        output = File(dir, "$version/libjnidispatch.so"),
-                        overwrite = true
-                    )
-                }
+        val versions = manifest.files.mapTo(HashSet()) { it.path.substringBefore('/') }
+        val files = manifest.files.mapNotNull { file ->
+            val parts = file.path.split('/')
+            require(parts.size == 4 && parts[1] == "natives" && parts[3] == "libjnidispatch.so") {
+                "Unsupported JNA asset path: ${file.path}"
             }
-
-        context.copyAssetFile(
-            fileName = "$assetsDirName/version",
-            output = File(dir, "version"),
-            overwrite = true
-        )
+            if (parts[2] != abi) return@mapNotNull null
+            file.toComponentFile("${parts[0]}/libjnidispatch.so")
+        }
+        require(files.mapTo(HashSet()) { it.outputPath.substringBefore('/') } == versions) {
+            "JNA assets are incomplete for ABI: $abi"
+        }
+        return files
     }
 }

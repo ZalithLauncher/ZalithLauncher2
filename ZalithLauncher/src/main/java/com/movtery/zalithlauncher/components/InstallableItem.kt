@@ -42,12 +42,14 @@ class InstallableItem(
     enum class State {
         /** 未安装 */
         NOT_STARTED,
-        /** 需要更新 */
+        /** 需要更新或修复 */
         PENDING,
         /** 安装中 */
         RUNNING,
         /** 已完成/已安装 */
         FINISHED,
+        /** 校验或安装失败，可重试 */
+        FAILED,
         /** 资源不存在，不可安装 */
         NOT_EXISTS
     }

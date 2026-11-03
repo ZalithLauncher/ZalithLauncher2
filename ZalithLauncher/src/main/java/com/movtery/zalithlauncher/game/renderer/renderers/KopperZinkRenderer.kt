@@ -27,6 +27,8 @@ object KopperZinkRenderer : RendererInterface {
 
     override val mesaBased: Boolean = true
 
+    override val needsZinkDriverOverride: Boolean = true
+
     override fun getRendererName(): String = "Kopper Zink"
 
     override fun getMaxMCVersion(): String = "26.3-snapshot-3"

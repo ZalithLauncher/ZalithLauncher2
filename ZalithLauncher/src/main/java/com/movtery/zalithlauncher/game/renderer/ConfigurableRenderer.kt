@@ -19,9 +19,13 @@
 package com.movtery.zalithlauncher.game.renderer
 
 import androidx.annotation.WorkerThread
+import com.movtery.zalithlauncher.game.renderer.config.GlobalRendererConfigStore
 import com.movtery.zalithlauncher.game.renderer.config.RendererConfigSpec
 import com.movtery.zalithlauncher.game.renderer.config.ResolvedRendererConfig
+import com.movtery.zalithlauncher.game.renderer.config.VersionRendererConfigStore
+import com.movtery.zalithlauncher.game.renderer.config.removeStaleEntries
 import com.movtery.zalithlauncher.game.renderer.config.resolveRendererConfig
+import com.movtery.zalithlauncher.game.version.installed.Version
 
 /**
  * 提供独立配置规范的渲染器
@@ -37,4 +41,30 @@ interface ConfigurableRenderer : RendererInterface {
     override fun getRendererEnv(): Lazy<Map<String, String>> = lazy {
         getConfiguredEnv(resolveRendererConfig(getUniqueIdentifier(), configSpec))
     }
+}
+
+/**
+ * 一次启动的渲染器配置
+ */
+data class RendererLaunchConfig(
+    /** 的环境变量 */
+    val environment: Map<String, String>,
+    /** SFPEW 兼容层开关，渲染器配置未声明时为 null */
+    val sfpewLayerEnabled: Boolean?
+)
+
+@WorkerThread
+fun prepareRendererLaunchConfig(renderer: ConfigurableRenderer, version: Version): RendererLaunchConfig {
+    val rendererId = renderer.getUniqueIdentifier()
+    GlobalRendererConfigStore.migrateLegacy(rendererId, renderer.legacyConfigKeys)
+    GlobalRendererConfigStore.removeStaleEntries(rendererId, renderer.configSpec)
+    val versionStore = if (version.getVersionConfig().renderer == rendererId) {
+        VersionRendererConfigStore(version.getVersionPath(), Renderers.getLegacyRendererIds())
+            .apply { removeStaleEntries(rendererId, renderer.configSpec) }
+    } else null
+    val config = resolveRendererConfig(rendererId, renderer.configSpec, versionStore)
+    return RendererLaunchConfig(
+        environment = renderer.getConfiguredEnv(config),
+        sfpewLayerEnabled = config.sfpewLayerEnabled
+    )
 }

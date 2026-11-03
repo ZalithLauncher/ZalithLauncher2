@@ -27,6 +27,7 @@
     <string name="generic_warning">Warning</string>
     <string name="generic_back">Back</string>
     <string name="generic_refresh">Refresh</string>
+    <string name="generic_retry">Retry</string>
     <string name="generic_reset">Reset</string>
     <string name="generic_delete">Delete</string>
     <string name="generic_rename">Rename</string>

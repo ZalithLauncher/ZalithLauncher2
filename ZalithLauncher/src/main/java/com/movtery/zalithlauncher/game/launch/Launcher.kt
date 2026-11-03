@@ -30,6 +30,7 @@ import com.movtery.zalithlauncher.bridge.LoggerBridge
 import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
 import com.movtery.zalithlauncher.components.Components
+import com.movtery.zalithlauncher.components.InstallableItem
 import com.movtery.zalithlauncher.components.UnpackComponentsTask
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.game.multirt.Runtime
@@ -47,7 +48,6 @@ import com.movtery.zalithlauncher.utils.device.Architecture.ARCH_X86
 import com.movtery.zalithlauncher.utils.device.Architecture.is64BitsDevice
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.getSystemDnsServerAddresses
-import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 import com.oracle.dalvik.VMLauncher
 import kotlinx.coroutines.Dispatchers
@@ -92,30 +92,23 @@ abstract class Launcher(
 
     private suspend fun verifyLwjglNatives(context: Context) {
         val versionDir = lwjglVersionDir(lwjglVersion)
-        val coreLib = File(lwjglNativesDir, "liblwjgl.so")
-
-        if (coreLib.isFile) {
-            LoggerBridge.appendInfo("LWJGL: LWJGL $versionDir natives check passed: path=$lwjglNativesDir (liblwjgl.so found)")
-            return
-        }
-
-        LoggerBridge.appendInfo("LWJGL: LWJGL natives check failed: liblwjgl.so not found in $lwjglNativesDir, re-unpacking the LWJGL component now")
+        val component = Components.entries.firstOrNull {
+            it.component == "lwjgl/$versionDir"
+        } ?: error("Unrecognized LWJGL component: lwjgl/$versionDir")
+        val task = UnpackComponentsTask(context, component)
 
         withContext(Dispatchers.IO) {
-            runCatching {
-                val component = Components.entries.firstOrNull {
-                    it.component == "lwjgl/$versionDir"
-                } ?: error("Unrecognized LWJGL component: lwjgl/$versionDir")
-                UnpackComponentsTask(context, component).run()
-            }.onFailure { e ->
-                LoggerBridge.appendInfo("LWJGL: Failed to re-unpack the LWJGL component: ${e.getMessageOrToString()}")
+            if (task.checkState() == InstallableItem.State.FINISHED) {
+                LoggerBridge.appendInfo("LWJGL: LWJGL $versionDir passed SHA-1 verification")
+                return@withContext
             }
-        }
 
-        if (coreLib.isFile) {
-            LoggerBridge.appendInfo("LWJGL: LWJGL $versionDir natives check passed after re-unpack: path=$lwjglNativesDir (liblwjgl.so found)")
-        } else {
-            LoggerBridge.appendInfo("LWJGL: LWJGL natives are still missing after re-unpack: liblwjgl.so not found in $lwjglNativesDir, the game may fail to launch")
+            LoggerBridge.appendInfo("LWJGL: LWJGL $versionDir failed verification, re-unpacking the component now")
+            task.run()
+            check(task.checkState() == InstallableItem.State.FINISHED) {
+                "LWJGL component failed SHA-1 verification after re-unpack: $versionDir"
+            }
+            LoggerBridge.appendInfo("LWJGL: LWJGL $versionDir passed SHA-1 verification after re-unpack")
         }
     }
 

@@ -46,14 +46,18 @@ import com.movtery.zalithlauncher.game.account.yggdrasil.findUsing
 import com.movtery.zalithlauncher.game.account.yggdrasil.getPlayerProfile
 import com.movtery.zalithlauncher.game.account.yggdrasil.getSkinModel
 import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
+import com.movtery.zalithlauncher.path.GLOBAL_JSON
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.httpPostJson
 import com.movtery.zalithlauncher.utils.network.safeBodyAsJson
+import com.movtery.zalithlauncher.utils.network.safeBodyAsText
 import com.movtery.zalithlauncher.utils.network.submitForm
 import com.movtery.zalithlauncher.utils.string.toUuidStr
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.plugins.HttpRequestTimeoutException
 import io.ktor.client.plugins.ResponseException
+import io.ktor.client.plugins.ServerResponseException
+import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -66,6 +70,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.int
@@ -74,6 +79,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration.Companion.milliseconds
+import io.ktor.client.request.forms.submitForm as submitFormRequest
 
 private const val TAG = "MicrosoftAuth"
 
@@ -116,6 +122,7 @@ suspend fun fetchDeviceCodeResponse(context: CoroutineContext): DeviceCodeRespon
 suspend fun getTokenResponse(
     codeResponse: DeviceCodeResponse,
     context: CoroutineContext,
+    tokenUrl: String = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/token",
     checkCancelled: suspend (time: Int) -> Boolean
 ): TokenResponse = coroutineScope {
     var pollingInterval = codeResponse.interval * 1000L
@@ -136,41 +143,52 @@ suspend fun getTokenResponse(
         context.ensureActive()
 
         try {
-            val response: JsonObject = submitForm(
-                "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/token",
-                parameters = Parameters.build {
-                    append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
-                    append("device_code", codeResponse.deviceCode)
-                    append("client_id", BuildKeys.OAUTH_CLIENT_ID)
-                    append("tenant", TENANT)
-                },
-                context = context
-            )
+            val (httpResponse, responseBody) = withContext(context) {
+                val response = GLOBAL_CLIENT.submitFormRequest(
+                    url = tokenUrl,
+                    formParameters = Parameters.build {
+                        append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
+                        append("device_code", codeResponse.deviceCode)
+                        append("client_id", BuildKeys.OAUTH_CLIENT_ID)
+                        append("tenant", TENANT)
+                    }
+                ) {
+                    contentType(ContentType.Application.FormUrlEncoded)
+                    expectSuccess = false
+                }
+                response to response.safeBodyAsText()
+            }
+            val response = GLOBAL_JSON.decodeFromString<JsonObject>(responseBody)
             consecutiveFailures = 0
 
-            if (response["token_type"]?.jsonPrimitive?.content == "Bearer") {
-                Logger.debug(TAG, "Access token successfully retrieved")
-                return@coroutineScope TokenResponse(
-                    accessToken = response["access_token"].text(),
-                    refreshToken = response["refresh_token"].text(),
-                    expiresIn = response["expires_in"]?.jsonPrimitive?.int ?: 0
-                )
-            }
-            Logger.warning(TAG, "Token endpoint responded without a Bearer token, continuing to poll")
-        } catch (e: ClientRequestException) {
-            when (val error = e.errorCode()) {
-                // 服务器正常响应，说明网络可用
-                "authorization_pending" -> consecutiveFailures = 0 // 正常情况，继续轮询
+            when (val error = response["error"].text()) {
+                "authorization_pending" -> Unit
                 "slow_down" -> {
-                    consecutiveFailures = 0
                     pollingInterval += 1000L
                     Logger.debug(TAG, "Slowing down polling to ${pollingInterval}ms")
                 }
                 else -> {
-                    Logger.error(TAG, "Token endpoint rejected the polling request: error = $error", e)
-                    throw e
+                    if (response["token_type"]?.jsonPrimitive?.content == "Bearer") {
+                        Logger.debug(TAG, "Access token successfully retrieved")
+                        return@coroutineScope TokenResponse(
+                            accessToken = response["access_token"].text(),
+                            refreshToken = response["refresh_token"].text(),
+                            expiresIn = response["expires_in"]?.jsonPrimitive?.int ?: 0
+                        )
+                    }
+                    when (httpResponse.status.value) {
+                        in 400..499 -> {
+                            val exception = ClientRequestException(httpResponse, responseBody)
+                            Logger.error(TAG, "Token endpoint rejected the polling request: error = $error", exception)
+                            throw exception
+                        }
+                        !in 200..299 -> throw ServerResponseException(httpResponse, responseBody)
+                    }
+                    Logger.warning(TAG, "Token endpoint responded without a Bearer token, continuing to poll")
                 }
             }
+        } catch (e: ClientRequestException) {
+            throw e
         } catch (e: CancellationException) {
             Logger.debug(TAG, "Authentication cancelled")
             throw e

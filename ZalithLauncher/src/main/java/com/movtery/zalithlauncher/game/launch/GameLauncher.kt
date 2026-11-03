@@ -512,15 +512,19 @@ private fun setRendererEnv(
 
     if (RendererPluginManager.selectedRendererPlugin != null) return
 
-    if (!renderer.mesaBased) {
-        envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
+    if (renderer.mesaBased) {
+        // Mesa 系渲染器的 OSMesa 桥依据该变量定位 Mesa 库
+        envMap["LIB_MESA_NAME"] = getRendererLibrary() ?: "null"
         envMap["MESA_GLSL_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
+    }
+
+    if (renderer.needsZinkDriverOverride) {
+        envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
         envMap["MESA_GL_VERSION_OVERRIDE"] = "4.6"
         envMap["MESA_GLSL_VERSION_OVERRIDE"] = "460"
         envMap["force_glsl_extensions_warn"] = "true"
         envMap["allow_higher_compat_version"] = "true"
         envMap["allow_glsl_extension_directive_midshader"] = "true"
-        envMap["LIB_MESA_NAME"] = getRendererLibrary() ?: "null"
     }
 
     if (!envMap.containsKey("LIBGL_ES")) {

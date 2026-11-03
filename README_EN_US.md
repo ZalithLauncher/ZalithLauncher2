@@ -1,4 +1,6 @@
-# NusaLauncher
+<p align="center">
+  <img src="brand/banner.png" alt="NusaLauncher" width="720">
+</p>
 
 > [!NOTE]
 > **NusaLauncher** is an unofficial, community fork of [Zalith Launcher 2](https://github.com/ZalithLauncher/ZalithLauncher2) by MovTery and contributors. It is **not affiliated with or endorsed by** the official Zalith Launcher project. Licensed under GPL-3.0, same as upstream. Offline accounts are supported; Microsoft accounts are optional.

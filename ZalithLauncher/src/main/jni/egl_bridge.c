@@ -28,6 +28,7 @@
 #include <environ/environ.h>
 #include <android/dlext.h>
 #include <time.h>
+#include <math.h>
 #include "utils.h"
 #include "ctxbridges/bridge_tbl.h"
 #include "ctxbridges/osm_bridge.h"
@@ -315,7 +316,101 @@ static int frameCount = 0;
 static int fps = 0;
 static time_t lastTime = 0;
 
+/*
+ * NusaLauncher: frame-time monitor.
+ * Records the time between consecutive swaps in a ring buffer, so we can report
+ * 1% low, jitter and stutter count, not just the average FPS.
+ * Writer: render thread (calculateFPS). Reader: report below / JNI getFrameStats.
+ * A torn read of one sample is harmless for statistics.
+ */
+#define FT_CAP 1024 /* must be a power of two */
+static volatile uint32_t ft_us[FT_CAP];
+static volatile uint32_t ft_head = 0;
+static uint64_t ft_last_ns = 0;
+static uint32_t ft_last_report = 0;
+static int ft_report_tick = 0;
+
+static uint64_t ft_now_ns(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t) ts.tv_sec * 1000000000ull + (uint64_t) ts.tv_nsec;
+}
+
+static void ft_record(void) {
+    uint64_t now = ft_now_ns();
+    if (ft_last_ns != 0) {
+        uint64_t us = (now - ft_last_ns) / 1000ull;
+        if (us > 4000000ull) us = 4000000ull; /* clamp long pauses (loading, app in background) */
+        ft_us[ft_head & (FT_CAP - 1)] = (uint32_t) us;
+        ft_head++;
+    }
+    ft_last_ns = now;
+}
+
+static int ft_cmp_u32(const void *a, const void *b) {
+    uint32_t x = *(const uint32_t *) a, y = *(const uint32_t *) b;
+    return (x > y) - (x < y);
+}
+
+/*
+ * out[0] frames, [1] avg fps, [2] 1% low fps, [3] max frame ms,
+ * [4] jitter (std-dev, ms), [5] stutter count, [6] median frame ms
+ * "Stutter" = a frame that took at least 25 ms and more than twice the median.
+ */
+static int ft_compute(uint32_t want, float out[7]) {
+    uint32_t head = ft_head;
+    uint32_t avail = head < FT_CAP ? head : FT_CAP;
+    uint32_t n = want < avail ? want : avail;
+    if (n < 10) return 0;
+
+    uint32_t tmp[FT_CAP];
+    double sum = 0;
+    for (uint32_t i = 0; i < n; i++) {
+        tmp[i] = ft_us[(head - n + i) & (FT_CAP - 1)];
+        sum += tmp[i];
+    }
+    double mean = sum / n;
+    double var = 0;
+    for (uint32_t i = 0; i < n; i++) {
+        double d = tmp[i] - mean;
+        var += d * d;
+    }
+    qsort(tmp, n, sizeof(uint32_t), ft_cmp_u32);
+
+    uint32_t median = tmp[n / 2];
+    uint32_t k = n / 100;
+    if (k < 1) k = 1;
+    double worst = 0;
+    for (uint32_t i = n - k; i < n; i++) worst += tmp[i];
+    worst /= k;
+
+    uint32_t stutter = 0;
+    for (uint32_t i = 0; i < n; i++) {
+        if (tmp[i] >= 25000u && tmp[i] > 2u * median) stutter++;
+    }
+
+    out[0] = (float) n;
+    out[1] = (float) (1e6 / mean);
+    out[2] = (float) (1e6 / worst);
+    out[3] = (float) (tmp[n - 1] / 1000.0);
+    out[4] = (float) (sqrt(var / n) / 1000.0);
+    out[5] = (float) stutter;
+    out[6] = (float) (median / 1000.0);
+    return 1;
+}
+
+static void ft_report(void) {
+    uint32_t want = ft_head - ft_last_report;
+    ft_last_report = ft_head;
+    float s[7];
+    if (ft_compute(want, s)) {
+        printf("[NusaFrameStats] frames=%d avg=%.1ffps low1pct=%.1ffps median=%.1fms max=%.1fms jitter=%.1fms stutters=%d\n",
+               (int) s[0], s[1], s[2], s[6], s[3], s[4], (int) s[5]);
+    }
+}
+
 void calculateFPS() {
+    ft_record();
     frameCount++;
     time_t currentTime = time(NULL);
 
@@ -323,6 +418,10 @@ void calculateFPS() {
         lastTime = currentTime;
         fps = frameCount;
         frameCount = 0;
+        if (++ft_report_tick >= 5) {
+            ft_report_tick = 0;
+            ft_report();
+        }
     }
 
     if (!pojav_environ->hasGraphicOutput && pojav_environ->dalvikJavaVMPtr && pojav_environ->bridgeClazz && pojav_environ->method_onGraphicOutput) {
@@ -350,6 +449,17 @@ Java_org_lwjgl_vulkan_VK_updateFps(ABI_COMPAT JNIEnv *env, ABI_COMPAT jclass thi
 EXTERNAL_API JNIEXPORT jint JNICALL
 Java_org_lwjgl_glfw_CallbackBridge_getCurrentFps(JNIEnv *env, jclass clazz) {
     return fps;
+}
+
+/* NusaLauncher: returns float[7] (see ft_compute), or null if there are too few frames yet */
+EXTERNAL_API JNIEXPORT jfloatArray JNICALL
+Java_org_lwjgl_glfw_CallbackBridge_getFrameStats(JNIEnv *env, jclass clazz, jint frames) {
+    float s[7];
+    if (!ft_compute(frames > 0 ? (uint32_t) frames : 600u, s)) return NULL;
+    jfloatArray arr = (*env)->NewFloatArray(env, 7);
+    if (arr == NULL) return NULL;
+    (*env)->SetFloatArrayRegion(env, arr, 0, 7, s);
+    return arr;
 }
 
 EXTERNAL_API JNIEXPORT jlong JNICALL

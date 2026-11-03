@@ -77,6 +77,7 @@ import com.movtery.zalithlauncher.ui.screens.content.navigateToWeb
 import com.movtery.zalithlauncher.ui.screens.main.MainScreen
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenu
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenuOperation
+import com.movtery.zalithlauncher.ui.screens.main.crashlogs.texts
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.ShareLinkOperation
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
 import com.movtery.zalithlauncher.ui.theme.festivals.FestivalEffects
@@ -465,6 +466,7 @@ class MainActivity : BaseAppCompatActivity() {
                 //游戏日志分享菜单
                 val logFile = logShareViewModel.currentLogFile
                 if (logShareViewModel.showMenu && logFile != null) {
+                    val diagnosisTexts = logShareViewModel.diagnosis?.texts()
                     LogShareMenu(
                         operation = LogShareMenuOperation.ShowMenu,
                         onChange = { operation ->
@@ -486,7 +488,9 @@ class MainActivity : BaseAppCompatActivity() {
                         onUpload = {
                             logsUploadViewModel.operation = ShareLinkOperation.Tip
                             logShareViewModel.closeMenu()
-                        }
+                        },
+                        diagnosisTitle = diagnosisTexts?.let { stringResource(it.title) },
+                        diagnosisHint = diagnosisTexts?.let { stringResource(it.hint) }
                     )
                 }
 

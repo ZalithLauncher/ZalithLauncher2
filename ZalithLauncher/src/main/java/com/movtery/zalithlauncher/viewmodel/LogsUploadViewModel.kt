@@ -26,6 +26,7 @@ import androidx.lifecycle.viewModelScope
 import com.movtery.zalithlauncher.crashlogs.AbstractAPI
 import com.movtery.zalithlauncher.crashlogs.LinkNotFoundException
 import com.movtery.zalithlauncher.crashlogs.MCLogsResponse
+import com.movtery.zalithlauncher.crashlogs.analysis.LogSanitizer
 import com.movtery.zalithlauncher.crashlogs.platform.MCLogsAPI
 import com.movtery.zalithlauncher.crashlogs.platform.MirroredAPI
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.ShareLinkOperation
@@ -75,7 +76,7 @@ class LogsUploadViewModel: ViewModel() {
      * 检查文件是否超过 2MB
      */
     private fun File.exceeds2MB(): Boolean {
-        return !exists() && !isFile && length() > 2 * 1024 * 1024
+        return exists() && isFile && length() > 2 * 1024 * 1024
     }
 
     private suspend fun <E: AbstractAPI> mirroredAPI(
@@ -124,7 +125,8 @@ class LogsUploadViewModel: ViewModel() {
             if (logFile.exceeds2MB()) return@launch
 
             //读取内容并尝试上传
-            val content = logFile.readText()
+            //NusaLauncher: 上传前先脱敏（令牌、邮箱、IP 等）
+            val content = LogSanitizer.sanitize(logFile.readText())
 
             val apiList = if (isChinaMainland()) {
                 listOf(MirroredAPI, MCLogsAPI)

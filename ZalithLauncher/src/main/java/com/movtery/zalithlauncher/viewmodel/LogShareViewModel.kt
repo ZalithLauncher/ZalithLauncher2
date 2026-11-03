@@ -22,6 +22,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.movtery.zalithlauncher.crashlogs.analysis.CrashAnalyzer
+import com.movtery.zalithlauncher.crashlogs.analysis.CrashDiagnosis
+import com.movtery.zalithlauncher.crashlogs.analysis.DiagnosisSeverity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 
 /**
@@ -30,6 +36,10 @@ import java.io.File
 class LogShareViewModel : ViewModel() {
     /** 当前待分享的日志文件 */
     var currentLogFile by mutableStateOf<File?>(null)
+        private set
+
+    /** NusaLauncher: 本地分析得出的最可能的崩溃原因 */
+    var diagnosis by mutableStateOf<CrashDiagnosis?>(null)
         private set
 
     /** 是否显示日志操作菜单 */
@@ -41,7 +51,13 @@ class LogShareViewModel : ViewModel() {
      */
     fun openMenu(logFile: File) {
         currentLogFile = logFile
+        diagnosis = null
         showMenu = true
+        viewModelScope.launch(Dispatchers.IO) {
+            val result = runCatching { CrashAnalyzer.analyzeFile(logFile) }.getOrNull()
+            val primary = result?.firstOrNull { it.severity == DiagnosisSeverity.CAUSE }
+            if (currentLogFile == logFile) diagnosis = primary
+        }
     }
 
     /**
@@ -57,5 +73,6 @@ class LogShareViewModel : ViewModel() {
     fun reset() {
         showMenu = false
         currentLogFile = null
+        diagnosis = null
     }
 }

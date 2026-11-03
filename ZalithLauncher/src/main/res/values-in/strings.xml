@@ -1462,4 +1462,30 @@
     <string name="home_server_card_refresh_failed">Gagal memperbarui informasi server</string>
     <string name="settings_renderer_max_refresh_rate_title">Minta Refresh Rate Maksimum</string>
     <string name="settings_renderer_max_refresh_rate_summary">Minta layar beralih ke refresh rate tertinggi yang didukung pada resolusi saat ini untuk menghilangkan batas frame rate pada beberapa perangkat</string>
+    <!-- NusaLauncher: local crash diagnosis -->
+    <string name="crash_diag_header">Kemungkinan penyebab (analisis lokal)</string>
+    <string name="crash_diag_out_of_memory_title">Memori habis</string>
+    <string name="crash_diag_out_of_memory_hint">Tambah RAM game di pengaturan versi, tutup aplikasi lain, atau kecilkan jarak render dan hapus mod yang berat.</string>
+    <string name="crash_diag_java_version_title">Versi Java tidak cocok</string>
+    <string name="crash_diag_java_version_hint">Game atau mod ini butuh Java lain. Setel runtime Java ke Otomatis, atau pilih versi yang dibutuhkan game.</string>
+    <string name="crash_diag_disk_full_title">Penyimpanan penuh</string>
+    <string name="crash_diag_disk_full_hint">Kosongkan sebagian ruang di perangkatmu, lalu jalankan lagi.</string>
+    <string name="crash_diag_mod_dependency_title">Mod kurang atau tidak cocok</string>
+    <string name="crash_diag_mod_dependency_hint">Ada mod yang butuh mod lain atau versi berbeda. Pasang dependensi yang kurang, atau hapus mod yang disebut di log.</string>
+    <string name="crash_diag_mixin_failure_title">Konflik mod</string>
+    <string name="crash_diag_mixin_failure_hint">Ada mod yang gagal menambal game. Perbarui mod agar cocok dengan versi Minecraft, atau hapus mod itu.</string>
+    <string name="crash_diag_corrupt_file_title">File game rusak</string>
+    <string name="crash_diag_corrupt_file_hint">Ada file game atau mod yang rusak. Unduh ulang versi ini, atau hapus mod yang disebut di log.</string>
+    <string name="crash_diag_main_class_missing_title">File game belum lengkap</string>
+    <string name="crash_diag_main_class_missing_hint">Instalasi game belum selesai. Pasang ulang atau unduh ulang versi ini.</string>
+    <string name="crash_diag_shader_compile_title">Renderer gagal memproses shader</string>
+    <string name="crash_diag_shader_compile_hint">Renderermu belum mendukung versi Minecraft ini. Coba renderer lain di pengaturan, atau pakai versi lama yang stabil seperti 1.21.1.</string>
+    <string name="crash_diag_opengl_unsupported_title">OpenGL tidak didukung</string>
+    <string name="crash_diag_opengl_unsupported_hint">Renderer yang dipilih tidak bisa berjalan di perangkat ini. Ganti ke renderer lain di pengaturan.</string>
+    <string name="crash_diag_native_crash_title">Crash tingkat rendah</string>
+    <string name="crash_diag_native_crash_hint">Terjadi crash tingkat rendah, biasanya dari renderer atau driver GPU. Coba renderer lain, dan matikan shader atau mod yang berat.</string>
+    <string name="crash_diag_runtime_load_failed_title">Runtime Java gagal dimuat</string>
+    <string name="crash_diag_runtime_load_failed_hint">Pasang ulang runtime Java di pengaturan, atau pilih yang lain.</string>
+    <string name="crash_diag_low_memory_kill_title">Ditutup Android (memori rendah)</string>
+    <string name="crash_diag_low_memory_kill_hint">Android menghentikan game demi membebaskan memori. Kurangi RAM game, tutup aplikasi latar belakang, dan kecilkan jarak render.</string>
 </resources>

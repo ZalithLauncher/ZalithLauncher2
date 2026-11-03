@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
@@ -52,7 +53,9 @@ fun LogShareMenu(
     onView: () -> Unit,
     onShare: () -> Unit,
     canUpload: Boolean,
-    onUpload: () -> Unit
+    onUpload: () -> Unit,
+    diagnosisTitle: String? = null,
+    diagnosisHint: String? = null
 ) {
     when (operation) {
         is LogShareMenuOperation.None -> {}
@@ -77,6 +80,24 @@ fun LogShareMenu(
                             .padding(all = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
+                        //NusaLauncher: 本地分析结果
+                        if (diagnosisTitle != null) {
+                            Text(
+                                text = stringResource(R.string.crash_diag_header),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                            Text(
+                                text = diagnosisTitle,
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            if (diagnosisHint != null) {
+                                Text(
+                                    text = diagnosisHint,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                            Spacer(Modifier.height(6.dp))
+                        }
                         //查看日志
                         Button(
                             modifier = Modifier.fillMaxWidth(),

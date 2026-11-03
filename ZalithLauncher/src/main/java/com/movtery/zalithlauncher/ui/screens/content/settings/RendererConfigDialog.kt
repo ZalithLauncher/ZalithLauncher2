@@ -293,16 +293,15 @@ private fun SwitchConfigItem(state: ConfigEntryState, position: CardPosition) {
                 .clickable { state.saveValue(ConfigScalar.BooleanValue(!checked)) }
                 .padding(all = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             EntryHeader(state, Modifier.weight(1f))
+
+            ResetEntryButton(state)
 
             DefaultSwitch(
                 checked = checked,
                 onCheckedChange = { state.saveValue(ConfigScalar.BooleanValue(it)) }
             )
-
-            ResetEntryButton(state)
         }
     }
 }

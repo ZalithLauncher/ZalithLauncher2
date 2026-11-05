@@ -1,4 +1,4 @@
-# ZalithLauncher2 用户协议
+# Nev Launcher 用户协议
 
 **项目主体：** ZalithLauncher2（简称 **ZL2**）  
 **开发团队：** ZalithTeam（以下简称 **我们**）  

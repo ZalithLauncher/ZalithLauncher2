@@ -1,4 +1,4 @@
-# ZalithLauncher2 Privacy Policy
+# Nev Launcher Privacy Policy
 
 **Project:** ZalithLauncher2 (**ZL2**)  
 **Developer:** ZalithTeam (**we**, **us**, or **our**)  

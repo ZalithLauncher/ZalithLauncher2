@@ -1,4 +1,4 @@
-# ZalithLauncher2 User Agreement
+# Nev Launcher User Agreement
 
 **Project:** ZalithLauncher2 (**ZL2**)  
 **Developer:** ZalithTeam (**we**, **us**, or **our**)  

@@ -1,4 +1,4 @@
-# ZalithLauncher2 隐私政策
+# Nev Launcher 隐私政策
 
 **项目主体：** ZalithLauncher2（简称 **ZL2**）  
 **开发团队：** ZalithTeam（以下简称 **我们**）  

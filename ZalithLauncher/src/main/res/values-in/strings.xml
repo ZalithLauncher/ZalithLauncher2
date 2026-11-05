@@ -156,7 +156,6 @@
     <string name="download_assets_filter_sort_by_popularity">Popularitas</string>
     <string name="download_assets_filter_sort_by_recently_created">Baru Dibuat</string>
     <string name="download_assets_filter_sort_by_recently_updated">Terakhir Diperbarui</string>
-    <string name="download_assets_result_authors">Oleh %s</string>
     <string name="download_assets_result_previous_page">Halaman Sebelumnya</string>
     <string name="download_assets_result_next_page">Halaman Selanjutnya</string>
     <string name="download_assets_failed_to_get_result">Gagal untuk mendapatkan hasil pencarian: %s. Ketuk untuk mencoba lagi.</string>

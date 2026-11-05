@@ -263,7 +263,7 @@ object FavoriteProjectsRepository {
         val classes = remote.platformClasses(cached.classes)
         val iconUrl = remote.platformIconUrl()
         val title = remote.platformTitle()
-        val description = remote.platformSummary() ?: ""
+        val description = remote.platformSummary()
         val authors = remote.platformAuthors()
 
         val unchanged = classes == cached.classes &&
@@ -324,7 +324,7 @@ fun PlatformProject.toFavoriteProject(defaultClasses: PlatformClasses): Favorite
     projectId = platformId(),
     iconUrl = platformIconUrl(),
     title = platformTitle(),
-    description = platformSummary() ?: "",
+    description = platformSummary(),
     authors = platformAuthors(),
     classes = platformClasses(defaultClasses),
     followTime = System.currentTimeMillis()

@@ -189,7 +189,6 @@
     <string name="download_assets_filter_sort_by_popularity">Popularidade</string>
     <string name="download_assets_filter_sort_by_recently_created">Criado Recentemente</string>
     <string name="download_assets_filter_sort_by_recently_updated">Atualizado Recentemente</string>
-    <string name="download_assets_result_authors">Por %s</string>
     <string name="download_assets_result_previous_page">Página Anterior</string>
     <string name="download_assets_result_next_page">Próxima Página</string>
     <string name="download_assets_failed_to_get_result">Falha ao obter resultados da pesquisa: %s. Toque para tentar novamente.</string>

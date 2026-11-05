@@ -484,7 +484,6 @@
     <string name="download_assets_filter_search_name">Поиск по имени</string>
     <string name="download_assets_filter_search_platform">Целевая платформа</string>
     <string name="download_assets_filter_game_version">Версия игры</string>
-    <string name="download_assets_result_authors">От %s</string>
     <string name="download_modpack_warning1">Перед установкой необходимо понимать, что большинство сборок создано под нормальный ПК, и существует высокая вероятность сбоев или других проблем при их запуске. Эти проблемы часто находятся вне возможностей лаунчера.</string>
     <string name="download_modpack_warning2">При возникновении проблем вам необходимо иметь соответствующие знания, чтобы попытаться решить проблему самостоятельно; также вы можете обратиться к знающим людям.</string>
     <string name="download_modpack_warning3">Примечание: разработчики лаунчера, как правило, не занимаются решением проблем, вызванных сборками.</string>

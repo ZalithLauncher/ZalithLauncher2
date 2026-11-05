@@ -256,7 +256,7 @@ class ModrinthSingleProject(
 
     override fun platformSummary(): String = description
 
-    override fun platformAuthor(): String? = null
+    override fun platformAuthors(): List<String>? = null
 
     override fun platformDownloadCount(): Long = downloads
 

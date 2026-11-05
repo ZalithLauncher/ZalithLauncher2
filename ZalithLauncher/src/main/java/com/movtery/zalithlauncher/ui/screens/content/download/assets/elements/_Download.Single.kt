@@ -644,13 +644,16 @@ private fun AssetsVersionDependencyItem(
     color: Color = itemColor(false),
     contentColor: Color = onItemColor(),
 ) {
+    val context = LocalContext.current
+
     //项目基本信息
     val platform = remember { project.platform() }
     val title = remember { project.platformTitle() }
     val summary = remember { project.platformSummary() }
     val iconUrl = remember { project.platformIconUrl() }
+    val authors = remember { project.platformAuthors() }
     val downloads = remember { project.platformDownloadCount() }
-    val follows = remember { project.platformFollows() }
+    val followsCount = remember { project.platformFollows() }
     val modLoaders = remember { project.platformModLoaders() }
     val classes = remember { project.platformClasses(defaultClasses) }
 
@@ -692,27 +695,77 @@ private fun AssetsVersionDependencyItem(
                 ProjectTitleHead(
                     platform = platform,
                     title = title,
-                    author = null //ui太小，展示不下
                 )
-                summary?.let { summary ->
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .alpha(0.7f)
+                            .fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        //描述
-                        Text(
-                            modifier = Modifier.weight(1f),
-                            text = summary,
-                            style = MaterialTheme.typography.bodySmall,
-                            minLines = 2,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        AssetsDependencyCounts(
-                            downloads = downloads,
-                            follows = follows
-                        )
+                        // 作者
+                        authors?.let {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(14.dp),
+                                    painter = painterResource(R.drawable.ic_person_filled),
+                                    contentDescription = null
+                                )
+                                MarqueeText(
+                                    text = it.joinToString(", "),
+                                    style = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                        }
+
+                        // 下载量
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(14.dp),
+                                painter = painterResource(R.drawable.ic_download_2_filled),
+                                contentDescription = null
+                            )
+                            Text(
+                                text = formatNumberByLocale(context, downloads),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+
+                        // 收藏数量（Modrinth）
+                        followsCount?.let {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(14.dp),
+                                    painter = painterResource(R.drawable.ic_star_filled),
+                                    contentDescription = null
+                                )
+                                Text(
+                                    text = formatNumberByLocale(context, it),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
                     }
+
+                    //描述
+                    Text(
+                        text = summary,
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
 
                 Spacer(modifier = Modifier.weight(1f))
@@ -727,14 +780,9 @@ private fun AssetsVersionDependencyItem(
                         modifier = Modifier.weight(1f),
                         modLoaders = modLoaders
                     )
-                    if (summary == null) {
-                        //没有摘要时，计数移到底部行展示
-                        AssetsDependencyCounts(
-                            downloads = downloads,
-                            follows = follows
-                        )
-                    }
+
                     ClassesIdentifier(classes)
+
                     if (installed) {
                         InstalledModBadge()
                     }
@@ -763,55 +811,6 @@ private fun AssetsDependencyTags(
                 text = modLoader.getDisplayName(),
                 style = MaterialTheme.typography.labelSmall
             )
-        }
-    }
-}
-
-/**
- * 依赖项目的下载量与收藏量
- */
-@Composable
-private fun AssetsDependencyCounts(
-    modifier: Modifier = Modifier,
-    downloads: Long,
-    follows: Long?
-) {
-    val context = LocalContext.current
-
-    Column(
-        modifier = modifier.alpha(0.7f),
-        horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                modifier = Modifier.size(16.dp),
-                painter = painterResource(R.drawable.ic_download_2_outlined),
-                contentDescription = null
-            )
-            Text(
-                text = formatNumberByLocale(context, downloads),
-                style = MaterialTheme.typography.labelSmall
-            )
-        }
-        follows?.let {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    modifier = Modifier.size(14.dp),
-                    painter = painterResource(R.drawable.ic_favorite_outlined),
-                    contentDescription = null
-                )
-                Text(
-                    text = formatNumberByLocale(context, it),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
         }
     }
 }

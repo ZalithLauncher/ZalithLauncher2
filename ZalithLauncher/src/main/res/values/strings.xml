@@ -424,8 +424,6 @@
     <string name="download_assets_filter_sort_by_recently_created">Recently Created</string>
     <!-- Sort option in the download search filter panel -->
     <string name="download_assets_filter_sort_by_recently_updated">Recently Updated</string>
-    <!-- Author caption on a search result card; %s is the author name -->
-    <string name="download_assets_result_authors">By %s</string>
     <!-- Label of the favorite toggle on project cards and detail pages -->
     <string name="favorite_add">Favorite</string>
     <!-- Label of the favorite toggle when the project is already favorited -->

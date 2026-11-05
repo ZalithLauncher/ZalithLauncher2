@@ -43,14 +43,9 @@ interface PlatformSearchData {
     fun platformDescription(): String
 
     /**
-     * 在平台上的主要作者
-     */
-    fun platformAuthor(): String
-
-    /**
      * 在平台上的作者列表
      */
-    fun platformAuthors(): List<String> = listOfNotNull(platformAuthor().takeIf { it.isNotBlank() })
+    fun platformAuthors(): List<String>?
 
     /**
      * 图标链接

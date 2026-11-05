@@ -211,7 +211,7 @@ class ModrinthSearchResult(
 
         override fun platformDescription(): String = description ?: ""
 
-        override fun platformAuthor(): String = author
+        override fun platformAuthors(): List<String>? = author.takeIf { it.isNotEmpty() }?.let { listOf(it) }
 
         override fun platformIconUrl(): String? = iconUrl
 

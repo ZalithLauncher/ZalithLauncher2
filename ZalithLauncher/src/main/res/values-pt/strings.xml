@@ -214,7 +214,6 @@
     <string name="download_assets_filter_sort_by_total_downloads">Total de downloads</string>
     <string name="download_assets_filter_sort_by_recently_created">Criado recentemente</string>
     <string name="download_assets_filter_sort_by_recently_updated">Atualizado recentemente</string>
-    <string name="download_assets_result_authors">Por %s</string>
     <string name="download_assets_result_previous_page">Página anterior</string>
     <string name="download_assets_result_next_page">Próxima página</string>
     <string name="download_assets_failed_to_get_result">Falha ao conseguir resultados da pesquisa: %s. Toque para tentar novamente.</string>

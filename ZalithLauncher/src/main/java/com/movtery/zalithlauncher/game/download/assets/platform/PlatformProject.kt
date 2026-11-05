@@ -55,17 +55,12 @@ interface PlatformProject {
     /**
      * 该项目在平台上的描述
      */
-    fun platformSummary(): String?
-
-    /**
-     * 该项目在平台上的主要作者
-     */
-    fun platformAuthor(): String?
+    fun platformSummary(): String
 
     /**
      * 该项目在平台上的作者列表
      */
-    fun platformAuthors(): List<String> = listOfNotNull(platformAuthor()?.takeIf { it.isNotBlank() })
+    fun platformAuthors(): List<String>?
 
     /**
      * 该项目在平台上的总下载量

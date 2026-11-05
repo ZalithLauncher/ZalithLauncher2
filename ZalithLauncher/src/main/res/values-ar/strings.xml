@@ -166,7 +166,6 @@
     <string name="download_assets_filter_sort_by_popularity">الشعبية</string>
     <string name="download_assets_filter_sort_by_recently_created">تم صنعه مؤخرًا</string>
     <string name="download_assets_filter_sort_by_recently_updated">تم تحديثه مؤخرًا</string>
-    <string name="download_assets_result_authors">بواسطة %s</string>
     <string name="download_assets_result_previous_page">الصفحة السابقة</string>
     <string name="download_assets_result_next_page">الصفحة التالية</string>
     <string name="download_assets_failed_to_get_result">فشل الحصول على نتائج البحث: %s. انقر لإعادة المحاولة.</string>

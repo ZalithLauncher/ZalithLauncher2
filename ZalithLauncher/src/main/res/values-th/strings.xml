@@ -296,7 +296,6 @@
     <string name="download_assets_filter_sort_by_popularity">ยอดนิยม</string>
     <string name="download_assets_filter_sort_by_recently_created">สร้างล่าสุด</string>
     <string name="download_assets_filter_sort_by_recently_updated">อัปเดตล่าสุด</string>
-    <string name="download_assets_result_authors">โดย %s</string>
     <string name="download_assets_result_previous_page">หน้าก่อนหน้า</string>
     <string name="download_assets_result_next_page">หน้าถัดไป</string>
     <string name="download_assets_failed_to_get_result">ไม่สามารถดึงผลการค้นหาได้: %s แตะเพื่อลองใหม่</string>

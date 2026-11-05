@@ -331,9 +331,9 @@ class CurseForgeData(
 
     override fun platformDescription(): String = summary
 
-    override fun platformAuthor(): String = authors[0].name
-
-    override fun platformAuthors(): List<String> = authors.map { it.name }
+    override fun platformAuthors(): List<String>? = authors.mapNotNull {
+        it.name.takeIf { it.isNotEmpty() }
+    }.takeIf { it.isNotEmpty() }
 
     override fun platformIconUrl(): String? = logo?.url
 

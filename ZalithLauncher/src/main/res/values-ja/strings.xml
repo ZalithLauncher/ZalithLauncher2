@@ -323,7 +323,6 @@
     <string name="launcher_version_debug_warning_cant_close">この警告は閉じることができません</string>
     <string name="error_parse_failed">データの解析に失敗しました</string>
     <string name="download_category_saves">セーブ</string>
-    <string name="download_assets_result_authors">%s 作</string>
     <string name="account_logging_in_saving">スキンを取得しアカウント情報を保存</string>
     <string name="account_logging_time_out">ネットワークがタイムアウト。接続を確認してください。</string>
     <string name="account_logging_xbox_banned">あなたのアカウントはXboxコミュニティ規範に違反したため利用できなくなりました！</string>

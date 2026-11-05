@@ -38,7 +38,7 @@ class FavoriteProject(
     val iconUrl: String? = null,
     val title: String,
     val description: String = "",
-    val authors: List<String> = emptyList(),
+    val authors: List<String>? = null,
     val classes: PlatformClasses,
     val followTime: Long
 ) : Parcelable

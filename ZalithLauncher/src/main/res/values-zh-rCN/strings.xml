@@ -246,7 +246,6 @@
     <string name="download_assets_filter_sort_by_popularity">人气</string>
     <string name="download_assets_filter_sort_by_recently_created">最近创建</string>
     <string name="download_assets_filter_sort_by_recently_updated">最近更新</string>
-    <string name="download_assets_result_authors">作者：%s</string>
     <string name="favorite_add">收藏</string>
     <string name="favorite_added">已收藏</string>
     <string name="favorites_empty">还没有收藏的项目，去搜索并收藏喜欢的资源吧！</string>

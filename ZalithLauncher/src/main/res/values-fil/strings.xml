@@ -192,7 +192,6 @@
     <string name="download_assets_filter_sort_by_popularity">Kasikatan</string>
     <string name="download_assets_filter_sort_by_recently_created">Kamakailang Ginawa</string>
     <string name="download_assets_filter_sort_by_recently_updated">Kamakailang Na-update</string>
-    <string name="download_assets_result_authors">Ni/ng %s</string>
     <string name="download_assets_result_previous_page">Nakaraang Pahina</string>
     <string name="download_assets_result_next_page">Susunod na Pahina</string>
     <string name="download_assets_failed_to_get_result">Nabigong makuha ang mga resulta ng paghahanap: %s. Pindutin upang subukan muli.</string>

@@ -197,7 +197,6 @@
     <string name="download_assets_filter_sort_by_popularity">인기</string>
     <string name="download_assets_filter_sort_by_recently_created">최신</string>
     <string name="download_assets_filter_sort_by_recently_updated">최근 업데이트</string>
-    <string name="download_assets_result_authors">제작: %s</string>
     <string name="download_assets_result_previous_page">이전 페이지</string>
     <string name="download_assets_result_next_page">다음 페이지</string>
     <string name="download_assets_failed_to_get_result">검색 결과를 가져오지 못했습니다: %s. 터치하여 재시도하세요.</string>

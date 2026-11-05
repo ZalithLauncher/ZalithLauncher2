@@ -168,7 +168,6 @@
     <string name="download_assets_filter_sort_by_popularity">Popülerlik</string>
     <string name="download_assets_filter_sort_by_recently_created">Son Oluşturulan</string>
     <string name="download_assets_filter_sort_by_recently_updated">Son Güncelleme</string>
-    <string name="download_assets_result_authors">%s tarafından</string>
     <string name="download_assets_result_previous_page">Önceki Sayfa</string>
     <string name="download_assets_result_next_page">Sonraki Sayfa</string>
     <string name="download_assets_failed_to_get_result">Arama sonuçları alınamadı: %s. Yeniden denemek için dokunun.</string>

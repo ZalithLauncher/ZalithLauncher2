@@ -146,7 +146,6 @@
     <string name="download_assets_filter_sort_by_popularity">Phổ biến</string>
     <string name="download_assets_filter_sort_by_recently_created">Mới tạo</string>
     <string name="download_assets_filter_sort_by_recently_updated">Mới cập nhật</string>
-    <string name="download_assets_result_authors">Bởi %s</string>
     <string name="download_assets_result_previous_page">Trang trước</string>
     <string name="download_assets_result_next_page">Trang sau</string>
     <string name="download_assets_failed_to_get_result">Không thể tìm thấy: %s. Bấm để thử lại.</string>

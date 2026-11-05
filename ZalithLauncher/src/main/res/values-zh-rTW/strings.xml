@@ -231,7 +231,6 @@
     <string name="download_assets_filter_sort_by_popularity">人氣</string>
     <string name="download_assets_filter_sort_by_recently_created">最近建立</string>
     <string name="download_assets_filter_sort_by_recently_updated">最近更新</string>
-    <string name="download_assets_result_authors">作者：%s</string>
     <string name="favorite_add">收藏</string>
     <string name="favorite_added">已收藏</string>
     <string name="favorites_empty">還沒有收藏的項目，去搜尋並收藏喜歡的資源吧！</string>

@@ -59,7 +59,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.download.assets.favorites.FavoriteProjectsRepository
 import com.movtery.zalithlauncher.game.download.assets.mapExceptionToMessage
 import com.movtery.zalithlauncher.game.download.assets.platform.Platform
 import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
@@ -365,9 +364,9 @@ private fun ResultLayout(
 
     val platform = remember(project) { project.platform() }
     val title = remember(project) { project.platformTitle() }
-    val description = remember(project) { project.platformSummary() ?: "" }
+    val description = remember(project) { project.platformSummary() }
     val iconUrl = remember(project) { project.platformIconUrl() }
-    val author = remember(project) { project.platformAuthor() }
+    val authors = remember(project) { project.platformAuthors() }
     val downloads = remember(project) { project.platformDownloadCount() }
     val modloaders = remember(project) { project.platformModLoaders() }
     val classes = remember(project) { project.platformClasses(defaultClasses) }
@@ -389,14 +388,14 @@ private fun ResultLayout(
                 description = description,
                 classes = classes,
                 iconUrl = iconUrl,
-                author = author,
+                authors = authors,
                 downloads = downloads,
                 modloaders = modloaders,
                 categories = categories?.sortedWith { o1, o2 -> o1.index() - o2.index() },
-                isFavorite = FavoriteProjectsRepository.isFavorite(platform, project.platformId()),
-                onFavoriteClick = {
-                    FavoriteProjectsRepository.toggle(project, classes)
-                },
+//                isFavorite = FavoriteProjectsRepository.isFavorite(platform, project.platformId()),
+//                onFavoriteClick = {
+//                    FavoriteProjectsRepository.toggle(project, classes)
+//                },
                 onClick = {
                     onView(platform, classes, project.platformId(), iconUrl)
                 }

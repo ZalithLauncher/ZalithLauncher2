@@ -660,13 +660,11 @@ private fun ProjectInfo(
                                         style = MaterialTheme.typography.titleMedium,
                                         textAlign = TextAlign.Center
                                     )
-                                    summary?.let { summary ->
-                                        Text(
-                                            text = summary,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            textAlign = TextAlign.Center
-                                        )
-                                    }
+                                    Text(
+                                        text = summary,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        textAlign = TextAlign.Center
+                                    )
                                 }
                             }
                         }

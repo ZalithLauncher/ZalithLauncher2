@@ -27,7 +27,6 @@ import com.movtery.zalithlauncher.context.ContextsKt;
 import com.movtery.zalithlauncher.game.input.EfficientAndroidLWJGLKeycode;
 import com.movtery.zalithlauncher.game.sdl.DirectGamepadEnableHandler;
 import com.movtery.zalithlauncher.game.sdl.SdlBridge;
-import com.movtery.zalithlauncher.setting.AllSettings;
 
 import org.libsdl.app.SDLActivity;
 import org.libsdl.app.SDLSurface;
@@ -38,6 +37,8 @@ import java.lang.ref.WeakReference;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import dalvik.annotation.optimization.CriticalNative;
@@ -54,6 +55,7 @@ public class CallbackBridge {
     private static final int GLFW_ARROW_CURSOR = 0x36001;
 
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
+    private static volatile ClipboardManager sClipboardManager;
     private static volatile boolean isGrabbing = false;
     private static final Consumer<Boolean> grabListener = isGrabbing ->
             ZLBridgeStates.changeCursorMode(isGrabbing ? CURSOR_DISABLED : CURSOR_ENABLED);
@@ -328,25 +330,61 @@ public class CallbackBridge {
     @SuppressWarnings("unused")
     @Keep
     public static @Nullable String accessAndroidClipboard(int type, String copy) {
-        ClipboardManager clipboard = (ClipboardManager) ContextsKt.getGlobalContext().getSystemService(Context.CLIPBOARD_SERVICE);
         String result = null;
         switch (type) {
-            case CLIPBOARD_COPY:
-                ClipData clip = ClipData.newPlainText(BuildKeys.INSTANCE.getLAUNCHER_IDENTIFIER(), copy);
-                clipboard.setPrimaryClip(clip);
+            case CLIPBOARD_COPY: {
+                ClipboardManager clipboard = getClipboardManager();
+                if (clipboard != null) {
+                    ClipData clip = ClipData.newPlainText(BuildKeys.INSTANCE.getLAUNCHER_IDENTIFIER(), copy);
+                    clipboard.setPrimaryClip(clip);
+                }
                 break;
-            case CLIPBOARD_PASTE:
-                if (clipboard.hasPrimaryClip() && clipboard.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
+            }
+            case CLIPBOARD_PASTE: {
+                ClipboardManager clipboard = getClipboardManager();
+                if (clipboard != null && clipboard.hasPrimaryClip() && clipboard.getPrimaryClipDescription().hasMimeType(ClipDescription.MIMETYPE_TEXT_PLAIN)) {
                     result = clipboard.getPrimaryClip().getItemAt(0).getText().toString();
                 } else {
                     result = "";
                 }
                 break;
+            }
             case CLIPBOARD_OPEN:
                 ZLNativeInvoker.openLink(copy);
                 break;
         }
         return result;
+    }
+
+    /**
+     * On Android 8.x, the ClipboardManager constructor creates a Handler on the calling thread,
+     * so obtaining the clipboard service from a looper-less thread (the game threads) throws
+     * immediately. Build and cache the instance on the main thread once; afterwards calls from
+     * any thread are safe, as they only post messages to the main looper.
+     */
+    private static @Nullable ClipboardManager getClipboardManager() {
+        ClipboardManager clipboard = sClipboardManager;
+        if (clipboard != null) return clipboard;
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            clipboard = (ClipboardManager) ContextsKt.getGlobalContext().getSystemService(Context.CLIPBOARD_SERVICE);
+            sClipboardManager = clipboard;
+        } else {
+            CountDownLatch latch = new CountDownLatch(1);
+            MAIN_HANDLER.post(() -> {
+                try {
+                    sClipboardManager = (ClipboardManager) ContextsKt.getGlobalContext().getSystemService(Context.CLIPBOARD_SERVICE);
+                } finally {
+                    latch.countDown();
+                }
+            });
+            try {
+                latch.await(2, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+            clipboard = sClipboardManager;
+        }
+        return clipboard;
     }
 
     public static int getCurrentMods() {

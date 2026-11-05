@@ -387,9 +387,7 @@ private class ServerListViewModel(
         context: Context,
         ip: String
     ) {
-        viewModelScope.launch(Dispatchers.Main) {
-            copyText(label = COPY_LABEL_SERVER_IP, text = ip, context = context)
-        }
+        copyText(label = COPY_LABEL_SERVER_IP, text = ip, context = context)
     }
 
     init {

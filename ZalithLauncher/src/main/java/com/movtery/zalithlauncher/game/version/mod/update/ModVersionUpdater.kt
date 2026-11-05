@@ -20,8 +20,8 @@ package com.movtery.zalithlauncher.game.version.mod.update
 
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
-import com.movtery.zalithlauncher.game.download.assets.platform.mcim.mapMCIMMirrorUrls
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.mcim.mapMCIMMirrorUrls
 import com.movtery.zalithlauncher.game.download.engine.findHttpCode
 import com.movtery.zalithlauncher.game.version.download.DEFAULT_DOWNLOAD_THREADS
 import com.movtery.zalithlauncher.game.version.download.DownloadTask

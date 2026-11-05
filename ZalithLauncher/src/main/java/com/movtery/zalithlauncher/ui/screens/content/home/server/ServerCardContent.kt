@@ -755,7 +755,7 @@ private fun ServerCardSettingsDialog(
                             verticalArrangement = Arrangement.spacedBy(4.dp),
                         ) {
                             Text(
-                                text = stringResource(R.string.download_assets_filter_game_version),
+                                text = stringResource(R.string.download_addon_filter_game_version),
                                 style = MaterialTheme.typography.labelMedium
                             )
                             MenuTextButton(
@@ -815,7 +815,7 @@ private fun ServerCardSettingsDialog(
         }
         if (usableVersions.isEmpty()) {
             SimpleAlertDialog(
-                title = stringResource(R.string.download_assets_filter_game_version),
+                title = stringResource(R.string.download_addon_filter_game_version),
                 text = stringResource(R.string.versions_manage_no_versions),
                 onDismiss = { showVersionPicker = false }
             )
@@ -856,7 +856,7 @@ private fun VersionPickerDialog(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = stringResource(R.string.download_assets_filter_game_version),
+                text = stringResource(R.string.download_addon_filter_game_version),
                 style = MaterialTheme.typography.titleMedium
             )
 

@@ -423,5 +423,15 @@
     <string name="guide_editor_save">แก้ไขเสร็จแล้วอย่าลืมบันทึกเลย์เอาต์ปุ่มควบคุม!</string>
     <string name="guide_tip_blank">แตะบริเวณว่างเพื่อไปยังขั้นตอนถัดไป</string>
     <string name="guide_tip_finish">แตะบริเวณว่างเพื่อจบคำแนะนำ</string>
+    <string name="guide_joystick_events_welcome_title">คำแนะนำการแก้ไขอีเวนต์ทิศทางของจอยสติ๊ก</string>
+    <string name="guide_joystick_events_welcome_text">ทุกทิศทางของจอยสติ๊กสามารถตั้งค่าอีเวนต์ทริกเกอร์ได้แยกกัน</string>
+    <string name="guide_joystick_events_direction_title">จอยสติ๊กมี 8 ทิศทางที่สามารถทริกเกอร์ได้</string>
+    <string name="guide_joystick_events_direction_text">เมื่อดันจอยสติ๊กไปยังพื้นที่ที่กำหนด อีเวนต์ที่ผูกกับทิศทางนั้นจะทริกเกอร์</string>
+    <string name="guide_joystick_events_lock_text1">ด้านบนสุดของจอยสติ๊กมีพื้นที่ตรวจจับ: ขณะดันจอย ให้เลื่อนนิ้วไปยังพื้นที่ที่กำหนดเพื่อทริกเกอร์ “ล็อกเดินหน้า”</string>
+    <string name="guide_joystick_events_lock_text2">สามารถเปิด/ปิด “ล็อกเดินหน้า” ได้ใน “การตั้งค่าจอยสติ๊ก” ซึ่งควบคุมระยะของพื้นที่ทริกเกอร์นี้ด้วย</string>
+    <string name="guide_joystick_events_lock_text3">เมื่อนิ้วเข้าสู่พื้นที่ที่ล็อกได้ จอยสติ๊กจะทริกเกอร์ “อีเวนต์ล็อก”; หาก “ล็อกเดินหน้า” ปิดอยู่จะไม่มีผล</string>
+    <string name="guide_joystick_events_lock_text4">แตะปุ่มเพื่อแก้ไขอีเวนต์ทริกเกอร์</string>
+    <string name="guide_joystick_events_events_text1">อีเวนต์ที่ทริกเกอร์ได้จะเหมือนกับปุ่มปกติ ยืดหยุ่นสูงมาก</string>
+    <string name="guide_joystick_events_events_text2">หากต้องการเพียงควบคุมเกม แค่แก้ไขการผูกปุ่มจริงในส่วน “ปุ่ม” ก็พอ</string>
     <string name="about_acknowledgements_modrinth_text">%s พอร์ตพรีเซ็ตภาพเคลื่อนไหวโมเดลผู้เล่นจาก Modrinth</string>
 </resources>

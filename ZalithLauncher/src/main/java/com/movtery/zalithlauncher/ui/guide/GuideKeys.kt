@@ -67,4 +67,18 @@ sealed interface GuideKeys : GuideKey {
             data object Save : Step
         }
     }
+
+    /** 控制布局编辑器摇杆方向事件 */
+    data object JoystickEvents : Keys {
+        override val version = 1
+
+        sealed interface Step : GuideKey {
+            /** 摇杆8个方向 */
+            data object Direction : Step
+            /** 摇杆锁定事件 */
+            data object Lock : Step
+            /** 摇杆按键事件绑定 */
+            data object Events : Step
+        }
+    }
 }

@@ -297,5 +297,15 @@
     <string name="guide_editor_save">Kapag tapos nang mag-edit, huwag kalimutang i-save ang control layout!</string>
     <string name="guide_tip_blank">I-tap ang anumang walang lamang bahagi para tumuloy sa susunod na hakbang</string>
     <string name="guide_tip_finish">I-tap ang anumang walang lamang bahagi para matapos ang gabay</string>
+    <string name="guide_joystick_events_welcome_title">Gabay sa pag-edit ng mga direction event ng joystick</string>
+    <string name="guide_joystick_events_welcome_text">Ang bawat direksyon ng joystick ay maaaring bigyan ng sariling trigger event</string>
+    <string name="guide_joystick_events_direction_title">May 8 direksyon ang joystick na maaaring i-trigger</string>
+    <string name="guide_joystick_events_direction_text">Kapag itinulak ang joystick sa katumbas na area, matitrigger ang mga event na nakatala sa direksyong iyon</string>
+    <string name="guide_joystick_events_lock_text1">Mayroong detection area mismo sa itaas ng joystick: habang tinutulak ang joystick, i-slide ang daliri papunta sa area na iyon para ma-trigger ang “Forward Lock”</string>
+    <string name="guide_joystick_events_lock_text2">Maaaring i-on o i-off ang “Forward Lock” sa “Joystick Config”, kung saan mo rin maa-ayos ang layo ng trigger area na ito</string>
+    <string name="guide_joystick_events_lock_text3">Kapag pumasok ang daliri sa lockable area, magti-trigger ang joystick ng “Lock Events”; walang epekto ito kapag naka-off ang “Forward Lock”</string>
+    <string name="guide_joystick_events_lock_text4">I-tap ang button para i-edit ang mga trigger event nito</string>
+    <string name="guide_joystick_events_events_text1">Ang mga event na maaaring i-trigger ay pareho lang ng sa mga ordinaryong button, napakalaya nito</string>
+    <string name="guide_joystick_events_events_text2">Kung gusto mo lang kontrolin ang laro, i-edit lang ang mga aktwal na key binding sa section na “Key”</string>
     <string name="about_acknowledgements_modrinth_text">%s nag-port ng mga preset ng animation ng player model mula sa Modrinth</string>
 </resources>

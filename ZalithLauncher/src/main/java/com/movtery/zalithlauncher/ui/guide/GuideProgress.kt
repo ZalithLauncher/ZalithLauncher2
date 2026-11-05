@@ -33,6 +33,7 @@ object GuideProgress {
     private fun legacyKeyOf(group: GuideKeys.Keys) = when (group) {
         GuideKeys.Main -> "started_Main"
         GuideKeys.Editor -> "started_Editor"
+        else -> null
     }
 
     /**
@@ -41,6 +42,7 @@ object GuideProgress {
     fun keyOf(group: GuideKeys.Keys) = when (group) {
         GuideKeys.Main -> "version_Main"
         GuideKeys.Editor -> "version_Editor"
+        GuideKeys.JoystickEvents -> "version_JoystickEvents"
     }
 
     /**
@@ -51,7 +53,8 @@ object GuideProgress {
         if (version != 0) return version
 
         // 兼容旧版布尔存储
-        return if (mmkv.getBoolean(legacyKeyOf(group), false)) {
+        val legacyKey = legacyKeyOf(group)
+        return if (legacyKey != null && mmkv.getBoolean(legacyKey, false)) {
             1 // 旧版已播放时，视为版本号 1
         } else {
             0

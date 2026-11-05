@@ -565,6 +565,16 @@
     <string name="guide_editor_save">بعد الانتهاء من التحرير، لا تنسَ حفظ تخطيط التحكم!</string>
     <string name="guide_tip_blank">انقر على أي منطقة فارغة للانتقال إلى الخطوة التالية</string>
     <string name="guide_tip_finish">انقر على أي منطقة فارغة لإنهاء الإرشاد</string>
+    <string name="guide_joystick_events_welcome_title">دليل تحرير أحداث اتجاهات عصا التحكم</string>
+    <string name="guide_joystick_events_welcome_text">يمكن ضبط أحداث التشغيل لكل اتجاه من اتجاهات عصا التحكم على حدة</string>
+    <string name="guide_joystick_events_direction_title">تمتلك عصا التحكم 8 اتجاهات قابلة للتشغيل</string>
+    <string name="guide_joystick_events_direction_text">عند دفع عصا التحكم إلى المنطقة المقابلة، تُشغَّل الأحداث المرتبطة بذلك الاتجاه</string>
+    <string name="guide_joystick_events_lock_text1">توجد منطقة كشف مباشرةً فوق عصا التحكم: أثناء دفعها، مرِّر إصبعك إلى منطقة معينة لتشغيل “قفل الأمام”</string>
+    <string name="guide_joystick_events_lock_text2">يمكن تشغيل “قفل الأمام” أو إيقافه من “إعدادات عصا التحكم”، الذي يتحكم أيضًا في مسافة منطقة التشغيل هذه</string>
+    <string name="guide_joystick_events_lock_text3">بمجرد دخول الإصبع إلى المنطقة القابلة للقفل، ستشغّل عصا التحكم “أحداث القفل”؛ ولا مفعول لها عندما يكون “قفل الأمام” متوقفًا</string>
+    <string name="guide_joystick_events_lock_text4">انقر على الزر لتحرير أحداث التشغيل</string>
+    <string name="guide_joystick_events_events_text1">الأحداث القابلة للتشغيل هي نفسها الخاصة بالأزرار العادية، فحرية الإعداد كبيرة</string>
+    <string name="guide_joystick_events_events_text2">إن كنت تريد فقط التحكم في اللعبة، فحرِّر مربوطات المفاتيح الفعلية في قسم “مفتاح”</string>
     <string name="resource_pack_manage">ريسورس باكات</string>
     <string name="resource_pack_manage_info">معلومات الريسورس باك</string>
     <string name="fm_activity_name">مدير الملفات</string>

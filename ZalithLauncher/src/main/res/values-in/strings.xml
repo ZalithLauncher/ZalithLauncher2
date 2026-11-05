@@ -1426,6 +1426,16 @@
     <string name="guide_editor_save">Setelah selesai mengedit, jangan lupa menyimpan tata letak kontrol!</string>
     <string name="guide_tip_blank">Ketuk area kosong mana pun untuk lanjut ke langkah berikutnya</string>
     <string name="guide_tip_finish">Ketuk area kosong mana pun untuk mengakhiri panduan</string>
+    <string name="guide_joystick_events_welcome_title">Panduan mengedit event arah joystick</string>
+    <string name="guide_joystick_events_welcome_text">Semua arah joystick dapat diatur event pemicunya secara terpisah</string>
+    <string name="guide_joystick_events_direction_title">Joystick memiliki 8 arah yang dapat dipicu</string>
+    <string name="guide_joystick_events_direction_text">Saat joystick digerakkan ke area terkait, event yang terikat pada arah tersebut akan dipicu</string>
+    <string name="guide_joystick_events_lock_text1">Ada area deteksi tepat di atas joystick: saat menggerakkan joystick, geser jari ke area tertentu untuk memicu “Kunci ke Depan”</string>
+    <string name="guide_joystick_events_lock_text2">“Kunci ke Depan” dapat dinyalakan/dimatikan di “Konfigurasi Joystick”, sekaligus mengatur jarak area pemicu ini</string>
+    <string name="guide_joystick_events_lock_text3">Begitu jari memasuki area yang dapat dikunci, joystick akan memicu “Event Penguncian”; tidak berfungsi saat “Kunci ke Depan” dimatikan</string>
+    <string name="guide_joystick_events_lock_text4">Ketuk tombol untuk mengedit event pemicunya</string>
+    <string name="guide_joystick_events_events_text1">Event yang dapat dipicu sama dengan tombol biasa, kebebasannya sangat tinggi</string>
+    <string name="guide_joystick_events_events_text2">Jika hanya ingin mengontrol game, cukup edit pengikatan tombol sebenarnya di bagian “Input”</string>
     <string name="festivals_halloween">Selamat Halloween!</string>
     <string name="festivals_valentines">Selamat Hari Valentine!</string>
     <string name="launch_check_mods">Mengecek Mod</string>

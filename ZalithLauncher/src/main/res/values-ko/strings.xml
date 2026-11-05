@@ -1025,4 +1025,14 @@
     <string name="guide_editor_save">편집을 마쳤다면 컨트롤 레이아웃 저장을 잊지 마세요!</string>
     <string name="guide_tip_blank">빈 화면을 탭하면 다음으로 넘어갑니다</string>
     <string name="guide_tip_finish">빈 화면을 탭하면 가이드가 종료됩니다</string>
+    <string name="guide_joystick_events_welcome_title">조이스틱 방향 이벤트 편집 가이드</string>
+    <string name="guide_joystick_events_welcome_text">조이스틱의 모든 방향은 트리거 이벤트를 개별적으로 설정할 수 있습니다</string>
+    <string name="guide_joystick_events_direction_title">조이스틱에는 트리거할 수 있는 8개의 방향이 있습니다</string>
+    <string name="guide_joystick_events_direction_text">조이스틱을 해당 영역으로 밀면 그 방향에 바인딩된 이벤트가 트리거됩니다</string>
+    <string name="guide_joystick_events_lock_text1">조이스틱 바로 위에 판정 영역이 있습니다. 조이스틱을 밀면서 손가락을 특정 영역으로 슬라이드하면 “전방 잠금”이 트리거됩니다</string>
+    <string name="guide_joystick_events_lock_text2">“조이스틱 설정”에서 “전방 잠금”을 켜고 끌 수 있으며, 이 트리거 영역의 거리도 조절할 수 있습니다</string>
+    <string name="guide_joystick_events_lock_text3">손가락이 잠금 가능한 영역에 들어가면 조이스틱이 “잠금 이벤트”를 트리거합니다. “전방 잠금”이 꺼져 있으면 효과가 없습니다</string>
+    <string name="guide_joystick_events_lock_text4">버튼을 탭하여 트리거 이벤트를 편집하세요</string>
+    <string name="guide_joystick_events_events_text1">트리거할 수 있는 이벤트는 일반 버튼과 동일하며 자유도가 매우 높습니다</string>
+    <string name="guide_joystick_events_events_text2">게임 조작만 하려는 경우라면 “키” 섹션에서 실제 키 바인딩만 편집하면 됩니다</string>
 </resources>

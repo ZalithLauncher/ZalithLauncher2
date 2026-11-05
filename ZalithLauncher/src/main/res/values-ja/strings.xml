@@ -1182,4 +1182,14 @@
     <string name="guide_editor_save">編集が終わったら、コントロールレイアウトの保存を忘れずに！</string>
     <string name="guide_tip_blank">空いている場所をタップして次に進みましょう</string>
     <string name="guide_tip_finish">空いている場所をタップしてガイドを終了しましょう</string>
+    <string name="guide_joystick_events_welcome_title">ジョイスティックの方向イベント編集ガイド</string>
+    <string name="guide_joystick_events_welcome_text">ジョイスティックのすべての方向に、個別にトリガーイベントを設定できます</string>
+    <string name="guide_joystick_events_direction_title">ジョイスティックにはトリガー可能な 8 つの方向があります</string>
+    <string name="guide_joystick_events_direction_text">ジョイスティックを対応する領域へ倒すと、その方向にバインドされたイベントがトリガーされます</string>
+    <string name="guide_joystick_events_lock_text1">ジョイスティックの真上には判定領域があります。ジョイスティックを倒しながら指をその領域まで滑らせると「前進ロック」がトリガーされます</string>
+    <string name="guide_joystick_events_lock_text2">「ジョイスティック設定」では「前進ロック」のオン/オフや、このトリガー領域までの距離を調整できます</string>
+    <string name="guide_joystick_events_lock_text3">指がロック可能な領域に入ると、ジョイスティックは「ロックイベント」をトリガーします。「前進ロック」がオフの場合は効果がありません</string>
+    <string name="guide_joystick_events_lock_text4">ボタンをタップしてトリガーイベントを編集してください</string>
+    <string name="guide_joystick_events_events_text1">トリガーできるイベントは通常のボタンと同じで、自由度がとても高いです</string>
+    <string name="guide_joystick_events_events_text2">ゲームの操作だけに使いたい場合は、「キー」セクションで実際のキーバインドを編集してください</string>
 </resources>

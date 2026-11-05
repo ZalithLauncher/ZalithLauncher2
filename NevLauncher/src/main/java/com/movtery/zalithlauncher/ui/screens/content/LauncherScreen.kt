@@ -116,6 +116,10 @@ import kotlin.math.roundToInt
 
 private const val ContentWeight = 7f
 private const val ActionMenuWeight = 3f
+/** 紧凑（横向）操作菜单的占比 */
+private const val ActionMenuCompactWeight = 4.6f
+private const val ContentCompactWeight = 5.4f
+private val ActionMenuCompactHeight = 124.dp
 
 /**
  * 操作菜单停泊槽位与屏幕边缘的间距
@@ -163,14 +167,17 @@ fun LauncherScreen(
             val parentWidthPx = constraints.maxWidth.toFloat()
             dragState.parentWidthPx = parentWidthPx
             dragState.outerPaddingPx = with(LocalDensity.current) { ActionMenuOuterPadding.toPx() }
-            dragState.menuSpanPx = parentWidthPx * (ActionMenuWeight / (ActionMenuWeight + ContentWeight))
+            val isActionMenuTaller = maxHeight >= 600.dp
+            val menuWeight = if (isActionMenuTaller) ActionMenuWeight else ActionMenuCompactWeight
+            val contentWeight = if (isActionMenuTaller) ContentWeight else ContentCompactWeight
+            dragState.menuSpanPx = parentWidthPx * (menuWeight / (menuWeight + contentWeight))
 
             //拖拽期间以预览侧为准
             val effectiveSide = dragState.previewSide ?: dockedSide
 
             //卡片尺寸与停泊槽内容区保持一致
-            val cardWidth = maxWidth * (ActionMenuWeight / (ActionMenuWeight + ContentWeight)) - ActionMenuOuterPadding
-            val cardHeight = maxHeight - ActionMenuOuterPadding * 2
+            val cardWidth = maxWidth * (menuWeight / (menuWeight + contentWeight)) - ActionMenuOuterPadding
+            val cardHeight = if (isActionMenuTaller) maxHeight - ActionMenuOuterPadding * 2 else ActionMenuCompactHeight
 
             val toAccountManageScreen: () -> Unit = {
                 backStackViewModel.mainScreen.navigateTo(
@@ -193,7 +200,7 @@ fun LauncherScreen(
             Row(modifier = Modifier.fillMaxSize()) {
                 // ActionMenu 对接到了 Start，留出空位
                 if (dockedSide == ActionMenuSide.START) {
-                    Spacer(modifier = Modifier.weight(ActionMenuWeight))
+                    Spacer(modifier = Modifier.weight(menuWeight))
                 }
 
                 CompositionLocalProvider(
@@ -209,7 +216,7 @@ fun LauncherScreen(
                             key = GuideKeys.Main.Step.CardTip,
                             holeRadius = 0.dp
                         )
-                        .weight(ContentWeight)
+                        .weight(contentWeight)
                         .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
                     isVisible = isVisible,
                     onLaunchGame = { version ->
@@ -222,11 +229,10 @@ fun LauncherScreen(
 
                 // ActionMenu 对接到了 End，留出空位
                 if (dockedSide == ActionMenuSide.END) {
-                    Spacer(modifier = Modifier.weight(ActionMenuWeight))
+                    Spacer(modifier = Modifier.weight(menuWeight))
                 }
             }
 
-            val isActionMenuTaller = maxHeight >= 600.dp
             CompositionLocalProvider(LocalActionMenuDrag provides dragState) {
                 Box(
                     modifier = Modifier
@@ -381,6 +387,7 @@ private fun AccountAvatarRow(
 
 @Composable
 private fun VersionsContent(
+    horizontal: Boolean = false,
     onLaunchGame: (Version?) -> Unit,
     toVersionManageScreen: () -> Unit,
     toVersionSettingsScreen: () -> Unit,
@@ -391,9 +398,9 @@ private fun VersionsContent(
 
     var showList by remember { mutableStateOf(false) }
     var versionManagerRow by remember { mutableStateOf<LayoutCoordinates?>(null) }
-    Column(modifier = modifier) {
+    val versionPart: @Composable (Modifier) -> Unit = { boxModifier ->
         Box(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = boxModifier,
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -481,11 +488,11 @@ private fun VersionsContent(
             }
         }
 
+    }
+
+    val playPart: @Composable (Modifier) -> Unit = { buttonModifier ->
         ScalingActionButton(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(PaddingValues(horizontal = 12.dp))
-                .padding(bottom = 8.dp),
+            modifier = buttonModifier,
             elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp),
             onClick = {
                 onLaunchGame(null)
@@ -494,6 +501,26 @@ private fun VersionsContent(
                 MarqueeText(text = stringResource(R.string.main_play))
             }
         )
+    }
+
+    if (horizontal) {
+        Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            versionPart(Modifier.weight(1f))
+            playPart(Modifier.width(88.dp).padding(end = 12.dp))
+        }
+    } else {
+        Column(modifier = modifier) {
+            versionPart(Modifier.fillMaxWidth())
+            playPart(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(PaddingValues(horizontal = 12.dp))
+                    .padding(bottom = 8.dp)
+            )
+        }
     }
 }
 
@@ -513,32 +540,24 @@ private fun ActionMenuCardContent(
             .then(modifier),
         shape = MaterialTheme.shapes.extraLarge
     ) {
-        ConstraintLayout(
-            modifier = Modifier.fillMaxSize()
+        Row(
+            modifier = Modifier.fillMaxSize(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            val (accountAvatar, versionManagerLayout) = createRefs()
-
-            AccountAvatarCenter(
+            AccountAvatarRow(
                 modifier = Modifier
-                    .constrainAs(accountAvatar) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(versionManagerLayout.top)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                    }.guideNode(
+                    .clip(MaterialTheme.shapes.extraLarge)
+                    .clickable(onClick = toAccountManageScreen)
+                    .guideNode(
                         key = GuideKeys.Main.Step.Account,
                         preferSide = GuideSide.Below
                     ),
                 account = account,
-                onClick = toAccountManageScreen
             )
 
             VersionsContent(
-                modifier = Modifier.constrainAs(versionManagerLayout) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                },
+                modifier = Modifier.weight(1f),
+                horizontal = true,
                 onLaunchGame = onLaunchGame,
                 toVersionManageScreen = toVersionManageScreen,
                 toVersionSettingsScreen = toVersionSettingsScreen,

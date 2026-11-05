@@ -3,6 +3,7 @@ package com.movtery.guide
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -60,15 +61,17 @@ class GuideBuilder internal constructor() {
  * @param colors 引导层配色：遮罩、内容默认色
  * @param holeRadius 锚点未声明镂空圆角时的全局默认值
  * @param holeBorderWidth 锚点未声明镂空描边时的全局默认值，0 表示无边框
+ * @param shape 锚点未声明内容裁剪形状时的全局默认值
  */
 @Composable
 fun rememberGuide(
     colors: GuideColors = GuideDefaults.colors,
     holeRadius: Dp = GuideDefaults.holeRadius,
     holeBorderWidth: Dp = 0.dp,
+    shape: Shape = GuideDefaults.contentShape,
     backBehavior: GuideBack = GuideBack.Block,
     builder: GuideBuilder.() -> Unit
-): GuideController = remember(colors, holeRadius, holeBorderWidth, backBehavior) {
+): GuideController = remember(colors, holeRadius, holeBorderWidth, shape, backBehavior) {
     val result = GuideBuilder().apply(builder)
-    GuideController(result.entries.toList(), colors, holeRadius, holeBorderWidth, backBehavior)
+    GuideController(result.entries.toList(), colors, holeRadius, holeBorderWidth, shape, backBehavior)
 }

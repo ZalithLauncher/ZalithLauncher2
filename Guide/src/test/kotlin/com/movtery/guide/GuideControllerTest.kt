@@ -34,6 +34,7 @@ class GuideControllerTest {
             colors = GuideColors(),
             holeRadius = 8.dp,
             holeBorderWidth = 0.dp,
+            shape = GuideDefaults.contentShape,
             backBehavior = GuideBack.Block
         )
 
@@ -164,6 +165,7 @@ class GuideControllerTest {
             colors = GuideColors(),
             holeRadius = 8.dp,
             holeBorderWidth = 0.dp,
+            shape = GuideDefaults.contentShape,
             backBehavior = GuideBack.Block
         )
 

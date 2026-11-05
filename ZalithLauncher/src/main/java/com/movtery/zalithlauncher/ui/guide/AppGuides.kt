@@ -290,7 +290,6 @@ private fun GuideCard(
     Box(
         modifier = modifier
             .widthIn(max = 360.dp)
-            .clip(MaterialTheme.shapes.extraLarge)
             .background(Color.Black.copy(alpha = 0.4f))
     ) {
         Column(

@@ -50,7 +50,7 @@ jobs:
               arm64) abi="arm64-v8a" ;;
               *) abi="$arch" ;;
             esac
-            cp "$dir/mapping.txt" "./mappings/ZalithLauncher-mapping-${version}${abi:+-$abi}.txt"
+            cp "$dir/mapping.txt" "./mappings/NevLauncher-mapping-${version}${abi:+-$abi}.txt"
           done
 
           echo "Found $(ls ./mappings/ | wc -l) mapping file(s)"

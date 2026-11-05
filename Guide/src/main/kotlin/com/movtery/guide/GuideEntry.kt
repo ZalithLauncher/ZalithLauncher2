@@ -37,6 +37,13 @@ enum class NextTip {
 class GuideEntry internal constructor(
     val key: GuideKey,
     val nodeClick: NodeClickMode,
+
+    /**
+     * 门控推进：步骤内的点击不立即推进，仅表达推进意图，
+     * 待下一步骤的锚点节点注册就绪后自动推进；
+     * 下一步骤不存在或无锚点时，点击照常立即推进
+     */
+    val waitForNextNode: Boolean = false,
     val advanceOnScrimClick: Boolean,
     val placement: GuidePlacement,
     val showNextTip: Boolean,

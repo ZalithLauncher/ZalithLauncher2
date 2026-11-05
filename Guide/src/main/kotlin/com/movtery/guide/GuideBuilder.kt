@@ -15,16 +15,26 @@ class GuideBuilder internal constructor() {
     /**
      * 声明一个引导步骤，声明顺序即步骤顺序
      * @param showNextTip 是否显示下一步提示
+     * @param waitForNextNode 门控推进，仅在锚点点击放行模式下默认开启
      */
     fun entry(
         key: GuideKey,
         nodeClick: NodeClickMode = NodeClickMode.Intercept,
+        waitForNextNode: Boolean = nodeClick == NodeClickMode.PassThrough,
         advanceOnScrimClick: Boolean = true,
         placement: GuidePlacement = GuidePlacement.Auto,
         showNextTip: Boolean = true,
         content: @Composable (GuideScope) -> Unit
     ) {
-        entries += GuideEntry(key, nodeClick, advanceOnScrimClick, placement, showNextTip, content)
+        entries += GuideEntry(
+            key = key,
+            nodeClick = nodeClick,
+            waitForNextNode = waitForNextNode,
+            advanceOnScrimClick = advanceOnScrimClick,
+            placement = placement,
+            showNextTip = showNextTip,
+            content = content
+        )
     }
 
     /**

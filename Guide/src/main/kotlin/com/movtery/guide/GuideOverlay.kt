@@ -89,6 +89,20 @@ internal fun GuideOverlay(
         }
     }
 
+    // 门控推进：点击仅表达推进意图，待下一步骤的锚点注册就绪后自动推进
+    val nextEntry = controller.entries.getOrNull(state.index + 1)
+    val gateActive = entry.waitForNextNode && nextEntry != null && !nextEntry.isIntro
+    var armedForNext by remember(state.index) { mutableStateOf(false) }
+    val nextNodesReady = if (gateActive && nextEntry != null) {
+        registry.nodesFor(nextEntry.key).isNotEmpty()
+    } else {
+        false
+    }
+
+    LaunchedEffect(armedForNext, nextNodesReady) {
+        if (armedForNext && nextNodesReady) controller.next()
+    }
+
     var contentRect by remember { mutableStateOf<Rect?>(null) }
     val density = LocalDensity.current
     val gapPx = with(density) { GuideDefaults.contentGap.toPx() }
@@ -144,7 +158,9 @@ internal fun GuideOverlay(
                 nodeClick = entry.nodeClick,
                 advanceOnScrimClick = entry.advanceOnScrimClick,
                 animations = animations,
-                onNext = controller::next
+                onNext = {
+                    if (gateActive) armedForNext = true else controller.next()
+                }
             )
 
             GuideCardContainer(
@@ -302,9 +318,11 @@ private fun Scrim(
                     val hole = currentHoles.firstOrNull { it.rect.contains(startPos) }
                     val inContent = currentContentRect?.contains(startPos) == true
 
-                    // 引导内容自身与放行模式的锚点只观察不消费，其余一律拦截
-                    val observeOnly = !currentIsIntro && (inContent ||
-                            (hole != null && currentNodeClick == NodeClickMode.PassThrough))
+                    // 仅放行模式的锚点只观察不消费，其余一律拦截；
+                    // 引导内容自身的可交互节点位于遮罩上层，命中时遮罩不参与命中，不受拦截影响
+                    val observeOnly = !currentIsIntro &&
+                            hole != null &&
+                            currentNodeClick == NodeClickMode.PassThrough
                     if (!observeOnly) down.consume()
 
                     var pressed = true

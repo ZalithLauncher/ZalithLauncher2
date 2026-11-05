@@ -491,7 +491,7 @@ private fun VersionsContent(
                 onLaunchGame(null)
             },
             content = {
-                MarqueeText(text = stringResource(R.string.main_launch_game))
+                MarqueeText(text = stringResource(R.string.main_play))
             }
         )
     }

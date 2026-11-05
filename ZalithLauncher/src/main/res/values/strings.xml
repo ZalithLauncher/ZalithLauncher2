@@ -292,6 +292,7 @@
     <string name="unpack_screen_jna">Enables Minecraft to directly call low-level OS functions</string>
     <!-- Launch button on the home screen; also the title of the final launch step -->
     <string name="main_launch_game">Launch</string>
+    <string name="main_play">Play</string>
     <!-- Title of the launch step that scans the installed mods -->
     <string name="launch_check_mods">Checking mods</string>
     <!-- Title of the side panel listing running download and install tasks -->

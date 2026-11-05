@@ -27,6 +27,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -170,9 +171,42 @@ fun MainScreen(
         color = backgroundColor,
         contentColor = onBackgroundColor()
     ) {
+        Row(modifier = Modifier.fillMaxSize()) {
+        SideRail(
+            modifier = Modifier
+                .fillMaxHeight()
+                .width(64.dp),
+            contentColor = onBackgroundColor(),
+            inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer,
+            inDownloadScreen = mainScreenKey is NestedNavKey.Download,
+            inSettingsScreen = mainScreenKey is NestedNavKey.Settings,
+            toSettingsScreen = {
+                screenBackStackModel.mainScreen.removeAndNavigateTo(
+                    removes = screenBackStackModel.clearBeforeNavKeys,
+                    screenKey = screenBackStackModel.settingsScreen
+                )
+            },
+            toDownloadScreen = {
+                screenBackStackModel.navigateToDownload()
+            },
+            toMultiplayerScreen = {
+                screenBackStackModel.mainScreen.removeAndNavigateTo(
+                    removes = screenBackStackModel.clearBeforeNavKeys,
+                    screenKey = NormalNavKey.Multiplayer
+                )
+            },
+            openFileManager = {
+                eventViewModel.sendEvent(
+                    EventViewModel.Event.OpenFileManager(
+                        rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath
+                    )
+                )
+            }
+        )
         Column(
             modifier = Modifier
-                .fillMaxSize()
+                .weight(1f)
+                .fillMaxHeight()
         ) {
             TopBar(
                 modifier = Modifier
@@ -187,28 +221,6 @@ fun MainScreen(
                     screenBackStackModel.mainScreen.backStack.removeFirstOrNull()
                 },
                 toMainScreen = toMainScreen,
-                toSettingsScreen = {
-                    screenBackStackModel.mainScreen.removeAndNavigateTo(
-                        removes = screenBackStackModel.clearBeforeNavKeys,
-                        screenKey = screenBackStackModel.settingsScreen
-                    )
-                },
-                toDownloadScreen = {
-                    screenBackStackModel.navigateToDownload()
-                },
-                toMultiplayerScreen = {
-                    screenBackStackModel.mainScreen.removeAndNavigateTo(
-                        removes = screenBackStackModel.clearBeforeNavKeys,
-                        screenKey = NormalNavKey.Multiplayer
-                    )
-                },
-                openFileManager = {
-                    eventViewModel.sendEvent(
-                        EventViewModel.Event.OpenFileManager(
-                            rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath
-                        )
-                    )
-                },
                 changeExpandedState = {
                     changeTasksExpandedState()
                 },
@@ -243,6 +255,7 @@ fun MainScreen(
                 }
             }
         }
+        }
     }
 }
 
@@ -256,17 +269,9 @@ private fun <E: TitledNavKey> TopBar(
     contentColor: Color,
     onScreenBack: () -> Unit,
     toMainScreen: () -> Unit,
-    toSettingsScreen: () -> Unit,
-    toDownloadScreen: () -> Unit,
-    toMultiplayerScreen: () -> Unit,
-    openFileManager: () -> Unit,
     changeExpandedState: () -> Unit,
 ) {
     val festivals = LocalFestivals.current
-
-    val inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer
-    val inDownloadScreen = mainScreenKey is NestedNavKey.Download
-    val inSettingsScreen = mainScreenKey is NestedNavKey.Settings
 
     CompositionLocalProvider(
         LocalContentColor provides contentColor
@@ -343,7 +348,7 @@ private fun <E: TitledNavKey> TopBar(
                 if (parent == null) {
                     if (festivals.isEmpty()) {
                         Text(
-                            text = BuildKeys.LAUNCHER_IDENTIFIER,
+                            text = BuildKeys.LAUNCHER_NAME,
                             style = style,
                             softWrap = softWarp,
                             maxLines = maxLines
@@ -407,44 +412,81 @@ private fun <E: TitledNavKey> TopBar(
                         )
                     }
                 }
-
-                IconButton(
-                    onClick = openFileManager
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_folder_filled),
-                        contentDescription = null
-                    )
-                }
-
-                TopBarRailItem(
-                    selected = inMultiplayerScreen,
-                    painter = painterResource(R.drawable.ic_group_filled),
-                    text = stringResource(R.string.terracotta),
-                    onClick = {
-                        if (!inMultiplayerScreen) toMultiplayerScreen()
-                    },
-                )
-
-                TopBarRailItem(
-                    selected = inDownloadScreen,
-                    painter = painterResource(R.drawable.ic_download_2_filled),
-                    text = stringResource(R.string.generic_download),
-                    onClick = {
-                        if (!inDownloadScreen) toDownloadScreen()
-                    },
-                )
-
-                TopBarRailItem(
-                    selected = inSettingsScreen,
-                    painter = painterResource(R.drawable.ic_settings_filled),
-                    text = stringResource(R.string.generic_setting),
-                    onClick = {
-                        if (!inSettingsScreen) toSettingsScreen()
-                    },
-                )
             }
         }
+    }
+}
+
+@Composable
+private fun SideRail(
+    modifier: Modifier = Modifier,
+    contentColor: Color,
+    inMultiplayerScreen: Boolean,
+    inDownloadScreen: Boolean,
+    inSettingsScreen: Boolean,
+    toSettingsScreen: () -> Unit,
+    toDownloadScreen: () -> Unit,
+    toMultiplayerScreen: () -> Unit,
+    openFileManager: () -> Unit,
+) {
+    CompositionLocalProvider(LocalContentColor provides contentColor) {
+        Column(
+            modifier = modifier
+                .padding(vertical = 8.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            SideRailItem(
+                selected = false,
+                painter = painterResource(R.drawable.ic_folder_filled),
+                text = "File",
+                onClick = openFileManager
+            )
+            SideRailItem(
+                selected = inMultiplayerScreen,
+                painter = painterResource(R.drawable.ic_group_filled),
+                text = stringResource(R.string.terracotta),
+                onClick = { if (!inMultiplayerScreen) toMultiplayerScreen() }
+            )
+            SideRailItem(
+                selected = inDownloadScreen,
+                painter = painterResource(R.drawable.ic_download_2_filled),
+                text = stringResource(R.string.generic_download),
+                onClick = { if (!inDownloadScreen) toDownloadScreen() }
+            )
+            SideRailItem(
+                selected = inSettingsScreen,
+                painter = painterResource(R.drawable.ic_settings_filled),
+                text = stringResource(R.string.generic_setting),
+                onClick = { if (!inSettingsScreen) toSettingsScreen() }
+            )
+        }
+    }
+}
+
+@Composable
+private fun SideRailItem(
+    selected: Boolean,
+    painter: Painter,
+    text: String,
+    onClick: () -> Unit
+) {
+    val bg = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+    val tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else LocalContentColor.current
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(MaterialTheme.shapes.large)
+            .background(bg)
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            modifier = Modifier.size(24.dp),
+            painter = painter,
+            contentDescription = text,
+            tint = tint
+        )
     }
 }
 

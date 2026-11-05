@@ -1,6 +1,6 @@
 package com.movtery.zalithlauncher.game.version.mod.update
 
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update

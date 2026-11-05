@@ -60,7 +60,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.gson.JsonSyntaxException
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.download.assets.utils.getMcmodTitle
+import com.movtery.zalithlauncher.game.download.addon.utils.getMcmodTitle
 import com.movtery.zalithlauncher.game.download.jvm_server.JvmCrashException
 import com.movtery.zalithlauncher.game.download.jvm_server.isProcessStartRefused
 import com.movtery.zalithlauncher.game.version.download.DownloadFailedException
@@ -75,7 +75,7 @@ import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.AssetsIcon
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.AddonIcon
 import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialog
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.ModStateFilter.All
 import com.movtery.zalithlauncher.ui.screens.content.versions.elements.ModStateFilter.Disabled
@@ -389,7 +389,7 @@ private fun ModsUpdateEntryItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                AssetsIcon(
+                AddonIcon(
                     modifier = Modifier.clip(shape = RoundedCornerShape(12.dp)),
                     size = 52.dp,
                     iconUrl = data.project.iconUrl

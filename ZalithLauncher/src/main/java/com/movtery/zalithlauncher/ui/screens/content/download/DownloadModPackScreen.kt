@@ -49,8 +49,8 @@ import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDe
 import androidx.navigation3.runtime.entryProvider
 import com.google.gson.JsonSyntaxException
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
 import com.movtery.zalithlauncher.game.download.jvm_server.JvmCrashException
 import com.movtery.zalithlauncher.game.download.jvm_server.isProcessStartRefused
 import com.movtery.zalithlauncher.game.download.modpack.install.ModPackInfo
@@ -68,8 +68,8 @@ import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.download.DownloadAssetsScreen
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.search.SearchModPackScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.download.DownloadAddonScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.search.SearchModPackScreen
 import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialog
 import com.movtery.zalithlauncher.ui.screens.content.elements.isFilenameInvalid
 import com.movtery.zalithlauncher.ui.screens.navigateTo
@@ -310,22 +310,22 @@ fun DownloadModPackScreen(
                         eventViewModel = eventViewModel
                     ) { platform, projectId, iconUrl ->
                         backStack.navigateTo(
-                            NormalNavKey.DownloadAssets(platform, projectId, PlatformClasses.MOD_PACK, iconUrl)
+                            NormalNavKey.DownloadAddon(platform, projectId, PlatformClasses.MOD_PACK, iconUrl)
                         )
                     }
                 }
-                entry<NormalNavKey.DownloadAssets> { assetsKey ->
-                    DownloadAssetsScreen(
+                entry<NormalNavKey.DownloadAddon> { addonKey ->
+                    DownloadAddonScreen(
                         mainScreenKey = mainScreenKey,
                         parentScreenKey = key,
                         parentCurrentKey = downloadScreenKey,
                         currentKey = downloadModPackScreenKey,
-                        key = assetsKey,
+                        key = addonKey,
                         eventViewModel = eventViewModel,
                         onItemClicked = { _, version, iconUrl, _ ->
                             if (viewModel.installOperation !is ModPackInstallOperation.None) {
                                 //不是待安装状态，拒绝此次安装
-                                return@DownloadAssetsScreen
+                                return@DownloadAddonScreen
                             }
                             viewModel.installOperation = if (!NotificationManager.checkNotificationEnabled(context)) {
                                 //警告通知权限

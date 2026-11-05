@@ -25,7 +25,7 @@ import com.movtery.zalithlauncher.coroutine.TitledTask
 import com.movtery.zalithlauncher.coroutine.addTask
 import com.movtery.zalithlauncher.coroutine.buildPhase
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
-import com.movtery.zalithlauncher.game.download.assets.platform.getProjectByVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.getProjectByVersion
 import com.movtery.zalithlauncher.game.version.mod.ModProject
 import com.movtery.zalithlauncher.game.version.mod.RemoteMod
 import com.movtery.zalithlauncher.path.PathManager

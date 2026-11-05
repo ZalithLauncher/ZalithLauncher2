@@ -101,8 +101,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
-import com.movtery.zalithlauncher.game.download.assets.platform.Platform
-import com.movtery.zalithlauncher.game.download.assets.utils.getMcmodTitle
+import com.movtery.zalithlauncher.game.download.addon.platform.Platform
+import com.movtery.zalithlauncher.game.download.addon.utils.getMcmodTitle
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
 import com.movtery.zalithlauncher.game.version.mod.AllModReader
@@ -130,7 +130,7 @@ import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.AssetsIcon
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.AddonIcon
 import com.movtery.zalithlauncher.ui.screens.content.elements.ImportMultipleFileButton
 import com.movtery.zalithlauncher.ui.screens.content.elements.ModLoaderIcon
 import com.movtery.zalithlauncher.ui.screens.content.elements.SortByDropdownMenu
@@ -1419,7 +1419,7 @@ private fun ModIcon(
                 )
             }
         } else {
-            AssetsIcon(
+            AddonIcon(
                 iconUrl = projectInfo.iconUrl,
                 size = iconSize,
                 colorFilter = ColorFilter.colorMatrix(colorMatrix)

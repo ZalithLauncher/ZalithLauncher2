@@ -19,8 +19,8 @@
 package com.movtery.zalithlauncher.game.addons.modloader.modlike
 
 import com.movtery.zalithlauncher.game.addons.modloader.AddonVersion
-import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthFile
-import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthFile
+import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthVersion
 
 /**
  * 模组版本，因 Modrinth 访问优势，暂只支持 Modrinth

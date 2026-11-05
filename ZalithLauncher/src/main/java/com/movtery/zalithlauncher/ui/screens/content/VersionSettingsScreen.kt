@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.entryProvider
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.notification.NotificationManager
@@ -307,8 +307,8 @@ private fun NavigationUI(
                         },
                         onSwapMoreInfo = { projectId, platform ->
                             backScreenViewModel.mainScreen.removeAndNavigateTo(
-                                NestedNavKey.AssetInfo::class,
-                                NestedNavKey.AssetInfo(platform, projectId, PlatformClasses.MOD)
+                                NestedNavKey.AddonInfo::class,
+                                NestedNavKey.AddonInfo(platform, projectId, PlatformClasses.MOD)
                             )
                         },
                         eventViewModel = eventViewModel,

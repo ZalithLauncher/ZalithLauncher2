@@ -866,7 +866,6 @@
     <string name="renderer_config_mg_fsr1_performance">效能優先</string>
     <string name="settings_renderer_sfpew_plugin_layer_title">SFPEW 相容層（渲染器外掛程式）</string>
     <string name="settings_renderer_sfpew_plugin_layer_summary">為沒有固定管線能力的外部渲染器外掛程式疊加 SimpleFPEWrapper OpenGL 相容層，用於採用舊式 OpenGL 1.x/2.1 渲染的程式</string>
-    <string name="renderer_version_all">全部版本</string>
     <string name="renderer_config_sfpew_relaxed_context_title">寬鬆上下文</string>
     <string name="renderer_config_sfpew_relaxed_context_desc">假定遊戲每個執行緒終生只使用一個 GL 上下文，跳過每次呼叫的上下文檢查，請確認遊戲的執行緒上下文使用方式，若出現渲染錯誤請關閉此項</string>
     <string name="settings_renderer_from_plugins">來自 %s 外掛程式</string>

@@ -1536,6 +1536,5 @@
     <string name="renderer_config_mg_multidraw_compute">Shader de Computação</string>
     <string name="settings_renderer_sfpew_plugin_layer_title">Camada de compatibilidade SFPEW (plugins de renderização)</string>
     <string name="settings_renderer_sfpew_plugin_layer_summary">Adiciona SimpleFPEWrapper ao renderizador plugins sem suporte a pipeline de função fixa para renderização legado da OpenGL 1.x/2.1</string>
-    <string name="renderer_version_all">Todas as versões</string>
     <string name="generic_retry">Tentar novamente</string>
 </resources>

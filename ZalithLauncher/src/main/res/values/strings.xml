@@ -1824,7 +1824,6 @@
     <!-- Summary of the renderer plugin SFPEW compatibility layer switch -->
     <string name="settings_renderer_sfpew_plugin_layer_summary">Adds SimpleFPEWrapper to renderer plugins without fixed-function pipeline support for legacy OpenGL 1.x/2.1 rendering</string>
     <!-- Label shown when a built-in renderer supports all Minecraft versions -->
-    <string name="renderer_version_all">All versions</string>
     <!-- Title of the relaxed context switch in SFPEW compatibility layer settings -->
     <string name="renderer_config_sfpew_relaxed_context_title">Relaxed Context</string>
     <!-- Description of the relaxed context switch in SFPEW compatibility layer settings -->

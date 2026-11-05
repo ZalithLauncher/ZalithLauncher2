@@ -1234,6 +1234,16 @@
     <string name="guide_editor_save">Sau khi chỉnh sửa xong, đừng quên lưu bố cục điều khiển!</string>
     <string name="guide_tip_blank">Chạm vào vùng trống để chuyển sang bước tiếp theo</string>
     <string name="guide_tip_finish">Chạm vào vùng trống để kết thúc hướng dẫn</string>
+    <string name="guide_joystick_events_welcome_title">Hướng dẫn chỉnh sửa sự kiện hướng của cần điều khiển</string>
+    <string name="guide_joystick_events_welcome_text">Mỗi hướng của cần điều khiển đều có thể thiết lập sự kiện kích hoạt riêng</string>
+    <string name="guide_joystick_events_direction_title">Cần điều khiển có 8 hướng có thể kích hoạt</string>
+    <string name="guide_joystick_events_direction_text">Khi đẩy cần điều khiển vào vùng tương ứng, sự kiện được gắn với hướng đó sẽ được kích hoạt</string>
+    <string name="guide_joystick_events_lock_text1">Ngay phía trên cần điều khiển có một vùng nhận diện: khi đẩy cần, chỉ cần trượt ngón tay vào vùng cụ thể là sẽ kích hoạt “Cho phép khóa joystick”</string>
+    <string name="guide_joystick_events_lock_text2">Bạn có thể bật/tắt “Cho phép khóa joystick” trong “Cấu hình cần”, đồng thời điều chỉnh khoảng cách của vùng kích hoạt này tại đó</string>
+    <string name="guide_joystick_events_lock_text3">Chỉ cần ngón tay đi vào vùng có thể khóa, cần điều khiển sẽ kích hoạt “Lock Events”; khi “Cho phép khóa joystick” đang tắt thì không có hiệu lực</string>
+    <string name="guide_joystick_events_lock_text4">Hãy nhấn vào nút để chỉnh sửa sự kiện kích hoạt</string>
+    <string name="guide_joystick_events_events_text1">Các sự kiện có thể kích hoạt giống hệt nút thông thường, độ tự do rất cao</string>
+    <string name="guide_joystick_events_events_text2">Nếu chỉ muốn dùng để điều khiển trò chơi, chỉ cần chỉnh sửa kết hợp phím thực tế trong mục “Phím”</string>
     <string name="duration_format">%s Ngày %s Giờ %s Phút</string>
     <string name="notification_task_service_name">Dịch vụ giữ cho tiến trình sống sót</string>
     <string name="notification_task_service_running">Các nhiệm vụ đang chạy nền. Hãy giữ cho launcher chạy.</string>

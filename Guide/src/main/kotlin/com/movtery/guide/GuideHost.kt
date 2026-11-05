@@ -31,6 +31,9 @@ fun GuideHost(
     content: @Composable () -> Unit
 ) {
     val registry = remember { GuideRegistry() }
+    val arbiter = remember(guides.firstOrNull(), registry) {
+        GuideEventArbiter(guides.toList(), registry)
+    }
 
     var activeController: GuideController? = null
     var activeState: GuideState.Active? = null
@@ -82,6 +85,7 @@ fun GuideHost(
                 controller = controller,
                 state = state,
                 registry = registry,
+                arbiter = arbiter,
                 fadeAlpha = fadeAlpha,
                 nextTip = nextTip,
                 animations = animations

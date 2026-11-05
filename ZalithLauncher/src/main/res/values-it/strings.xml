@@ -220,5 +220,15 @@
     <string name="guide_editor_save">Quando hai finito di modificare, non dimenticare di salvare il layout di controlli!</string>
     <string name="guide_tip_blank">Tocca un punto vuoto per passare al passaggio successivo</string>
     <string name="guide_tip_finish">Tocca un punto vuoto per terminare la guida</string>
+    <string name="guide_joystick_events_welcome_title">Guida alla modifica degli eventi direzionali del joystick</string>
+    <string name="guide_joystick_events_welcome_text">Ogni direzione del joystick può avere i propri eventi di attivazione</string>
+    <string name="guide_joystick_events_direction_title">Il joystick ha 8 direzioni attivabili</string>
+    <string name="guide_joystick_events_direction_text">Quando sposti il joystick nell\'area corrispondente, vengono attivati gli eventi associati a quella direzione</string>
+    <string name="guide_joystick_events_lock_text1">Proprio sopra il joystick c\'è un\'area di rilevamento: mentre muovi il joystick, fai scorrere il dito su quell\'area per attivare il “Blocco avanti”</string>
+    <string name="guide_joystick_events_lock_text2">Il “Blocco avanti” può essere attivato o disattivato nella “Configurazione joystick”, dove si regola anche la distanza di quest\'area</string>
+    <string name="guide_joystick_events_lock_text3">Non appena il dito entra nell\'area bloccabile, il joystick attiverà gli “Eventi di blocco”; con il “Blocco avanti” disattivato non ha alcun effetto</string>
+    <string name="guide_joystick_events_lock_text4">Tocca il pulsante per modificarne gli eventi di attivazione</string>
+    <string name="guide_joystick_events_events_text1">Gli eventi attivabili sono gli stessi dei pulsanti normali, c\'è molta libertà</string>
+    <string name="guide_joystick_events_events_text2">Se vuoi solo controllare il gioco, modifica le associazioni dei tasti reali nella sezione “Tasto”</string>
     <string name="about_acknowledgements_modrinth_text">%s porta le preimpostazioni di animazione del modello del giocatore da Modrinth</string>
 </resources>

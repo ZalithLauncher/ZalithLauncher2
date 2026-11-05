@@ -23,6 +23,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.LocalTextStyle
@@ -56,6 +58,7 @@ private const val TAG = "AppGuides"
 class AppGuides(
     val mainScreen: GuideController,
     val editorScreen: GuideController,
+    val joystickEvents: GuideController,
 ) {
     /**
      * 启动指定组的引导流，启动成功后记录进度
@@ -65,6 +68,7 @@ class AppGuides(
         val controller = when (group) {
             GuideKeys.Main -> mainScreen
             GuideKeys.Editor -> editorScreen
+            GuideKeys.JoystickEvents -> joystickEvents
         }
         val started = controller.start()
         if (started) {
@@ -89,9 +93,10 @@ fun rememberAppGuides(
 ): AppGuides {
     val mainScreen = rememberMainGuides()
     val editorScreen = rememberEditorGuides()
+    val joystickEvents = rememberJoystickEventsGuides()
 
-    val guides = remember(mainScreen, editorScreen) {
-        AppGuides(mainScreen, editorScreen)
+    val guides = remember(mainScreen, editorScreen, joystickEvents) {
+        AppGuides(mainScreen, editorScreen, joystickEvents)
     }
 
     eventViewModel?.let { viewModel ->
@@ -205,6 +210,41 @@ private fun rememberEditorGuides() = rememberGuide {
     }
 }
 
+@Composable
+private fun rememberJoystickEventsGuides() = rememberGuide {
+    intro {
+        GuideCard {
+            Text(stringResource(R.string.guide_joystick_events_welcome_title))
+            Text(stringResource(R.string.guide_joystick_events_welcome_text))
+        }
+    }
+    entry(GuideKeys.JoystickEvents.Step.Direction) {
+        GuideCard {
+            Text(stringResource(R.string.guide_joystick_events_direction_title))
+            Text(stringResource(R.string.guide_joystick_events_direction_text))
+        }
+    }
+    entry(
+        key = GuideKeys.JoystickEvents.Step.Lock,
+        nodeClick = NodeClickMode.PassThrough,
+        advanceOnScrimClick = false
+    ) {
+        GuideCard {
+            Text(stringResource(R.string.guide_joystick_events_lock_text1))
+            Text(stringResource(R.string.guide_joystick_events_lock_text2))
+            Spacer(Modifier.height(8.dp))
+            Text(stringResource(R.string.guide_joystick_events_lock_text3))
+            Text(stringResource(R.string.guide_joystick_events_lock_text4))
+        }
+    }
+    entry(GuideKeys.JoystickEvents.Step.Events) {
+        GuideCard {
+            Text(stringResource(R.string.guide_joystick_events_events_text1))
+            Text(stringResource(R.string.guide_joystick_events_events_text2))
+        }
+    }
+}
+
 /**
  * 发布启动引导事件
  */
@@ -250,7 +290,6 @@ private fun GuideCard(
     Box(
         modifier = modifier
             .widthIn(max = 360.dp)
-            .clip(MaterialTheme.shapes.extraLarge)
             .background(Color.Black.copy(alpha = 0.4f))
     ) {
         Column(

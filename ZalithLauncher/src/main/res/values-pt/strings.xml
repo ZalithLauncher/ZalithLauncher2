@@ -1216,4 +1216,14 @@
     <string name="guide_editor_save">Quando terminar de editar, não se esqueça de guardar o layout de controlo!</string>
     <string name="guide_tip_blank">Toque em qualquer zona em branco para avançar para o passo seguinte</string>
     <string name="guide_tip_finish">Toque em qualquer zona em branco para terminar o guia</string>
+    <string name="guide_joystick_events_welcome_title">Guia de edição dos eventos direcionais do joystick</string>
+    <string name="guide_joystick_events_welcome_text">Todas as direções do joystick podem ter eventos de acionamento definidos individualmente</string>
+    <string name="guide_joystick_events_direction_title">O joystick tem 8 direções acionáveis</string>
+    <string name="guide_joystick_events_direction_text">Ao mover o joystick para a área correspondente, os eventos associados a essa direção serão acionados</string>
+    <string name="guide_joystick_events_lock_text1">Há uma área de deteção mesmo acima do joystick: ao mover o joystick, deslize o dedo até essa área para acionar a “Trava frontal”</string>
+    <string name="guide_joystick_events_lock_text2">A “Trava frontal” pode ser ligada ou desligada na “Configuração do joystick”, que também controla a distância desta área de acionamento</string>
+    <string name="guide_joystick_events_lock_text3">Assim que o dedo entrar na área bloqueável, o joystick acionará “Eventos de bloqueio”; se a “Trava frontal” estiver desligada, não terá efeito</string>
+    <string name="guide_joystick_events_lock_text4">Toque no botão para editar os eventos de acionamento</string>
+    <string name="guide_joystick_events_events_text1">Os eventos acionáveis são os mesmos dos botões normais, com muita liberdade</string>
+    <string name="guide_joystick_events_events_text2">Se quiser apenas controlar o jogo, edite as associações de teclas reais na secção “Chave”</string>
 </resources>

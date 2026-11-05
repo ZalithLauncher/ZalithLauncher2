@@ -1563,6 +1563,16 @@
     <string name="guide_editor_save">編輯完成後，記得儲存控制佈局！</string>
     <string name="guide_tip_blank">點擊空白處以進入下一步</string>
     <string name="guide_tip_finish">點擊空白處以完成引導</string>
+    <string name="guide_joystick_events_welcome_title">編輯搖桿方向事件引導</string>
+    <string name="guide_joystick_events_welcome_text">搖桿的所有方向都可以個別設定觸發事件</string>
+    <string name="guide_joystick_events_direction_title">搖桿擁有 8 個可觸發的方向</string>
+    <string name="guide_joystick_events_direction_text">撥動搖桿到對應區域時，該方向綁定的事件會被觸發</string>
+    <string name="guide_joystick_events_lock_text1">搖桿正上方擁有判定區域，撥動搖桿時手指滑動到特定區域即可觸發「前進鎖定」</string>
+    <string name="guide_joystick_events_lock_text2">可以在「搖桿配置」中開關「前進鎖定」，與控制該觸發區域的距離</string>
+    <string name="guide_joystick_events_lock_text3">只要手指進入可鎖定的區域，搖桿就會觸發「鎖定事件」；關閉「前進鎖定」時則無效果</string>
+    <string name="guide_joystick_events_lock_text4">請點擊按鈕編輯觸發事件</string>
+    <string name="guide_joystick_events_events_text1">可觸發的事件與普通按鈕一致，自由度很高</string>
+    <string name="guide_joystick_events_events_text2">若只想用於控制遊戲，編輯「按鍵」分區的實際鍵值綁定即可</string>
     <string name="control_editor_menu_new_widget_joystick">新增搖桿</string>
     <string name="festivals_halloween">萬聖節快樂！</string>
     <string name="festivals_valentines">情人節快樂！</string>

@@ -1573,4 +1573,14 @@
     <string name="guide_editor_save">完成编辑后，记得保存控制布局！</string>
     <string name="guide_tip_blank">点击空白处进入下一步</string>
     <string name="guide_tip_finish">点击空白处完成引导</string>
+    <string name="guide_joystick_events_welcome_title">编辑摇杆方向事件引导</string>
+    <string name="guide_joystick_events_welcome_text">摇杆的所有方向都可以单独设置触发事件</string>
+    <string name="guide_joystick_events_direction_title">摇杆拥有 8 个可触发的方向</string>
+    <string name="guide_joystick_events_direction_text">拨动摇杆到对应区域时，该方向绑定的事件会被触发</string>
+    <string name="guide_joystick_events_lock_text1">摇杆正上方拥有判定区域，拨动摇杆时手指滑动到特定区域即可触发“前进锁定”</string>
+    <string name="guide_joystick_events_lock_text2">可以在“摇杆配置”中开关“前进锁定”，与控制该触发区域的距离</string>
+    <string name="guide_joystick_events_lock_text3">只要手指进入可锁定的区域，摇杆就会触发“锁定事件”；关闭“前进锁定”时则无效果</string>
+    <string name="guide_joystick_events_lock_text4">请点击按钮编辑触发事件</string>
+    <string name="guide_joystick_events_events_text1">可触发的事件与普通按钮一致，自由度很高</string>
+    <string name="guide_joystick_events_events_text2">若只想用于控制游戏，编辑“按键”分区的实际键值绑定即可</string>
 </resources>

@@ -1425,6 +1425,16 @@
     <string name="guide_editor_save">Ao terminar de editar, não se esqueça de salvar o layout de controle!</string>
     <string name="guide_tip_blank">Toque em qualquer área em branco para ir para o próximo passo</string>
     <string name="guide_tip_finish">Toque em qualquer área em branco para finalizar o guia</string>
+    <string name="guide_joystick_events_welcome_title">Guia de edição dos eventos direcionais do joystick</string>
+    <string name="guide_joystick_events_welcome_text">Todas as direções do joystick podem ter eventos de acionamento configurados individualmente</string>
+    <string name="guide_joystick_events_direction_title">O joystick tem 8 direções que podem ser acionadas</string>
+    <string name="guide_joystick_events_direction_text">Ao mover o joystick para a área correspondente, os eventos vinculados a essa direção serão acionados</string>
+    <string name="guide_joystick_events_lock_text1">Há uma área de detecção bem acima do joystick: ao mover o joystick, deslize o dedo até essa área para acionar a “Trava frontal”</string>
+    <string name="guide_joystick_events_lock_text2">A “Trava frontal” pode ser ativada ou desativada na “Configuração do Joystick”, que também controla a distância dessa área de acionamento</string>
+    <string name="guide_joystick_events_lock_text3">Assim que o dedo entrar na área bloqueável, o joystick acionará o “Bloquear Eventos”; se a “Trava frontal” estiver desativada, não terá efeito</string>
+    <string name="guide_joystick_events_lock_text4">Toque no botão para editar os eventos de acionamento</string>
+    <string name="guide_joystick_events_events_text1">Os eventos acionáveis são os mesmos dos botões normais, com muita liberdade</string>
+    <string name="guide_joystick_events_events_text2">Se você só quer controlar o jogo, edite os mapeamentos de teclas reais na seção “Tecla”</string>
     <string name="festivals_halloween">Feliz dia das bruxas!</string>
     <string name="festivals_valentines">Feliz Dia dos Namorados!</string>
     <string name="launch_check_mods">Verificando mods</string>

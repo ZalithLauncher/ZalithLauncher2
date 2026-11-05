@@ -3013,7 +3013,7 @@
     <!-- Title of the guide card suggesting to pin content onto the main screen as cards -->
     <string name="guide_main_card_tip_title">Looking a bit empty here?</string>
     <!-- Body of the guide card about pinning contents as cards on the main screen; %s is the name of the pin-to-home option -->
-    <string name="guide_main_card_tip_text">Don\'t worry! You can pin content here as cards and arrange it freely, as long as it provides the “%s” option</string>
+    <string name="guide_main_card_tip_text">Don\'t worry! You can pin content here as cards and arrange it freely, as long as it provides the \"%s\" option</string>
     <!-- Welcome card shown centered on the screen at the very start of the control-editor guide -->
     <string name="guide_editor_welcome_title">Welcome to the control layout editor!</string>
     <!-- Second line of the centered welcome card that opens the control-editor guide -->
@@ -3052,4 +3052,24 @@
     <string name="guide_tip_blank">Tap any blank area to continue to the next step</string>
     <!-- Next-step hint shown near a screen corner during the final guide step; tapping any blank area finishes the whole guide -->
     <string name="guide_tip_finish">Tap any blank area to finish the guide</string>
+    <!-- Title of the centered welcome card that opens the joystick direction-events editing guide -->
+    <string name="guide_joystick_events_welcome_title">Editing the joystick\'s direction events</string>
+    <!-- Second line of the welcome card explaining that every joystick direction has its own events -->
+    <string name="guide_joystick_events_welcome_text">Every direction of the joystick can be set up with its own trigger events</string>
+    <!-- Title of the guide card introducing the 8 triggerable directions of the joystick -->
+    <string name="guide_joystick_events_direction_title">The joystick has 8 directions that can be triggered</string>
+    <!-- Body of the guide card about pushing the joystick into an area to trigger its bound events -->
+    <string name="guide_joystick_events_direction_text">When you push the joystick into the matching area, the events bound to that direction will be triggered</string>
+    <!-- Body of the guide card about the detection area above the joystick that triggers Forward Lock -->
+    <string name="guide_joystick_events_lock_text1">There is a detection area right above the joystick: while pushing the joystick, slide your finger into that area to trigger \"Forward Lock\"</string>
+    <!-- Body of the guide card about toggling Forward Lock and its trigger distance in Joystick Config -->
+    <string name="guide_joystick_events_lock_text2">\"Forward Lock\" can be toggled in \"Joystick Config\", where you can also adjust the distance of this trigger area</string>
+    <!-- Body of the guide card explaining that entering the lockable area triggers the lock events -->
+    <string name="guide_joystick_events_lock_text3">As long as your finger enters the lockable area, the joystick will trigger \"Lock Events\"; it has no effect when \"Forward Lock\" is off</string>
+    <!-- Closing line of the guide card instructing the user to tap the button to edit trigger events -->
+    <string name="guide_joystick_events_lock_text4">Tap the button to edit its trigger events</string>
+    <!-- Body of the guide card explaining that triggerable events are the same as regular buttons -->
+    <string name="guide_joystick_events_events_text1">The triggerable events are the same as those of regular buttons, so you have plenty of freedom here</string>
+    <!-- Closing line of the guide card about editing actual key bindings in the Key section -->
+    <string name="guide_joystick_events_events_text2">If you only want to control the game, just edit the actual key bindings in the \"Key\" section</string>
 </resources>

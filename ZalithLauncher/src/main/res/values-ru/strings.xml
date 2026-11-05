@@ -1233,4 +1233,14 @@
     <string name="guide_editor_save">Закончив редактирование, не забудьте сохранить раскладку!</string>
     <string name="guide_tip_blank">Коснитесь пустого места, чтобы перейти к следующему шагу</string>
     <string name="guide_tip_finish">Коснитесь пустого места, чтобы завершить руководство</string>
+    <string name="guide_joystick_events_welcome_title">Руководство по редактированию событий направлений джойстика</string>
+    <string name="guide_joystick_events_welcome_text">Для каждого направления джойстика можно настроить отдельные события срабатывания</string>
+    <string name="guide_joystick_events_direction_title">У джойстика есть 8 направлений, которые можно задействовать</string>
+    <string name="guide_joystick_events_direction_text">При наклоне джойстика в соответствующую зону сработают события, привязанные к этому направлению</string>
+    <string name="guide_joystick_events_lock_text1">Прямо над джойстиком находится зона срабатывания: наклоняя джойстик, проведите пальцем через эту зону, чтобы задействовать «Блокировку вперёд»</string>
+    <string name="guide_joystick_events_lock_text2">«Блокировку вперёд» можно включать и выключать в «Конфиге джойстика», там же настраивается расстояние этой зоны срабатывания</string>
+    <string name="guide_joystick_events_lock_text3">Как только палец попадает в зону блокировки, джойстик задействует «События блокировки»; при выключенной «Блокировке вперёд» это не действует</string>
+    <string name="guide_joystick_events_lock_text4">Нажмите на кнопку, чтобы отредактировать события срабатывания</string>
+    <string name="guide_joystick_events_events_text1">Задействуемые события такие же, как у обычных кнопок, — свободы очень много</string>
+    <string name="guide_joystick_events_events_text2">Если нужно только управлять игрой, просто отредактируйте привязки клавиш в разделе «Клавиша»</string>
 </resources>

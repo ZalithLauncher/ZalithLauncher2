@@ -1224,4 +1224,14 @@
     <string name="guide_editor_save">Düzenlemeyi bitirdiğinde kontrol düzenini kaydetmeyi unutma!</string>
     <string name="guide_tip_blank">Sonraki adıma geçmek için boş bir yere dokunun</string>
     <string name="guide_tip_finish">Rehberi tamamlamak için boş bir yere dokunun</string>
+    <string name="guide_joystick_events_welcome_title">Joystick yön etkinliklerini düzenleme kılavuzu</string>
+    <string name="guide_joystick_events_welcome_text">Joystick\'in tüm yönlerine ayrı ayrı tetikleme etkinlikleri atanabilir</string>
+    <string name="guide_joystick_events_direction_title">Joystick\'in tetiklenebilen 8 yönü vardır</string>
+    <string name="guide_joystick_events_direction_text">Joystick ilgili alana itildiğinde, o yöne bağlı etkinlikler tetiklenir</string>
+    <string name="guide_joystick_events_lock_text1">Joystick\'in tam üzerinde bir algılama alanı bulunur: joystick\'i iterken parmağınızı belirli alana kaydırırsanız “İleri Kilidi” tetiklenir</string>
+    <string name="guide_joystick_events_lock_text2">“İleri Kilidi”, “Joystick Yapılandırması”ndan açılıp kapatılabilir; bu tetikleme alanının mesafesi de oradan ayarlanır</string>
+    <string name="guide_joystick_events_lock_text3">Parmak kilitlenebilir alana girdiğinde joystick “Kilit Etkinlikleri”ni tetikler; “İleri Kilidi” kapalıyken bunun bir etkisi olmaz</string>
+    <string name="guide_joystick_events_lock_text4">Tetikleme etkinliklerini düzenlemek için düğmeye dokunun</string>
+    <string name="guide_joystick_events_events_text1">Tetiklenebilen etkinlikler normal düğmelerle aynıdır, özgürlük çok yüksektir</string>
+    <string name="guide_joystick_events_events_text2">Sadece oyunu kontrol etmek istiyorsanız “Tuş” bölümündeki gerçek tuş atamalarını düzenlemeniz yeterlidir</string>
 </resources>

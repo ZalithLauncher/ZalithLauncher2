@@ -1043,4 +1043,14 @@
     <string name="guide_editor_save">Cuando termines de editar, ¡no olvides guardar el diseño de control!</string>
     <string name="guide_tip_blank">Toca cualquier zona en blanco para continuar con el siguiente paso</string>
     <string name="guide_tip_finish">Toca cualquier zona en blanco para finalizar la guía</string>
+    <string name="guide_joystick_events_welcome_title">Guía para editar los eventos direccionales del joystick</string>
+    <string name="guide_joystick_events_welcome_text">Cada dirección del joystick puede tener sus propios eventos de activación</string>
+    <string name="guide_joystick_events_direction_title">El joystick tiene 8 direcciones que pueden activarse</string>
+    <string name="guide_joystick_events_direction_text">Al mover el joystick hacia el área correspondiente, se activarán los eventos vinculados a esa dirección</string>
+    <string name="guide_joystick_events_lock_text1">Justo encima del joystick hay un área de detección: al mover el joystick, desliza el dedo hacia esa área para activar el “Bloqueo frontal”</string>
+    <string name="guide_joystick_events_lock_text2">El “Bloqueo frontal” se puede activar o desactivar en la “Configuración del joystick”, donde también se ajusta la distancia de esta área de activación</string>
+    <string name="guide_joystick_events_lock_text3">En cuanto el dedo entre en el área bloqueable, el joystick activará los “Eventos de bloqueo”; no tendrá efecto si el “Bloqueo frontal” está desactivado</string>
+    <string name="guide_joystick_events_lock_text4">Toca el botón para editar sus eventos de activación</string>
+    <string name="guide_joystick_events_events_text1">Los eventos activables son los mismos que los de los botones normales, así que hay mucha libertad</string>
+    <string name="guide_joystick_events_events_text2">Si solo quieres controlar el juego, edita las asignaciones de teclas reales en la sección “Tecla”</string>
 </resources>

@@ -33,7 +33,7 @@ import com.movtery.zalithlauncher.game.addons.modloader.fabriclike.FabricLikeVer
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.ForgeLikeVersion
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge.NeoForgeVersion
 import com.movtery.zalithlauncher.game.addons.modloader.modlike.ModVersion
-import com.movtery.zalithlauncher.game.download.assets.platform.mcim.mapMCIMMirrorUrls
+import com.movtery.zalithlauncher.game.download.addon.platform.mcim.mapMCIMMirrorUrls
 import com.movtery.zalithlauncher.game.download.game.fabric.getFabricLikeCompleterTask
 import com.movtery.zalithlauncher.game.download.game.fabric.getFabricLikeDownloadTask
 import com.movtery.zalithlauncher.game.download.game.forge.getForgeLikeAnalyseTask

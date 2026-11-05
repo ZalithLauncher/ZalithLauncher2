@@ -75,7 +75,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
@@ -105,7 +104,7 @@ import com.movtery.zalithlauncher.ui.screens.content.VersionExportScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionsManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.WebViewScreen
-import com.movtery.zalithlauncher.ui.screens.content.assetinfo.AssetInfoScreen
+import com.movtery.zalithlauncher.ui.screens.content.addoninfo.AddonInfoScreen
 import com.movtery.zalithlauncher.ui.screens.content.navigateToDownload
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.onBack
@@ -639,11 +638,11 @@ private fun NavigationUI(
                         submitError = submitError
                     )
                 }
-                entry<NestedNavKey.AssetInfo> { key ->
-                    AssetInfoScreen(
+                entry<NestedNavKey.AddonInfo> { key ->
+                    AddonInfoScreen(
                         key = key,
                         mainScreenKey = screenBackStackModel.mainScreen.currentKey,
-                        assetInfoScreenKey = key.currentKey,
+                        addonInfoScreenKey = key.currentKey,
                         eventViewModel = eventViewModel,
                         submitError = submitError,
                     )

@@ -26,8 +26,8 @@ import com.movtery.zalithlauncher.coroutine.TaskLogOutput
 import com.movtery.zalithlauncher.coroutine.TitledTask
 import com.movtery.zalithlauncher.coroutine.addTask
 import com.movtery.zalithlauncher.coroutine.buildPhase
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
-import com.movtery.zalithlauncher.game.download.assets.platform.mcim.mapMCIMMirrorUrls
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.mcim.mapMCIMMirrorUrls
 import com.movtery.zalithlauncher.game.download.game.GameDownloadInfo
 import com.movtery.zalithlauncher.game.download.game.GameInstaller
 import com.movtery.zalithlauncher.game.version.installed.VersionConfig

@@ -46,10 +46,16 @@ fun isSfpewConfiguredFor(renderer: RendererInterface, version: Version): Boolean
 /**
  * 判断启动 [version] 时是否应启用 SFPEW
  *
+ * [launchConfig] 为启动前解析好的渲染器配置，其开关声明优先于渲染器默认
  * 版本中存在 FPE 模拟模组时禁用兼容层，避免功能冲突
  */
-fun isSfpewEnabledFor(renderer: RendererInterface, version: Version): Boolean =
-    !version.fpeEmulatorModDetected && isSfpewConfiguredFor(renderer, version)
+fun isSfpewEnabledFor(
+    renderer: RendererInterface,
+    version: Version,
+    launchConfig: RendererLaunchConfig? = null
+): Boolean =
+    !version.fpeEmulatorModDetected &&
+        (launchConfig?.sfpewLayerEnabled ?: isSfpewConfiguredFor(renderer, version))
 
 /**
  * 检测 [mods] 中已启用的 FPE 模拟模组

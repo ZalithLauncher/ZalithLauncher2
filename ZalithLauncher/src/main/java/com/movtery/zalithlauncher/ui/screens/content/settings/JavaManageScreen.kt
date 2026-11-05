@@ -227,6 +227,7 @@ fun JavaManageScreen(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .weight(1f)
                     .nonInteractiveScrollbar(
                         state = scrollState.scrollIndicatorState!!,
                         orientation = Orientation.Vertical,

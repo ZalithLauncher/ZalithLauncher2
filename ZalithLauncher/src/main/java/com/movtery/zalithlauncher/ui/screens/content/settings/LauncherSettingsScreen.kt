@@ -374,9 +374,9 @@ fun LauncherSettingsScreen(
                         ListSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Middle,
-                            unit = AllSettings.assetPlatformSource,
+                            unit = AllSettings.addonPlatformSource,
                             items = MirrorSourceType.entries,
-                            title = stringResource(R.string.settings_launcher_mirror_asset_platform_source_title),
+                            title = stringResource(R.string.settings_launcher_mirror_addon_platform_source_title),
                             getItemText = { stringResource(it.textRes) }
                         )
                     }

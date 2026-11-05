@@ -22,7 +22,6 @@ data class ResolvedConfigEntry(
     val entry: ConfigEntry,
     val value: ConfigScalar,
     val enabled: Boolean?,
-    val explicit: Boolean
 )
 
 /**
@@ -60,11 +59,15 @@ data class ResolvedRendererConfig(
         }
     }
 
+    /** SFPEW 兼容层开关，渲染器规范未声明该项时为 null */
+    val sfpewLayerEnabled: Boolean? = entries
+        .firstOrNull { it.entry.target is ConfigTarget.SfpewLayer }
+        ?.let { (it.value as? ConfigScalar.BooleanValue)?.value }
+
     /** 显式 JSON 字段 */
     val jsonFields: Map<String, ConfigScalar> = buildMap {
         this@ResolvedRendererConfig.entries.forEach { resolved ->
             val target = resolved.entry.target as? ConfigTarget.JsonField ?: return@forEach
-            if (!resolved.explicit) return@forEach
             when (val entry = resolved.entry) {
                 is SwitchEntry -> {
                     val enabled = (resolved.value as? ConfigScalar.BooleanValue)?.value == true
@@ -93,7 +96,6 @@ data class ResolvedRendererConfig(
 data class ResolvedEntryState(
     val value: ConfigScalar,
     val enabled: Boolean?,
-    val explicit: Boolean
 )
 
 /**
@@ -120,7 +122,6 @@ fun resolveEntry(
     return ResolvedEntryState(
         value = entry.coerce(localValue ?: globalValue ?: defaultValue),
         enabled = enabled,
-        explicit = localValue != null || globalValue != null || localEnabled != null || globalEnabled != null
     )
 }
 
@@ -143,7 +144,6 @@ fun resolveRendererConfig(
                 entry = entry,
                 value = state.value,
                 enabled = state.enabled,
-                explicit = state.explicit
             )
         }
     )

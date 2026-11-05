@@ -19,8 +19,8 @@
 package com.movtery.zalithlauncher.game.version.mod
 
 import android.os.Parcelable
-import com.movtery.zalithlauncher.game.download.assets.platform.ModLoaderDisplayLabel
-import com.movtery.zalithlauncher.game.download.assets.platform.Platform
+import com.movtery.zalithlauncher.game.download.addon.platform.ModLoaderDisplayLabel
+import com.movtery.zalithlauncher.game.download.addon.platform.Platform
 import kotlinx.parcelize.Parcelize
 
 /**

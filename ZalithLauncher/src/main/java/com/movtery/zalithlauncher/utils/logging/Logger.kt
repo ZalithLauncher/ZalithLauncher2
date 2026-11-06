@@ -198,13 +198,16 @@ object Logger : CoroutineScope {
             val cutoff = System.currentTimeMillis() - logRetentionDays * 86400000L
             //清理遗留的 0kb 空日志
             val emptyLogCutoff = System.currentTimeMillis() - 60 * 1000L
+            //NusaLauncher: 只清理文件，不再按时间删除子目录（否则 game/ 归档目录会被连带删除）
             files.filter {
-                it.lastModified() < cutoff ||
-                    (it != currentLogFile && it.length() == 0L && it.lastModified() < emptyLogCutoff)
+                it.isFile && (it.lastModified() < cutoff ||
+                    (it != currentLogFile && it.length() == 0L && it.lastModified() < emptyLogCutoff))
             }.forEach {
                 FileUtils.deleteQuietly(it)
             }
         }
+        //NusaLauncher: 清理超过 30 天的游戏日志归档
+        runCatching { GameLogArchiver.cleanup(PathManager.DIR_GAME_LOGS) }
     }
 
     fun error(tag: String, msg: String, t: Throwable? = null) =

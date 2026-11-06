@@ -53,6 +53,9 @@ class PathManager {
         lateinit var DIR_CACHE_APP_ICON: File
         lateinit var DIR_CACHE_HOME_PAGE: File
         lateinit var DIR_LAUNCHER_LOGS: File
+
+        /** NusaLauncher: 游戏日志归档目录（保留 30 天） */
+        lateinit var DIR_GAME_LOGS: File
         lateinit var DIR_NATIVE_LOGS: File
         lateinit var DIR_IMAGE_CACHE: File
         lateinit var DIR_CONTROL_LAYOUTS: File
@@ -99,6 +102,7 @@ class PathManager {
             DIR_CACHE_HOME_PAGE = File(DIR_CACHE, "remote_homepage")
             DIR_LAUNCHER_LOGS = File(DIR_FILES_EXTERNAL, "logs")
             DIR_NATIVE_LOGS = File(DIR_LAUNCHER_LOGS, "native")
+            DIR_GAME_LOGS = File(DIR_LAUNCHER_LOGS, "game")
             DIR_IMAGE_CACHE = File(DIR_CACHE, "images")
             DIR_CONTROL_LAYOUTS = File(DIR_FILES_EXTERNAL, "control_layouts")
             DIR_TERRACOTTA = File(DIR_FILES_PRIVATE, "net.burningtnt.terracotta")
@@ -121,7 +125,7 @@ class PathManager {
                 DIR_JNA, DIR_COMPONENTS, DIR_MOUSE_POINTER, DIR_BACKGROUND,
                 DIR_CACHE_GAME_DOWNLOADER, DIR_CACHE_MODPACK_DOWNLOADER, DIR_CACHE_MODPACK_EXPORTER,
                 DIR_CACHE_SAVE_EXPORTER, DIR_CACHE_MOD_UPDATER, DIR_CACHE_APP_ICON, DIR_CACHE_HOME_PAGE,
-                DIR_LAUNCHER_LOGS, DIR_NATIVE_LOGS, DIR_IMAGE_CACHE, DIR_CONTROL_LAYOUTS,
+                DIR_LAUNCHER_LOGS, DIR_NATIVE_LOGS, DIR_GAME_LOGS, DIR_IMAGE_CACHE, DIR_CONTROL_LAYOUTS,
                 DIR_TERRACOTTA, DIR_STYLES
             ).forEach { dir ->
                 if (!dir.exists() && !dir.mkdirs()) {

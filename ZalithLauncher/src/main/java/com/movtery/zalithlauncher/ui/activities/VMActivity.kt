@@ -92,6 +92,10 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.utils.logging.Logger
+import com.movtery.zalithlauncher.utils.logging.GameLogArchiver
+import com.movtery.zalithlauncher.path.PathManager
+import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.FliteTts
 import com.movtery.zalithlauncher.bridge.LoggerBridge
@@ -416,6 +420,30 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         return vmViewModel.session.launcher.block()
     }
 
+    /**
+     * NusaLauncher: 玩家退出游戏时，把本次日志另存为 NusaLogs-yyyy-MM-dd-HH.mm.<渲染器>.log，保留 30 天。
+     * 必须在启动器重启（ProcessPhoenix）之前同步完成。
+     */
+    private fun archiveGameLog(exitCode: Int, isSignal: Boolean) {
+        runCatching {
+            val source = withLauncher { if (this is GameLauncher) getLogFile() else null } ?: return
+            val renderer = if (Renderers.isCurrentRendererValid()) {
+                Renderers.getCurrentRenderer().getRendererName()
+            } else "UnknownRenderer"
+            val versionName = source.parentFile?.parentFile?.name ?: "unknown"
+            val header = GameLogArchiver.buildHeader(
+                linkedMapOf(
+                    "Minecraft version" to versionName,
+                    "Renderer" to renderer,
+                    "Exit code" to "$exitCode (signal: $isSignal)",
+                    "Launcher" to BuildConfig.VERSION_NAME
+                )
+            )
+            GameLogArchiver.archive(source, PathManager.DIR_GAME_LOGS, renderer, header)
+            GameLogArchiver.cleanup(PathManager.DIR_GAME_LOGS)
+        }.onFailure { Logger.warning("VMActivity", "Failed to archive game log", it) }
+    }
+
     private fun captureMagnifierFrame() {
         if (!vmViewModel.inputMagnifierState.isVisible) return
         val textureView = gameTextureView ?: return
@@ -464,6 +492,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
             gamepadViewModel = gamepadViewModel,
             exitListener = { exitCode: Int, isSignal: Boolean ->
                 stopAllService()
+                archiveGameLog(exitCode, isSignal)
                 if (exitCode != 0) {
                     val logPath = withLauncher {
                         getLogFile().absolutePath

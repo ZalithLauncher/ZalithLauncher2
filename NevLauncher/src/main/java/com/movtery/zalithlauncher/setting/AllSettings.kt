@@ -433,7 +433,7 @@ object AllSettings : SettingsRegistry() {
     /**
      * 主界面操作菜单的停泊侧
      */
-    val launcherActionMenuSide = enumSetting("launcherActionMenuSide", ActionMenuSide.START)
+    val launcherActionMenuSide = enumSetting("launcherActionMenuSide", ActionMenuSide.END)
 
     /**
      * 启动器背景元素不透明度

@@ -768,6 +768,12 @@
     <!-- Line on the game launching overlay; %s is extra info about the version being started -->
     <string name="game_loading_version_info">Game Info: %s</string>
     <!-- Title of the in-game menu overlay -->
+    <string name="game_menu_category_game">Game</string>
+    <string name="game_menu_category_overview">Overview</string>
+    <string name="game_menu_category_mouse">Mouse</string>
+    <string name="game_menu_category_gamepad">Gamepad</string>
+    <string name="game_menu_category_gesture">Gesture</string>
+    <string name="game_menu_category_gyroscope">Gyroscope</string>
     <string name="game_menu_title">Game Menu</string>
     <!-- Warning message in the dialog confirming force close from the in-game menu -->
     <string name="game_menu_option_force_close_text">Forcing the currently running game to close may cause save data corruption or prevent settings from being saved. Avoid this action unless necessary.</string>

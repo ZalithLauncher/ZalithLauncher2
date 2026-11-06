@@ -68,7 +68,7 @@ import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
-import com.movtery.zalithlauncher.ui.components.DualMenuSubscreen
+import com.movtery.zalithlauncher.ui.components.CenterMenuSubscreen
 import com.movtery.zalithlauncher.ui.components.IntInputField
 import com.movtery.zalithlauncher.ui.components.MenuListLayout
 import com.movtery.zalithlauncher.ui.components.MenuSliderLayout
@@ -87,21 +87,30 @@ import com.movtery.zalithlauncher.utils.ensureCustomResolutionInitialized
 import com.movtery.zalithlauncher.utils.getRealScreenSize
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 
-private data class IconTab(val iconRes: Int, val iconSize: Dp = 18.dp)
-
-private val controlTabs = listOf(
-    //概览
-    IconTab(R.drawable.ic_dashboard_filled),
-    //虚拟鼠标设置
-    IconTab(R.drawable.ic_mouse_filled, iconSize = 16.dp),
-    //手柄设置
-    IconTab(R.drawable.ic_sports_esports_filled),
-    //手势控制设置
-    IconTab(R.drawable.ic_touch_app_filled),
-    //陀螺仪设置
-    IconTab(R.drawable.ic_mobile_rotate_filled)
+private data class MenuTab(
+    val iconRes: Int,
+    val labelRes: Int,
+    val iconSize: Dp = 18.dp
 )
 
+private val menuTabs = listOf(
+    //游戏操作（强制关闭、日志、悬浮菜单设置等）
+    MenuTab(R.drawable.ic_rocket_launch_filled, R.string.game_menu_category_game),
+    //概览
+    MenuTab(R.drawable.ic_dashboard_filled, R.string.game_menu_category_overview),
+    //虚拟鼠标设置
+    MenuTab(R.drawable.ic_mouse_filled, R.string.game_menu_category_mouse, iconSize = 16.dp),
+    //手柄设置
+    MenuTab(R.drawable.ic_sports_esports_filled, R.string.game_menu_category_gamepad),
+    //手势控制设置
+    MenuTab(R.drawable.ic_touch_app_filled, R.string.game_menu_category_gesture),
+    //陀螺仪设置
+    MenuTab(R.drawable.ic_mobile_rotate_filled, R.string.game_menu_category_gyroscope)
+)
+
+/**
+ * 游戏内菜单：居中的单个面板，顶部用带图标的分类标签切换内容
+ */
 @Composable
 fun GameMenuSubscreen(
     state: MenuState,
@@ -120,89 +129,86 @@ fun GameMenuSubscreen(
     onEditLayout: () -> Unit,
     onShowToast: (AndroidStringText, Int) -> Unit
 ) {
-    DualMenuSubscreen(
+    CenterMenuSubscreen(
         state = state,
-        closeScreen = closeScreen,
-        leftMenuContent = {
-            val pagerState = rememberPagerState(pageCount = { controlTabs.size })
+        closeScreen = closeScreen
+    ) {
+        val tabIndex = controlMenuTabIndex.coerceIn(0, menuTabs.lastIndex)
+        val pagerState = rememberPagerState(
+            initialPage = tabIndex,
+            pageCount = { menuTabs.size }
+        )
 
-            LaunchedEffect(controlMenuTabIndex) {
-                pagerState.animateScrollToPage(controlMenuTabIndex)
-            }
-
-            Column {
-                //顶贴标签栏
-                SecondaryScrollableTabRow(
-                    selectedTabIndex = controlMenuTabIndex,
-                    edgePadding = 0.dp,
-                    minTabWidth = 58.dp,
-                    containerColor = cardTitleColor(),
-                ) {
-                    controlTabs.forEachIndexed { index, iconTab ->
-                        Tab(
-                            selected = index == controlMenuTabIndex,
-                            onClick = {
-                                onControlMenuTabChange(index)
-                            },
-                            icon = {
-                                Icon(
-                                    modifier = Modifier.size(iconTab.iconSize),
-                                    painter = painterResource(iconTab.iconRes),
-                                    contentDescription = null
-                                )
-                            }
-                        )
-                    }
-                }
-
-                HorizontalPager(
-                    state = pagerState,
-                    userScrollEnabled = false,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f, fill = false)
-                ) { page ->
-                    when (page) {
-                        0 -> {
-                            ControlOverview(
-                                modifier = Modifier.fillMaxSize(),
-                                closeScreen = closeScreen,
-                                onInputMethod = onInputMethod,
-                                onSendKeycode = onSendKeycode,
-                                onReplacementControl = onReplacementControl,
-                                onEditLayout = onEditLayout
-                            )
-                        }
-                        1 -> ControlMouse(modifier = Modifier.fillMaxSize())
-                        2 -> ControlGamepad(
-                            modifier = Modifier.fillMaxSize(),
-                            gamepadViewModel = gamepadViewModel
-                        )
-                        3 -> ControlGesture(modifier = Modifier.fillMaxSize())
-                        4 -> ControlGyroscope(modifier = Modifier.fillMaxSize())
-                    }
-                }
-            }
-        },
-        rightMenuTitle = {
-            Text(
-                modifier = Modifier.padding(all = 8.dp),
-                text = stringResource(R.string.game_menu_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-        },
-        rightMenuContent = {
-            GameActionContent(
-                modifier = Modifier.weight(1f),
-                onForceClose = onForceClose,
-                onSwitchLog = onSwitchLog,
-                enableTerracotta = enableTerracotta,
-                onOpenTerracottaMenu = onOpenTerracottaMenu,
-                onRefreshWindowSize = onRefreshWindowSize,
-                onShowToast = onShowToast
-            )
+        LaunchedEffect(tabIndex) {
+            pagerState.animateScrollToPage(tabIndex)
         }
-    )
+
+        //顶贴标签栏
+        SecondaryScrollableTabRow(
+            selectedTabIndex = tabIndex,
+            edgePadding = 0.dp,
+            minTabWidth = 72.dp,
+            containerColor = cardTitleColor(),
+        ) {
+            menuTabs.forEachIndexed { index, menuTab ->
+                Tab(
+                    selected = index == tabIndex,
+                    onClick = {
+                        onControlMenuTabChange(index)
+                    },
+                    icon = {
+                        Icon(
+                            modifier = Modifier.size(menuTab.iconSize),
+                            painter = painterResource(menuTab.iconRes),
+                            contentDescription = null
+                        )
+                    },
+                    text = {
+                        Text(
+                            text = stringResource(menuTab.labelRes),
+                            maxLines = 1,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    }
+                )
+            }
+        }
+
+        HorizontalPager(
+            state = pagerState,
+            userScrollEnabled = false,
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) { page ->
+            when (page) {
+                0 -> GameActionContent(
+                    modifier = Modifier.fillMaxSize(),
+                    onForceClose = onForceClose,
+                    onSwitchLog = onSwitchLog,
+                    enableTerracotta = enableTerracotta,
+                    onOpenTerracottaMenu = onOpenTerracottaMenu,
+                    onRefreshWindowSize = onRefreshWindowSize,
+                    onShowToast = onShowToast
+                )
+                1 -> ControlOverview(
+                    modifier = Modifier.fillMaxSize(),
+                    closeScreen = closeScreen,
+                    onInputMethod = onInputMethod,
+                    onSendKeycode = onSendKeycode,
+                    onReplacementControl = onReplacementControl,
+                    onEditLayout = onEditLayout
+                )
+                2 -> ControlMouse(modifier = Modifier.fillMaxSize())
+                3 -> ControlGamepad(
+                    modifier = Modifier.fillMaxSize(),
+                    gamepadViewModel = gamepadViewModel
+                )
+                4 -> ControlGesture(modifier = Modifier.fillMaxSize())
+                5 -> ControlGyroscope(modifier = Modifier.fillMaxSize())
+            }
+        }
+    }
 }
 
 @Composable

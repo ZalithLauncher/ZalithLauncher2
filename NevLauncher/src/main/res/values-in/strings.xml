@@ -285,6 +285,12 @@
     <string name="game_loading">Game sedang berjalan, Menunggu logo Mojang muncul…</string>
     <string name="game_loading_version_name">Versi Game: %s</string>
     <string name="game_loading_version_info">Info Game: %s</string>
+    <string name="game_menu_category_game">Game</string>
+    <string name="game_menu_category_overview">Ringkasan</string>
+    <string name="game_menu_category_mouse">Mouse</string>
+    <string name="game_menu_category_gamepad">Gamepad</string>
+    <string name="game_menu_category_gesture">Gestur</string>
+    <string name="game_menu_category_gyroscope">Giroskop</string>
     <string name="game_menu_title">Menu Game</string>
     <string name="game_menu_option_force_close_text">Menutup paksa game yang sedang berjalan dapat menyebabkan kerusakan data atau mencegah pengaturan disimpan. Hindari tindakan ini kecuali diperlukan.</string>
     <string name="game_menu_option_switch_log">Keluaran Log</string>

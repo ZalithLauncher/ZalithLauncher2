@@ -25,6 +25,8 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -44,6 +46,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -172,6 +175,68 @@ fun MenuSubscreen(
                     shape = shape,
                     influencedByBackground = false,
                     modifier = Modifier.fillMaxSize(),
+                    content = content
+                )
+            }
+        }
+    }
+}
+
+/**
+ * 居中的单面板菜单：背景遮罩 + 位于屏幕中央的一张卡片
+ */
+@Composable
+fun CenterMenuSubscreen(
+    state: MenuState,
+    closeScreen: () -> Unit,
+    shape: Shape = RoundedCornerShape(21.0.dp),
+    backgroundColor: Color = Color.Black.copy(alpha = 0.25f),
+    widthFraction: Float = 0.62f,
+    maxWidth: Dp = 640.dp,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val visible = state == MenuState.SHOW
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+            //背景阴影层
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(color = backgroundColor)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() },
+                        onClick = closeScreen
+                    )
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth(fraction = widthFraction)
+                .widthIn(max = maxWidth)
+                .fillMaxHeight()
+                .padding(all = 12.dp)
+        ) {
+            AnimatedVisibility(
+                visible = visible,
+                enter = fadeIn() + scaleIn(initialScale = 0.94f),
+                exit = fadeOut() + scaleOut(targetScale = 0.94f)
+            ) {
+                BackgroundCard(
+                    shape = shape,
+                    influencedByBackground = false,
+                    modifier = Modifier.fillMaxSize(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = backgroundColor(),
+                        contentColor = onBackgroundColor()
+                    ),
                     content = content
                 )
             }

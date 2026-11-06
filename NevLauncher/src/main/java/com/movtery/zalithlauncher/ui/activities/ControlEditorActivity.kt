@@ -88,7 +88,8 @@ class ControlEditorActivity : BaseAppCompatActivity() {
 
         setContent {
             NevLauncherTheme(
-                backgroundViewModel = backgroundViewModel
+                backgroundViewModel = backgroundViewModel,
+                applyUiScale = false
             ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),

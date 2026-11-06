@@ -53,6 +53,7 @@ import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -320,6 +321,32 @@ fun LauncherSettingsScreen(
                             }
                         )
                     }
+                }
+            }
+
+            //界面大小（缩放）板块
+            AnimatedItem { ctx ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animated(ctx)
+                ) {
+                    //拖动时只更新滑块，松手后才应用缩放，避免滑块在手指下跟着变大变小
+                    var pendingScale by remember { mutableIntStateOf(AllSettings.launcherUiScale.state) }
+                    IntSliderSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Single,
+                        value = pendingScale,
+                        title = stringResource(R.string.settings_launcher_ui_scale_title),
+                        summary = stringResource(R.string.settings_launcher_ui_scale_summary),
+                        valueRange = AllSettings.launcherUiScale.floatRange,
+                        valueText = { value -> "${value.toInt()}%" },
+                        onValueChange = { pendingScale = it },
+                        onValueChangeFinished = {
+                            AllSettings.launcherUiScale.updateState(pendingScale)
+                            AllSettings.launcherUiScale.save(pendingScale)
+                        }
+                    )
                 }
             }
 

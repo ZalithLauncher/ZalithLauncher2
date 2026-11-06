@@ -426,6 +426,11 @@ object AllSettings : SettingsRegistry() {
     val launcherAnimateSpeedLevel = intSetting("launcherAnimateSpeedLevel", 10, 1..30)
 
     /**
+     * 启动器界面缩放（百分比）
+     */
+    val launcherUiScale = intSetting("launcherUiScale", 100, 60..150)
+
+    /**
      * 主界面操作菜单的停泊侧
      */
     val launcherActionMenuSide = enumSetting("launcherActionMenuSide", ActionMenuSide.START)

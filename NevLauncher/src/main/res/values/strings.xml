@@ -2186,6 +2186,8 @@
     <!-- Description of the fullscreen setting in Launcher settings -->
     <string name="settings_launcher_full_screen_summary">Make the launcher pages fullscreen, ignoring safe areas like notches and punch-holes</string>
     <!-- Title of the animation speed slider in Launcher settings -->
+    <string name="settings_launcher_ui_scale_title">Launcher Size</string>
+    <string name="settings_launcher_ui_scale_summary">Make the whole launcher interface smaller or larger. Applied when you release the slider</string>
     <string name="settings_launcher_animate_speed_title">Animation Speed</string>
     <!-- Description of the animation speed setting in Launcher settings -->
     <string name="settings_launcher_animate_speed_summary">Adjust the global animation speed multiplier</string>

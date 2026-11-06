@@ -619,6 +619,8 @@
     <string name="settings_launcher_color_theme_title">Tema Warna</string>
     <string name="settings_launcher_color_theme_summary">Sesuaikan warna launcher</string>
     <string name="settings_launcher_full_screen_summary">Buat halaman launcher jadi layar penuh, mengabaikan area aman seperti notch dan punch-hole</string>
+    <string name="settings_launcher_ui_scale_title">Ukuran launcher</string>
+    <string name="settings_launcher_ui_scale_summary">Perkecil atau perbesar seluruh tampilan launcher. Diterapkan setelah slider dilepas</string>
     <string name="settings_launcher_animate_speed_title">Kecepatan animasi</string>
     <string name="settings_launcher_log_retention_days_title">Durasi Penyimpanan Log</string>
     <string name="settings_launcher_log_retention_days_summary">Atur berapa hari log launcher harus disimpan. Log yang lebih lama dari ini bakal dihapus otomatis</string>

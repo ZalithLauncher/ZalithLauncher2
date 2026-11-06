@@ -34,7 +34,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.Density
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamicColorScheme
 import com.movtery.zalithlauncher.setting.AllSettings
@@ -604,6 +606,7 @@ fun NevLauncherTheme(
     darkTheme: Boolean = isLauncherInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
+    applyUiScale: Boolean = true,
     backgroundViewModel: BackgroundViewModel? = null,
     festivals: List<Festival> = emptyList(),
     content: @Composable () -> Unit
@@ -673,9 +676,17 @@ fun NevLauncherTheme(
         }
     }
 
+    //界面缩放：通过缩放 Density 让整个界面整体变大或变小
+    val uiScale = if (applyUiScale) AllSettings.launcherUiScale.state / 100f else 1f
+    val baseDensity = LocalDensity.current
+    val scaledDensity = remember(baseDensity, uiScale) {
+        Density(baseDensity.density * uiScale, baseDensity.fontScale)
+    }
+
     CompositionLocalProvider(
         LocalBackgroundViewModel provides backgroundViewModel,
-        LocalFestivals provides festivals
+        LocalFestivals provides festivals,
+        LocalDensity provides scaledDensity
     ) {
         MaterialExpressiveTheme(
             colorScheme = currentDisplayScheme,

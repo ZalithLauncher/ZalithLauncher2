@@ -62,6 +62,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
@@ -487,13 +488,15 @@ private fun SideRailItem(
     text: String,
     onClick: () -> Unit
 ) {
-    val bg = if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
     val tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else LocalContentColor.current
+    val selectedBrush = Brush.linearGradient(
+        listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.85f), MaterialTheme.colorScheme.primaryContainer)
+    )
     Box(
         modifier = Modifier
             .size(48.dp)
             .clip(MaterialTheme.shapes.large)
-            .background(bg)
+            .then(if (selected) Modifier.background(selectedBrush) else Modifier)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {

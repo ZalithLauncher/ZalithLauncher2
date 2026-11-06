@@ -40,18 +40,18 @@ object SwapTimeline {
 
 
     /** 新页单项位移时长 */
-    const val ENTER_ITEM = 180
+    const val ENTER_ITEM = 130
     /** 新页单项淡入时长 */
-    const val ENTER_ALPHA = 110
+    const val ENTER_ALPHA = 80
     /** 新页进场相邻项错峰间隔 */
-    const val ENTER_STAGGER = 6
+    const val ENTER_STAGGER = 4
     /** 新页进场错峰封顶 */
-    const val ENTER_STAGGER_CAP = 50
+    const val ENTER_STAGGER_CAP = 28
 
 
 
     /** 通用内容动画的基准时长 */
-    const val CONTENT_BASE = 200
+    const val CONTENT_BASE = 150
     /** 退场位移距离相对进场位移距离的比例 */
     const val EXIT_DISTANCE_SCALE = 6f / 16f
 

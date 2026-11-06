@@ -7,10 +7,10 @@ enum class HubSource(val label: String, val url: String?) {
     /** API publik resmi minecraftserver.id (server Indonesia) */
     MSID("minecraftserver.id", "https://minecraftserver.id"),
 
-    /** Halaman daftar minecraft-serverlist.com (server luar) */
-    SERVERLIST("minecraft-serverlist.com", "https://minecraft-serverlist.com"),
+    /** Halaman daftar minecraftservers.org */
+    MINECRAFTSERVERS_ORG("minecraftservers.org", "https://minecraftservers.org"),
 
-    /** Halaman daftar minecraft-mp.com (server luar) */
+    /** Halaman daftar minecraft-mp.com */
     MINECRAFT_MP("minecraft-mp.com", "https://minecraft-mp.com"),
 
     /** Server yang ditambahkan sendiri oleh pengguna */

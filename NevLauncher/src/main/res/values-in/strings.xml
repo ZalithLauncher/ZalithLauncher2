@@ -1540,7 +1540,7 @@
     <string name="server_hub_empty">Tidak ada server yang cocok dengan filter ini</string>
     <string name="server_hub_empty_favorites">Belum ada server favorit. Ketuk ikon hati pada server untuk menyimpannya.</string>
     <string name="server_hub_source_failed">Gagal memuat: %s</string>
-    <string name="server_hub_credit">Data server: minecraftserver.id · minecraft-serverlist.com · minecraft-mp.com</string>
+    <string name="server_hub_credit">Data server: minecraftserver.id · minecraftservers.org · minecraft-mp.com</string>
     <string name="server_hub_add">Tambah server</string>
     <string name="server_hub_add_title">Tambah server</string>
     <string name="server_hub_add_name">Nama server</string>

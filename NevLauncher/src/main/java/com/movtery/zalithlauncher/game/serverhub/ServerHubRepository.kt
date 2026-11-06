@@ -28,7 +28,7 @@ private data class CustomServerDto(
 )
 
 /**
- * Menggabungkan server dari beberapa sumber (minecraftserver.id, minecraft-serverlist.com, minecraft-mp.com)
+ * Menggabungkan server dari beberapa sumber (minecraftserver.id, minecraftservers.org, minecraft-mp.com)
  * serta server buatan pengguna menjadi satu daftar.
  *
  * Kegagalan satu sumber tidak mempengaruhi sumber lain: statusnya ada di [sourceStates].
@@ -76,14 +76,14 @@ object ServerHubRepository {
 
         _loading.value = true
         loadJob = scope.launch {
-            _states.value = listOf(HubSource.MSID, HubSource.SERVERLIST, HubSource.MINECRAFT_MP)
+            _states.value = listOf(HubSource.MSID, HubSource.MINECRAFTSERVERS_ORG, HubSource.MINECRAFT_MP)
                 .associateWith { HubSourceState.Loading }
             try {
                 coroutineScope {
                     listOf(
                         async { loadSource(HubSource.MSID) { fetchMsidServers() } },
-                        async { loadSource(HubSource.SERVERLIST) { fetchHtmlSource(HubSource.SERVERLIST) } },
-                        async { loadSource(HubSource.MINECRAFT_MP) { fetchHtmlSource(HubSource.MINECRAFT_MP) } },
+                        async { loadHtmlSource(HubSource.MINECRAFTSERVERS_ORG) },
+                        async { loadHtmlSource(HubSource.MINECRAFT_MP) },
                         async { loadTags() },
                         async { refreshCustoms() }
                     ).awaitAll()
@@ -100,6 +100,24 @@ object ServerHubRepository {
             val list = fetch()
             bySource.update { it + (source to list) }
             _states.update { it + (source to HubSourceState.Loaded(list.size)) }
+        } catch (e: Throwable) {
+            Logger.warning(TAG, "Failed to load ${source.label}", e)
+            _states.update { it + (source to HubSourceState.Failed(e.message ?: e.javaClass.simpleName)) }
+        }
+        rebuild()
+    }
+
+    /** Sumber halaman HTML: hasil muncul bertahap, setiap halaman yang selesai diperiksa langsung ditampilkan */
+    private suspend fun loadHtmlSource(source: HubSource) {
+        try {
+            fetchHubSource(source) { partial ->
+                bySource.update { it + (source to partial) }
+                _states.update { it + (source to HubSourceState.Loaded(partial.size)) }
+                rebuild()
+            }
+            if (_states.value[source] is HubSourceState.Loading) {
+                _states.update { it + (source to HubSourceState.Loaded(0)) }
+            }
         } catch (e: Throwable) {
             Logger.warning(TAG, "Failed to load ${source.label}", e)
             _states.update { it + (source to HubSourceState.Failed(e.message ?: e.javaClass.simpleName)) }
@@ -138,6 +156,16 @@ object ServerHubRepository {
             }.onFailure { Logger.warning(TAG, "Remote search failed", it) }.getOrDefault(emptyList())
             extra.value = found
             rebuild()
+
+            //Mode tertentu: halaman kategorinya di minecraftservers.org ikut dibaca, hasil muncul bertahap
+            if (tag != null && !hasQuery) {
+                runCatching {
+                    fetchHubSource(HubSource.MINECRAFTSERVERS_ORG, tag = tag) { partial ->
+                        extra.value = found + partial
+                        rebuild()
+                    }
+                }.onFailure { Logger.warning(TAG, "Category page failed", it) }
+            }
         }
     }
 
@@ -212,7 +240,7 @@ object ServerHubRepository {
 
     /** Gabungkan semua sumber: buang duplikat (sumber lebih dulu menang) lalu urutkan menurut pemain */
     private fun rebuild() {
-        val order = listOf(HubSource.MSID, HubSource.SERVERLIST, HubSource.MINECRAFT_MP, HubSource.CUSTOM)
+        val order = listOf(HubSource.MSID, HubSource.MINECRAFTSERVERS_ORG, HubSource.MINECRAFT_MP, HubSource.CUSTOM)
         val all = order.flatMap { bySource.value[it].orEmpty() } + extra.value
         val merged = LinkedHashMap<String, HubServer>()
         all.forEach { merged.putIfAbsent(normalizeAddress(it.address), it) }

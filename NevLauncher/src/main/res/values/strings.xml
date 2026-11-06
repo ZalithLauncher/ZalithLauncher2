@@ -3142,7 +3142,7 @@
     <string name="server_hub_empty">No servers match these filters</string>
     <string name="server_hub_empty_favorites">No favorite servers yet. Tap the heart on a server to save it.</string>
     <string name="server_hub_source_failed">Could not load: %s</string>
-    <string name="server_hub_credit">Server data: minecraftserver.id · minecraft-serverlist.com · minecraft-mp.com</string>
+    <string name="server_hub_credit">Server data: minecraftserver.id · minecraftservers.org · minecraft-mp.com</string>
     <string name="server_hub_add">Add server</string>
     <string name="server_hub_add_title">Add server</string>
     <string name="server_hub_add_name">Server name</string>

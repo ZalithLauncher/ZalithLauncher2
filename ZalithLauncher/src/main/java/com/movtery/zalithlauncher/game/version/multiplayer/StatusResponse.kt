@@ -28,6 +28,7 @@ import com.movtery.zalithlauncher.game.version.multiplayer.description.Component
 import com.movtery.zalithlauncher.game.version.multiplayer.description.ServerDescription
 import com.movtery.zalithlauncher.game.version.multiplayer.description.StringDescription
 import com.movtery.zalithlauncher.path.GLOBAL_JSON
+import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -86,6 +87,8 @@ data class Version(
     val protocol: Int
 )
 
+private const val TAG = "StatusResponse"
+
 private const val ICON_BYTE_PREFIX = "data:image/png;base64,"
 
 @Serializable(with = Favicon.FaviconSerializer::class)
@@ -107,8 +110,9 @@ class Favicon(
             val string = decoder.decodeString()
             //Minecraft 要求必须以这个格式进行解析
             require(string.startsWith(ICON_BYTE_PREFIX))
-            val base64 = string.substring(ICON_BYTE_PREFIX.length).replace("\n", "")
-            val icon = Base64.getDecoder().decode(base64.toByteArray())
+            val base64 = string.substring(ICON_BYTE_PREFIX.length)
+            //MIME decoder 可容忍 base64 中混入的换行等非法字符
+            val icon = Base64.getMimeDecoder().decode(base64.toByteArray())
             return Favicon(icon)
         }
     }
@@ -128,7 +132,14 @@ object StatusResponseSerializer : KSerializer<StatusResponse> {
         val description = jsonObject["description"]?.let { parseDescriptionFromJson(it) }
         val players = GLOBAL_JSON.decodeFromJsonElement(Players.serializer(), jsonObject["players"]!!)
         val version = GLOBAL_JSON.decodeFromJsonElement(Version.serializer(), jsonObject["version"]!!)
-        val favicon = jsonObject["favicon"]?.let { GLOBAL_JSON.decodeFromJsonElement(Favicon.serializer(), it) }
+        val favicon = jsonObject["favicon"]?.let { element ->
+            runCatching {
+                GLOBAL_JSON.decodeFromJsonElement(Favicon.serializer(), element)
+            }.onFailure { e ->
+                //图标格式非法时忽略并按无图标处理
+                Logger.warning(TAG, "Unable to recognize the server's favicon as a valid icon, ignored.", e)
+            }.getOrNull()
+        }
         val enforcesSecureChat = jsonObject["enforcesSecureChat"]?.jsonPrimitive?.booleanOrNull ?: false
 
         return StatusResponse(

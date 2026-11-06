@@ -54,6 +54,21 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -895,62 +910,104 @@ private fun GameInfoBox(
 ) {
     AnimatedVisibility(
         visible = visible,
-        enter = fadeIn(),
-        exit = fadeOut(),
+        enter = fadeIn() + scaleIn(initialScale = 0.94f),
+        exit = fadeOut() + scaleOut(targetScale = 0.94f),
         modifier = modifier
     ) {
-        BackgroundCard(
-            modifier = modifier,
-            influencedByBackground = false,
-            shape = MaterialTheme.shapes.extraLarge
-        ) {
-            Row {
-                Row(
-                    modifier = Modifier
-                        .weight(1f, fill = false)
-                        .padding(vertical = 16.dp)
-                        .padding(start = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    LoadingIndicator(
-                        modifier = Modifier.align(Alignment.CenterVertically)
-                    )
+        val shape = MaterialTheme.shapes.extraLarge
+        val accent = MaterialTheme.colorScheme.primary
 
-                    //提示信息
-                    Column(
-                        modifier = Modifier.weight(1f, fill = false),
-                        verticalArrangement = Arrangement.spacedBy(2.dp)
+        //加载卡片：深红渐变底 + 红色描边与光晕，底部有不确定进度条
+        Box(
+            modifier = Modifier
+                .widthIn(max = 560.dp)
+                .shadow(
+                    elevation = 18.dp,
+                    shape = shape,
+                    ambientColor = accent,
+                    spotColor = accent
+                )
+                .clip(shape)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(Color(0xFF2C1315), Color(0xFF170A0B))
+                    )
+                )
+                .border(width = 1.dp, color = accent.copy(alpha = 0.45f), shape = shape)
+        ) {
+            Column {
+                Row {
+                    Row(
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .padding(start = 20.dp, top = 18.dp, bottom = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(
-                            text = stringResource(R.string.game_loading),
-                            style = MaterialTheme.typography.bodyLarge
+                        LoadingIndicator(
+                            modifier = Modifier.align(Alignment.CenterVertically),
+                            color = accent
                         )
-                        Text(
-                            text = stringResource(R.string.game_loading_version_name, versionName),
-                            style = MaterialTheme.typography.labelLarge
-                        )
-                        versionInfo?.let { info ->
+
+                        //提示信息
+                        Column(
+                            modifier = Modifier.weight(1f, fill = false),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
                             Text(
-                                text = stringResource(R.string.game_loading_version_info, info),
-                                style = MaterialTheme.typography.labelLarge
+                                text = stringResource(R.string.game_loading),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold
                             )
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                InfoChip(text = stringResource(R.string.game_loading_version_name, versionName))
+                                versionInfo?.let { info ->
+                                    InfoChip(text = stringResource(R.string.game_loading_version_info, info))
+                                }
+                            }
                         }
+                    }
+
+                    IconButton(
+                        modifier = Modifier.padding(top = 4.dp, end = 4.dp),
+                        onClick = onClose
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(18.dp),
+                            painter = painterResource(R.drawable.ic_close),
+                            contentDescription = stringResource(R.string.generic_close)
+                        )
                     }
                 }
 
-                IconButton(
-                    modifier = Modifier.padding(top = 4.dp, end = 4.dp),
-                    onClick = onClose
-                ) {
-                    Icon(
-                        modifier = Modifier.size(18.dp),
-                        painter = painterResource(R.drawable.ic_close),
-                        contentDescription = stringResource(R.string.generic_close)
-                    )
-                }
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(3.dp),
+                    color = accent,
+                    trackColor = accent.copy(alpha = 0.15f)
+                )
             }
         }
     }
+}
+
+@Composable
+private fun InfoChip(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Text(
+        modifier = modifier
+            .background(
+                color = Color.White.copy(alpha = 0.07f),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+        text = text,
+        style = MaterialTheme.typography.labelMedium,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
 }
 
 @Preview(showBackground = false)

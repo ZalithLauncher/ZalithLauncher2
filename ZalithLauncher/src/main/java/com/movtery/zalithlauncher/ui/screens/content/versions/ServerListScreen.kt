@@ -1091,6 +1091,17 @@ private fun ServerIcon(
     size: Dp,
     modifier: Modifier = Modifier,
 ) {
+    val sizeModifier = modifier.size(size)
+
+    if (server.icon == null) {
+        Image(
+            modifier = sizeModifier,
+            painter = painterResource(R.drawable.ic_unknown_icon),
+            contentDescription = null
+        )
+        return
+    }
+
     val context = LocalContext.current
 
     val density = LocalDensity.current
@@ -1111,7 +1122,6 @@ private fun ServerIcon(
     )
 
     val state by painter.state.collectAsStateWithLifecycle()
-    val sizeModifier = modifier.size(size)
 
     when (state) {
         AsyncImagePainter.State.Empty -> {

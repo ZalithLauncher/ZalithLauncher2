@@ -90,14 +90,14 @@ data class ServerData(
 
             val icon0 = result.status.favicon?.icon
             //检查远端返回的图标是否和本地保存的不同
-            val isDifferentIcon = icon0 != null && !icon0.contentEquals(icon)
-            //如果不同，则应用新的图标，并发起保存请求
+            val isDifferentIcon = !icon0.contentEquals(icon)
+            //如果不同，则应用新的图标或清空，并发起保存请求
             if (isDifferentIcon) {
                 icon = icon0
                 withContext(Dispatchers.Main) {
                     refreshUI++
                 }
-                requestSave("save new icon")
+                requestSave("save icon change")
             }
 
             withContext(Dispatchers.Main) {

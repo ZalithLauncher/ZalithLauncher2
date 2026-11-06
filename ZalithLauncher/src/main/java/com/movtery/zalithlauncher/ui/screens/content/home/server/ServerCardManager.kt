@@ -326,9 +326,8 @@ object ServerCardManager {
                 else -> {
                     //favicon 与缓存不同时更新记录并落盘
                     val newIcon = result.status.favicon?.icon
-                    val changed = newIcon != null && !newIcon.contentEquals(current.record.icon)
+                    val changed = !newIcon.contentEquals(current.record.icon)
                     val newRecord = if (changed) current.record.copy(icon = newIcon) else current.record
-                    if (changed) saveRecords()
                     _cards.update { states ->
                         states.map {
                             if (it.record.cardId == cardId) {
@@ -336,6 +335,8 @@ object ServerCardManager {
                             } else it
                         }
                     }
+                    //内存更新后再落盘，确保序列化的是最新记录
+                    if (changed) saveRecords()
                     true
                 }
             }

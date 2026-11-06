@@ -79,6 +79,8 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.legal.AvailableAgreement
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
+import com.movtery.zalithlauncher.ui.components.ScreenType
+import com.movtery.zalithlauncher.ui.components.ScreenTypeLayout
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.swapAnimateAlphaProgressAsState
 import com.movtery.zalithlauncher.ui.components.swapAnimateProgressAsState
@@ -115,15 +117,12 @@ fun WelcomeScreen(
             }
         }
 
-        BoxWithConstraints(
+        ScreenTypeLayout(
             modifier = modifier.background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
-        ) {
-            val isCompactScreen = maxWidth < 800.dp && maxHeight < 500.dp &&
-                    maxWidth / maxHeight in 0.75f..1.6f
-
-            when {
-                isCompactScreen -> {
+        ) { screenType ->
+            when (screenType) {
+                ScreenType.Watch -> {
                     // 手表等方形或略宽的极小屏布局
                     WatchWelcomeScreen(
                         isVisible = isVisible,
@@ -137,7 +136,7 @@ fun WelcomeScreen(
                         modifier = Modifier.fillMaxSize()
                     )
                 }
-                maxWidth >= 800.dp && maxHeight >= 500.dp -> {
+                ScreenType.Tablet -> {
                     // 平板布局
                     TabletWelcomeScreen(
                         isVisible = isVisible,
@@ -151,7 +150,7 @@ fun WelcomeScreen(
                         modifier = Modifier.fillMaxSize()
                     )
                 }
-                else -> {
+                ScreenType.Phone -> {
                     // 手机横板布局
                     val availableWidth = minOf(maxWidth, 1280.dp) - 60.dp
                     val terminalWidth = availableWidth * (1.35f / 2.35f) - 20.dp

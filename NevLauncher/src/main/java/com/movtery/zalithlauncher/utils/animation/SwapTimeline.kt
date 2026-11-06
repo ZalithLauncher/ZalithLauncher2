@@ -25,33 +25,33 @@ import com.movtery.zalithlauncher.setting.AllSettings
  */
 object SwapTimeline {
     /** 旧页单项退场时长 */
-    const val EXIT_ITEM = 70
+    const val EXIT_ITEM = 40
     /** 旧页单项淡出时长 */
-    const val EXIT_ALPHA = 70
+    const val EXIT_ALPHA = 40
     /** 旧页退场相邻项错峰间隔 */
-    const val EXIT_STAGGER = 15
+    const val EXIT_STAGGER = 0
     /** 旧页退场错峰封顶 */
-    const val EXIT_STAGGER_CAP = 40
+    const val EXIT_STAGGER_CAP = 0
     /** 旧页独占退场的总窗口 */
     const val EXIT_WINDOW = EXIT_ITEM + EXIT_STAGGER_CAP
     /** 旧页退场结束到新页进场的间隔 */
-    const val GAP = 30
+    const val GAP = 0
 
 
 
     /** 新页单项位移时长 */
-    const val ENTER_ITEM = 350
+    const val ENTER_ITEM = 180
     /** 新页单项淡入时长 */
-    const val ENTER_ALPHA = 200
+    const val ENTER_ALPHA = 110
     /** 新页进场相邻项错峰间隔 */
-    const val ENTER_STAGGER = 25
+    const val ENTER_STAGGER = 6
     /** 新页进场错峰封顶 */
-    const val ENTER_STAGGER_CAP = 250
+    const val ENTER_STAGGER_CAP = 50
 
 
 
     /** 通用内容动画的基准时长 */
-    const val CONTENT_BASE = 350
+    const val CONTENT_BASE = 200
     /** 退场位移距离相对进场位移距离的比例 */
     const val EXIT_DISTANCE_SCALE = 6f / 16f
 

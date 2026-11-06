@@ -603,7 +603,7 @@ private fun customDark(
 fun NevLauncherTheme(
     darkTheme: Boolean = isLauncherInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     backgroundViewModel: BackgroundViewModel? = null,
     festivals: List<Festival> = emptyList(),
     content: @Composable () -> Unit

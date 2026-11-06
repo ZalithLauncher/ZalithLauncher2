@@ -18,7 +18,6 @@
 
 package com.movtery.zalithlauncher.setting
 
-import android.os.Build
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -379,12 +378,11 @@ object AllSettings : SettingsRegistry() {
     //Launcher
     /**
      * 颜色主题色
-     * Android 12+ 默认动态主题色
+     * 默认使用红色主题（Embermire）
      */
     val launcherColorTheme = enumSetting(
         "launcherColorTheme",
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) ColorThemeType.DYNAMIC
-        else ColorThemeType.EMBERMIRE
+        ColorThemeType.EMBERMIRE
     )
 
     /**

@@ -116,6 +116,7 @@ fun EditWidgetDialog(
     sendText: (ObservableClickEventsProvider) -> Unit,
     openStyleList: () -> Unit,
     openJoystickStyleList: () -> Unit,
+    onEditJoystickEvents: () -> Unit,
 ) {
     val tween = rememberSwapTween()
 
@@ -210,7 +211,8 @@ fun EditWidgetDialog(
                                 onDismissRequested = {
                                     if (dialogTransparent == EditWidgetDialogState.SEMI_TRANSPARENT_USER) return@EditWidgetNavigation
                                     dialogTransparent = EditWidgetDialogState.OPAQUE
-                                }
+                                },
+                                onEditJoystickEvents = onEditJoystickEvents,
                             )
                         }
                         //底部操作栏
@@ -326,7 +328,8 @@ private fun EditWidgetNavigation(
     openStyleList: () -> Unit,
     openJoystickStyleList: () -> Unit,
     onPreviewRequested: () -> Unit,
-    onDismissRequested: () -> Unit
+    onDismissRequested: () -> Unit,
+    onEditJoystickEvents: () -> Unit,
 ) {
     val currentKey = backStack.lastOrNull()
 
@@ -380,7 +383,10 @@ private fun EditWidgetNavigation(
                         data = data as ObservableJoystickData
                     )
                 }
-                entry<EditWidgetCategory.DirectionEvents> { key ->
+                entry<EditWidgetCategory.DirectionEvents> {
+                    LaunchedEffect(Unit) {
+                        onEditJoystickEvents()
+                    }
                     EditJoystickEvents(
                         data = data as ObservableJoystickData,
                         switchControlLayers = switchControlLayers,

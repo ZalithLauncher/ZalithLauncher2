@@ -85,6 +85,92 @@ class RendererConfigSpecBuilder {
         )
     }
 
+    fun orderedChoice(
+        id: String,
+        @StringRes title: Int,
+        @StringRes description: Int? = null,
+        default: List<String>,
+        defaultEnabled: Boolean? = null,
+        inheritFrom: String? = null,
+        nativeValue: String? = null,
+        target: ConfigTarget = ConfigTarget.JsonField(id),
+        options: RendererChoiceBuilder.() -> Unit
+    ) = orderedChoice(
+        id = id,
+        title = ConfigText.Resource(title),
+        description = description?.let(ConfigText::Resource),
+        default = default,
+        defaultEnabled = defaultEnabled,
+        inheritFrom = inheritFrom,
+        nativeValue = nativeValue,
+        target = target,
+        options = options
+    )
+
+    fun orderedChoice(
+        id: String,
+        title: String,
+        @StringRes description: Int? = null,
+        default: List<String>,
+        defaultEnabled: Boolean? = null,
+        inheritFrom: String? = null,
+        nativeValue: String? = null,
+        target: ConfigTarget = ConfigTarget.JsonField(id),
+        options: RendererChoiceBuilder.() -> Unit
+    ) = orderedChoice(
+        id = id,
+        title = ConfigText.Dynamic(title),
+        description = description?.let(ConfigText::Resource),
+        default = default,
+        defaultEnabled = defaultEnabled,
+        inheritFrom = inheritFrom,
+        nativeValue = nativeValue,
+        target = target,
+        options = options
+    )
+
+    private fun orderedChoice(
+        id: String,
+        title: ConfigText,
+        description: ConfigText?,
+        default: List<String>,
+        defaultEnabled: Boolean?,
+        inheritFrom: String?,
+        nativeValue: String?,
+        target: ConfigTarget,
+        options: RendererChoiceBuilder.() -> Unit
+    ) {
+        val optionList = RendererChoiceBuilder().apply(options).options
+        val optionKeys = optionList.map { it.value.asString() }
+        require(optionList.isNotEmpty() && optionKeys.toSet().size == optionList.size) {
+            "Ordered choice entry $id must provide unique options"
+        }
+        require(default.size == optionList.size && default.toSet() == optionKeys.toSet()) {
+            "Ordered choice entry $id must provide every option in its default order"
+        }
+        if (inheritFrom != null) {
+            require(inheritFrom != id && entries.any { it.id == inheritFrom }) {
+                "Ordered choice entry $id must inherit from a preceding entry"
+            }
+            require(nativeValue in optionKeys) {
+                "Ordered choice entry $id must provide a valid native value"
+            }
+        }
+        entry(
+            OrderedChoiceEntry(
+                id = id,
+                title = title,
+                description = description,
+                options = optionList,
+                defaultValue = ConfigScalar.StringValue(default.joinToString(",")),
+                defaultEnabled = defaultEnabled,
+                target = target,
+                inheritFrom = inheritFrom,
+                nativeValue = nativeValue
+            )
+        )
+    }
+
     fun number(
         id: String,
         @StringRes title: Int,
@@ -138,6 +224,22 @@ class RendererChoiceBuilder {
             value = ConfigScalar.IntValue(value),
             label = ConfigText.Resource(label),
             description = description?.let(ConfigText::Resource)
+        )
+    }
+
+    fun option(value: String, @StringRes label: Int, @StringRes description: Int? = null) {
+        option(
+            value = ConfigScalar.StringValue(value),
+            label = ConfigText.Resource(label),
+            description = description?.let(ConfigText::Resource)
+        )
+    }
+
+    fun option(value: String, label: String, description: String? = null) {
+        option(
+            value = ConfigScalar.StringValue(value),
+            label = ConfigText.Dynamic(label),
+            description = description?.let(ConfigText::Dynamic)
         )
     }
 

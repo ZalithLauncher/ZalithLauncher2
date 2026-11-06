@@ -496,7 +496,9 @@ private fun TrashSingleMenu(
     Box {
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = onDismiss
+            onDismissRequest = onDismiss,
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 3.dp
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.fm_property)) },
@@ -533,7 +535,9 @@ private fun TrashMultiMenu(
     Box {
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = onDismiss
+            onDismissRequest = onDismiss,
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 3.dp
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.fm_trash_restore)) },
@@ -575,7 +579,9 @@ private fun FmTrashMoreMenu(
         onDismissRequest = {
             menuExpanded = false
             sortExpanded = false
-        }
+        },
+        shape = MaterialTheme.shapes.large,
+        shadowElevation = 3.dp
     ) {
         DropdownMenuItem(
             text = { Text(stringResource(R.string.generic_refresh)) },
@@ -608,7 +614,9 @@ private fun FmTrashMoreMenu(
 
         DropdownMenu(
             expanded = sortExpanded,
-            onDismissRequest = { sortExpanded = false }
+            onDismissRequest = { sortExpanded = false },
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 3.dp
         ) {
             FmTrashSortMenuItem(
                 labelRes = R.string.fm_sort_name,

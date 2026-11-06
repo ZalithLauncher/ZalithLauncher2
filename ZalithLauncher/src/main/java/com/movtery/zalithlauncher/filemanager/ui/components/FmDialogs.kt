@@ -417,7 +417,9 @@ fun <T> ExposedDropdown(
 
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 3.dp
         ) {
             options.forEach { option ->
                 DropdownMenuItem(

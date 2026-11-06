@@ -20,12 +20,15 @@ package com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge
 
 import com.movtery.zalithlauncher.game.addons.mirror.MirrorSource
 import com.movtery.zalithlauncher.game.addons.mirror.SourceType
+import com.movtery.zalithlauncher.game.addons.mirror.mapBMCLMirrorUrls
 import com.movtery.zalithlauncher.game.addons.mirror.orderedByGameSourcePreference
 import com.movtery.zalithlauncher.game.addons.mirror.runMirrorable
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge.models.BMCLAPIMaven
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge.models.NeoForgedMaven
+import com.movtery.zalithlauncher.path.GLOBAL_JSON
 import com.movtery.zalithlauncher.utils.isChinaMainland
 import com.movtery.zalithlauncher.utils.logging.Logger
+import com.movtery.zalithlauncher.utils.network.fetchStringFromUrls
 import com.movtery.zalithlauncher.utils.network.httpGetJson
 import com.movtery.zalithlauncher.utils.network.withRetry
 import kotlinx.coroutines.CancellationException
@@ -80,10 +83,18 @@ object NeoForgeVersions {
     private suspend fun fetchOfficialVersions() = withContext(Dispatchers.IO) {
         processVersionList(SourceType.OFFICIAL) {
             val neoforge = withRetry(TAG, maxRetries = 2) {
-                httpGetJson<NeoForgedMaven>(url = "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge")
+                GLOBAL_JSON.decodeFromString<NeoForgedMaven>(
+                    fetchStringFromUrls(
+                        "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/neoforge".mapBMCLMirrorUrls()
+                    )
+                )
             }
             val legacyForge = withRetry(TAG, maxRetries = 2) {
-                httpGetJson<NeoForgedMaven>(url = "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/forge")
+                GLOBAL_JSON.decodeFromString<NeoForgedMaven>(
+                    fetchStringFromUrls(
+                        "https://maven.neoforged.net/api/maven/versions/releases/net/neoforged/forge".mapBMCLMirrorUrls()
+                    )
+                )
             }.copy(isLegacy = true)
 
             neoforge + legacyForge

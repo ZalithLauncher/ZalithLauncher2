@@ -22,7 +22,6 @@ data class ResolvedConfigEntry(
     val entry: ConfigEntry,
     val value: ConfigScalar,
     val enabled: Boolean?,
-    val explicit: Boolean
 )
 
 /**
@@ -46,6 +45,9 @@ data class ResolvedRendererConfig(
                 is SingleChoiceEntry -> {
                     if (resolved.enabled != false) put(target.key, resolved.value.asString())
                 }
+                is OrderedChoiceEntry -> {
+                    if (resolved.enabled != false) put(target.key, resolved.value.asString())
+                }
                 is NumberEntry -> effectiveNumberValue(entry, resolved.value)?.let {
                     put(target.key, it.asString())
                 }
@@ -57,17 +59,24 @@ data class ResolvedRendererConfig(
         }
     }
 
+    /** SFPEW 兼容层开关，渲染器规范未声明该项时为 null */
+    val sfpewLayerEnabled: Boolean? = entries
+        .firstOrNull { it.entry.target is ConfigTarget.SfpewLayer }
+        ?.let { (it.value as? ConfigScalar.BooleanValue)?.value }
+
     /** 显式 JSON 字段 */
     val jsonFields: Map<String, ConfigScalar> = buildMap {
         this@ResolvedRendererConfig.entries.forEach { resolved ->
             val target = resolved.entry.target as? ConfigTarget.JsonField ?: return@forEach
-            if (!resolved.explicit) return@forEach
             when (val entry = resolved.entry) {
                 is SwitchEntry -> {
                     val enabled = (resolved.value as? ConfigScalar.BooleanValue)?.value == true
                     put(target.key, ConfigScalar.IntValue(if (enabled) 1 else 0))
                 }
                 is SingleChoiceEntry -> {
+                    if (resolved.enabled != false) put(target.key, resolved.value)
+                }
+                is OrderedChoiceEntry -> {
                     if (resolved.enabled != false) put(target.key, resolved.value)
                 }
                 is NumberEntry -> {
@@ -87,7 +96,6 @@ data class ResolvedRendererConfig(
 data class ResolvedEntryState(
     val value: ConfigScalar,
     val enabled: Boolean?,
-    val explicit: Boolean
 )
 
 /**
@@ -98,19 +106,22 @@ fun resolveEntry(
     rendererId: String,
     entry: ConfigEntry,
     localStore: RendererConfigStore?,
-    globalStore: RendererConfigStore? = null
+    globalStore: RendererConfigStore? = null,
+    inheritedValues: Map<String, ConfigScalar> = emptyMap()
 ): ResolvedEntryState {
     val localValue = localStore?.getValue(rendererId, entry.id)
     val globalValue = globalStore?.takeIf { it !== localStore }?.getValue(rendererId, entry.id)
+    val localEnabled = localStore?.getEnabled(rendererId, entry.id)
+    val globalEnabled = globalStore?.takeIf { it !== localStore }?.getEnabled(rendererId, entry.id)
     val enabled = if (entry.defaultEnabled != null) {
-        localStore?.getEnabled(rendererId, entry.id)
-            ?: globalStore?.takeIf { it !== localStore }?.getEnabled(rendererId, entry.id)
-            ?: entry.defaultEnabled
+        localEnabled ?: globalEnabled ?: entry.defaultEnabled
     } else null
+    val orderedEntry = entry as? OrderedChoiceEntry
+    val defaultValue = orderedEntry?.defaultValue(inheritedValues[orderedEntry.inheritFrom])
+        ?: entry.defaultValue
     return ResolvedEntryState(
-        value = entry.coerce(localValue ?: globalValue ?: entry.defaultValue),
+        value = entry.coerce(localValue ?: globalValue ?: defaultValue),
         enabled = enabled,
-        explicit = localValue != null || globalValue != null
     )
 }
 
@@ -122,18 +133,21 @@ fun resolveRendererConfig(
     spec: RendererConfigSpec,
     versionStore: VersionRendererConfigStore? = null,
     globalStore: RendererConfigStore = GlobalRendererConfigStore
-): ResolvedRendererConfig = ResolvedRendererConfig(
-    fixedEnv = spec.fixedEnv,
-    entries = spec.entries.map { entry ->
-        val state = resolveEntry(rendererId, entry, versionStore, globalStore)
-        ResolvedConfigEntry(
-            entry = entry,
-            value = state.value,
-            enabled = state.enabled,
-            explicit = state.explicit
-        )
-    }
-)
+): ResolvedRendererConfig {
+    val inheritedValues = mutableMapOf<String, ConfigScalar>()
+    return ResolvedRendererConfig(
+        fixedEnv = spec.fixedEnv,
+        entries = spec.entries.map { entry ->
+            val state = resolveEntry(rendererId, entry, versionStore, globalStore, inheritedValues)
+            inheritedValues[entry.id] = state.value
+            ResolvedConfigEntry(
+                entry = entry,
+                value = state.value,
+                enabled = state.enabled,
+            )
+        }
+    )
+}
 
 private fun effectiveNumberValue(entry: NumberEntry, value: ConfigScalar): ConfigScalar? =
     if ((value as? ConfigScalar.StringValue)?.value?.isEmpty() == true) entry.emptyValue else value

@@ -96,7 +96,7 @@ private sealed interface GameInstallOperation {
     data object Success : GameInstallOperation
 }
 
-private class GameDownloadViewModel(): ViewModel() {
+private class GameDownloadViewModel: ViewModel() {
     /**
      * 用于刷新游戏下载页面版本名称的检查
      */
@@ -235,9 +235,12 @@ fun DownloadGameScreen(
                             downloadGameScreenKey = downloadGameScreenKey
                         ),
                         eventViewModel = eventViewModel,
-                    ) { versionString ->
+                    ) { version ->
                         backStack.navigateTo(
-                            NormalNavKey.DownloadGame.Addons(versionString)
+                            NormalNavKey.DownloadGame.Addons(
+                                gameVersion = version.version.id,
+                                type = version.type,
+                            )
                         )
                     }
                 }

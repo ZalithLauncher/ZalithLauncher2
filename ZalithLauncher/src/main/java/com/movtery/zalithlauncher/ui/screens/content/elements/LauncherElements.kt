@@ -78,6 +78,7 @@ import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
 import com.movtery.zalithlauncher.game.renderer.Renderers
+import com.movtery.zalithlauncher.game.renderer.isSfpewConfiguredFor
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.hasVulkanBackend
 import com.movtery.zalithlauncher.game.version.installed.utils.isBiggerVer
@@ -307,9 +308,13 @@ fun LaunchGameOperation(
 
                 // 设备完全支持 Vulkan 时跳过渲染器的版本支持检查
                 if (!version.hasVulkanBackend() || !ensureVulkanSupported(version)) {
-                    val isRendererUnsupported =
-                        (currentRenderer.getMinMCVersion()?.let { mcVer.isLowerVer(it) } ?: false) ||
-                                (currentRenderer.getMaxMCVersion()?.let { mcVer.isBiggerVer(it) } ?: false)
+                    val supportedMin = currentRenderer.getMinMCVersion()?.let { verStr ->
+                        !isSfpewConfiguredFor(currentRenderer, version) && mcVer.isLowerVer(verStr)
+                    } ?: false
+                    val supportedMax = currentRenderer.getMaxMCVersion()?.let { verStr ->
+                        mcVer.isBiggerVer(verStr)
+                    } ?: false
+                    val isRendererUnsupported = supportedMin || supportedMax
 
                     if (isRendererUnsupported) {
                         launchGameViewModel.updateOperation(LaunchGameOperation.UnsupportedRenderer(currentRenderer, version, quickPlay))

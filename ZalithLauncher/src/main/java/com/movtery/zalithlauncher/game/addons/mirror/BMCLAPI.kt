@@ -22,6 +22,8 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.utils.isChinaMainland
 
 private const val ROOT = "https://bmclapi2.bangbang93.com"
+private const val NEOFORGED_MAVEN_ROOT = "https://maven.neoforged.net"
+private const val NEOFORGE_CDN_ROOT = "https://neoforged.forgecdn.net"
 
 enum class BMCLAPI(val url: String) {
     BASE_URL(ROOT),
@@ -56,10 +58,28 @@ private val REPLACE_MIRROR_HOLDERS = mapOf(
 )
 
 /**
- * 替换为镜像源链接并按用户偏好排序；非中国大陆不注入任何镜像。
+ * 替换为镜像源链接并按用户偏好排序
  */
 fun String.mapBMCLMirrorUrls(): List<String> {
-    if (!isChinaMainland()) return listOf(this)
+    val mainland = isChinaMainland()
+    return mapBMCLMirrorUrls(
+        mainland = mainland,
+        priority = resolveMirrorPriority(
+            source = AllSettings.gameDownloadSource.getValue(),
+            mainland = mainland
+        )
+    )
+}
+
+fun String.mapBMCLMirrorUrls(
+    mainland: Boolean,
+    priority: MirrorPriority
+): List<String> {
+    val neoForgeCDNUrl = takeIf {
+        startsWith(NEOFORGED_MAVEN_ROOT)
+    }?.replaceFirst(NEOFORGED_MAVEN_ROOT, NEOFORGE_CDN_ROOT) // NeoForge 始终保留 CurseForge CDN 作为备用源
+
+    if (!mainland) return listOfNotNull(this, neoForgeCDNUrl)
 
     val mirrorUrl = REPLACE_MIRROR_HOLDERS.entries.firstOrNull { (origin, _) ->
         this.startsWith(origin)
@@ -70,9 +90,6 @@ fun String.mapBMCLMirrorUrls(): List<String> {
     return orderCandidates(
         official = this,
         mirror = mirrorUrl,
-        priority = resolveMirrorPriority(
-            source = AllSettings.gameDownloadSource.getValue(),
-            mainland = true
-        )
-    )
+        priority = priority
+    ) + listOfNotNull(neoForgeCDNUrl)
 }

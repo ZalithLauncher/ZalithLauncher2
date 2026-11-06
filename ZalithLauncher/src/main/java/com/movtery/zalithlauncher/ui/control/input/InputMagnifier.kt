@@ -328,9 +328,12 @@ private fun sourceSize(
     viewportSize: IntSize,
     zoom: Float
 ): IntSize {
+    val width = viewportSize.width / zoom
+    val height = viewportSize.height / zoom
+    val scale = minOf(1f, frame.width / width, frame.height / height)
     return IntSize(
-        width = (viewportSize.width / zoom).roundToInt().coerceIn(1, frame.width),
-        height = (viewportSize.height / zoom).roundToInt().coerceIn(1, frame.height)
+        width = (width * scale).roundToInt().coerceIn(1, frame.width),
+        height = (height * scale).roundToInt().coerceIn(1, frame.height)
     )
 }
 

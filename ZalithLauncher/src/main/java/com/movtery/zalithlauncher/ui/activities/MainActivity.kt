@@ -63,6 +63,8 @@ import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.base.ObserveFullScreenSetting
 import com.movtery.zalithlauncher.ui.buildAppendedText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
+import com.movtery.zalithlauncher.ui.guide.GuideKeys
+import com.movtery.zalithlauncher.ui.guide.GuideProgress
 import com.movtery.zalithlauncher.ui.guide.NextTipLabel
 import com.movtery.zalithlauncher.ui.guide.rememberAppGuides
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -231,7 +233,9 @@ class MainActivity : BaseAppCompatActivity() {
 
         //拉取当月赞助者数据
         lifecycleScope.launch {
-            sponsorsViewModel.loadOnStart()
+            sponsorsViewModel.loadOnStart(
+                showLastMonth = GuideProgress.isPlayed(GuideKeys.Main) && !isImporting
+            )
         }
 
         //错误信息展示

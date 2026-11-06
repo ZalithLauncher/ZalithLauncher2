@@ -138,6 +138,13 @@ private val selectBlackList = listOf(
 )
 
 /**
+ * @return 是否为版本根目录的版本Json、Jar文件
+ */
+private fun isExcludedVersionFile(fileName: String, currentDepth: Int, versionName: String): Boolean {
+    return currentDepth == 1 && (fileName == "$versionName.json" || fileName == "$versionName.jar")
+}
+
+/**
  * @param versionName 当前游戏版本的自定义名称
  */
 private class ExportModpackViewModel(
@@ -321,11 +328,6 @@ private class ExportModpackViewModel(
         }
     }
 
-    private val packBlackList = listOf(
-        "$versionName.json",
-        "$versionName.jar"
-    )
-
     data class StackNode(
         val dir: File,
         val depth: Int,
@@ -346,7 +348,7 @@ private class ExportModpackViewModel(
             val tempList = ArrayList<FileSelectionData>(files.size)
 
             for (file in files) {
-                if (packBlackList.any { pattern -> file.name.contains(pattern) }) continue
+                if (isExcludedVersionFile(file.name, currentDepth, versionName)) continue
                 //只有根目录的文件才能设置别名
                 val alias = if (currentDepth == 1) getAlias(file.name) else null
 

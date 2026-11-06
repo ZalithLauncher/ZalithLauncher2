@@ -37,8 +37,12 @@ class RendererConfigSession(
         if (globalStore !== localStore) globalStore.removeStaleEntries(rendererId, spec)
     }
 
-    val states = spec.entries.map { entry ->
-        ConfigEntryState(rendererId, entry, localStore, globalStore)
+    val states: List<ConfigEntryState> = mutableListOf<ConfigEntryState>().also { states ->
+        spec.entries.forEach { entry ->
+            states += ConfigEntryState(rendererId, entry, localStore, globalStore) {
+                states.associate { it.entry.id to it.value }
+            }
+        }
     }
 
     val hasOverrides: Boolean get() = states.any { it.isOverridden }
@@ -56,7 +60,8 @@ class ConfigEntryState(
     private val rendererId: String,
     val entry: ConfigEntry,
     private val localStore: RendererConfigStore,
-    private val globalStore: RendererConfigStore
+    private val globalStore: RendererConfigStore,
+    private val inheritedValues: () -> Map<String, ConfigScalar> = { emptyMap() }
 ) {
     var value by mutableStateOf(entry.defaultValue)
         private set
@@ -77,6 +82,10 @@ class ConfigEntryState(
     }
 
     fun saveEnabled(newValue: Boolean) {
+        if (newValue && entry is OrderedChoiceEntry) {
+            reload()
+            localStore.putValue(rendererId, entry.id, value)
+        }
         localStore.putEnabled(rendererId, entry.id, newValue)
         enabled = newValue
         updateOverride()
@@ -88,7 +97,7 @@ class ConfigEntryState(
     }
 
     fun reload() {
-        val state = resolveEntry(rendererId, entry, localStore, globalStore)
+        val state = resolveEntry(rendererId, entry, localStore, globalStore, inheritedValues())
         value = state.value
         enabled = state.enabled
         updateOverride()

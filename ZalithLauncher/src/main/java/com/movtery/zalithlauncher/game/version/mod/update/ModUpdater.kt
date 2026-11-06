@@ -25,9 +25,11 @@ import com.movtery.zalithlauncher.coroutine.TitledTask
 import com.movtery.zalithlauncher.coroutine.addTask
 import com.movtery.zalithlauncher.coroutine.buildPhase
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
-import com.movtery.zalithlauncher.game.download.assets.platform.getProjectByVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.getProjectByVersion
+import com.movtery.zalithlauncher.game.version.mod.DISABLED_MOD_SUFFIX
 import com.movtery.zalithlauncher.game.version.mod.ModProject
 import com.movtery.zalithlauncher.game.version.mod.RemoteMod
+import com.movtery.zalithlauncher.game.version.mod.isDisabled
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -281,7 +283,8 @@ class ModUpdater(
                         //确保所有文件都有效
                         if (modsDir.exists() && oldFile.exists() && cacheFile.exists()) {
                             FileUtils.deleteQuietly(oldFile)
-                            val newFile = File(modsDir, newFileName)
+                            val targetName = if (oldFile.isDisabled()) "$newFileName$DISABLED_MOD_SUFFIX" else newFileName
+                            val newFile = File(modsDir, targetName)
                             cacheFile.copyTo(target = newFile, overwrite = true)
                         }
                     }

@@ -175,13 +175,13 @@ class SponsorsViewModel : ViewModel() {
     /**
      * 启动时预拉取数据并刷新缓存
      */
-    fun loadOnStart() {
+    fun loadOnStart(showLastMonth: Boolean) {
         viewModelScope.launch(Dispatchers.Main) {
             _data.update { DataOperation.Loading }
 
             val newData = toDataOperation(ensureData())
             _data.update { newData }
-            checkLastMonthReport(newData)
+            if (showLastMonth) checkLastMonthReport(newData)
         }
     }
 

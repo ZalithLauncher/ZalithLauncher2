@@ -1005,7 +1005,9 @@ private fun EditorMoreMenu(
 
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { onExpandedChange(false) }
+            onDismissRequest = { onExpandedChange(false) },
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 3.dp
         ) {
             MenuItem(R.string.generic_search, R.drawable.ic_search, enabled = editor != null, onClick = onSearch)
             MenuItem(R.string.fm_editor_goto_line, R.drawable.ic_keyboard_double_arrow_up, enabled = editor != null, onClick = onGotoLine)

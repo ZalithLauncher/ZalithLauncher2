@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.toArgb
 import com.materialkolor.PaletteStyle
 import com.movtery.layer_controller.utils.snap.SnapMode
 import com.movtery.zalithlauncher.BuildKeys
-import com.movtery.zalithlauncher.game.download.assets.platform.Platform
+import com.movtery.zalithlauncher.game.download.addon.platform.Platform
 import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.setting.enums.ActionMenuSide
@@ -53,6 +53,16 @@ object AllSettings : SettingsRegistry() {
      * 全局渲染器
      */
     val renderer = stringSetting("renderer", "")
+
+    /**
+     * 为渲染器插件叠加 SFPEW 兼容层
+     */
+    val sfpewPluginLayer = boolSetting("sfpewPluginLayer", false)
+
+    /**
+     * SFPEW 宽松上下文模式
+     */
+    val sfpewRelaxedContext = boolSetting("sfpewRelaxedContext", false)
 
     /**
      * Vulkan 驱动器
@@ -464,7 +474,8 @@ object AllSettings : SettingsRegistry() {
     /**
      * 资源平台下载源
      */
-    val assetPlatformSource = enumSetting(
+    val addonPlatformSource = enumSetting(
+        //历史遗留键名，保留原值以兼容旧版本数据
         "assetPlatformSource",
         MirrorSourceType.AUTO,
         MirrorSourceType.LEGACY_NAMES

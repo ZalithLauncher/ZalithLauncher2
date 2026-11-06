@@ -163,7 +163,7 @@ fun ModifyVersionScreen(
                     ),
                     eventViewModel = eventViewModel
                 ) { selected ->
-                    selectedGameVersion = selected
+                    selectedGameVersion = selected.version.id
                     onBack(backStack)
                 }
             }

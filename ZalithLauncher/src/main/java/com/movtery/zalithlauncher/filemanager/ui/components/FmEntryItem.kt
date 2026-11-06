@@ -263,7 +263,9 @@ private fun FmEntryMenu(
 
     DropdownMenu(
         expanded = expanded,
-        onDismissRequest = onDismiss
+        onDismissRequest = onDismiss,
+        shape = MaterialTheme.shapes.large,
+        shadowElevation = 3.dp
     ) {
         if (entry.archiveType == null) {
             if (entry.isFile) {

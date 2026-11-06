@@ -208,7 +208,7 @@ sealed interface SelectGameVersionHost {
 fun SelectGameVersionScreen(
     host: SelectGameVersionHost,
     eventViewModel: EventViewModel,
-    onVersionSelect: (String) -> Unit = {}
+    onVersionSelect: (MinecraftVersion) -> Unit = {}
 ) {
     val viewModel = viewModel(
         key = NormalNavKey.DownloadGame.SelectGameVersion.toString()
@@ -253,7 +253,7 @@ private fun SelectGameVersionContent(
     isVisible: Boolean,
     viewModel: VersionsViewModel,
     eventViewModel: EventViewModel,
-    onVersionSelect: (String) -> Unit
+    onVersionSelect: (MinecraftVersion) -> Unit
 ) {
     val ctx = rememberAnimatedContext(isVisible = isVisible)
 
@@ -467,7 +467,7 @@ private fun VersionTypeItem(
 private fun VersionList(
     modifier: Modifier = Modifier,
     versions: List<MinecraftVersion>,
-    onVersionSelect: (String) -> Unit,
+    onVersionSelect: (MinecraftVersion) -> Unit,
     openLink: (url: String) -> Unit
 ) {
     val scrollState = rememberLazyListState()
@@ -486,7 +486,7 @@ private fun VersionList(
                     .padding(vertical = 6.dp),
                 version = version,
                 onClick = {
-                    onVersionSelect(version.version.id)
+                    onVersionSelect(version)
                 },
                 onAccessWiki = { wikiUrl ->
                     openLink(wikiUrl)

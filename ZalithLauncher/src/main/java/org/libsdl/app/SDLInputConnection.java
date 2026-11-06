@@ -50,9 +50,8 @@ class SDLInputConnection extends BaseInputConnection
 //        }
 //
 //        return super.sendKeyEvent(event);
-        //输入法（软键盘）合成的可打印字符事件不代表游戏按键，
-        //转发为 SDL 按键事件会误触游戏绑定
-        if ((event.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0 && event.isPrintingKey()) {
+        //输入法合成的文本事件不代表游戏按键，Ctrl 组合键仍需保留按键转发
+        if ((event.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0 && SDLActivity.isTextInputEvent(event)) {
             return true;
         }
         if(KeyEvent.ACTION_DOWN == event.getAction()){

@@ -32,7 +32,6 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.SplashException
 import com.movtery.zalithlauncher.components.Components
 import com.movtery.zalithlauncher.components.InstallableItem
 import com.movtery.zalithlauncher.components.UnpackComponentsTask
@@ -55,7 +54,9 @@ import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.SplashBackStackViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -84,6 +85,7 @@ private const val ACCEPTED_AGREEMENT_VERSION_KEY = "acceptedAgreementVersion"
 class SplashActivity : BaseAppCompatActivity() {
     private val unpackItems: MutableList<InstallableItem> = ArrayList()
     private val finishedTaskCount = AtomicInteger(0)
+    private var unpackJob: Job? = null
 
     private var pendingImportIntent: Intent? = null
 
@@ -203,15 +205,13 @@ class SplashActivity : BaseAppCompatActivity() {
     private fun initUnpackItems() {
         Components.entries.forEach { component ->
             val task = UnpackComponentsTask(this@SplashActivity, component)
-            if (!task.isCheckFailed()) {
-                unpackItems.add(
-                    InstallableItem(
-                        component.displayName,
-                        getString(component.summary),
-                        task
-                    )
+            unpackItems.add(
+                InstallableItem(
+                    component.displayName,
+                    getString(component.summary),
+                    task
                 )
-            }
+            )
         }
         Jre.entries.forEach { jre ->
             val task = UnpackJreTask(this@SplashActivity, jre)
@@ -225,20 +225,17 @@ class SplashActivity : BaseAppCompatActivity() {
                 )
             }
         }
-        val jnaTask = UnpackJnaTask(this@SplashActivity)
-        if (!jnaTask.isCheckFailed()) {
-            unpackItems.add(
-                InstallableItem(
-                    "JNA",
-                    getString(R.string.unpack_screen_jna),
-                    jnaTask
-                )
+        unpackItems.add(
+            InstallableItem(
+                "JNA",
+                getString(R.string.unpack_screen_jna),
+                UnpackJnaTask(this@SplashActivity)
             )
-        }
+        )
         unpackItems.sort()
     }
 
-    private fun checkAllTask() {
+    private suspend fun checkAllTask() {
         //检查应用 assets 目录
         listAssetsPath("runtimes").forEach { filePath ->
             Logger.info(TAG, "The launcher contains the runtime environment: $filePath")
@@ -278,34 +275,42 @@ class SplashActivity : BaseAppCompatActivity() {
     }
 
     private fun startAllTask() {
+        if (unpackJob?.isActive == true) return
         switchScreen(SplashOperation.Unpacking)
 
-        lifecycleScope.launch {
+        unpackJob = lifecycleScope.launch {
             val jobs = unpackItems
                 .filter {
                     val state = it.state.value
                     state == InstallableItem.State.NOT_STARTED ||
-                    state == InstallableItem.State.PENDING
+                    state == InstallableItem.State.PENDING ||
+                    state == InstallableItem.State.FAILED
                 }
                 .map { item ->
                     launch(Dispatchers.IO) {
                         item.updateState(InstallableItem.State.RUNNING)
-                        runCatching {
+                        item.task.updateMessage(null)
+                        try {
                             item.task.run()
-                        }.onFailure {
-                            throw SplashException(it)
+                            finishedTaskCount.incrementAndGet()
+                            item.updateState(InstallableItem.State.FINISHED)
+                        } catch (e: CancellationException) {
+                            throw e
+                        } catch (e: Exception) {
+                            Logger.error(TAG, "Failed to install component: ${item.name}", e)
+                            item.task.updateMessage(e.message ?: e.javaClass.simpleName)
+                            item.updateState(InstallableItem.State.FAILED)
                         }
-                        finishedTaskCount.incrementAndGet()
-                        item.updateState(InstallableItem.State.FINISHED)
                     }
                 }
             jobs.joinAll()
-        }.invokeOnCompletion {
-            AllSettings.javaRuntime.apply {
-                //检查并设置默认的Java环境
-                if (getValue().isEmpty()) save(Jre.JRE_8.jreName)
+            if (areAllTasksFinished()) {
+                AllSettings.javaRuntime.apply {
+                    //检查并设置默认的Java环境
+                    if (getValue().isEmpty()) save(Jre.JRE_8.jreName)
+                }
+                finishSplash()
             }
-            finishSplash()
         }
     }
 

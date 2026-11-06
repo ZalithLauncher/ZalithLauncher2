@@ -45,6 +45,8 @@ object TaskKeepAlive {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private val activeCount = AtomicInteger(0)
     private var stopJob: Job? = null
+    private var isServiceForeground = false
+    private var stopWhenForeground = false
 
     /** 应用级 Context，在 Application 启动时赋值，可能被其他线程读取 */
     @Volatile
@@ -97,6 +99,13 @@ object TaskKeepAlive {
         stopService()
     }
 
+    @Synchronized
+    fun onServiceForegroundStarted() {
+        isServiceForeground = true
+        //服务尚未进入前台时不能直接停止，否则系统仍会判定其未按时调用 startForeground
+        if (stopWhenForeground && activeCount.get() == 0) stopService()
+    }
+
     private fun scheduleStop() {
         stopJob?.cancel()
         stopJob = scope.launch {
@@ -112,21 +121,33 @@ object TaskKeepAlive {
             return
         }
 
+        val wasServiceForeground = isServiceForeground
+        isServiceForeground = false
         runCatching {
             ContextCompat.startForegroundService(
                 context,
                 Intent(context, TaskKeepAliveService::class.java)
             )
         }.onFailure { e ->
+            isServiceForeground = wasServiceForeground
             //应用处于后台等受限状态时系统会拒绝启动前台服务，此时忽略即可
             Logger.error(TAG, "Failed to start the task keep-alive service", e)
         }
     }
 
+    @Synchronized
     private fun stopService() {
         val context = appContext ?: return
+        if (!isServiceForeground) {
+            stopWhenForeground = true
+            return
+        }
+
+        stopWhenForeground = false
         runCatching {
             context.stopService(Intent(context, TaskKeepAliveService::class.java))
+        }.onSuccess {
+            isServiceForeground = false
         }.onFailure { e ->
             Logger.error(TAG, "Failed to stop the task keep-alive service", e)
         }

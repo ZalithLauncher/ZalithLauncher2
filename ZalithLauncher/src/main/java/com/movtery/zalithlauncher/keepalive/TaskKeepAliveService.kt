@@ -71,6 +71,7 @@ class TaskKeepAliveService : Service() {
             } else {
                 startForeground(NOTIFICATION_ID_TASK_SERVICE, notification)
             }
+            TaskKeepAlive.onServiceForegroundStarted()
         } catch (e: Exception) {
             //应用退至后台等受限状态下系统会拒绝前台身份，此时保活已无意义
             //必须停止服务，否则系统会因服务未按时进入前台而崩溃

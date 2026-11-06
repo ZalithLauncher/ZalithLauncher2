@@ -541,10 +541,15 @@ private fun SimpleMouseCapture(
 
     DisposableEffect(view, enabled) {
         view.setOnCapturedPointerListener(null)
+        val physicalButtons = CapturedMouseButtons { button, pressed ->
+            currentOnMouseButton(button, pressed)
+        }
 
         val focusListener = ViewTreeObserver.OnWindowFocusChangeListener { hasFocus ->
             if (enabled && hasFocus) {
                 view.requestPointerCapture()
+            } else if (!hasFocus) {
+                physicalButtons.reset()
             }
         }
         view.viewTreeObserver.addOnWindowFocusChangeListener(focusListener)
@@ -563,6 +568,9 @@ private fun SimpleMouseCapture(
 
             val pointerListener = View.OnCapturedPointerListener { _, event ->
                 val isTouchpad = event.isFromSource(InputDevice.SOURCE_TOUCHPAD)
+                if (!isTouchpad) {
+                    physicalButtons.onEvent(event.actionMasked, event.actionButton, event.buttonState)
+                }
 
                 //手指按下、抬起会让触控板坐标跳变，位移差值的基准需要随之重建
                 if (isTouchpad) {
@@ -679,16 +687,17 @@ private fun SimpleMouseCapture(
                             touchpadLeftPressed = true
                             touchpadLeftSuppressed = false
                         }
-                        currentOnMouseButton(event.actionButton, true)
+                        if (isTouchpad) currentOnMouseButton(event.actionButton, true)
                         true
                     }
                     MotionEvent.ACTION_UP, MotionEvent.ACTION_BUTTON_RELEASE -> {
                         if (isTouchpad && event.actionMasked == MotionEvent.ACTION_UP) {
                             touchpadLeftPressed = false
                         }
-                        currentOnMouseButton(event.actionButton, false)
+                        if (isTouchpad) currentOnMouseButton(event.actionButton, false)
                         true
                     }
+                    MotionEvent.ACTION_CANCEL -> !isTouchpad
                     else -> false
                 }
             }
@@ -699,9 +708,56 @@ private fun SimpleMouseCapture(
         }
 
         onDispose {
+            physicalButtons.reset()
             view.viewTreeObserver.removeOnWindowFocusChangeListener(focusListener)
             view.setOnCapturedPointerListener(null)
         }
+    }
+}
+
+/** 捕获实体鼠标的按键状态，兼容未设置 actionButton 的 DOWN/UP 事件。 */
+internal class CapturedMouseButtons(private val onMouseButton: (Int, Boolean) -> Unit) {
+    private var heldButtons = 0
+
+    fun onEvent(action: Int, actionButton: Int, buttonState: Int) {
+        if (action == MotionEvent.ACTION_CANCEL) {
+            reset()
+            return
+        }
+
+        val buttons = when (action) {
+            MotionEvent.ACTION_BUTTON_PRESS -> buttonState or actionButton
+            MotionEvent.ACTION_BUTTON_RELEASE -> buttonState and actionButton.inv()
+            else -> buttonState
+        }
+        update(buttons and SUPPORTED_BUTTONS)
+    }
+
+    fun reset() {
+        update(0)
+    }
+
+    private fun update(buttons: Int) {
+        val changed = heldButtons xor buttons
+        heldButtons = buttons
+
+        fun dispatchButton(button: Int) {
+            if (changed and button != 0) {
+                onMouseButton(button, buttons and button != 0)
+            }
+        }
+
+        dispatchButton(MotionEvent.BUTTON_PRIMARY)
+        dispatchButton(MotionEvent.BUTTON_SECONDARY)
+        dispatchButton(MotionEvent.BUTTON_TERTIARY)
+        dispatchButton(MotionEvent.BUTTON_BACK)
+        dispatchButton(MotionEvent.BUTTON_FORWARD)
+    }
+
+    companion object {
+        private const val SUPPORTED_BUTTONS = MotionEvent.BUTTON_PRIMARY or
+            MotionEvent.BUTTON_SECONDARY or MotionEvent.BUTTON_TERTIARY or
+            MotionEvent.BUTTON_BACK or MotionEvent.BUTTON_FORWARD
     }
 }
 

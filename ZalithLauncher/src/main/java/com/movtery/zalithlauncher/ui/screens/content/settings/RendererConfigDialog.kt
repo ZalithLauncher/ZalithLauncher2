@@ -73,6 +73,7 @@ import com.movtery.zalithlauncher.game.renderer.config.ConfigScalar
 import com.movtery.zalithlauncher.game.renderer.config.ConfigText
 import com.movtery.zalithlauncher.game.renderer.config.GlobalRendererConfigStore
 import com.movtery.zalithlauncher.game.renderer.config.NumberEntry
+import com.movtery.zalithlauncher.game.renderer.config.OrderedChoiceEntry
 import com.movtery.zalithlauncher.game.renderer.config.RendererConfigSession
 import com.movtery.zalithlauncher.game.renderer.config.SingleChoiceEntry
 import com.movtery.zalithlauncher.game.renderer.config.SwitchEntry
@@ -186,6 +187,7 @@ fun RendererConfigDialog(
                             when (state.entry) {
                                 is SwitchEntry -> SwitchConfigItem(state, position)
                                 is SingleChoiceEntry -> ChoiceConfigItem(state, position)
+                                is OrderedChoiceEntry -> OrderedChoiceConfigItem(state, position)
                                 is NumberEntry -> NumberConfigItem(state, position)
                                 is TextEntry -> TextConfigItem(state, position)
                             }
@@ -291,16 +293,15 @@ private fun SwitchConfigItem(state: ConfigEntryState, position: CardPosition) {
                 .clickable { state.saveValue(ConfigScalar.BooleanValue(!checked)) }
                 .padding(all = 16.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             EntryHeader(state, Modifier.weight(1f))
+
+            ResetEntryButton(state)
 
             DefaultSwitch(
                 checked = checked,
                 onCheckedChange = { state.saveValue(ConfigScalar.BooleanValue(it)) }
             )
-
-            ResetEntryButton(state)
         }
     }
 }
@@ -390,6 +391,124 @@ private fun ChoiceConfigItem(state: ConfigEntryState, position: CardPosition) {
             }
         }
     }
+}
+
+@Composable
+private fun OrderedChoiceConfigItem(state: ConfigEntryState, position: CardPosition) {
+    val entry = state.entry as OrderedChoiceEntry
+    val hasCheckbox = entry.defaultEnabled != null
+    val enabled = !hasCheckbox || state.enabled == true
+    var expanded by remember { mutableStateOf(false) }
+    val options = entry.options.associateBy { it.value.asString() }
+    val orderedOptions = state.value.asString().split(',').mapNotNull(options::get)
+
+    DialogItemLayout(position) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = enabled) { expanded = !expanded }
+                .padding(all = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (hasCheckbox) {
+                Checkbox(
+                    checked = enabled,
+                    onCheckedChange = {
+                        state.saveEnabled(it)
+                        if (!it) expanded = false
+                    }
+                )
+            }
+            EntryHeader(state, Modifier.weight(1f))
+            ResetEntryButton(state)
+            val rotation by animateFloatAsState(
+                targetValue = if (expanded) -180f else 0f,
+                animationSpec = getAnimateTween()
+            )
+            IconButton(
+                modifier = Modifier.rotate(rotation),
+                enabled = enabled,
+                onClick = { expanded = !expanded }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_arrow_drop_down_rounded),
+                    contentDescription = stringResource(
+                        if (expanded) R.string.generic_collapse else R.string.generic_expand
+                    )
+                )
+            }
+        }
+
+        AnimatedVisibility(
+            visible = expanded && enabled,
+            enter = expandVertically(animationSpec = getAnimateTween()),
+            exit = shrinkVertically(animationSpec = getAnimateTween()) + fadeOut()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+            ) {
+                orderedOptions.forEachIndexed { index, option ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                            text = "${index + 1}.",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = option.label?.resolve() ?: option.value.asString(),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            option.description?.let {
+                                Text(
+                                    text = it.resolve(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    modifier = Modifier.alpha(0.7f)
+                                )
+                            }
+                        }
+                        IconButton(
+                            enabled = index > 0,
+                            onClick = { moveOrderedChoice(state, orderedOptions, index, -1) }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_arrow_upward),
+                                contentDescription = stringResource(R.string.generic_move_up)
+                            )
+                        }
+                        IconButton(
+                            enabled = index < orderedOptions.lastIndex,
+                            onClick = { moveOrderedChoice(state, orderedOptions, index, 1) }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_arrow_downward),
+                                contentDescription = stringResource(R.string.generic_move_down)
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun moveOrderedChoice(
+    state: ConfigEntryState,
+    options: List<com.movtery.zalithlauncher.game.renderer.config.ChoiceOption>,
+    index: Int,
+    offset: Int
+) {
+    val targetIndex = index + offset
+    if (targetIndex !in options.indices) return
+    val keys = options.map { it.value.asString() }.toMutableList()
+    val key = keys.removeAt(index)
+    keys.add(targetIndex, key)
+    state.saveValue(ConfigScalar.StringValue(keys.joinToString(",")))
 }
 
 @Composable

@@ -147,7 +147,9 @@ fun FmAppBar(
                 onDismissRequest = {
                     menuExpanded = false
                     sortExpanded = false
-                }
+                },
+                shape = MaterialTheme.shapes.large,
+                shadowElevation = 3.dp
             ) {
                 DropdownMenuItem(
                     text = {
@@ -340,7 +342,9 @@ private fun SortSubmenu(
 
     DropdownMenu(
         expanded = expanded,
-        onDismissRequest = { onExpandedChange(false) }
+        onDismissRequest = { onExpandedChange(false) },
+        shape = MaterialTheme.shapes.large,
+        shadowElevation = 3.dp
     ) {
         SortMenuItem(
             labelRes = R.string.fm_sort_name,

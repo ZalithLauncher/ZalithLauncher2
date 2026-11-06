@@ -81,6 +81,7 @@ import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.version.installed.cleanup.CleanFailedException
 import com.movtery.zalithlauncher.game.version.installed.cleanup.GameAssetCleaner
+import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
@@ -963,7 +964,13 @@ fun VersionIconImage(
     refreshKey: Any? = null
 ) {
     val defaultIconRes = remember(version) {
-        version?.let { getLoaderIconRes(it.getVersionInfo()?.primaryLoader?.loader) } ?: R.drawable.img_minecraft
+        version?.getVersionInfo()?.let { info ->
+            when (val loader = info.primaryLoader?.loader) {
+                null -> getGameVersionIconRes(info.type)
+                ModLoader.OPTIFINE -> R.drawable.img_loader_optifine
+                else -> getLoaderIconRes(loader)
+            }
+        } ?: R.drawable.img_minecraft
     }
     val defaultIcon = painterResource(defaultIconRes)
 
@@ -1037,5 +1044,16 @@ private fun getLoaderIconRes(
         ModLoader.OPTIFINE -> R.drawable.img_loader_optifine
         ModLoader.LITE_LOADER -> R.drawable.img_chicken_old
         else -> defaultIcon
+    }
+}
+
+@DrawableRes
+fun getGameVersionIconRes(type: MinecraftVersion.Type): Int {
+    return when (type) {
+        MinecraftVersion.Type.Snapshot -> R.drawable.img_command_block
+        MinecraftVersion.Type.OldBeta -> R.drawable.img_old_cobblestone
+        MinecraftVersion.Type.OldAlpha -> R.drawable.img_old_grass_block
+        MinecraftVersion.Type.AprilFools -> R.drawable.img_diamond_block
+        else -> R.drawable.img_minecraft
     }
 }

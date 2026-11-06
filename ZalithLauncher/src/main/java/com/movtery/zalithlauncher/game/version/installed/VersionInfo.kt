@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.game.version.installed
 import android.os.Parcelable
 import androidx.annotation.Keep
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
+import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import kotlinx.parcelize.Parcelize
 
 @Keep
@@ -28,7 +29,8 @@ import kotlinx.parcelize.Parcelize
 class VersionInfo(
     val minecraftVersion: String,
     val quickPlay: QuickPlay,
-    val loaderInfos: List<LoaderInfo>
+    val loaderInfos: List<LoaderInfo>,
+    val type: MinecraftVersion.Type,
 ): Parcelable {
     /**
      * 主加载器

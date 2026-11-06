@@ -47,6 +47,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.plugin.driver.Driver
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.renderer.ConfigurableRenderer
@@ -110,10 +111,12 @@ fun RendererSettingsScreen(
                         .animated(ctx)
                 ) {
                     val currentRendererId = AllSettings.renderer.state
-                    val configurableRenderer = remember(currentRendererId) {
+                    val currentRenderer = remember(currentRendererId) {
                         Renderers.getRenderers()
-                            .filterIsInstance<ConfigurableRenderer>()
                             .find { it.getUniqueIdentifier() == currentRendererId }
+                    }
+                    val configurableRenderer = remember(currentRenderer) {
+                        (currentRenderer as? ConfigurableRenderer)
                             ?.takeIf { it.configSpec.entries.isNotEmpty() }
                     }
                     var showConfigDialog by remember { mutableStateOf(false) }
@@ -168,6 +171,28 @@ fun RendererSettingsScreen(
                             onDismissRequest = { showConfigDialog = false }
                         )
                     }
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.sfpewPluginLayer,
+                        enabled = currentRenderer is Plugin,
+                        title = stringResource(R.string.settings_renderer_sfpew_plugin_layer_title),
+                        summary = stringResource(R.string.settings_renderer_sfpew_plugin_layer_summary)
+                    )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.sfpewRelaxedContext,
+                        enabled = currentRenderer?.let { renderer ->
+                            renderer.supportsSfpewByDefault() ||
+                            // 如果是插件，需要看是否给插件启用了这个玩意
+                            (renderer is Plugin && AllSettings.sfpewPluginLayer.state)
+                        } == true,
+                        title = stringResource(R.string.renderer_config_sfpew_relaxed_context_title),
+                        summary = stringResource(R.string.renderer_config_sfpew_relaxed_context_desc)
+                    )
 
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
@@ -385,11 +410,11 @@ fun RendererSummaryLayout(renderer: RendererInterface) {
             val minVer = getDisplayMinMCVersion()
             val maxVer = getDisplayMaxMCVersion()
 
-            if (minVer != null || maxVer != null) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                if (minVer != null || maxVer != null) {
                     Text(text = stringResource(R.string.renderer_version_support), style = MaterialTheme.typography.labelSmall)
 
                     minVer?.let {

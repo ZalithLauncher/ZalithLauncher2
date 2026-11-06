@@ -31,6 +31,9 @@ import java.nio.file.StandardCopyOption
 
 private const val TAG = "LocalMod"
 
+/** 已禁用的模组的文件后缀 */
+const val DISABLED_MOD_SUFFIX = ".disabled"
+
 /** 本地模组信息 */
 class LocalMod(
     /** 本地模组对应的文件 */
@@ -80,7 +83,7 @@ class LocalMod(
         val currentPath = file.absolutePath
         if (file.isDisabled()) return
 
-        val newFile = File("$currentPath.disabled")
+        val newFile = File("$currentPath$DISABLED_MOD_SUFFIX")
         if (!file.renameToSafely(newFile)) return
 
         file = newFile
@@ -115,7 +118,7 @@ class LocalMod(
 /**
  * 模组是否启用
  */
-fun File.isEnabled(): Boolean = !absolutePath.endsWith(".disabled", ignoreCase = true)
+fun File.isEnabled(): Boolean = !absolutePath.endsWith(DISABLED_MOD_SUFFIX, ignoreCase = true)
 
 /**
  * 模组是否禁用
@@ -142,6 +145,6 @@ fun enabledMod(file: File): File {
     if (file.isEnabled()) return file
 
     val currentPath = file.absolutePath
-    val newPath = currentPath.dropLast(".disabled".length)
+    val newPath = currentPath.dropLast(DISABLED_MOD_SUFFIX.length)
     return File(newPath)
 }

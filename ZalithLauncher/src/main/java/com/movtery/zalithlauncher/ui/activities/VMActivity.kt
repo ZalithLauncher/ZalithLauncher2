@@ -345,11 +345,32 @@ class VMViewModel : ViewModel() {
             KeyEvent.KEYCODE_TAB -> sender.sendTab()
 
             else -> {
-                //输入法产生的字符类按键事件不能转发给游戏
                 val isSoftKeyboard = (keyEvent.flags and KeyEvent.FLAG_SOFT_KEYBOARD) != 0
-                if (!isSoftKeyboard) sender.sendOther(keyEvent)
+                val isTextInput = SDLActivity.isTextInputEvent(keyEvent)
+                when {
+                    shouldConsumeSdlTextInput(keyEvent) -> sender.sendChar(keyEvent.unicodeChar.toChar())
+                    !isSoftKeyboard && !isTextInput -> sender.sendOther(keyEvent)
+                }
             }
         }
+    }
+
+    /**
+     * SDL 渲染路径没有输入代理的文本回调，物理字符键需直接发送文本并消费按键事件
+     */
+    fun shouldConsumeSdlTextInput(keyEvent: KeyEvent): Boolean {
+        return SdlBridge.sdlEnabled && SdlBridge.isSdlRenderActive() &&
+                (keyEvent.flags and KeyEvent.FLAG_SOFT_KEYBOARD) == 0 &&
+                SDLActivity.isTextInputEvent(keyEvent)
+    }
+
+    /**
+     * IME 可能清除后续按键的 Meta 状态，Ctrl 本身必须直接同步到 SDL
+     */
+    fun shouldConsumeSdlModifierKey(keyEvent: KeyEvent): Boolean {
+        return SdlBridge.sdlEnabled && SdlBridge.isSdlRenderActive() &&
+                (keyEvent.keyCode == KeyEvent.KEYCODE_CTRL_LEFT ||
+                        keyEvent.keyCode == KeyEvent.KEYCODE_CTRL_RIGHT)
     }
 
     /**
@@ -728,12 +749,19 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
             return true
         }
         if (vmViewModel.textInputMode == TextInputMode.ENABLE) {
+            if (vmViewModel.shouldConsumeSdlModifierKey(event)) {
+                vmViewModel.handleSpecialKey(event)
+                return true
+            }
             if (isPressed && !vmViewModel.keyCanHandle(event)) {
                 return super.dispatchKeyEvent(event)
             }
 
             if (isPressed) {
                 vmViewModel.handleSpecialKey(event)
+            }
+            if (vmViewModel.shouldConsumeSdlTextInput(event)) {
+                return true
             }
 
             if (event.keyCode == KeyEvent.KEYCODE_TAB) {

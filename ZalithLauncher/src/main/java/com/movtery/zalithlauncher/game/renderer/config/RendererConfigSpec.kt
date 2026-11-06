@@ -59,6 +59,8 @@ sealed interface ConfigScalar {
 sealed interface ConfigTarget {
     data class Environment(val key: String) : ConfigTarget
     data class JsonField(val key: String) : ConfigTarget
+    /** SFPEW 兼容层（仅存于启动器配置） */
+    data object SfpewLayer : ConfigTarget
 }
 
 /**
@@ -108,6 +110,35 @@ data class SingleChoiceEntry(
 ) : ConfigEntry {
     override fun coerce(value: ConfigScalar): ConfigScalar =
         options.find { it.value.asString() == value.asString() }?.value ?: defaultValue
+}
+
+data class OrderedChoiceEntry(
+    override val id: String,
+    override val title: ConfigText?,
+    override val description: ConfigText?,
+    val options: List<ChoiceOption>,
+    override val defaultValue: ConfigScalar.StringValue,
+    override val defaultEnabled: Boolean? = null,
+    override val target: ConfigTarget,
+    val inheritFrom: String? = null,
+    val nativeValue: String? = null
+) : ConfigEntry {
+    fun defaultValue(parentValue: ConfigScalar?): ConfigScalar.StringValue {
+        if (inheritFrom == null || parentValue == null) return defaultValue
+        val expanded = parentValue.asString().split(',').joinToString(",") {
+            if (it == "native") nativeValue ?: it else it
+        }
+        return coerce(ConfigScalar.StringValue(expanded))
+    }
+
+    override fun coerce(value: ConfigScalar): ConfigScalar.StringValue {
+        val valuesByKey = options.associateBy { it.value.asString() }
+        val ordered = value.asString().split(',').mapNotNull(valuesByKey::get)
+        val defaults = defaultValue.value.split(',').mapNotNull(valuesByKey::get)
+        return ConfigScalar.StringValue(
+            (ordered + defaults).distinctBy { it.value.asString() }.joinToString(",") { it.value.asString() }
+        )
+    }
 }
 
 data class NumberEntry(

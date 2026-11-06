@@ -42,11 +42,11 @@ import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.game.renderer.ConfigurableRenderer
+import com.movtery.zalithlauncher.game.renderer.RendererLaunchConfig
 import com.movtery.zalithlauncher.game.renderer.Renderers
-import com.movtery.zalithlauncher.game.renderer.config.GlobalRendererConfigStore
-import com.movtery.zalithlauncher.game.renderer.config.VersionRendererConfigStore
-import com.movtery.zalithlauncher.game.renderer.config.removeStaleEntries
-import com.movtery.zalithlauncher.game.renderer.config.resolveRendererConfig
+import com.movtery.zalithlauncher.game.renderer.getSfpewLibraryPath
+import com.movtery.zalithlauncher.game.renderer.isSfpewEnabledFor
+import com.movtery.zalithlauncher.game.renderer.prepareRendererLaunchConfig
 import com.movtery.zalithlauncher.game.support.touch_controller.ControllerProxy
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
@@ -86,7 +86,7 @@ class GameLauncher(
 ) : Launcher(onExit, openPath) {
     private lateinit var gameManifest: GameManifest
     private var jnaDir: File? = null
-    private var configuredRendererEnv: Map<String, String>? = null
+    private var configuredRenderer: RendererLaunchConfig? = null
     private val offlineServer = OfflineYggdrasilServer(0)
 
     private val version = config.version
@@ -107,19 +107,10 @@ class GameLauncher(
         if (!Renderers.isCurrentRendererValid()) {
             Renderers.setCurrentRenderer(version.getRenderer())
         }
-        configuredRendererEnv = withContext(Dispatchers.IO) {
-            val renderer = Renderers.getCurrentRenderer()
-            if (renderer is ConfigurableRenderer) {
-                val rendererId = renderer.getUniqueIdentifier()
-                GlobalRendererConfigStore.migrateLegacy(rendererId, renderer.legacyConfigKeys)
-                GlobalRendererConfigStore.removeStaleEntries(rendererId, renderer.configSpec)
-                val versionStore = if (version.getVersionConfig().renderer == rendererId) {
-                    VersionRendererConfigStore(version.getVersionPath(), Renderers.getLegacyRendererIds())
-                        .apply { removeStaleEntries(rendererId, renderer.configSpec) }
-                } else null
-                val config = resolveRendererConfig(rendererId, renderer.configSpec, versionStore)
-                renderer.getConfiguredEnv(config)
-            } else null
+        configuredRenderer = withContext(Dispatchers.IO) {
+            (Renderers.getCurrentRenderer() as? ConfigurableRenderer)?.let { renderer ->
+                prepareRendererLaunchConfig(renderer, version)
+            }
         }
 
         val manifest = GSON.fromJson(File(version.getVersionPath(), "${version.getVersionName()}.json").readText(), GameManifest::class.java)
@@ -204,7 +195,7 @@ class GameLauncher(
             }
         }
         if (Renderers.isCurrentRendererValid()) {
-            setRendererEnv(envMap, configuredRendererEnv)
+            setRendererEnv(envMap, version, configuredRenderer)
         }
         envMap["ZALITH_VERSION_CODE"] = BuildConfig.VERSION_CODE.toString()
 
@@ -239,7 +230,7 @@ class GameLauncher(
     override fun progressFinalUserArgs(args: MutableList<String>, ramAllocation: Int) {
         super.progressFinalUserArgs(args, version.getRamAllocation(activity))
         if (Renderers.isCurrentRendererValid()) {
-            args.add("-Dorg.lwjgl.opengl.libname=${getRendererLibrary()}")
+            args.add("-Dorg.lwjgl.opengl.libname=${getGameRendererLibrary(version, configuredRenderer)}")
         }
     }
 
@@ -450,7 +441,8 @@ private fun checkAndUsedJSPH(envMap: MutableMap<String, String>, runtime: Runtim
 
 private fun setRendererEnv(
     envMap: MutableMap<String, String>,
-    configuredRendererEnv: Map<String, String>?
+    version: Version,
+    configuredRenderer: RendererLaunchConfig?,
 ) {
     val renderer = Renderers.getCurrentRenderer()
     val rendererId = renderer.getRendererId()
@@ -467,7 +459,9 @@ private fun setRendererEnv(
     }
 
     if (renderer is ConfigurableRenderer) {
-        envMap += checkNotNull(configuredRendererEnv) { "Renderer configuration has not been prepared" }
+        envMap += checkNotNull(configuredRenderer) {
+            "Renderer configuration has not been prepared"
+        }.environment
     } else {
         envMap += renderer.getRendererEnv().value
     }
@@ -494,17 +488,34 @@ private fun setRendererEnv(
 
     envMap["POJAV_RENDERER"] = rendererId
 
+    if (isSfpewEnabledFor(renderer, version, configuredRenderer)) {
+        envMap["SFPEW_LAYER"] = "1"
+        envMap["SFPEW_EGL"] = envMap["SDL_EGL_LIBRARY"]
+            ?: envMap["POJAVEXEC_EGL"]
+            ?: "libEGL.so"
+        if (version.isSfpewRelaxedContextEnabled()) {
+            envMap["SFPEW_RELAXED_CONTEXT"] = "1"
+        }
+        val sfpewLibraryPath = getSfpewLibraryPath()
+        envMap["SDL_OPENGL_LIBRARY"] = sfpewLibraryPath
+        envMap["SDL_EGL_LIBRARY"] = sfpewLibraryPath
+    }
+
     if (RendererPluginManager.selectedRendererPlugin != null) return
 
-    if (!renderer.mesaBased) {
-        envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
+    if (renderer.mesaBased) {
+        // Mesa 系渲染器的 OSMesa 桥依据该变量定位 Mesa 库
+        envMap["LIB_MESA_NAME"] = getRendererLibrary() ?: "null"
         envMap["MESA_GLSL_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
+    }
+
+    if (renderer.needsZinkDriverOverride) {
+        envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
         envMap["MESA_GL_VERSION_OVERRIDE"] = "4.6"
         envMap["MESA_GLSL_VERSION_OVERRIDE"] = "460"
         envMap["force_glsl_extensions_warn"] = "true"
         envMap["allow_higher_compat_version"] = "true"
         envMap["allow_glsl_extension_directive_midshader"] = "true"
-        envMap["LIB_MESA_NAME"] = getRendererLibrary() ?: "null"
     }
 
     if (!envMap.containsKey("LIBGL_ES")) {
@@ -527,6 +538,16 @@ private fun setRendererEnv(
 private fun getRendererLibrary(): String? {
     return if (!Renderers.isCurrentRendererValid()) null
     else Renderers.getCurrentRenderer().getRendererLibrary()
+}
+
+private fun getGameRendererLibrary(version: Version, configuredRenderer: RendererLaunchConfig?): String? {
+    if (!Renderers.isCurrentRendererValid()) return null
+    val renderer = Renderers.getCurrentRenderer()
+    return if (isSfpewEnabledFor(renderer, version, configuredRenderer)) {
+        getSfpewLibraryPath()
+    } else {
+        renderer.getRendererLibrary()
+    }
 }
 
 /**

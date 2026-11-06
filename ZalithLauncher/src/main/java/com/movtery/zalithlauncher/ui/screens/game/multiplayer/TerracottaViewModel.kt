@@ -215,7 +215,9 @@ class TerracottaViewModel(
                     is TerracottaState.HostOK -> {
                         if (old !is TerracottaState.HostOK) {
                             //刚切换到这个状态，默认复制一次邀请码
-                            copyInviteCode(new)
+                            withContext(Dispatchers.Main) {
+                                copyInviteCode(new)
+                            }
                             //然后首次更新玩家列表状态
                             updateProfiles(new.profiles)
                         }

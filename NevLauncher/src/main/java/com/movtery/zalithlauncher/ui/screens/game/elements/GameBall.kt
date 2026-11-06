@@ -21,11 +21,14 @@ package com.movtery.zalithlauncher.ui.screens.game.elements
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -38,22 +41,43 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
 import com.movtery.zalithlauncher.ui.components.FloatingBall
 import com.movtery.zalithlauncher.ui.screens.content.elements.MemoryPreview
+
+private val BallBackground = Color(0xCC140808)
+private val BallShape = RoundedCornerShape(16.dp)
+private val FpsGood = Color(0xFF4CAF50)
+private val FpsOk = Color(0xFFFFB300)
+private val FpsBad = Color(0xFFFF4D4F)
+
+/** 根据帧率给出状态颜色：流畅为绿色，一般为黄色，卡顿为红色 */
+private fun fpsStatusColor(fps: Int): Color = when {
+    fps >= 50 -> FpsGood
+    fps >= 30 -> FpsOk
+    else -> FpsBad
+}
 
 @Composable
 fun DraggableGameBall(
@@ -78,7 +102,9 @@ fun DraggableGameBall(
         onPositionChanged = onPositionChanged,
         onSavePos = onSavePos,
         onClick = onClick,
-        alpha = alpha
+        alpha = alpha,
+        color = BallBackground,
+        shape = BallShape
     ) {
         GameBallContent(
             gameFps = gameFps,
@@ -111,11 +137,20 @@ private fun GameBallContent(
         fps != null
     }
 
+    val accent = MaterialTheme.colorScheme.primary
+    val borderColor by animateColorAsState(
+        targetValue = if (opened) accent else accent.copy(alpha = 0.45f),
+        label = "gameBallBorder"
+    )
+
     Row(
-        modifier = Modifier.padding(all = 2.dp),
+        modifier = Modifier
+            .border(width = 1.dp, color = borderColor, shape = BallShape)
+            .padding(horizontal = 8.dp, vertical = 2.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        val showIcon = !(showMemory || (showFps && fpsDisplayMode == FpsDisplayMode.CHART))
+        //只有在没有任何信息可显示时，才显示菜单图标，保证悬浮球依旧可以点开菜单
+        val showIcon = !showFps && !showMemory
 
         AnimatedVisibility(
             visible = showIcon
@@ -138,12 +173,6 @@ private fun GameBallContent(
                     )
                 }
             }
-        }
-
-        AnimatedVisibility(
-            visible = showFps || showMemory
-        ) {
-            Spacer(Modifier.width(4.dp))
         }
 
         //实际内容
@@ -171,11 +200,32 @@ private fun GameBallContent(
                         fpsMin = fpsMinValue
                     )
                 } else {
-                    Text(
-                        modifier = Modifier.padding(end = 4.dp),
-                        text = "FPS: ${fps ?: 0}",
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                    //帧率数字：状态圆点 + 标签 + 粗体数字
+                    val fpsValue = fps ?: 0
+                    Row(
+                        modifier = Modifier.padding(end = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .background(color = fpsStatusColor(fpsValue), shape = CircleShape)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = "FPS",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = LocalContentColor.current.copy(alpha = 0.65f)
+                        )
+                        Spacer(Modifier.width(4.dp))
+                        Text(
+                            modifier = Modifier.widthIn(min = 22.dp),
+                            text = fpsValue.toString(),
+                            style = MaterialTheme.typography.labelLarge.copy(fontFeatureSettings = "tnum"),
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.End
+                        )
+                    }
                 }
             }
             CustomAnimatedVisibility(

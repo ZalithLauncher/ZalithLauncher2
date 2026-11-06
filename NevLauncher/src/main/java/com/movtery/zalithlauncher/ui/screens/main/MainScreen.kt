@@ -100,6 +100,7 @@ import com.movtery.zalithlauncher.ui.screens.content.LauncherScreen
 import com.movtery.zalithlauncher.ui.screens.content.LicenseScreen
 import com.movtery.zalithlauncher.ui.screens.content.LogViewScreen
 import com.movtery.zalithlauncher.ui.screens.content.MultiplayerScreen
+import com.movtery.zalithlauncher.ui.screens.content.ServerHubScreen
 import com.movtery.zalithlauncher.ui.screens.content.SettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionExportScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionSettingsScreen
@@ -177,6 +178,7 @@ fun MainScreen(
                 .fillMaxHeight()
                 .width(64.dp),
             contentColor = onBackgroundColor(),
+            inServerHubScreen = mainScreenKey is NormalNavKey.ServerHub,
             inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer,
             inDownloadScreen = mainScreenKey is NestedNavKey.Download,
             inSettingsScreen = mainScreenKey is NestedNavKey.Settings,
@@ -188,6 +190,12 @@ fun MainScreen(
             },
             toDownloadScreen = {
                 screenBackStackModel.navigateToDownload()
+            },
+            toServerHubScreen = {
+                screenBackStackModel.mainScreen.removeAndNavigateTo(
+                    removes = screenBackStackModel.clearBeforeNavKeys,
+                    screenKey = NormalNavKey.ServerHub
+                )
             },
             toMultiplayerScreen = {
                 screenBackStackModel.mainScreen.removeAndNavigateTo(
@@ -421,11 +429,13 @@ private fun <E: TitledNavKey> TopBar(
 private fun SideRail(
     modifier: Modifier = Modifier,
     contentColor: Color,
+    inServerHubScreen: Boolean,
     inMultiplayerScreen: Boolean,
     inDownloadScreen: Boolean,
     inSettingsScreen: Boolean,
     toSettingsScreen: () -> Unit,
     toDownloadScreen: () -> Unit,
+    toServerHubScreen: () -> Unit,
     toMultiplayerScreen: () -> Unit,
     openFileManager: () -> Unit,
 ) {
@@ -441,6 +451,12 @@ private fun SideRail(
                 painter = painterResource(R.drawable.ic_folder_filled),
                 text = "File",
                 onClick = openFileManager
+            )
+            SideRailItem(
+                selected = inServerHubScreen,
+                painter = painterResource(R.drawable.ic_dns_outlined),
+                text = stringResource(R.string.server_hub_title),
+                onClick = { if (!inServerHubScreen) toServerHubScreen() }
             )
             SideRailItem(
                 selected = inMultiplayerScreen,
@@ -687,6 +703,22 @@ private fun NavigationUI(
                         addonInfoScreenKey = key.currentKey,
                         eventViewModel = eventViewModel,
                         submitError = submitError,
+                    )
+                }
+                entry<NormalNavKey.ServerHub> {
+                    ServerHubScreen(
+                        backScreenViewModel = screenBackStackModel,
+                        onQuickPlay = { version, address ->
+                            val target = (version ?: VersionsManager.currentVersion.value)?.takeIf { it.isValid() }
+                            if (target != null) {
+                                eventViewModel.sendEvent(
+                                    EventViewModel.Event.Launch.PlayServer(target, address)
+                                )
+                            } else {
+                                eventViewModel.sendToast(androidText(R.string.game_launch_no_version))
+                                screenBackStackModel.mainScreen.navigateTo(NormalNavKey.VersionsManager)
+                            }
+                        }
                     )
                 }
                 entry<NormalNavKey.Multiplayer> {

@@ -58,6 +58,10 @@ sealed interface NormalNavKey : TitledNavKey {
     ) : NormalNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.page_title_select_files)
     }
+    /** Server Hub: jelajahi server, favorit, main sekali ketuk */
+    @Serializable data object ServerHub : NormalNavKey {
+        @Contextual override val title: AndroidStringText = androidText(R.string.server_hub_title)
+    }
     /** 多人联机屏幕 */
     @Serializable data object Multiplayer: NormalNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.terracotta_terracotta)

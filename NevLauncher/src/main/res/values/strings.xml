@@ -3121,4 +3121,33 @@
     <string name="record_event_failed_export">Could not save to the gallery. The file is at %s</string>
     <string name="record_event_failed_start">Could not start recording: %s</string>
     <string name="record_event_stopped_error">Recording stopped because of an error</string>
+
+    <!-- Server Hub -->
+    <string name="server_hub_title">Server</string>
+    <string name="server_hub_subtitle">Browse servers, save favorites, then play with one tap</string>
+    <string name="server_hub_search_hint">Search servers…</string>
+    <string name="server_hub_filter_location">location</string>
+    <string name="server_hub_filter_online">online</string>
+    <string name="server_hub_filter_game">game</string>
+    <string name="server_hub_filter_favorite">Favorite</string>
+    <string name="server_hub_favorites">Favorites (%d)</string>
+    <string name="server_hub_all">All</string>
+    <string name="server_hub_location_indonesia">Indonesia</string>
+    <string name="server_hub_location_overseas">Overseas</string>
+    <string name="server_hub_play">Play</string>
+    <string name="server_hub_status_online">Online</string>
+    <string name="server_hub_status_offline">Offline</string>
+    <string name="server_hub_status_unknown">Checking…</string>
+    <string name="server_hub_loading">Loading servers…</string>
+    <string name="server_hub_empty">No servers match these filters</string>
+    <string name="server_hub_empty_favorites">No favorite servers yet. Tap the heart on a server to save it.</string>
+    <string name="server_hub_source_failed">Could not load: %s</string>
+    <string name="server_hub_credit">Server data: minecraftserver.id · minecraft-serverlist.com · minecraft-mp.com</string>
+    <string name="server_hub_add">Add server</string>
+    <string name="server_hub_add_title">Add server</string>
+    <string name="server_hub_add_name">Server name</string>
+    <string name="server_hub_add_address">Server address</string>
+    <string name="server_hub_add_done">Server added</string>
+    <string name="server_hub_add_exists">This server is already in the list</string>
+    <string name="server_hub_add_invalid">Invalid server address</string>
 </resources>

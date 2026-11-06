@@ -52,6 +52,7 @@ class ScreenBackStackViewModel : ViewModel() {
     val clearBeforeNavKeys = listOf(
         settingsScreen::class,
         downloadScreen::class,
-        NormalNavKey.Multiplayer::class
+        NormalNavKey.Multiplayer::class,
+        NormalNavKey.ServerHub::class
     )
 }

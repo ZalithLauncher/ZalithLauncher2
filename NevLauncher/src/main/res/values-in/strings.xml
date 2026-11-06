@@ -1519,4 +1519,33 @@
     <string name="record_event_failed_export">Gagal menyimpan ke galeri. Berkas ada di %s</string>
     <string name="record_event_failed_start">Gagal memulai rekaman: %s</string>
     <string name="record_event_stopped_error">Rekaman berhenti karena terjadi kesalahan</string>
+
+    <!-- Server Hub -->
+    <string name="server_hub_title">Server</string>
+    <string name="server_hub_subtitle">Jelajahi server, simpan favorit, lalu main sekali ketuk</string>
+    <string name="server_hub_search_hint">Cari server…</string>
+    <string name="server_hub_filter_location">lokasi</string>
+    <string name="server_hub_filter_online">online</string>
+    <string name="server_hub_filter_game">game</string>
+    <string name="server_hub_filter_favorite">Favorit</string>
+    <string name="server_hub_favorites">Favorit (%d)</string>
+    <string name="server_hub_all">Semua</string>
+    <string name="server_hub_location_indonesia">Indonesia</string>
+    <string name="server_hub_location_overseas">Luar</string>
+    <string name="server_hub_play">Main</string>
+    <string name="server_hub_status_online">Online</string>
+    <string name="server_hub_status_offline">Offline</string>
+    <string name="server_hub_status_unknown">Memeriksa…</string>
+    <string name="server_hub_loading">Memuat server…</string>
+    <string name="server_hub_empty">Tidak ada server yang cocok dengan filter ini</string>
+    <string name="server_hub_empty_favorites">Belum ada server favorit. Ketuk ikon hati pada server untuk menyimpannya.</string>
+    <string name="server_hub_source_failed">Gagal memuat: %s</string>
+    <string name="server_hub_credit">Data server: minecraftserver.id · minecraft-serverlist.com · minecraft-mp.com</string>
+    <string name="server_hub_add">Tambah server</string>
+    <string name="server_hub_add_title">Tambah server</string>
+    <string name="server_hub_add_name">Nama server</string>
+    <string name="server_hub_add_address">Alamat server</string>
+    <string name="server_hub_add_done">Server ditambahkan</string>
+    <string name="server_hub_add_exists">Server ini sudah ada di daftar</string>
+    <string name="server_hub_add_invalid">Alamat server tidak valid</string>
 </resources>

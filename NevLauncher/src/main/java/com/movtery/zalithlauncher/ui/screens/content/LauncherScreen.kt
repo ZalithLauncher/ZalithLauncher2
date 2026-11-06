@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -170,13 +171,23 @@ fun LauncherScreen(
             val isActionMenuTaller = maxHeight >= 600.dp
             val menuWeight = if (isActionMenuTaller) ActionMenuWeight else ActionMenuCompactWeight
             val contentWeight = if (isActionMenuTaller) ContentWeight else ContentCompactWeight
-            dragState.menuSpanPx = parentWidthPx * (menuWeight / (menuWeight + contentWeight))
+            //紧凑模式：操作卡片横向铺满整行，内容区域放到卡片下方
+            //两侧停泊位置重合（都铺满），所以拖拽归位后依旧是铺满的
+            dragState.menuSpanPx = if (isActionMenuTaller) {
+                parentWidthPx * (menuWeight / (menuWeight + contentWeight))
+            } else {
+                parentWidthPx - dragState.outerPaddingPx
+            }
 
             //拖拽期间以预览侧为准
             val effectiveSide = dragState.previewSide ?: dockedSide
 
             //卡片尺寸与停泊槽内容区保持一致
-            val cardWidth = maxWidth * (menuWeight / (menuWeight + contentWeight)) - ActionMenuOuterPadding
+            val cardWidth = if (isActionMenuTaller) {
+                maxWidth * (menuWeight / (menuWeight + contentWeight)) - ActionMenuOuterPadding
+            } else {
+                maxWidth - ActionMenuOuterPadding * 2
+            }
             val cardHeight = if (isActionMenuTaller) maxHeight - ActionMenuOuterPadding * 2 else ActionMenuCompactHeight
 
             val toAccountManageScreen: () -> Unit = {
@@ -197,12 +208,31 @@ fun LauncherScreen(
             }
 
             // 内容区域
-            Row(modifier = Modifier.fillMaxSize()) {
-                // ActionMenu 对接到了 Start，留出空位
-                if (dockedSide == ActionMenuSide.START) {
-                    Spacer(modifier = Modifier.weight(menuWeight))
-                }
+            // 紧凑模式下，内容在铺满整行的操作卡片下方；否则与操作卡片左右并排
+            val contentLayout: @Composable (@Composable (Modifier) -> Unit) -> Unit = { content ->
+                if (isActionMenuTaller) {
+                    Row(modifier = Modifier.fillMaxSize()) {
+                        // ActionMenu 对接到了 Start，留出空位
+                        if (dockedSide == ActionMenuSide.START) {
+                            Spacer(modifier = Modifier.weight(menuWeight))
+                        }
 
+                        content(Modifier.weight(contentWeight))
+
+                        // ActionMenu 对接到了 End，留出空位
+                        if (dockedSide == ActionMenuSide.END) {
+                            Spacer(modifier = Modifier.weight(menuWeight))
+                        }
+                    }
+                } else {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Spacer(modifier = Modifier.height(ActionMenuCompactHeight + ActionMenuOuterPadding))
+                        content(Modifier.weight(1f))
+                    }
+                }
+            }
+
+            contentLayout { contentModifier ->
                 CompositionLocalProvider(
                     LocalUriHandler provides object : UriHandler {
                         override fun openUri(uri: String) {
@@ -216,8 +246,13 @@ fun LauncherScreen(
                             key = GuideKeys.Main.Step.CardTip,
                             holeRadius = 0.dp
                         )
-                        .weight(contentWeight)
-                        .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
+                        .then(contentModifier)
+                        .offset {
+                            IntOffset(
+                                x = if (isActionMenuTaller) dragState.previewShift.value.roundToInt() else 0,
+                                y = 0
+                            )
+                        },
                     isVisible = isVisible,
                     onLaunchGame = { version ->
                         onLaunchGame(version)
@@ -225,11 +260,6 @@ fun LauncherScreen(
                     onQuickPlayServer = onQuickPlayServer,
                     onOpenVersionSettings = navigateToVersions
                 )
-                }
-
-                // ActionMenu 对接到了 End，留出空位
-                if (dockedSide == ActionMenuSide.END) {
-                    Spacer(modifier = Modifier.weight(menuWeight))
                 }
             }
 

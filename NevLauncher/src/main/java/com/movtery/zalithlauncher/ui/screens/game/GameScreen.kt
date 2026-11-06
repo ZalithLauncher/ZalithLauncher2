@@ -93,7 +93,9 @@ import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
 import com.movtery.zalithlauncher.game.input.LWJGLCharSender
 import com.movtery.zalithlauncher.game.keycodes.mapToKeycode
 import com.movtery.zalithlauncher.game.launch.handler.GameHandler
+import com.movtery.zalithlauncher.game.record.RecordingState
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
+import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.game.sdl.SdlTextSender
 import com.movtery.zalithlauncher.game.support.touch_controller.touchControllerInputModifier
 import com.movtery.zalithlauncher.game.support.touch_controller.touchControllerTouchModifier
@@ -612,6 +614,15 @@ fun GameScreen(
         //向VMActivity同步状态，编辑控制布局或打开游戏菜单时，不会继续处理按键事件
         val allowKeyHandle = !viewModel.isEditingLayout && viewModel.gameMenuState != MenuState.SHOW
         eventViewModel.sendEvent(EventViewModel.Event.Game.KeyHandle(allowKeyHandle))
+    }
+
+    //Tampilkan hasil rekaman layar (tersimpan, gagal, dll.) sebagai toast
+    LaunchedEffect(Unit) {
+        RecordingState.events.collect { event ->
+            val text = if (event.arg != null) androidText(event.messageRes, event.arg)
+            else androidText(event.messageRes)
+            eventViewModel.sendToast(text, android.widget.Toast.LENGTH_LONG)
+        }
     }
 
     SendKeycodeOperation(

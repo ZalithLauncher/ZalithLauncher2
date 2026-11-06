@@ -1479,4 +1479,44 @@
     <string name="home_server_card_refresh_failed">Gagal memperbarui informasi server</string>
     <string name="settings_renderer_max_refresh_rate_title">Minta Refresh Rate Maksimum</string>
     <string name="settings_renderer_max_refresh_rate_summary">Minta layar beralih ke refresh rate tertinggi yang didukung pada resolusi saat ini untuk menghilangkan batas frame rate pada beberapa perangkat</string>
+
+    <!-- Perekaman layar -->
+    <string name="game_menu_category_record">Rekam</string>
+    <string name="record_notification_channel_name">Rekam layar</string>
+    <string name="record_notification_starting">Menyiapkan rekaman…</string>
+    <string name="record_notification_recording">Sedang merekam layar</string>
+    <string name="record_notification_paused">Rekaman dijeda</string>
+    <string name="record_notification_saving">Menyimpan rekaman…</string>
+    <string name="record_action_pause">Jeda</string>
+    <string name="record_action_resume">Lanjut</string>
+    <string name="record_action_save">Simpan</string>
+    <string name="record_action_start">Mulai rekam</string>
+    <string name="record_status_idle">Siap merekam</string>
+    <string name="record_status_starting">Menyiapkan…</string>
+    <string name="record_status_recording">Merekam  %s</string>
+    <string name="record_status_paused">Dijeda  %s</string>
+    <string name="record_status_saving">Menyimpan…</string>
+    <string name="record_option_game_audio">Rekam suara game</string>
+    <string name="record_option_mic">Rekam mikrofon</string>
+    <string name="record_option_game_volume">Volume suara game</string>
+    <string name="record_option_mic_volume">Volume mikrofon</string>
+    <string name="record_option_noise_cancel">Noise Cancelling</string>
+    <string name="record_option_noise_cancel_hint">Meredam suara di sekitar agar hanya suaramu yang terekam. Hasil terbaik didapat dengan headset atau earphone.</string>
+    <string name="record_option_quality">Kualitas video</string>
+    <string name="record_option_locked">Pengaturan bisa diubah lagi setelah rekaman disimpan</string>
+    <string name="record_noise_cancel_off">Mati</string>
+    <string name="record_noise_cancel_standard">Standar</string>
+    <string name="record_noise_cancel_strong">Kuat</string>
+    <string name="record_quality_low">Rendah (720p)</string>
+    <string name="record_quality_medium">Sedang (1080p)</string>
+    <string name="record_quality_high">Tinggi (1440p)</string>
+    <string name="record_error_no_permission">Izin rekam layar tidak diberikan</string>
+    <string name="record_error_mic_permission">Izin mikrofon ditolak, jadi hanya suara game yang direkam</string>
+    <string name="record_warning_game_audio">Suara game tidak bisa direkam di perangkat ini, hanya mikrofon yang direkam</string>
+    <string name="record_warning_mic">Mikrofon tidak bisa dipakai, hanya suara game yang direkam</string>
+    <string name="record_event_saved">Rekaman disimpan di %s</string>
+    <string name="record_event_failed_empty">Perekaman gagal: tidak ada video yang terekam</string>
+    <string name="record_event_failed_export">Gagal menyimpan ke galeri. Berkas ada di %s</string>
+    <string name="record_event_failed_start">Gagal memulai rekaman: %s</string>
+    <string name="record_event_stopped_error">Rekaman berhenti karena terjadi kesalahan</string>
 </resources>

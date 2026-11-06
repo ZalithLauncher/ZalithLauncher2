@@ -47,5 +47,10 @@ enum class NotificationChannelData(
     /**
      * 陶瓦联机 VPN 状态显示服务
      */
-    TERRACOTTA_VPN_CHANNEL("terracotta_vpn_channel", { "Terracotta VPN" }, { it.getString(R.string.terracotta_terracotta) }, IMPORTANCE_LOW, false)
+    TERRACOTTA_VPN_CHANNEL("terracotta_vpn_channel", { "Terracotta VPN" }, { it.getString(R.string.terracotta_terracotta) }, IMPORTANCE_LOW, false),
+
+    /**
+     * Layanan rekam layar
+     */
+    RECORD_SERVICE_CHANNEL("record.service", { it.getString(R.string.record_notification_channel_name) }, null, IMPORTANCE_LOW, false)
 }

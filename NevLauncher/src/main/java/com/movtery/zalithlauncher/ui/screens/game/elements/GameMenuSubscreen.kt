@@ -105,7 +105,9 @@ private val menuTabs = listOf(
     //手势控制设置
     MenuTab(R.drawable.ic_touch_app_filled, R.string.game_menu_category_gesture),
     //陀螺仪设置
-    MenuTab(R.drawable.ic_mobile_rotate_filled, R.string.game_menu_category_gyroscope)
+    MenuTab(R.drawable.ic_mobile_rotate_filled, R.string.game_menu_category_gyroscope),
+    //Rekam layar
+    MenuTab(R.drawable.ic_videocam_filled, R.string.game_menu_category_record)
 )
 
 /**
@@ -206,6 +208,7 @@ fun GameMenuSubscreen(
                 )
                 4 -> ControlGesture(modifier = Modifier.fillMaxSize())
                 5 -> ControlGyroscope(modifier = Modifier.fillMaxSize())
+                6 -> RecordMenuContent(modifier = Modifier.fillMaxSize())
             }
         }
     }

@@ -37,6 +37,8 @@ import com.movtery.zalithlauncher.setting.enums.GestureActionType
 import com.movtery.zalithlauncher.setting.enums.MirrorSourceType
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
 import com.movtery.zalithlauncher.setting.enums.MouseTouchBlockMode
+import com.movtery.zalithlauncher.setting.enums.NoiseCancelLevel
+import com.movtery.zalithlauncher.setting.enums.RecordQuality
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import com.movtery.zalithlauncher.ui.control.HotbarRule
 import com.movtery.zalithlauncher.ui.control.gamepad.JoystickMode
@@ -535,6 +537,36 @@ object AllSettings : SettingsRegistry() {
      * 游戏菜单悬浮窗不透明度
      */
     val menuBallOpacity = intSetting("menuBallOpacity", 100, 20..100)
+
+    /**
+     * Rekam layar: ikut merekam suara game
+     */
+    val recordGameAudio = boolSetting("recordGameAudio", true)
+
+    /**
+     * Rekam layar: ikut merekam suara mikrofon
+     */
+    val recordMic = boolSetting("recordMic", true)
+
+    /**
+     * Rekam layar: volume suara game (persen)
+     */
+    val recordGameVolume = intSetting("recordGameVolume", 100, 0..200)
+
+    /**
+     * Rekam layar: volume suara mikrofon (persen)
+     */
+    val recordMicVolume = intSetting("recordMicVolume", 100, 0..200)
+
+    /**
+     * Rekam layar: tingkat Noise Cancelling untuk mikrofon
+     */
+    val recordNoiseCancel = enumSetting("recordNoiseCancel", NoiseCancelLevel.STANDARD)
+
+    /**
+     * Rekam layar: kualitas video
+     */
+    val recordQuality = enumSetting("recordQuality", RecordQuality.MEDIUM)
 
     /**
      * 快捷栏判定箱计算规则

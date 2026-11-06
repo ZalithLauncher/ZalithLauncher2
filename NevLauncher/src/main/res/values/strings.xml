@@ -3081,4 +3081,44 @@
     <string name="guide_joystick_events_events_text1">The triggerable events are the same as those of regular buttons, so you have plenty of freedom here</string>
     <!-- Closing line of the guide card about editing actual key bindings in the Key section -->
     <string name="guide_joystick_events_events_text2">If you only want to control the game, just edit the actual key bindings in the \"Key\" section</string>
+
+    <!-- Screen recording -->
+    <string name="game_menu_category_record">Record</string>
+    <string name="record_notification_channel_name">Screen recording</string>
+    <string name="record_notification_starting">Preparing recording…</string>
+    <string name="record_notification_recording">Recording screen</string>
+    <string name="record_notification_paused">Recording paused</string>
+    <string name="record_notification_saving">Saving recording…</string>
+    <string name="record_action_pause">Pause</string>
+    <string name="record_action_resume">Resume</string>
+    <string name="record_action_save">Save</string>
+    <string name="record_action_start">Start recording</string>
+    <string name="record_status_idle">Ready to record</string>
+    <string name="record_status_starting">Preparing…</string>
+    <string name="record_status_recording">Recording  %s</string>
+    <string name="record_status_paused">Paused  %s</string>
+    <string name="record_status_saving">Saving…</string>
+    <string name="record_option_game_audio">Record game sound</string>
+    <string name="record_option_mic">Record microphone</string>
+    <string name="record_option_game_volume">Game sound volume</string>
+    <string name="record_option_mic_volume">Microphone volume</string>
+    <string name="record_option_noise_cancel">Noise Cancelling</string>
+    <string name="record_option_noise_cancel_hint">Reduces sounds from around you so only your voice is recorded. Use a headset or earphones for the best result.</string>
+    <string name="record_option_quality">Video quality</string>
+    <string name="record_option_locked">Settings can be changed again after the recording is saved</string>
+    <string name="record_noise_cancel_off">Off</string>
+    <string name="record_noise_cancel_standard">Standard</string>
+    <string name="record_noise_cancel_strong">Strong</string>
+    <string name="record_quality_low">Low (720p)</string>
+    <string name="record_quality_medium">Medium (1080p)</string>
+    <string name="record_quality_high">High (1440p)</string>
+    <string name="record_error_no_permission">Screen recording permission was not granted</string>
+    <string name="record_error_mic_permission">Microphone permission was denied, so only the game sound will be recorded</string>
+    <string name="record_warning_game_audio">Game sound cannot be recorded on this device, only the microphone will be recorded</string>
+    <string name="record_warning_mic">The microphone cannot be used, only the game sound will be recorded</string>
+    <string name="record_event_saved">Recording saved to %s</string>
+    <string name="record_event_failed_empty">Recording failed: no video was captured</string>
+    <string name="record_event_failed_export">Could not save to the gallery. The file is at %s</string>
+    <string name="record_event_failed_start">Could not start recording: %s</string>
+    <string name="record_event_stopped_error">Recording stopped because of an error</string>
 </resources>

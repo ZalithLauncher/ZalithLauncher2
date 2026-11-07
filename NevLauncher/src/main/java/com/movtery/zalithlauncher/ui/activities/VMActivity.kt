@@ -89,6 +89,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.movtery.zalithlauncher.game.stats.PlayTimeStats
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
 import com.movtery.zalithlauncher.R
@@ -612,15 +613,30 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         }.getOrNull()
     }
 
+    /** Job penyimpan statistik waktu bermain secara berkala */
+    private var playTimeJob: Job? = null
+
     override fun onResume() {
         super.onResume()
         withHandler { onResume() }
         CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_FOCUSED, 1)
         CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_HOVERED, 1)
+
+        PlayTimeStats.start()
+        playTimeJob?.cancel()
+        playTimeJob = lifecycleScope.launch(Dispatchers.Default) {
+            while (true) {
+                delay(15_000L)
+                PlayTimeStats.tick()
+            }
+        }
     }
 
     override fun onPause() {
         super.onPause()
+        playTimeJob?.cancel()
+        playTimeJob = null
+        PlayTimeStats.stop()
         withHandler { onPause() }
         CallbackBridge.resetInputState()
         CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_FOCUSED, 0)

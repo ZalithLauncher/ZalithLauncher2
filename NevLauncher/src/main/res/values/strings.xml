@@ -3164,4 +3164,9 @@
     <string name="server_hub_add_done">Server added</string>
     <string name="server_hub_add_exists">This server is already in the list</string>
     <string name="server_hub_add_invalid">Invalid server address</string>
+    <string name="play_time_stats_title">Playtime this week</string>
+    <string name="play_time_stats_total">Total: %1$s</string>
+    <string name="play_time_stats_none">No playtime yet</string>
+    <string name="play_time_stats_hours_minutes">%1$dh %2$dm</string>
+    <string name="play_time_stats_minutes">%1$dm</string>
 </resources>

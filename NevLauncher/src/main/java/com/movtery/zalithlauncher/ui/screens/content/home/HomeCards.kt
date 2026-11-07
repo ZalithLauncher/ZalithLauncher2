@@ -97,6 +97,7 @@ object HomeCards {
 
     /** 系统卡片（不可变更） */
     fun systemCards(): List<SystemCard> = buildList {
+        add(SystemCard(id = "system_play_time_stats") { PlayTimeStatsCard() })
         if (BuildConfig.DEBUG) {
             add(debugWarningCard())
         }

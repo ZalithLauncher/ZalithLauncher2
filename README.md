@@ -92,4 +92,6 @@ Ringkasan **Ketentuan Tambahan** dari proyek asli (GPLv3 bagian 7). Teks lengkap
 1. Versi modifikasi tidak boleh memakai nama "ZalithLauncher" atau singkatan "ZL", atau nama yang mirip sampai membingungkan, dan harus ditandai sebagai **"Unofficial Modified Version"** di layar awal atau antarmuka utama.
 2. Pemberitahuan hak cipta yang ditampilkan program tidak boleh dihapus.
 
+Font Chakra Petch dipakai di bawah lisensi SIL OFL 1.1 ([teks lisensi](docs/licenses/ChakraPetch-OFL.txt)).
+
 Daftar pustaka sumber terbuka yang dipakai beserta lisensinya ada di [README_EN_US.md](README_EN_US.md#open-source-libraries-and-licenses).

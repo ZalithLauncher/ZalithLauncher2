@@ -30,12 +30,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -57,6 +57,7 @@ import com.movtery.zalithlauncher.notification.NotificationManager
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.base.VersionViewModelStoreScope
 import com.movtery.zalithlauncher.ui.components.AnimatedDirection
+import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
@@ -116,16 +117,18 @@ fun VersionSettingsScreen(
             screenKey = key,
             currentKey = backScreenViewModel.mainScreen.currentKey
         ) { isVisible ->
-            Row(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
                 TabMenu(
                     isVisible = isVisible,
                     backStack = key.backStack,
                     versionsScreenKey = key.currentKey,
-                    modifier = Modifier.fillMaxHeight()
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 NavigationUI(
-                    modifier = Modifier.fillMaxHeight(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     key = key,
                     modifyViewModel = modifyViewModel,
                     backScreenViewModel = backScreenViewModel,
@@ -178,22 +181,22 @@ private fun TabMenu(
     val ctx = rememberAnimatedContext(isVisible = isVisible)
 
     val scrollState = rememberScrollState()
-    Column(
+    Row(
         modifier = modifier
-            .fadeEdge(scrollState)
-            .width(IntrinsicSize.Min)
-            .padding(start = 8.dp)
-            .animated(ctx, from = AnimatedDirection.Left)
-            .verticalScroll(scrollState),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fadeEdge(scrollState, direction = EdgeDirection.Horizontal)
+            .height(IntrinsicSize.Min)
+            .padding(top = 8.dp)
+            .animated(ctx, from = AnimatedDirection.Top)
+            .horizontalScroll(scrollState),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.width(12.dp))
         settingItems.forEach { item ->
             if (item.division) {
-                HorizontalDivider(
+                VerticalDivider(
                     modifier = Modifier
-                        .padding(vertical = 12.dp)
-                        .fillMaxWidth(0.4f)
+                        .padding(horizontal = 12.dp)
+                        .fillMaxHeight(0.6f)
                         .alpha(0.4f),
                     color = MaterialTheme.colorScheme.onSurface
                 )
@@ -217,7 +220,7 @@ private fun TabMenu(
                 }
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.width(8.dp))
         }
     }
 }

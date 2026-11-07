@@ -484,7 +484,7 @@ private fun ControlLayoutList(
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
                     state = scrollState,
                 ) {
-                    items(dataList) { data ->
+                    items(dataList, key = { it.file.absolutePath }) { data ->
                         ControlLayoutItem(
                             modifier = Modifier
                                 .fillMaxWidth()

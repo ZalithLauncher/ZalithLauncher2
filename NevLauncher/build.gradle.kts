@@ -149,7 +149,17 @@ android {
             )
         }
         debug {
-            isMinifyEnabled = false
+            //Compose 在 debuggable 且未经 R8 优化的包里会明显掉帧（点击、滚动卡顿）
+            //这里让调试包也走 R8 优化并关闭 debuggable，但保持不混淆，崩溃堆栈依旧可读
+            //包名后缀与签名不变，可直接覆盖安装
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+                "proguard-debug.pro"
+            )
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
             signingConfig = signingConfigs.getByName("debugBuild")

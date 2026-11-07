@@ -78,12 +78,23 @@ object CapeLibrary {
      */
     suspend fun seedFromAssets(context: Context) = withContext(Dispatchers.IO) {
         val names = runCatching { context.assets.list(ASSET_DIR) }.getOrNull().orEmpty()
-        names.filter { it.endsWith(".png", ignoreCase = true) }.forEach { assetName ->
+            .filter { it.endsWith(".png", ignoreCase = true) }
+        if (names.isEmpty()) return@withContext
+
+        // Penanda: jangan salin ulang tiap dialog dibuka. Salin lagi hanya bila isi assets berubah.
+        libraryDir.mkdirs()
+        val marker = File(libraryDir, ".seeded_assets")
+        val signature = names.sorted().joinToString("|").hashCode().toString()
+        if (runCatching { marker.readText() }.getOrNull() == signature) return@withContext
+
+        names.forEach { assetName ->
             runCatching {
                 val bytes = context.assets.open("$ASSET_DIR/$assetName").use { it.readBytes() }
                 saveBytes(assetName.substringBeforeLast('.'), bytes, skipIfNameExists = true)
             }
         }
+
+        runCatching { marker.writeText(signature) }
     }
 
     /**

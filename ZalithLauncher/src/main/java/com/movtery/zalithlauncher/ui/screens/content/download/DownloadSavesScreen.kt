@@ -30,17 +30,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
-import com.movtery.zalithlauncher.game.download.assets.downloadDependenciesForVersions
-import com.movtery.zalithlauncher.game.download.assets.downloadSingleForVersions
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.downloadDependenciesForVersions
+import com.movtery.zalithlauncher.game.download.addon.downloadSingleForVersions
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.version.saves.unpackSaveZip
 import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.download.DownloadAssetsScreen
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.DownloadSingleOperation
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.search.SearchSavesScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.download.DownloadAddonScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.DownloadSingleOperation
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.search.SearchSavesScreen
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
@@ -104,7 +104,7 @@ fun DownloadSavesScreen(
         },
         onDependencyClicked = { platform, projectId, classes ->
             backStack.navigateTo(
-                NormalNavKey.DownloadAssets(platform, projectId, classes)
+                NormalNavKey.DownloadAddon(platform, projectId, classes)
             )
         }
     )
@@ -131,17 +131,17 @@ fun DownloadSavesScreen(
                         downloadSavesScreenCurrentKey = downloadSavesScreenKey
                     ) { platform, projectId, _ ->
                         backStack.navigateTo(
-                            NormalNavKey.DownloadAssets(platform, projectId, PlatformClasses.SAVES)
+                            NormalNavKey.DownloadAddon(platform, projectId, PlatformClasses.SAVES)
                         )
                     }
                 }
-                entry<NormalNavKey.DownloadAssets> { assetsKey ->
-                    DownloadAssetsScreen(
+                entry<NormalNavKey.DownloadAddon> { addonKey ->
+                    DownloadAddonScreen(
                         mainScreenKey = mainScreenKey,
                         parentScreenKey = key,
                         parentCurrentKey = downloadScreenKey,
                         currentKey = downloadSavesScreenKey,
-                        key = assetsKey,
+                        key = addonKey,
                         eventViewModel = eventViewModel,
                         onItemClicked = { classes, version, _, deps ->
                             operation = if (isUsingMobileData(context)) {

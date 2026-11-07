@@ -19,11 +19,11 @@
 package com.movtery.zalithlauncher.game.version.mod.update
 
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
-import com.movtery.zalithlauncher.game.download.assets.platform.getVersions
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.getVersions
 import com.movtery.zalithlauncher.game.version.mod.ModFile
 import com.movtery.zalithlauncher.game.version.mod.ModProject
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.initAll
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.initAll
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.parseInstant
 import kotlinx.coroutines.Dispatchers

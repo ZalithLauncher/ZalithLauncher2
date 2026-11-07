@@ -41,6 +41,13 @@ object MobileGluesRenderer : ConfigurableRenderer {
             "LIBGL_EGL" to "libmobileglues.so"
         )
         switch(
+            id = "sfpewLayer",
+            title = R.string.renderer_config_mg_sfpew_title,
+            description = R.string.renderer_config_mg_sfpew_desc,
+            default = true,
+            target = ConfigTarget.SfpewLayer
+        )
+        switch(
             id = "MG_COUNT_LAUNCH",
             title = R.string.renderer_config_mg_count_launch_title,
             description = R.string.renderer_config_mg_count_launch_desc,

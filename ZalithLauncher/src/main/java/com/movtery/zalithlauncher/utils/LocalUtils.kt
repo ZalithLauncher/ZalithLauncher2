@@ -224,6 +224,11 @@ fun Locale.compareLangTag(
     }
 }
 
+/**
+ * 复制文本到系统剪贴板
+ * @param showToast 是否同时弹出 Toast
+ * @suppress 未在主线程调用时会导致 Android 8.x 崩溃
+ */
 fun copyText(label: String?, text: String?, context: Context, showToast: Boolean = true) {
     val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     clipboardManager.setPrimaryClip(ClipData.newPlainText(label, text))

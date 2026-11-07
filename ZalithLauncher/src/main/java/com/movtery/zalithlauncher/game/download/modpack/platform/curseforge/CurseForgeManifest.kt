@@ -19,7 +19,7 @@
 package com.movtery.zalithlauncher.game.download.modpack.platform.curseforge
 
 import com.google.gson.annotations.SerializedName
-import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.curseForgeCDNUrl
+import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.curseForgeCDNUrl
 import com.movtery.zalithlauncher.game.download.modpack.platform.PackManifest
 
 class CurseForgeManifest(

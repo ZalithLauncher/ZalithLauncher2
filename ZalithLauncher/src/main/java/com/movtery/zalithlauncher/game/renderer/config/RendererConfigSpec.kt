@@ -59,6 +59,8 @@ sealed interface ConfigScalar {
 sealed interface ConfigTarget {
     data class Environment(val key: String) : ConfigTarget
     data class JsonField(val key: String) : ConfigTarget
+    /** SFPEW 兼容层（仅存于启动器配置） */
+    data object SfpewLayer : ConfigTarget
 }
 
 /**

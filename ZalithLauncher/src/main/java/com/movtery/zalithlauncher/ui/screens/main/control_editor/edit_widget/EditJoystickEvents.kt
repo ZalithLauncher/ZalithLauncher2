@@ -17,12 +17,14 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -35,6 +37,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.movtery.guide.GuideSide
+import com.movtery.guide.guideNode
 import com.movtery.layer_controller.data.JoystickDirection
 import com.movtery.layer_controller.event.ClickEvent
 import com.movtery.layer_controller.observable.ObservableClickEventsProvider
@@ -45,6 +49,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
+import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPosition
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.rememberSettingsCardShape
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutTextItem
@@ -104,19 +109,33 @@ fun EditJoystickEvents(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(24.dp),
             ) {
-                AreaButton(
-                    text = stringResource(R.string.control_editor_edit_joystick_lock_events),
-                    position = CardPosition.Single,
-                    isSelected = selectedArea == JoystickArea.Lock,
-                    onClick = {
-                        selectedArea = if (selectedArea == JoystickArea.Lock) null else JoystickArea.Lock
-                    }
-                )
+                CompositionLocalProvider(
+                    LocalMinimumInteractiveComponentSize provides 0.dp
+                ) {
+                    AreaButton(
+                        modifier = Modifier.guideNode(
+                            key = GuideKeys.JoystickEvents.Step.Lock,
+                            preferSide = GuideSide.Below,
+                            holeRadius = 18.dp,
+                            holeBorderWidth = 4.dp,
+                        ),
+                        text = stringResource(R.string.control_editor_edit_joystick_lock_events),
+                        position = CardPosition.Single,
+                        isSelected = selectedArea == JoystickArea.Lock,
+                        onClick = {
+                            selectedArea = if (selectedArea == JoystickArea.Lock) null else JoystickArea.Lock
+                        }
+                    )
+                }
 
                 FakeJoystick(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 8.dp),
+                        .padding(horizontal = 8.dp)
+                        .guideNode(
+                            key = GuideKeys.JoystickEvents.Step.Direction,
+                            holeRadius = 28.dp,
+                        ),
                     selectedArea = selectedArea,
                     onAreaSelected = { area ->
                         selectedArea = if (selectedArea == area) null else area
@@ -150,13 +169,23 @@ fun EditJoystickEvents(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     InfoLayoutTextItem(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .guideNode(
+                                key = GuideKeys.JoystickEvents.Step.Events,
+                                holeRadius = 16.dp,
+                            ),
                         title = stringResource(R.string.control_editor_edit_event_launcher),
                         onClick = { dialogState = JoystickEventDialogState.LauncherEvent(selectedArea!!) }
                     )
 
                     InfoLayoutTextItem(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .guideNode(
+                                key = GuideKeys.JoystickEvents.Step.Events,
+                                holeRadius = 16.dp,
+                            ),
                         title = stringResource(R.string.control_editor_edit_event_key),
                         onClick = { dialogState = JoystickEventDialogState.KeyEvent(selectedArea!!) }
                     )

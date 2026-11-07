@@ -90,7 +90,7 @@ class OrderedChoiceEntryTest {
     }
 
     @Test
-    fun mobileGluesAngleDefaultMatchesNativeMissingValueBehavior() {
+    fun mobileGluesDefaultsAreFullyWrittenToJson() {
         val store = MemoryRendererConfigStore()
 
         val config = resolveRendererConfig(
@@ -98,10 +98,34 @@ class OrderedChoiceEntryTest {
             spec = MobileGluesRenderer.configSpec,
             globalStore = store
         )
-        val angle = config.entries.single { it.entry.id == "enableANGLE" }
 
-        assertEquals(ConfigScalar.IntValue(0), angle.value)
-        assertFalse(config.jsonFields.containsKey("enableANGLE"))
+        // 全量落盘：未编辑的项也按默认值写入，保证界面展示与实际生效一致
+        assertEquals(ConfigScalar.IntValue(0), config.jsonFields["enableANGLE"])
+        assertEquals(ConfigScalar.IntValue(1), config.jsonFields["enableExtTimerQuery"])
+        assertEquals(ConfigScalar.IntValue(32), config.jsonFields["maxGlslCacheSize"])
+    }
+
+    @Test
+    fun mobileGluesSfpewLayerSwitchIsStoredButNotExported() {
+        val store = MemoryRendererConfigStore()
+
+        val default = resolveRendererConfig(
+            rendererId = "renderer",
+            spec = MobileGluesRenderer.configSpec,
+            globalStore = store
+        )
+        assertEquals(true, default.sfpewLayerEnabled)
+        // 开关只属于启动器，不进 config.json，也不产出环境变量
+        assertFalse(default.jsonFields.containsKey("sfpewLayer"))
+        assertFalse(default.environment.containsKey("sfpewLayer"))
+
+        store.putValue("renderer", "sfpewLayer", ConfigScalar.BooleanValue(false))
+        val disabled = resolveRendererConfig(
+            rendererId = "renderer",
+            spec = MobileGluesRenderer.configSpec,
+            globalStore = store
+        )
+        assertEquals(false, disabled.sfpewLayerEnabled)
     }
 
     @Test

@@ -16,14 +16,14 @@ class GuideRegistryTest {
         registry.attach(node)
         val before = registry.version
 
-        registry.updateStyle(node, 12.dp, 2.dp, Color.Red)
+        registry.updateStyle(node, 12.dp, 2.dp, Color.Red, null)
         assertEquals(12.dp, node.holeRadius)
         assertEquals(2.dp, node.holeBorderWidth)
         assertEquals(Color.Red, node.holeBorderColor)
         assertTrue(registry.version > before)
 
         val stable = registry.version
-        registry.updateStyle(node, 12.dp, 2.dp, Color.Red)
+        registry.updateStyle(node, 12.dp, 2.dp, Color.Red, null)
         assertEquals(stable, registry.version)
     }
 

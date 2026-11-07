@@ -733,7 +733,9 @@ JNIEXPORT void JNICALL Java_org_lwjgl_glfw_CallbackBridge_nativeSetWindowAttrib(
     JNIEnv *jvm_env = NULL;
     jint env_result = (*jvm)->GetEnv(jvm, (void**)&jvm_env, JNI_VERSION_1_4);
     if(env_result == JNI_EDETACHED) {
-        env_result = (*jvm)->AttachCurrentThread(jvm, &jvm_env, NULL);
+        // 以守护线程身份附着：该附着会一直保留在 Android UI 线程上、不会被 Detach，
+        // 若为普通（非守护）线程，游戏主线程结束后 JVM 会永远等待它，导致退出卡住并被 26.x 的关闭看门狗判定为崩溃
+        env_result = (*jvm)->AttachCurrentThreadAsDaemon(jvm, (void**)&jvm_env, NULL);
     }
     if(env_result != JNI_OK) {
         printf("input_bridge nativeSetWindowAttrib() JNI call failed: %i\n", env_result);

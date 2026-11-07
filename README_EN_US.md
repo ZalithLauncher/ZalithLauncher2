@@ -2,49 +2,86 @@
   <img src="brand/banner.png" alt="NusaLauncher" width="720">
 </p>
 
+<p align="center">
+  A Minecraft: Java Edition launcher for Android with offline accounts, crash analysis, and a performance monitor.
+</p>
+
+[Bahasa Indonesia](README.md) | [简体中文 (upstream docs)](README_ZH_CN.md) | [繁體中文 (upstream docs)](README_ZH_TW.md)
+
 > [!NOTE]
-> **NusaLauncher** is an unofficial, community fork of [Zalith Launcher 2](https://github.com/ZalithLauncher/ZalithLauncher2) by MovTery and contributors. It is **not affiliated with or endorsed by** the official Zalith Launcher project. Licensed under GPL-3.0, same as upstream. Offline accounts are supported; Microsoft accounts are optional.
+> **NusaLauncher** is an **unofficial** community fork of [Zalith Launcher 2](https://github.com/ZalithLauncher/ZalithLauncher2) by MovTery and contributors. It is **not affiliated with or endorsed by** the Zalith Launcher team. Licensed under GPL-3.0, same as upstream.
+>
+> Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft. Minecraft is a trademark of Mojang Synergies AB.
 
----
+## Status
 
-# Zalith Launcher 2
-![Downloads](https://img.shields.io/github/downloads/ZalithLauncher/ZalithLauncher2/total)
-[![Sponsor](https://img.shields.io/badge/sponsor-30363D?logo=GitHub-Sponsors)](https://afdian.com/a/MovTery)
+NusaLauncher is in a **testing phase**. There is no official release yet, and the app is currently a debug build. Features may change and bugs are expected.
 
-[简体中文](README.md) | [繁體中文](README_ZH_TW.md)
+## Features
 
+### Inherited from Zalith Launcher 2
 
-> [!IMPORTANT]
-> This project is **completely separate** from [ZalithLauncher](https://github.com/ZalithLauncher/ZalithLauncher).  
+- Runs Minecraft: Java Edition on Android devices (arm64, Android 8.0 and up).
+- Several renderers, including GL4ES, MobileGlues, and Zink.
+- Fabric and modpack installation, version and Java management, and touch controls.
 
-**Zalith Launcher 2** is a newly designed launcher for **Android devices** tailored for [Minecraft: Java Edition](https://www.minecraft.net/). The project uses [PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/tree/v3_openjdk/app_pojavlauncher/src/main/jni) as its core launching engine and features a modern UI built with **Jetpack Compose** and **Material Design 3**.  
-We are currently building our official website [zalithlauncher.cn](https://zalithlauncher.cn)  
-Additionally, we are aware that a third-party website has been set up using the name “Zalith Launcher”, appearing to be official. Please note: **this site was not created by us**. It exploits the name to display ads for profit. We **do not participate in, endorse, or trust** such content.  
-Please stay vigilant and **protect your personal privacy**!
+### Added by NusaLauncher
 
-## 🌐 Language and Translation Support
+- **Offline accounts** without having to sign in with Microsoft first.
+- **Local crash analysis.** After a crash, the launcher recognizes 12 common problems (out of memory, wrong Java version, mod conflicts, shader failures, native crashes, and more) and shows the likely cause and advice in English or Indonesian. Works without internet.
+- **Share logs to mclo.gs** with automatic redaction (UUIDs, tokens, emails, and IP addresses are masked before upload).
+- **Automatic log archive.** The log of each game session is saved when you exit, named like `NusaLogs-2026-10-06-19.41.MobileGlues.log`, and kept for 30 days. See [docs/logs.md](docs/logs.md).
+- **Frame-time monitor.** Every 5 seconds the game log gets a `[NusaFrameStats]` line with average FPS, 1% low, jitter, and stutter count, so "high FPS but not smooth" can be measured. See [docs/performance-testing.md](docs/performance-testing.md).
+- New identity: its own name, icon, and package (`com.pickocore.nusalauncher`).
 
-We are using the Weblate platform to translate Zalith Launcher 2. You're welcome to join our [Weblate project](https://hosted.weblate.org/projects/zalithlauncher2) and contribute to the translations!  
-Thank you to every language contributor for helping make Zalith Launcher 2 more multilingual and global!
+### Planned (not available yet)
 
-## 📦 Build Instructions (For Developers)
+- An in-app **log history** screen (list, view, share, delete).
+- **Play together** over a local network (same WiFi), with a cross-version option.
+- A **renderer hub** and benchmark to pick the best renderer for your phone.
+- A black and orange interface theme.
+- Fully tested Microsoft sign-in. The base code comes from Zalith, but we have not tested it.
 
-> The following section is for developers who wish to contribute or build the project locally.
+## Download
 
-### Requirements
+There is no release yet. To try a test build:
 
-* Android Studio **Bumblebee** or newer
-* Android SDK:
-  * **Minimum API level**: 26
-  * **Target API level**: 35
-* JDK 11
+1. Open the **Actions** tab of this repository and pick the latest green **Build APK** run.
+2. Under **Artifacts**, download the APK for your phone's architecture (most modern phones are **arm64**). GitHub login is required.
+3. Extract the zip and install the APK inside (allow installing from unknown sources).
 
-### Build Steps
+## Usage notes
+
+- **Offline accounts** only work in single-player and on servers running in offline-mode. Online-mode servers (most large servers) reject them and require a genuine Microsoft account. If you enjoy the game, please buy it to support Mojang.
+- **Choosing a renderer.** In an early test on one phone (Dimensity 8500, Mali-G720), GL4ES was the most stable for vanilla Minecraft, MobileGlues came next, and Zink stuttered the most. GL4ES does not support Sodium and can crash when used with it. This is a single device, so treat it as a hint, not a guarantee.
+- After a crash, open the log menu once the game closes to see the diagnosis, or attach the `NusaLogs-...` file when reporting a problem.
+
+## Documentation
+
+- [Log system](docs/logs.md)
+- [Performance testing guide](docs/performance-testing.md)
+- [Brand assets](brand/README.md)
+
+## Build from source
+
+Requirements (following the [CI workflow](.github/workflows/build.yml)):
+
+- JDK 21
+- Android SDK and NDK `27.0.12077973`
+- Rust (stable) and [cargo-ndk](https://github.com/bbqsrc/cargo-ndk), for the `PetLib` module
+- The repository's Gradle wrapper (AGP 9.3, Kotlin 2.4)
+- minSdk 26, targetSdk 34
 
 ```bash
-git clone git@github.com:ZalithLauncher/ZalithLauncher2.git
-# Open the project in Android Studio and build
+git clone https://github.com/PickoCore/NusaLauncher.git
+# Open in Android Studio and build, or follow the steps in .github/workflows/build.yml
 ```
+
+## Reporting issues
+
+Open an [issue](https://github.com/PickoCore/NusaLauncher/issues). Include your phone model, Minecraft version, renderer, and the archived log file (`NusaLogs-...log`). Never paste tokens or personal data.
+
+Problems that come from the upstream project (not NusaLauncher features) are best also reported to [Zalith Launcher 2](https://github.com/ZalithLauncher/ZalithLauncher2/issues).
 
 ## 📜 License
 

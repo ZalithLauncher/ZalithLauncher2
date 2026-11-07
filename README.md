@@ -10,9 +10,7 @@
 
 * **Tampilan baru:** tema merah, menu samping di layar utama, dan menu tab di bagian atas pada layar Unduh, Pengaturan, dan Kelola Versi.
 * **Nev Server Hub:** daftar server dengan pencarian, filter lokasi, jumlah pemain online, dan mode permainan, serta Favorit dan penambahan server sendiri.
-* **Menu dalam game:** overlay FPS, koordinat X/Y/Z, arah mata angin, dan Menu Game yang bisa dibesarkan atau dikecilkan.
 * **Perekaman layar:** rekam, jeda, lanjut, dan simpan, dengan suara game dan mikrofon, serta Noise Cancelling.
-* **Crash Analyzer:** membantu membaca penyebab crash.
 * **Render Distance Smooth:** membantu menjaga performa saat render distance tinggi.
 * **Lemari pakaian dan cape:** pasang cape pada skin untuk akun offline maupun Microsoft.
 * **Layout kontrol bawaan** dan berbagai gaya kontrol siap pakai.

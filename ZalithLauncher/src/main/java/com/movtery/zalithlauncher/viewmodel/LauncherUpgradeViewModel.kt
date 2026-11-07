@@ -85,6 +85,15 @@ private const val LATEST_API_URL = "$URL_PROJECT_INFO/$LATEST_VERSION"
 private const val LATEST_API_CHINESE_URL = "https://repo.miawa.cn/zalith-info/v2/$LATEST_VERSION"
 
 /**
+ * NusaLauncher: 上游（Zalith Launcher）的更新信息不适用于本启动器。
+ * Info versi di repo Zalith-Info adalah untuk Zalith Launcher, bukan NusaLauncher, jadi pemeriksaan ke sana dimatikan.
+ * Aktifkan lagi (dan arahkan ke sumber info NusaLauncher) setelah ada rilis resmi.
+ */
+object UpgradePolicy {
+    val checkUpstreamEnabled: Boolean = false
+}
+
+/**
  * 用于记录启动器更新 ViewModel
  */
 class LauncherUpgradeViewModel: ViewModel() {
@@ -123,6 +132,10 @@ class LauncherUpgradeViewModel: ViewModel() {
     fun checkOnAppStart(
         onIsLatest: suspend () -> Unit = {}
     ) {
+        if (!UpgradePolicy.checkUpstreamEnabled) {
+            Logger.info(TAG, "App start check: upstream update check is disabled for NusaLauncher")
+            return
+        }
         viewModelScope.launch {
             if (
                 isWithinRateLimit(
@@ -190,6 +203,7 @@ class LauncherUpgradeViewModel: ViewModel() {
      * 从远端获取最新的启动器信息
      */
     private suspend fun fetchRemoteData(): RemoteData? {
+        if (!UpgradePolicy.checkUpstreamEnabled) return null
         return withContext(Dispatchers.IO) {
             runCatching {
                 withRetry(logTag = "LauncherUpgrade", maxRetries = 2) {

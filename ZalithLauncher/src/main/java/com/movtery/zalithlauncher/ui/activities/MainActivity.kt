@@ -102,6 +102,8 @@ import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.LaunchGameViewModel
 import com.movtery.zalithlauncher.viewmodel.LauncherUpgradeOperation
 import com.movtery.zalithlauncher.viewmodel.LauncherUpgradeViewModel
+import com.movtery.zalithlauncher.viewmodel.UpgradePolicy
+import com.movtery.zalithlauncher.path.URL_NUSA_RELEASES
 import com.movtery.zalithlauncher.viewmodel.LogShareViewModel
 import com.movtery.zalithlauncher.viewmodel.LogsUploadViewModel
 import com.movtery.zalithlauncher.viewmodel.ModifyVersionOperation
@@ -603,6 +605,12 @@ class MainActivity : BaseAppCompatActivity() {
      * 检查启动器更新
      */
     private fun checkUpdate() {
+        //NusaLauncher: tidak memeriksa ke Zalith; arahkan pengguna ke halaman rilis NusaLauncher
+        if (!UpgradePolicy.checkUpstreamEnabled) {
+            Toast.makeText(this, getString(R.string.upgrade_nusa_open_releases), Toast.LENGTH_SHORT).show()
+            openLink(URL_NUSA_RELEASES)
+            return
+        }
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val success = launcherUpgradeViewModel.checkManually(

@@ -15,7 +15,7 @@
 
 ## Status
 
-NusaLauncher masih dalam **tahap uji**. Belum ada rilis resmi, dan aplikasinya masih berupa build debug. Fitur bisa berubah, dan bug masih mungkin muncul.
+NusaLauncher masih dalam **tahap uji**. Pembaruan otomatis belum tersedia: tombol "Periksa pembaruan" membuka halaman [Releases](https://github.com/PickoCore/NusaLauncher/releases). Belum ada rilis resmi, dan aplikasinya masih berupa build debug. Fitur bisa berubah, dan bug masih mungkin muncul.
 
 ## Fitur
 

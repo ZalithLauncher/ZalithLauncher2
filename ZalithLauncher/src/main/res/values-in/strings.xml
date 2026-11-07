@@ -1506,4 +1506,6 @@
     <string name="log_history_delete_all_confirm">Hapus semua %1$d log tersimpan?</string>
     <string name="settings_launcher_log_history_title">Riwayat log</string>
     <string name="settings_launcher_log_history_summary">Lihat, bagikan, atau hapus log yang tersimpan dari tiap sesi game</string>
+    <!-- NusaLauncher: updater -->
+    <string name="upgrade_nusa_open_releases">Pembaruan otomatis belum tersedia. Membuka halaman rilis.</string>
 </resources>

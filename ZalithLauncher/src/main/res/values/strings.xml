@@ -3107,4 +3107,6 @@
     <string name="guide_joystick_events_events_text1">The triggerable events are the same as those of regular buttons, so you have plenty of freedom here</string>
     <!-- Closing line of the guide card about editing actual key bindings in the Key section -->
     <string name="guide_joystick_events_events_text2">If you only want to control the game, just edit the actual key bindings in the \"Key\" section</string>
+    <!-- NusaLauncher: updater -->
+    <string name="upgrade_nusa_open_releases">Automatic updates are not available yet. Opening the releases page.</string>
 </resources>

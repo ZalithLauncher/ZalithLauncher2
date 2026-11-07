@@ -52,6 +52,8 @@ const val URL_MINECRAFT_ASSETS_INDEX: String = "https://launchermeta.mojang.com/
 const val URL_MINECRAFT_PURCHASE = "https://www.xbox.com/games/store/minecraft-java-bedrock-edition-for-pc/9nxp44l49shj"
 const val URL_PROJECT: String = "https://github.com/ZalithLauncher/ZalithLauncher2"
 const val URL_PROJECT_INFO: String = "https://api.github.com/repos/ZalithLauncher/Zalith-Info/contents/v2"
+/** NusaLauncher: halaman rilis NusaLauncher */
+const val URL_NUSA_RELEASES: String = "https://github.com/PickoCore/NusaLauncher/releases"
 const val URL_COMMUNITY: String = "https://github.com/ZalithLauncher/ZalithLauncher2/graphs/contributors"
 const val URL_WEBLATE: String = "https://hosted.weblate.org/projects/zalithlauncher2"
 const val URL_SUPPORT: String = "https://ifdian.net/a/MovTery"

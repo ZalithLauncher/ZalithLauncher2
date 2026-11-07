@@ -15,7 +15,7 @@
 
 ## Status
 
-NusaLauncher is in a **testing phase**. There is no official release yet, and the app is currently a debug build. Features may change and bugs are expected.
+NusaLauncher is in a **testing phase**. Automatic updates are not available yet: the "Check for updates" button opens the [Releases](https://github.com/PickoCore/NusaLauncher/releases) page. There is no official release yet, and the app is currently a debug build. Features may change and bugs are expected.
 
 ## Features
 

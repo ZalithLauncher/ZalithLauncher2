@@ -1923,6 +1923,14 @@
     <string name="settings_game_jvm_args_title">JVM Arguments</string>
     <!-- Summary of the JVM arguments field, warning that wrong values can crash the game -->
     <string name="settings_game_jvm_args_summary">Additional JVM arguments added when starting the JVM. Modifying these without proper knowledge is not recommended, as it may cause crashes</string>
+    <!-- Switch title in the Game tab for the Render Distance Smooth feature -->
+    <string name="settings_game_smooth_render_title">Render Distance Smooth</string>
+    <!-- Summary of the Render Distance Smooth switch -->
+    <string name="settings_game_smooth_render_summary">Keeps the game smooth at high render distance. Your render distance is not changed; the launcher lowers hidden workload instead (simulation distance, distant entities, biome blending, particles) and tunes the JVM garbage collector to reduce stutter</string>
+    <!-- Slider title for the simulation distance cap of Render Distance Smooth -->
+    <string name="settings_game_smooth_simulation_title">Simulation Distance Limit</string>
+    <!-- Summary of the simulation distance slider; chunks only ticked near the player -->
+    <string name="settings_game_smooth_simulation_summary">Only chunks within this distance are processed by the CPU (mobs, entities, redstone). Lower is smoother. Works on Minecraft 1.18 and newer</string>
     <!-- Text field title in the version settings screen for extra game launch arguments -->
     <string name="versions_config_game_args_title">Game Arguments</string>
     <!-- Summary of the extra game arguments field in the version settings screen -->

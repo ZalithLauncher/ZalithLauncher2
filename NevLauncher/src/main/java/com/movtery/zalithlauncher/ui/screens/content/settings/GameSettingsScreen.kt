@@ -252,6 +252,33 @@ fun GameSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
+                        unit = AllSettings.smoothRenderDistance,
+                        title = stringResource(R.string.settings_game_smooth_render_title),
+                        summary = stringResource(R.string.settings_game_smooth_render_summary)
+                    )
+
+                    IntSliderSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.smoothSimulationDistance,
+                        title = stringResource(R.string.settings_game_smooth_simulation_title),
+                        summary = stringResource(R.string.settings_game_smooth_simulation_summary),
+                        valueRange = AllSettings.smoothSimulationDistance.floatRange,
+                        suffix = " chunk",
+                        fineTuningControl = true
+                    )
+                }
+            }
+
+            AnimatedItem { ctx ->
+                SettingsCardColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .animated(ctx)
+                ) {
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Top,
                         unit = AllSettings.showLogAutomatic,
                         title = stringResource(R.string.settings_game_show_log_automatic_title),
                         summary = stringResource(R.string.settings_game_show_log_automatic_summary)

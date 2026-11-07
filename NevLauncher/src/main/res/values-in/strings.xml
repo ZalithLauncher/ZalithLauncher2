@@ -603,6 +603,10 @@
     <string name="settings_game_java_memory_summary">Atur penggunaan RAM untuk Minecraft</string>
     <string name="settings_game_jvm_args_title">Argumen JVM</string>
     <string name="settings_game_jvm_args_summary">Argumen JVM tambahan ditambahkan saat memulai JVM. Tidak disarankan memodifikasi argumen ini tanpa pengetahuan yang memadai, karena bisa bikin crash</string>
+    <string name="settings_game_smooth_render_title">Render Distance Smooth</string>
+    <string name="settings_game_smooth_render_summary">Jaga game tetap lancar walau render distance tinggi. Nilai render distance kamu tidak diubah; launcher mengurangi beban tersembunyi (simulation distance, entity jauh, blending biome, partikel) dan menyetel GC JVM agar tidak patah-patah</string>
+    <string name="settings_game_smooth_simulation_title">Batas Simulation Distance</string>
+    <string name="settings_game_smooth_simulation_summary">Hanya chunk dalam jarak ini yang diproses CPU (mob, entity, redstone). Makin kecil makin lancar. Berlaku di Minecraft 1.18 ke atas</string>
     <string name="settings_game_show_log_automatic_title">Tampilkan Log Secara Otomatis</string>
     <string name="settings_game_show_log_automatic_summary">Tampilkan log secara otomatis sebelum logo Mojang muncul</string>
     <string name="settings_game_log_text_size_title">Ukuran Font Log</string>

@@ -162,6 +162,17 @@ object AllSettings : SettingsRegistry() {
     val jvmArgs = stringSetting("jvmArgs", "")
 
     /**
+     * Render Distance Smooth：render distance tinggi tetap lancar
+     * (simulation distance rendah, opsi video ringan, GC JVM dituning)
+     */
+    val smoothRenderDistance = boolSetting("smoothRenderDistance", true)
+
+    /**
+     * Render Distance Smooth：batas simulation distance (chunk yang benar-benar diproses CPU)
+     */
+    val smoothSimulationDistance = intSetting("smoothSimulationDistance", 5, 2..12)
+
+    /**
      * 已禁用的原生库插件列表
      */
     val disableNativeLibPlugins = stringListSetting("nativeLibPlugins", emptyList())

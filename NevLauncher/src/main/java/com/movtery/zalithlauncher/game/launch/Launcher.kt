@@ -358,7 +358,13 @@ abstract class Launcher(
         args.add("-Dorg.lwjgl.system.allocator=system")
 
         // Some phones are not using the right number of cores, fix that
-        args.add("-XX:ActiveProcessorCount=${java.lang.Runtime.getRuntime().availableProcessors()}")
+        val cpuCores = java.lang.Runtime.getRuntime().availableProcessors()
+        args.add("-XX:ActiveProcessorCount=$cpuCores")
+
+        // Render Distance Smooth: tuning GC agar tidak stutter saat chunk banyak dimuat
+        if (AllSettings.smoothRenderDistance.getValue()) {
+            args.addSmoothRenderDistanceJvmArgs(cpuCores)
+        }
     }
 
     protected fun MutableList<String>.purgeArg(argStart: String) {

@@ -35,6 +35,7 @@ import com.movtery.zalithlauncher.game.input.LWJGLCharSender
 import com.movtery.zalithlauncher.game.launch.GameLauncher
 import com.movtery.zalithlauncher.game.launch.LaunchConfig
 import com.movtery.zalithlauncher.game.launch.MCOptions
+import com.movtery.zalithlauncher.game.launch.applySmoothRenderDistance
 import com.movtery.zalithlauncher.game.launch.loadLanguage
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.sdl.handleGamepadKeyEvent
@@ -124,6 +125,10 @@ class GameHandler(
                     }
                 }
                 else -> set(graphicsOption, graphicsApi.option)
+            }
+
+            if (AllSettings.smoothRenderDistance.getValue()) {
+                applySmoothRenderDistance(AllSettings.smoothSimulationDistance.getValue())
             }
 
             loadLanguage(version.getVersionInfo()!!.minecraftVersion)

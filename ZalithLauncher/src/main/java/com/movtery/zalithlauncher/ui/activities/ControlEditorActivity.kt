@@ -27,17 +27,12 @@ import androidx.activity.viewModels
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import com.movtery.guide.GuideHost
 import com.movtery.layer_controller.layout.ControlLayout
 import com.movtery.layer_controller.layout.loadLayoutFromFile
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
-import com.movtery.zalithlauncher.ui.guide.GuideKeys
-import com.movtery.zalithlauncher.ui.guide.NextTipLabel
-import com.movtery.zalithlauncher.ui.guide.rememberAppGuides
 import com.movtery.zalithlauncher.ui.screens.content.elements.Background
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
@@ -95,47 +90,37 @@ class ControlEditorActivity : BaseAppCompatActivity() {
             ZalithLauncherTheme(
                 backgroundViewModel = backgroundViewModel
             ) {
-                val guides = rememberAppGuides()
-                GuideHost(
-                    guides.editorScreen,
-                    nextTip = { NextTipLabel(it) }
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = backgroundColor(),
+                    contentColor = onBackgroundColor()
                 ) {
-                    LaunchedEffect(Unit) {
-                        guides.startOnce(GuideKeys.Editor)
-                    }
-
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = backgroundColor(),
-                        contentColor = onBackgroundColor()
+                    BoxWithConstraints(
+                        modifier = Modifier.fillMaxSize()
                     ) {
-                        BoxWithConstraints(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            Background(
-                                modifier = Modifier.fillMaxSize(),
-                                viewModel = backgroundViewModel,
-                                allowVideo = false
-                            )
+                        Background(
+                            modifier = Modifier.fillMaxSize(),
+                            viewModel = backgroundViewModel,
+                            allowVideo = false
+                        )
 
-                            ControlEditor(
-                                viewModel = editorViewModel,
-                                targetFile = controlFile,
-                                exit = {
-                                    //已保存控制布局后进行的退出
-                                    finish()
-                                },
-                                menuExit = {
-                                    //菜单要求的直接退出，使用对话框让用户确认
-                                    editorViewModel.showExitEditorDialog(
-                                        context = this@ControlEditorActivity,
-                                        onExit = {
-                                            this@ControlEditorActivity.finish()
-                                        }
-                                    )
-                                }
-                            )
-                        }
+                        ControlEditor(
+                            viewModel = editorViewModel,
+                            targetFile = controlFile,
+                            exit = {
+                                //已保存控制布局后进行的退出
+                                finish()
+                            },
+                            menuExit = {
+                                //菜单要求的直接退出，使用对话框让用户确认
+                                editorViewModel.showExitEditorDialog(
+                                    context = this@ControlEditorActivity,
+                                    onExit = {
+                                        this@ControlEditorActivity.finish()
+                                    }
+                                )
+                            }
+                        )
                     }
                 }
             }

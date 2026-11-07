@@ -1,8 +1,10 @@
 package com.movtery.guide
 
 import androidx.compose.animation.core.Spring
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -38,6 +40,10 @@ object GuideDefaults {
      * 引导内容与屏幕边缘的最小留白
      */
     val screenPadding: Dp = 16.dp
+    /**
+     * 引导内容的默认裁剪形状
+     */
+    val contentShape: Shape = RoundedCornerShape(28.dp)
     /**
      * MD3 Expressive 风格的空间弹性
      */

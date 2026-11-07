@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
@@ -60,13 +61,14 @@ internal class GuideRegistry {
     }
 
     /**
-     * 更新锚点的镂空样式声明
+     * 更新锚点的镂空样式与内容裁剪形状声明
      */
-    fun updateStyle(node: GuideNode, radius: Dp?, borderWidth: Dp?, borderColor: Color?) {
-        if (node.holeRadius != radius || node.holeBorderWidth != borderWidth || node.holeBorderColor != borderColor) {
+    fun updateStyle(node: GuideNode, radius: Dp?, borderWidth: Dp?, borderColor: Color?, shape: Shape?) {
+        if (node.holeRadius != radius || node.holeBorderWidth != borderWidth || node.holeBorderColor != borderColor || node.shape != shape) {
             node.holeRadius = radius
             node.holeBorderWidth = borderWidth
             node.holeBorderColor = borderColor
+            node.shape = shape
             bump()
         }
     }
@@ -135,6 +137,7 @@ internal class GuideNode internal constructor(internal val key: GuideKey) {
     internal var holeRadius: Dp? = null
     internal var holeBorderWidth: Dp? = null
     internal var holeBorderColor: Color? = null
+    internal var shape: Shape? = null
     internal val bringIntoViewRequester = BringIntoViewRequester()
 }
 
@@ -149,13 +152,15 @@ internal val LocalGuideRegistry = compositionLocalOf<GuideRegistry?> { null }
  * @param holeRadius 镂空圆角半径，null 时回落引导流的全局配置
  * @param holeBorderWidth 镂空描边宽度，null 时回落引导流的全局配置
  * @param holeBorderColor 镂空描边颜色，null 时使用库默认颜色
+ * @param shape 引导内容裁剪形状，null 时回落引导流的全局配置；多锚点时取首个声明
  */
 fun Modifier.guideNode(
     key: GuideKey,
     preferSide: GuideSide? = null,
     holeRadius: Dp? = null,
     holeBorderWidth: Dp? = null,
-    holeBorderColor: Color? = null
+    holeBorderColor: Color? = null,
+    shape: Shape? = null
 ): Modifier = composed {
     val registry = LocalGuideRegistry.current ?: return@composed this
     val node = remember(key) { GuideNode(key) }
@@ -165,7 +170,7 @@ fun Modifier.guideNode(
     }
     SideEffect {
         registry.updatePreferSide(node, preferSide)
-        registry.updateStyle(node, holeRadius, holeBorderWidth, holeBorderColor)
+        registry.updateStyle(node, holeRadius, holeBorderWidth, holeBorderColor, shape)
     }
     this
         .bringIntoViewRequester(node.bringIntoViewRequester)

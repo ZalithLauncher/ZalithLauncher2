@@ -26,6 +26,8 @@ import android.view.View;
 
 import androidx.annotation.Keep;
 
+import com.movtery.zalithlauncher.utils.logging.Logger;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -85,6 +87,27 @@ public class SDLControllerManager
      */
     static void pollInputDevices() {
         mJoystickHandler.pollInputDevices();
+    }
+
+    /**
+     * 主动触发一次手柄设备枚举，把 Android 侧设备增删同步进 SDL，差异会转为 SDL 热插拔事件。
+     * 不依赖 SDL 内部的节流轮询。
+     * @param trigger 枚举触发来源，用于日志定位
+     * @return 是否执行了枚举；摇杆处理器未初始化或枚举异常时返回 false
+     */
+    static public boolean pollInputDevicesSafely(String trigger) {
+        // 摇杆处理器由 initialize() 创建，未创建说明 SDL 输入流程尚未就绪
+        if (mJoystickHandler == null) {
+            return false;
+        }
+        try {
+            pollInputDevices();
+            return true;
+        } catch (Throwable t) {
+            // libSDL3 未随当前虚拟机加载等场景会抛 UnsatisfiedLinkError，吞掉避免打断调用方
+            Logger.INSTANCE.warning(TAG, "Poll input devices failed, trigger: " + trigger, t);
+            return false;
+        }
     }
 
     /**

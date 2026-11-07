@@ -21,7 +21,7 @@ package com.movtery.zalithlauncher.game.download.modpack.platform.modrinth
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
-import com.movtery.zalithlauncher.game.download.assets.platform.mcim.mapMCIMMirrorUrls
+import com.movtery.zalithlauncher.game.download.addon.platform.mcim.mapMCIMMirrorUrls
 import com.movtery.zalithlauncher.game.download.modpack.install.ModFile
 import com.movtery.zalithlauncher.game.download.modpack.install.ModPackInfo
 import com.movtery.zalithlauncher.game.download.modpack.install.ModPackInfoTask

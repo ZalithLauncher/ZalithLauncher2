@@ -19,8 +19,8 @@
 package com.movtery.zalithlauncher.ui.screens
 
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.download.assets.platform.Platform
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.platform.Platform
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.screens.splash.SplashOperation
@@ -131,7 +131,7 @@ sealed interface NestedNavKey {
     }
     /** 查看Addons资源信息屏幕 */
     @Serializable
-    class AssetInfo(
+    class AddonInfo(
         val platform: Platform,
         val projectId: String,
         val classes: PlatformClasses
@@ -140,7 +140,7 @@ sealed interface NestedNavKey {
     ) {
         init {
             backStack.addIfEmpty(
-                NormalNavKey.DownloadAssets(platform, projectId, classes)
+                NormalNavKey.DownloadAddon(platform, projectId, classes)
             )
         }
     }

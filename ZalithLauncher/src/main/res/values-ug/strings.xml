@@ -137,5 +137,15 @@
     <string name="guide_editor_save">تەھرىرلەش تاماملانغاندىن كېيىن، كونترول ئورۇنلاشتۇرۇشىنى ساقلاشنى ئۇنتۇڭ!</string>
     <string name="guide_tip_blank">بوش ئورۇننى چېكىپ كېيىنكى قەدەمگە ئۆتۈڭ</string>
     <string name="guide_tip_finish">بوش ئورۇننى چېكىپ يېتەكچىلىكنى تاماملاڭ</string>
+    <string name="guide_joystick_events_welcome_title">جويستىكنىڭ يۆنىلىش ھادىسىلىرىنى تەھرىرلەش يېتەكچىسى</string>
+    <string name="guide_joystick_events_welcome_text">جويستىكنىڭ بارلىق يۆنىلىشىگە ئايرىم قوزغىتىش ھادىسىسى تەڭشىگىلى بولىدۇ</string>
+    <string name="guide_joystick_events_direction_title">جويستىكنىڭ قوزغىتىشچان 8 يۆنىلىشى بار</string>
+    <string name="guide_joystick_events_direction_text">جويستىكنى مۇناسىۋەتلىك رايونغا ئىتەرسىڭىز، شۇ يۆنىلىشكە باغلانغان ھادىسىلەر قوزغىتىلىدۇ</string>
+    <string name="guide_joystick_events_lock_text1">جويستىكنىڭ دەل ئۈستىدە ھۆكۈم رايونى بار: جويستىكنى ئىتەرگەندە بارماقنى بەلگىلىك رايونغا سۈرسىڭىزلا «ئالدى قۇلۇپلاش» قوزغىتىلىدۇ</string>
+    <string name="guide_joystick_events_lock_text2">«جويستىك تەڭشەكلىرى»دىن «ئالدى قۇلۇپلاش»نى ئېچىپ-ئېتىپ، بۇ قوزغىتىش رايونىنىڭ ئارىلىقىنى كونترول قىلغىلى بولىدۇ</string>
+    <string name="guide_joystick_events_lock_text3">بارماق قۇلۇپلىنىدىغان رايونغا كىرسىلا، جويستىك «قۇلۇپلاش ھادىسىسى»نى قوزغىتىدۇ؛ «ئالدى قۇلۇپلاش» ئېتىك بولسا ئۈنۈمى بولمايدۇ</string>
+    <string name="guide_joystick_events_lock_text4">ھادىسىنى تەھرىرلەش ئۈچۈن توپچىنى بېسىڭ</string>
+    <string name="guide_joystick_events_events_text1">قوزغىتىلىدىغان ھادىسىلەر ئادەتتىكى توپچىلار بىلەن ئوخشاش، ئەركىنلىكى يۇقىرى</string>
+    <string name="guide_joystick_events_events_text2">پەقەت ئويۇننى كونترول قىلماقچى بولسىڭىز، «كۇنۇپكا» بۆلىكىدىكى ئەمەلىي كۇنۇپكا باغلىنىشىنى تەھرىرلىسىڭىزلا بولىدۇ</string>
     <string name="about_acknowledgements_modrinth_text">%s Modrinthدىن ئويۇنچى مودېلى ھەرىكەت ئۈلگىلىرىنى كۆچۈرۈپ ئىشلەتكەن</string>
 </resources>

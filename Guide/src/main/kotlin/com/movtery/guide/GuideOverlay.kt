@@ -13,9 +13,13 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -30,12 +34,15 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
@@ -50,17 +57,20 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.util.lerp
 import kotlinx.coroutines.delay
 import kotlin.math.abs
+import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * 激活引导流的覆盖层：解析锚点、绘制遮罩与镂空、裁决点击、展示引导内容。
- * 遮罩由唯一的 [Scrim] 层绘制，与步骤内容相互独立
+ * 激活引导流的覆盖层：解析锚点、绘制遮罩与镂空、展示引导内容。
+ * 遮罩层与宿主内容共享命中，镂空位置的事件放行到宿主内容；
+ * 引导内容层独占命中，事件不下穿宿主内容
  */
 @Composable
 internal fun GuideOverlay(
     controller: GuideController,
     state: GuideState.Active,
     registry: GuideRegistry,
+    arbiter: GuideEventArbiter,
     fadeAlpha: Float,
     nextTip: @Composable (NextTip) -> Unit,
     animations: GuideAnimations
@@ -71,6 +81,8 @@ internal fun GuideOverlay(
     val version = registry.version
     val nodes = remember(entry.key, version) { registry.nodesFor(entry.key) }
     val anchors = nodes.map(GuideNode::bounds)
+
+    val contentShape = nodes.firstNotNullOfOrNull { it.shape } ?: controller.shape
 
     // 回写锚点，供应用侧通过 GuideState.Active.anchors 观察就绪情况
     LaunchedEffect(state.index, anchors) {
@@ -87,6 +99,15 @@ internal fun GuideOverlay(
             if (registry.requestScroll(entry.key)) handled++
             delay(600.milliseconds)
         }
+    }
+
+    // 门控推进：点击仅表达推进意图，待下一步骤的锚点注册就绪后自动推进
+    var armedForNext by remember(state.index) { mutableStateOf(false) }
+    val gateActive = arbiter.gateActive(controller, state)
+    val nextNodesReady = gateActive && arbiter.nextAnchorReady(controller, state)
+
+    LaunchedEffect(armedForNext, nextNodesReady) {
+        if (armedForNext && nextNodesReady) controller.next()
     }
 
     var contentRect by remember { mutableStateOf<Rect?>(null) }
@@ -107,78 +128,63 @@ internal fun GuideOverlay(
         )
     }
 
+    val ready = entry.isIntro || anchors.isNotEmpty()
+    if (!ready && contentRect != null) contentRect = null
+
     CompositionLocalProvider(LocalContentColor provides controller.colors.content) {
-        BoxWithConstraints(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .sharePointerInputWithSiblings()
         ) {
-            val containerSize = IntSize(constraints.maxWidth, constraints.maxHeight)
-            val anchorsVisible = anchorsVisibleIn(anchors, containerSize)
-
-            // 锚点存在但未完全入视口时，请求滚动容器将其带入视口
-            LaunchedEffect(state.index, anchorsVisible) {
-                if (!entry.isIntro && anchors.isNotEmpty() && !anchorsVisible) {
-                    registry.bringIntoView(entry.key)
-                }
-            }
-
-            val ready = entry.isIntro || anchors.isNotEmpty()
-            // 等待期间不存在引导内容，点击放行区域一并失效
-            if (!ready && contentRect != null) contentRect = null
-
-            // 介绍步骤与未入视口的锚点固定居中展示，入视口后按策略求解
-            val sideHint = registry.sideHintFor(entry.key)
-            val effectivePlacement = when {
-                entry.isIntro || !anchorsVisible -> GuidePlacement.Fixed(Alignment.Center)
-                else -> resolvePlacement(entry.placement, sideHint, anchors)
-            }
-
             Scrim(
                 controller = controller,
                 holes = holes,
                 ready = ready,
                 fadeAlpha = fadeAlpha,
                 contentRect = contentRect,
-                isIntro = entry.isIntro,
-                nodeClick = entry.nodeClick,
-                advanceOnScrimClick = entry.advanceOnScrimClick,
                 animations = animations,
-                onNext = controller::next
-            )
-
-            GuideCardContainer(
-                controller = controller,
-                state = state,
-                anchors = anchors,
-                placement = effectivePlacement,
-                visible = ready,
-                fadeAlpha = fadeAlpha,
-                animations = animations,
-                layoutDirection = layoutDirection,
-                gapPx = gapPx,
-                paddingPx = paddingPx,
-                onPlaced = { rect -> if (contentRect != rect) contentRect = rect }
-            )
-
-            // 下一步提示
-            val tip: NextTip? = when {
-                !entry.showNextTip -> null
-                entry.nodeClick == NodeClickMode.PassThrough -> null // 用户点击元素推进，无提示
-                state.index == controller.entries.lastIndex -> NextTip.Finish
-                entry.advanceOnScrimClick -> NextTip.TapBlank
-                else -> null
-            }
-            NextTipSlot(
-                tip = tip,
-                anchors = anchors,
-                contentRect = contentRect,
-                containerSize = containerSize,
-                fadeAlpha = fadeAlpha,
-                animations = animations,
-                content = nextTip
+                arbiter = arbiter,
+                onAdvance = controller::next,
+                onGateArm = { armedForNext = true }
             )
         }
+
+        GuideCardContainer(
+            controller = controller,
+            state = state,
+            registry = registry,
+            anchors = anchors,
+            placement = entry.placement,
+            visible = ready,
+            fadeAlpha = fadeAlpha,
+            animations = animations,
+            layoutDirection = layoutDirection,
+            gapPx = gapPx,
+            paddingPx = paddingPx,
+            shape = contentShape,
+            contentRect = contentRect,
+            arbiter = arbiter,
+            onGateArm = { armedForNext = true },
+            onPlaced = { rect -> if (contentRect != rect) contentRect = rect }
+        )
+
+        // 下一步提示
+        val tip: NextTip? = when {
+            !entry.showNextTip -> null
+            entry.nodeClick == NodeClickMode.PassThrough -> null // 用户点击元素推进，无提示
+            state.index == controller.entries.lastIndex -> NextTip.Finish
+            entry.advanceOnScrimClick -> NextTip.TapBlank
+            else -> null
+        }
+        NextTipSlot(
+            tip = tip,
+            anchors = anchors,
+            contentRect = contentRect,
+            fadeAlpha = fadeAlpha,
+            animations = animations,
+            content = nextTip
+        )
     }
 }
 
@@ -192,19 +198,17 @@ private fun Scrim(
     ready: Boolean,
     fadeAlpha: Float,
     contentRect: Rect?,
-    isIntro: Boolean,
-    nodeClick: NodeClickMode,
-    advanceOnScrimClick: Boolean,
     animations: GuideAnimations,
-    onNext: () -> Unit
+    arbiter: GuideEventArbiter,
+    onAdvance: () -> Unit,
+    onGateArm: () -> Unit
 ) {
-    val currentHoles by rememberUpdatedState(holes)
     val currentReady by rememberUpdatedState(ready)
     val currentContentRect by rememberUpdatedState(contentRect)
-    val currentIsIntro by rememberUpdatedState(isIntro)
-    val currentNodeClick by rememberUpdatedState(nodeClick)
-    val currentAdvanceOnScrim by rememberUpdatedState(advanceOnScrimClick)
-    val currentOnNext by rememberUpdatedState(onNext)
+    val currentController by rememberUpdatedState(controller)
+    val currentArbiter by rememberUpdatedState(arbiter)
+    val currentOnAdvance by rememberUpdatedState(onAdvance)
+    val currentOnGateArm by rememberUpdatedState(onGateArm)
     val currentColors by rememberUpdatedState(controller.colors)
 
     val holeSpec: FiniteAnimationSpec<Float> = if (animations.enabled) {
@@ -299,12 +303,10 @@ private fun Scrim(
                         pass = PointerEventPass.Initial
                     )
                     val startPos = down.position
-                    val hole = currentHoles.firstOrNull { it.rect.contains(startPos) }
-                    val inContent = currentContentRect?.contains(startPos) == true
 
-                    // 引导内容自身与放行模式的锚点只观察不消费，其余一律拦截
-                    val observeOnly = !currentIsIntro && (inContent ||
-                            (hole != null && currentNodeClick == NodeClickMode.PassThrough))
+                    // 放行策略由仲裁器统一裁决，仅放行模式的锚点区域只观察不消费；
+                    // 引导内容自身的可交互节点位于遮罩上层，命中时遮罩不参与命中，不受拦截影响
+                    val observeOnly = currentArbiter.passThroughAt(startPos)
                     if (!observeOnly) down.consume()
 
                     var pressed = true
@@ -330,11 +332,10 @@ private fun Scrim(
                     }
 
                     if (isTap) {
-                        when {
-                            currentIsIntro -> currentOnNext()
-                            inContent -> Unit
-                            hole != null -> currentOnNext()
-                            currentAdvanceOnScrim -> currentOnNext()
+                        when (currentArbiter.resolveTap(currentController, currentContentRect, startPos)) {
+                            TapAction.Advance -> currentOnAdvance()
+                            TapAction.GateArm -> currentOnGateArm()
+                            TapAction.None -> Unit
                         }
                     }
                 }
@@ -419,7 +420,6 @@ private fun NextTipSlot(
     tip: NextTip?,
     anchors: List<Rect>,
     contentRect: Rect?,
-    containerSize: IntSize,
     fadeAlpha: Float,
     animations: GuideAnimations,
     content: @Composable (NextTip) -> Unit
@@ -450,11 +450,12 @@ private fun NextTipSlot(
     // 首次求解前为 null，此时直接摆放求解结果，避免提示从原点飞入
     val targetState = remember { mutableStateOf<IntOffset?>(null) }
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .graphicsLayer { alpha = alphaAnim.value * fadeAlpha }
     ) {
+        val containerSize = IntSize(constraints.maxWidth, constraints.maxHeight)
         val animatedOffset = targetState.value?.let { target ->
             animateIntOffsetAsState(
                 targetValue = target,
@@ -502,6 +503,7 @@ private fun NextTipSlot(
 private fun GuideCardContainer(
     controller: GuideController,
     state: GuideState.Active,
+    registry: GuideRegistry,
     anchors: List<Rect>,
     placement: GuidePlacement,
     visible: Boolean,
@@ -510,12 +512,21 @@ private fun GuideCardContainer(
     layoutDirection: LayoutDirection,
     gapPx: Float,
     paddingPx: Float,
+    shape: Shape,
+    contentRect: Rect?,
+    arbiter: GuideEventArbiter,
+    onGateArm: () -> Unit,
     onPlaced: (Rect) -> Unit
 ) {
     val entry = state.entry
     val sideState = remember { mutableStateOf<GuideSide?>(null) }
     // 首次求解前为 null，此时直接摆放求解结果，避免内容从原点飞入
     val targetState = remember { mutableStateOf<IntOffset?>(null) }
+
+    val currentArbiter by rememberUpdatedState(arbiter)
+    val currentContentRect by rememberUpdatedState(contentRect)
+    val currentController by rememberUpdatedState(controller)
+    val currentOnGateArm by rememberUpdatedState(onGateArm)
 
     val contentAlpha by animateFloatAsState(
         targetValue = if (visible) 1f else 0f,
@@ -536,6 +547,20 @@ private fun GuideCardContainer(
             .graphicsLayer { alpha = fadeAlpha }
     ) {
         val containerSize = IntSize(constraints.maxWidth, constraints.maxHeight)
+        val anchorsVisible = anchorsVisibleIn(anchors, containerSize)
+
+        LaunchedEffect(state.index, anchorsVisible) {
+            if (!entry.isIntro && anchors.isNotEmpty() && !anchorsVisible) {
+                registry.bringIntoView(entry.key)
+            }
+        }
+
+        val sideHint = registry.sideHintFor(entry.key)
+        val effectivePlacement = when {
+            entry.isIntro || !anchorsVisible -> GuidePlacement.Fixed(Alignment.Center)
+            else -> resolvePlacement(placement, sideHint, anchors)
+        }
+
         val scope = remember(anchors, containerSize, controller) {
             GuideScope(anchors, containerSize, sideState, controller)
         }
@@ -571,10 +596,33 @@ private fun GuideCardContainer(
                         fadeIn(spec) togetherWith fadeOut(spec)
                     },
                     label = "guideCardContent"
-                ) { stepEntry -> stepEntry.content(scope) }
+                ) { stepEntry ->
+                    val scrollState = rememberScrollState()
+                    Column(
+                        modifier = Modifier
+                            .clip(shape)
+                            .pointerInput(Unit) {
+                                detectTapGestures { position ->
+                                    val rect = currentContentRect
+                                    val rootPosition = position + (rect?.topLeft ?: Offset.Zero)
+                                    when (currentArbiter.resolveTap(currentController, rect, rootPosition)) {
+                                        TapAction.Advance -> currentController.next()
+                                        TapAction.GateArm -> currentOnGateArm()
+                                        TapAction.None -> Unit
+                                    }
+                                }
+                            }
+                            .verticalScroll(scrollState)
+                    ) {
+                        stepEntry.content(scope)
+                    }
+                }
             }
         ) { measurables, constraints ->
-            val loose = Constraints(maxWidth = constraints.maxWidth, maxHeight = constraints.maxHeight)
+            val loose = Constraints(
+                maxWidth = constraints.maxWidth,
+                maxHeight = (constraints.maxHeight - paddingPx * 2).roundToInt().coerceAtLeast(0)
+            )
             val placeables = measurables.map { it.measure(loose) }
             val contentSize = IntSize(
                 placeables.maxOf { it.width },
@@ -583,7 +631,7 @@ private fun GuideCardContainer(
             // 锚点未就绪时保持上次求解的位置，仅随 alpha 淡出
             val solved = if (entry.isIntro || anchors.isNotEmpty()) {
                 solvePlacement(
-                    placement = placement,
+                    placement = effectivePlacement,
                     anchors = anchors,
                     contentSize = contentSize,
                     containerSize = containerSize,

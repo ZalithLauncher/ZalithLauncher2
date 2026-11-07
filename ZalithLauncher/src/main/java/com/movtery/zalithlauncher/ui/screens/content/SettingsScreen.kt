@@ -76,6 +76,7 @@ fun SettingsScreen(
     key: NestedNavKey.Settings,
     backStackViewModel: ScreenBackStackViewModel,
     openLicenseScreen: (raw: Int) -> Unit,
+    openLogHistory: () -> Unit,
     eventViewModel: EventViewModel,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
@@ -101,6 +102,7 @@ fun SettingsScreen(
                     backStackViewModel.settingsScreen.currentKey = newKey
                 },
                 openLicenseScreen = openLicenseScreen,
+                openLogHistory = openLogHistory,
                 eventViewModel = eventViewModel,
                 submitError = submitError,
                 modifier = Modifier.fillMaxHeight()
@@ -181,6 +183,7 @@ private fun NavigationUI(
     settingsScreenKey: TitledNavKey?,
     onCurrentKeyChange: (TitledNavKey?) -> Unit,
     openLicenseScreen: (raw: Int) -> Unit,
+    openLogHistory: () -> Unit,
     eventViewModel: EventViewModel,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
     modifier: Modifier = Modifier
@@ -220,6 +223,7 @@ private fun NavigationUI(
                         settingsScreenKey = settingsScreenKey,
                         mainScreenKey = mainScreenKey,
                         submitError = submitError,
+                        openLogHistory = openLogHistory,
                     )
                 }
                 entry<NormalNavKey.Settings.JavaManager> {

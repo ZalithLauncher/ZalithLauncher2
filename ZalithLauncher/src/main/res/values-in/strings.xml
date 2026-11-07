@@ -1488,4 +1488,13 @@
     <string name="crash_diag_runtime_load_failed_hint">Pasang ulang runtime Java di pengaturan, atau pilih yang lain.</string>
     <string name="crash_diag_low_memory_kill_title">Ditutup Android (memori rendah)</string>
     <string name="crash_diag_low_memory_kill_hint">Android menghentikan game demi membebaskan memori. Kurangi RAM game, tutup aplikasi latar belakang, dan kecilkan jarak render.</string>
+    <!-- NusaLauncher: log history -->
+    <string name="log_history_title">Riwayat log</string>
+    <string name="log_history_summary">Log tiap sesi game disimpan otomatis selama %1$d hari.</string>
+    <string name="log_history_empty">Belum ada log tersimpan. Log disimpan otomatis setiap kali kamu keluar dari Minecraft.</string>
+    <string name="log_history_delete_all">Hapus semua</string>
+    <string name="log_history_delete_confirm">Hapus log ini?</string>
+    <string name="log_history_delete_all_confirm">Hapus semua %1$d log tersimpan?</string>
+    <string name="settings_launcher_log_history_title">Riwayat log</string>
+    <string name="settings_launcher_log_history_summary">Lihat, bagikan, atau hapus log yang tersimpan dari tiap sesi game</string>
 </resources>

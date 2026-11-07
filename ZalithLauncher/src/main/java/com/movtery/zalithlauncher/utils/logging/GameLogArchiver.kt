@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.utils.logging
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -30,6 +31,9 @@ import java.util.Locale
  *
  * Nama file: NusaLogs-yyyy-MM-dd-HH.mm.<Renderer>.log
  */
+/** 从归档文件名解析出的信息 */
+data class ArchiveInfo(val timeMillis: Long, val renderer: String)
+
 object GameLogArchiver {
     const val RETENTION_DAYS = 30
     private const val PREFIX = "NusaLogs-"
@@ -50,6 +54,18 @@ object GameLogArchiver {
     }
 
     fun isArchiveName(name: String): Boolean = name.startsWith(PREFIX) && name.endsWith(EXT)
+
+    private val nameRegex = Regex("^NusaLogs-(\\d{4})-(\\d{2})-(\\d{2})-(\\d{2})\\.(\\d{2})\\.(.+?)(?:-(\\d+))?\\.log$")
+
+    /** 解析 NusaLogs-yyyy-MM-dd-HH.mm.<Renderer>[-N].log；格式不符返回 null */
+    fun parseName(name: String): ArchiveInfo? {
+        val m = nameRegex.matchEntire(name) ?: return null
+        val g = m.groupValues
+        val cal = Calendar.getInstance()
+        cal.clear()
+        cal.set(g[1].toInt(), g[2].toInt() - 1, g[3].toInt(), g[4].toInt(), g[5].toInt(), 0)
+        return ArchiveInfo(cal.timeInMillis, g[6])
+    }
 
     fun buildHeader(info: Map<String, String>, now: Date = Date()): String {
         val saved = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).format(now)

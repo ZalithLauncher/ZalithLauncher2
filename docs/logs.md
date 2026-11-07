@@ -23,6 +23,12 @@ Semua log ada di `Android/data/com.pickocore.nusalauncher/files/logs/`
 Setiap arsip diawali blok ringkasan: versi Minecraft, renderer, kode keluar, versi launcher.
 Di bawahnya log game aslinya. Log asli per versi (`latest_game.log`) tetap ada dan dipakai menu log.
 
+## Riwayat log di dalam aplikasi
+
+Buka **Pengaturan, Launcher, Riwayat log**. Daftar menampilkan semua sesi yang tersimpan
+(terbaru di atas) dengan tanggal, jam, renderer, dan ukuran. Tiap entri punya tombol
+**Lihat** (membuka penampil log), **Bagikan** (kirim file), dan **Hapus**. Ada juga **Hapus semua**.
+
 ## Batasan
 
 Log hanya diarsipkan kalau game keluar lewat jalur normal atau crash yang tertangkap launcher.

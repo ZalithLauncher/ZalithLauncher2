@@ -775,6 +775,9 @@
     <string name="account_change_skin_update_local">Perbarui skin lokal</string>
     <string name="account_change_skin_update_toast">Skin berhasil diunggah. Jika tidak ada perubahan, silakan refresh akun Anda setelah beberapa waktu</string>
     <string name="account_change_cape">Ganti jubah</string>
+    <string name="account_change_cape_import">Impor Cape (PNG)</string>
+    <string name="account_change_cape_import_success">%d cape berhasil diimpor</string>
+    <string name="account_change_cape_import_invalid">Bukan cape yang valid. Pakai PNG berukuran 64×32 atau 22×17 (atau kelipatannya)</string>
     <string name="account_change_cape_fetch_all">Ambil semua jubah</string>
     <string name="account_change_cape_fetch_all_failed">Tidak dapat mengambil jubah</string>
     <string name="account_change_cape_select_cape">Pilih jubah</string>

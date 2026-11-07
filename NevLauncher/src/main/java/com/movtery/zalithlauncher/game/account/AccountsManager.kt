@@ -266,6 +266,7 @@ object AccountsManager {
             accountDao.deleteAccount(account)
             val skinFile = account.getSkinFile()
             FileUtils.deleteQuietly(skinFile)
+            FileUtils.deleteQuietly(account.getCapeFile())
             suspendReloadAccounts()
         }
     }

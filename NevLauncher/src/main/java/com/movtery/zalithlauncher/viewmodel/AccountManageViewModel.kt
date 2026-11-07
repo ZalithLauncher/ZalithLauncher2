@@ -146,6 +146,12 @@ sealed interface AccountManageIntent {
         val cape: PlayerProfile.Cape
     ) : AccountManageIntent
 
+    /** 应用选中的本地披风（离线账号） */
+    data class ApplyLocalCape(
+        val account: Account,
+        val cape: PlayerProfile.Cape
+    ) : AccountManageIntent
+
     /** 创建新的离线账号 */
     data class CreateLocalAccount(val userName: String, val userUUID: String?) :
         AccountManageIntent
@@ -358,6 +364,7 @@ class AccountManageViewModel @AssistedInject constructor(
             is AccountManageIntent.UploadMicrosoftSkin -> uploadMicrosoftSkin(intent)
             is AccountManageIntent.FetchMicrosoftCapes -> fetchMicrosoftCapes(intent.account)
             is AccountManageIntent.ApplyMicrosoftCape -> applyMicrosoftCape(intent)
+            is AccountManageIntent.ApplyLocalCape -> applyLocalCape(intent)
             is AccountManageIntent.CreateLocalAccount -> createLocalAccount(
                 intent.userName,
                 intent.userUUID
@@ -805,6 +812,51 @@ class AccountManageViewModel @AssistedInject constructor(
         ).let { helper ->
             TaskSystem.submitTask(helper.justLogin(context, account))
         }
+    }
+
+    /** 更改离线账号披风：把披风库中的文件复制为该账号的披风文件 */
+    private fun applyLocalCape(intent: AccountManageIntent.ApplyLocalCape) {
+        val account = intent.account
+        val cape = intent.cape
+        val isReset = cape == EmptyCape
+
+        TaskSystem.submitTask(
+            Task.runTask(
+                id = account.uniqueUUID + "_cape",
+                dispatcher = Dispatchers.IO,
+                task = {
+                    val targetCape = account.getCapeFile()
+                    if (isReset) {
+                        FileUtils.deleteQuietly(targetCape)
+                    } else {
+                        val source = cape.getFile(PathManager.DIR_ACCOUNT_CAPE)
+                        if (!source.exists()) {
+                            throw java.io.FileNotFoundException("Cape file not found: ${source.name}")
+                        }
+                        source.copyTo(targetCape, overwrite = true)
+                    }
+
+                    AccountsManager.refreshWardrobe()
+
+                    if (isReset) {
+                        emitToast(androidText(R.string.account_change_cape_apply_reset))
+                    } else {
+                        emitToast(
+                            androidText(
+                                R.string.account_change_cape_apply_success,
+                                androidText(cape.alias)
+                            )
+                        )
+                    }
+                },
+                onError = { th ->
+                    emitError(
+                        androidText(R.string.generic_error),
+                        formatAccountError(th)
+                    )
+                }
+            )
+        )
     }
 
     /** 保存离线账号皮肤到本地存储 */

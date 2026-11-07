@@ -800,7 +800,11 @@ private fun AccountSkinOperation(
                     actions.onIntent(AccountManageIntent.ApplySkin(account, file, model))
                 },
                 onApplyCape = { cape ->
-                    actions.onIntent(AccountManageIntent.ApplyMicrosoftCape(account, cape))
+                    if (account.isMicrosoftAccount()) {
+                        actions.onIntent(AccountManageIntent.ApplyMicrosoftCape(account, cape))
+                    } else {
+                        actions.onIntent(AccountManageIntent.ApplyLocalCape(account, cape))
+                    }
                 }
             )
         }

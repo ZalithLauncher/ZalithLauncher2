@@ -967,6 +967,12 @@
     <string name="account_change_skin_update_toast">Skin uploaded successfully. If there are no changes, please refresh your account after some time</string>
     <!-- Item in the wardrobe dialog that opens the cape selection, Microsoft accounts only -->
     <string name="account_change_cape">Change Cape</string>
+    <!-- Button in the wardrobe for offline accounts to import cape PNG files into the cape library -->
+    <string name="account_change_cape_import">Import Cape (PNG)</string>
+    <!-- Toast after importing capes; %d is the number of capes imported -->
+    <string name="account_change_cape_import_success">Imported %d cape(s)</string>
+    <!-- Toast when the picked file is not a valid cape image -->
+    <string name="account_change_cape_import_invalid">Not a valid cape. Use a PNG of 64×32 or 22×17 (or multiples of it)</string>
     <!-- Title of the wardrobe item while the cape list is being fetched -->
     <string name="account_change_cape_fetch_all">Fetching all capes</string>
     <!-- Title of the error shown when fetching the cape list fails -->

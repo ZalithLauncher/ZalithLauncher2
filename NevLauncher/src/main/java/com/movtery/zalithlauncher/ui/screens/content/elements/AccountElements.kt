@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
 import android.content.Context
+import android.widget.Toast
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
@@ -76,6 +77,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -126,6 +128,7 @@ import com.movtery.zalithlauncher.game.account.getUUIDFromUserName
 import com.movtery.zalithlauncher.game.account.isLocalAccount
 import com.movtery.zalithlauncher.game.account.isMicrosoftAccount
 import com.movtery.zalithlauncher.game.account.isSkinChangeAllowed
+import com.movtery.zalithlauncher.game.account.wardrobe.CapeLibrary
 import com.movtery.zalithlauncher.game.account.wardrobe.EmptyCape
 import com.movtery.zalithlauncher.game.account.wardrobe.SkinModelType
 import com.movtery.zalithlauncher.game.account.wardrobe.capeLocalRes
@@ -162,6 +165,7 @@ import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
@@ -1424,6 +1428,50 @@ fun ChangeSkinDialog(
     var currentCapeToLoad by remember { mutableStateOf(EmptyCape) }
     var currentUsingCape by remember { mutableStateOf(EmptyCape) }
 
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+
+    //akun offline memakai perpustakaan cape lokal (impor file PNG atau cape bawaan)
+    var libraryVersion by remember { mutableStateOf(0) }
+    val localCapes by produceState<List<PlayerProfile.Cape>>(emptyList(), libraryVersion) {
+        if (account.isLocalAccount()) {
+            value = withContext(Dispatchers.IO) {
+                CapeLibrary.seedFromAssets(context)
+                CapeLibrary.list()
+            }
+        }
+    }
+
+    //tandai cape lokal yang sedang dipakai akun offline
+    LaunchedEffect(account.uniqueUUID) {
+        if (account.isLocalAccount()) {
+            val matched = withContext(Dispatchers.IO) {
+                CapeLibrary.findMatching(account.getCapeFile())
+            } ?: EmptyCape
+            currentUsingCape = matched
+            currentCapeToLoad = matched
+        }
+    }
+
+    val capePicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenMultipleDocuments()
+    ) { uris: List<Uri> ->
+        if (uris.isEmpty()) return@rememberLauncherForActivityResult
+        scope.launch {
+            var imported = 0
+            uris.forEach { uri ->
+                if (CapeLibrary.importFromUri(context, uri).isSuccess) imported++
+            }
+            libraryVersion++
+            val message = if (imported > 0) {
+                context.getString(R.string.account_change_cape_import_success, imported)
+            } else {
+                context.getString(R.string.account_change_cape_import_invalid)
+            }
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     LaunchedEffect(availableCapes) {
         if (account.isMicrosoftAccount()) {
             if (availableCapes != null) {
@@ -1439,8 +1487,8 @@ fun ChangeSkinDialog(
     }
 
     // 加载披风
-    val previewCape by produceState<ByteArray?>(null, currentCapeToLoad, availableCapes) {
-        if (!account.isMicrosoftAccount()) return@produceState
+    val previewCape by produceState<ByteArray?>(null, currentCapeToLoad, availableCapes, capeState) {
+        if (!account.isMicrosoftAccount() && !account.isLocalAccount()) return@produceState
 
         value = withContext(Dispatchers.IO) {
             if (currentCapeToLoad != EmptyCape) {
@@ -1451,7 +1499,13 @@ fun ChangeSkinDialog(
                         .inputStream()
                         .use { it.readBytes() }
                 }.getOrNull()
-            } else if (availableCapes == null && account.getCapeFile().exists()) {
+            } else if (
+                account.getCapeFile().exists() && (
+                        (account.isMicrosoftAccount() && availableCapes == null) ||
+                                //akun offline: tampilkan cape akun selama belum diganti/dihapus
+                                (account.isLocalAccount() && capeState == ChangeCape.None)
+                        )
+            ) {
                 // 列表就绪前若本地有缓存披风则优先显示，列表加载完或切换时更新 ↑
                 runCatching {
                     account.getCapeFile()
@@ -1626,8 +1680,26 @@ fun ChangeSkinDialog(
                                 }
                             }
 
-                            //仅微软账号支持更改披风
-                            if (account.isMicrosoftAccount()) {
+                            //akun offline: impor cape PNG ke perpustakaan cape
+                            if (account.isLocalAccount()) {
+                                InfoLayoutTextItem(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    title = stringResource(R.string.account_change_cape_import),
+                                    icon = {
+                                        Icon(
+                                            modifier = Modifier.size(22.dp),
+                                            painter = painterResource(R.drawable.ic_upload),
+                                            contentDescription = null
+                                        )
+                                    },
+                                    onClick = {
+                                        capePicker.launch(arrayOf("image/png"))
+                                    }
+                                )
+                            }
+
+                            //akun Microsoft (cape yang dimiliki) dan akun offline (perpustakaan cape) bisa ganti cape
+                            if (account.isMicrosoftAccount() || account.isLocalAccount()) {
                                 InfoLayoutTextItem(
                                     modifier = Modifier.fillMaxWidth(),
                                     title = if (isFetchingCapes) {
@@ -1729,7 +1801,11 @@ fun ChangeSkinDialog(
         SelectCapeDialog(
             capes = buildList {
                 add(EmptyCape)
-                addAll(availableCapes ?: emptyList())
+                if (account.isMicrosoftAccount()) {
+                    addAll(availableCapes ?: emptyList())
+                } else {
+                    addAll(localCapes)
+                }
             },
             selectedCape = cape,
             onSelected = { cape ->

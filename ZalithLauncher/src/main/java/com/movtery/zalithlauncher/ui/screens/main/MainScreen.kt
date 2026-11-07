@@ -98,6 +98,7 @@ import com.movtery.zalithlauncher.ui.screens.content.DownloadScreen
 import com.movtery.zalithlauncher.ui.screens.content.FileSelectorScreen
 import com.movtery.zalithlauncher.ui.screens.content.LauncherScreen
 import com.movtery.zalithlauncher.ui.screens.content.LicenseScreen
+import com.movtery.zalithlauncher.ui.screens.content.LogHistoryScreen
 import com.movtery.zalithlauncher.ui.screens.content.LogViewScreen
 import com.movtery.zalithlauncher.ui.screens.content.MultiplayerScreen
 import com.movtery.zalithlauncher.ui.screens.content.SettingsScreen
@@ -563,6 +564,9 @@ private fun NavigationUI(
                         openLicenseScreen = { raw ->
                             backStack.navigateTo(NormalNavKey.License(raw))
                         },
+                        openLogHistory = {
+                            backStack.navigateTo(NormalNavKey.LogHistory)
+                        },
                         eventViewModel = eventViewModel,
                         submitError = submitError
                     )
@@ -656,6 +660,12 @@ private fun NavigationUI(
                 }
                 entry<NormalNavKey.LogView> { key ->
                     LogViewScreen(
+                        key = key,
+                        backStackViewModel = screenBackStackModel,
+                    )
+                }
+                entry<NormalNavKey.LogHistory> { key ->
+                    LogHistoryScreen(
                         key = key,
                         backStackViewModel = screenBackStackModel,
                     )

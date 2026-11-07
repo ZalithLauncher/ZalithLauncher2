@@ -3077,4 +3077,13 @@
     <string name="crash_diag_runtime_load_failed_hint">Re-install the Java runtime in settings, or select a different one.</string>
     <string name="crash_diag_low_memory_kill_title">Closed by Android (low memory)</string>
     <string name="crash_diag_low_memory_kill_hint">Android stopped the game to free memory. Lower the game RAM, close background apps, and reduce render distance.</string>
+    <!-- NusaLauncher: log history -->
+    <string name="log_history_title">Log history</string>
+    <string name="log_history_summary">A log of each game session is saved automatically for %1$d days.</string>
+    <string name="log_history_empty">No saved logs yet. A log is saved every time you exit Minecraft.</string>
+    <string name="log_history_delete_all">Delete all</string>
+    <string name="log_history_delete_confirm">Delete this log?</string>
+    <string name="log_history_delete_all_confirm">Delete all %1$d saved logs?</string>
+    <string name="settings_launcher_log_history_title">Log history</string>
+    <string name="settings_launcher_log_history_summary">View, share, or delete the logs saved from each game session</string>
 </resources>

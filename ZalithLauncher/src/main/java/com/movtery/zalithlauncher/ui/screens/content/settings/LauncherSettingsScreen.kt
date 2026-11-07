@@ -136,6 +136,7 @@ fun LauncherSettingsScreen(
     settingsScreenKey: TitledNavKey?,
     mainScreenKey: TitledNavKey?,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
+    openLogHistory: () -> Unit = {},
 ) {
     val context = LocalContext.current
 
@@ -393,6 +394,15 @@ fun LauncherSettingsScreen(
                         summary = stringResource(R.string.settings_launcher_log_retention_days_summary),
                         valueRange = AllSettings.launcherLogRetentionDays.floatRange,
                         suffix = stringResource(R.string.unit_day)
+                    )
+
+                    //NusaLauncher: 游戏日志历史入口
+                    SettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        title = stringResource(R.string.settings_launcher_log_history_title),
+                        summary = stringResource(R.string.settings_launcher_log_history_summary),
+                        onClick = openLogHistory
                     )
 
                     SettingsCard(

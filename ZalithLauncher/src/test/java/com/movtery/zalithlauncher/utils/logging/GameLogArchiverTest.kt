@@ -83,4 +83,24 @@ class GameLogArchiverTest {
         assertEquals(1, GameLogArchiver.cleanup(dir, 30, now))
         assertFalse(old.exists()); assertTrue(fresh.exists()); assertTrue(other.exists())
     }
+
+    @Test
+    fun parseNameReadsTimeAndRenderer() {
+        val info = GameLogArchiver.parseName("NusaLogs-2026-10-06-19.41.MobileGlues.log")
+        assertNotNull(info)
+        assertEquals(date(2026, 10, 6, 19, 41).time, info!!.timeMillis)
+        assertEquals("MobileGlues", info.renderer)
+        // duplicate counter is not part of the renderer name
+        assertEquals("GL4ES", GameLogArchiver.parseName("NusaLogs-2026-10-06-19.41.GL4ES-2.log")!!.renderer)
+        assertNull(GameLogArchiver.parseName("log_2026-11-06T19-38-49_main.log"))
+        assertNull(GameLogArchiver.parseName("NusaLogs-garbage.log"))
+    }
+
+    @Test
+    fun parseNameRoundTripsGeneratedNames() {
+        val t = date(2026, 1, 2, 3, 4)
+        val info = GameLogArchiver.parseName(GameLogArchiver.fileName(t, "Kopper Zink"))
+        assertEquals(t.time, info!!.timeMillis)
+        assertEquals("KopperZink", info.renderer)
+    }
 }

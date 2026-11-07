@@ -70,6 +70,11 @@ sealed interface NormalNavKey : TitledNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.versions_overview_log)
     }
 
+    /** NusaLauncher: 游戏日志历史屏幕 */
+    @Serializable data object LogHistory : NormalNavKey {
+        @Contextual override val title: AndroidStringText = androidText(R.string.log_history_title)
+    }
+
     /** 设置嵌套子屏幕 */
     sealed interface Settings : NormalNavKey {
         /** 渲染器设置屏幕 */

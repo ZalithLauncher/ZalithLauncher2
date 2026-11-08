@@ -1,9 +1,13 @@
 package com.movtery.zalithlauncher.ui.screens.content
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,7 +49,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -96,7 +99,6 @@ private fun ServerHubContent(
     onQuickPlay: (Version?, String) -> Unit
 ) {
     val context = LocalContext.current
-    val uriHandler = LocalUriHandler.current
 
     val servers by ServerHubRepository.servers.collectAsState()
     val modes by ServerHubRepository.modes.collectAsState()
@@ -291,23 +293,13 @@ private fun ServerHubContent(
                             onPlay = { onQuickPlay(null, server.address) },
                             onRemove = if (server.source == HubSource.CUSTOM && server.id.startsWith("custom:")) {
                                 { ServerHubRepository.removeCustom(server.address) }
-                            } else null,
-                            onOpenSource = server.detailUrl?.let { url -> { uriHandler.openUri(url) } }
+                            } else null
                         )
                     }
                 }
             }
         }
 
-        //Kredit sumber data (wajib untuk API minecraftserver.id)
-        Text(
-            modifier = Modifier.padding(vertical = 4.dp),
-            text = stringResource(R.string.server_hub_credit),
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
     }
 
     if (showAdd) {
@@ -370,9 +362,9 @@ private fun ServerHubCard(
     isFavorite: Boolean,
     onToggleFavorite: () -> Unit,
     onPlay: () -> Unit,
-    onRemove: (() -> Unit)?,
-    onOpenSource: (() -> Unit)?
+    onRemove: (() -> Unit)?
 ) {
+    val context = LocalContext.current
     BackgroundCard(
         modifier = Modifier.fillMaxWidth(),
         influencedByBackground = false,
@@ -433,13 +425,34 @@ private fun ServerHubCard(
                 }
             }
 
-            Text(
-                text = server.address,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            //Ketuk alamat server untuk menyalinnya ke clipboard
+            Row(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(6.dp))
+                    .clickable {
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.setPrimaryClip(ClipData.newPlainText("server", server.address))
+                        Toast.makeText(context, R.string.generic_copied, Toast.LENGTH_SHORT).show()
+                    },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.weight(1f, fill = false),
+                    text = server.address,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Icon(
+                    modifier = Modifier
+                        .padding(start = 6.dp)
+                        .size(14.dp),
+                    painter = painterResource(R.drawable.ic_content_copy_filled),
+                    contentDescription = stringResource(R.string.generic_copy),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
             val chips = buildList {
                 server.edition?.let { add(it) }
@@ -471,16 +484,6 @@ private fun ServerHubCard(
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                if (onOpenSource != null) {
-                    TextButton(onClick = onOpenSource, contentPadding = PaddingValues(horizontal = 6.dp)) {
-                        Text(
-                            text = server.source.label,
-                            style = MaterialTheme.typography.labelSmall,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
                 if (onRemove != null) {
                     IconButton(onClick = onRemove) {
                         Icon(

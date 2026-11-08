@@ -23,7 +23,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -93,6 +92,8 @@ import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.PetModelView
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
+import com.movtery.zalithlauncher.ui.components.ScreenType
+import com.movtery.zalithlauncher.ui.components.ScreenTypeLayout
 import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
 import com.movtery.zalithlauncher.ui.guide.GuideKeys
@@ -153,13 +154,13 @@ fun LauncherScreen(
             if (!isVisible) dragState.onDragCancel()
         }
 
-        BoxWithConstraints(
+        ScreenTypeLayout(
             modifier = Modifier
                 .fillMaxSize()
                 .onGloballyPositioned { coordinates ->
                     dragState.parentOrigin = coordinates.positionInRoot()
                 }
-        ) {
+        ) { screenType ->
             val parentWidthPx = constraints.maxWidth.toFloat()
             dragState.parentWidthPx = parentWidthPx
             dragState.outerPaddingPx = with(LocalDensity.current) { ActionMenuOuterPadding.toPx() }
@@ -226,7 +227,7 @@ fun LauncherScreen(
                 }
             }
 
-            val isActionMenuTaller = maxHeight >= 600.dp
+            val isActionMenuTaller = screenType == ScreenType.Tablet
             CompositionLocalProvider(LocalActionMenuDrag provides dragState) {
                 Box(
                     modifier = Modifier

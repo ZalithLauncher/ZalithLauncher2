@@ -161,7 +161,6 @@ android {
                 "proguard-debug.pro"
             )
             applicationIdSuffix = ".debug"
-            versionNameSuffix = "-debug"
             signingConfig = signingConfigs.getByName("debugBuild")
         }
     }

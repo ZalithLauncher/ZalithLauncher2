@@ -27,12 +27,14 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -41,9 +43,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -57,6 +57,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -64,17 +65,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -91,7 +93,6 @@ import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.TaskLogCard
-import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.theme.cardColor
@@ -431,37 +432,171 @@ fun TitleTaskFlowDialog(
     }
 }
 
+/**
+ * 任务流程摘要卡片：标题 + 整体百分比 + 当前任务 + 整体进度条 + 当前状态
+ */
 @Composable
 private fun TaskFlowListColumn(
     title: String,
     tasks: List<TitledTask>,
     modifier: Modifier = Modifier
 ) {
+    //收集每个任务的状态，用于计算整体进度
+    val stages = tasks.map { key(it.task.id) { it.task.stage.collectAsStateWithLifecycle() } }
+    val progresses = tasks.map { key(it.task.id) { it.task.progress.collectAsStateWithLifecycle() } }
+
+    val total = tasks.size.coerceAtLeast(1)
+    val completedCount = stages.count { it.value == TaskStage.COMPLETED }
+    val overall = tasks.indices.sumOf { i ->
+        when (stages[i].value) {
+            TaskStage.COMPLETED -> 1.0
+            TaskStage.RUNNING -> progresses[i].value.coerceAtLeast(0f).toDouble()
+            TaskStage.PREPARING -> 0.0
+        }
+    }.toFloat() / total
+
+    val allDone = tasks.isNotEmpty() && completedCount == tasks.size
+    val activeIndex = stages.indexOfFirst { it.value == TaskStage.RUNNING }.takeIf { it >= 0 }
+        ?: stages.indexOfFirst { it.value == TaskStage.PREPARING }.takeIf { it >= 0 }
+        ?: tasks.lastIndex
+    val active = tasks.getOrNull(activeIndex)
+    val stepNumber = if (allDone) tasks.size else (activeIndex + 1).coerceAtLeast(1)
+
+    val animatedOverall by animateFloatAsState(
+        targetValue = overall.coerceIn(0f, 1f),
+        label = "TaskFlowOverallProgress"
+    )
+
+    val colorScheme = MaterialTheme.colorScheme
+    val accent = colorScheme.primary
+    val accentEnd = colorScheme.tertiary
+
     Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        val scrollState = rememberLazyListState()
-        LazyColumn(
-            modifier = Modifier
-                .fadeEdge(state = scrollState)
-                .weight(1f, fill = false),
-            state = scrollState
+        //头部：图标 + 标签/标题 + 百分比徽章
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            items(tasks, key = { it.task.id }) { task ->
-                InstallingTaskItem(
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(accent.copy(alpha = 0.14f))
+                    .border(1.dp, accent.copy(alpha = 0.55f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(if (allDone) R.drawable.ic_check else R.drawable.ic_download),
+                    contentDescription = null,
+                    tint = accent
+                )
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(R.string.download_task_flow_label),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colorScheme.onSurfaceVariant,
+                    letterSpacing = 1.5.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    modifier = Modifier.padding(top = 2.dp),
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(accent.copy(alpha = 0.14f))
+                    .border(1.dp, accent.copy(alpha = 0.55f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "${(animatedOverall * 100).toInt()}%",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = accent,
+                    maxLines = 1
+                )
+            }
+        }
+
+        //当前任务胶囊
+        if (active != null) {
+            val pillShape = RoundedCornerShape(18.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(pillShape)
+                    .background(colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                    .border(1.dp, colorScheme.outlineVariant, pillShape)
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 2.dp),
-                    title = task.title,
-                    runningIcon = task.runningIcon,
-                    task = task.task
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .background(accent)
+                )
+                AndroidStringText(
+                    modifier = Modifier.weight(1f),
+                    text = active.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "$stepNumber / ${tasks.size}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colorScheme.onSurfaceVariant,
+                    letterSpacing = 1.sp,
+                    maxLines = 1
+                )
+            }
+        }
+
+        //整体进度条（渐变）
+        val barShape = RoundedCornerShape(50)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(12.dp)
+                .clip(barShape)
+                .background(colorScheme.surfaceVariant.copy(alpha = 0.45f))
+                .border(1.dp, colorScheme.outlineVariant, barShape)
+        ) {
+            if (animatedOverall > 0f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .fillMaxWidth(animatedOverall)
+                        .clip(barShape)
+                        .background(Brush.horizontalGradient(listOf(accent, accentEnd)))
+                )
+            }
+        }
+
+        //当前任务的状态信息
+        if (active != null) {
+            key(active.task.id) {
+                ActiveTaskStatus(
+                    task = active.task,
+                    allDone = allDone
                 )
             }
         }
@@ -469,100 +604,59 @@ private fun TaskFlowListColumn(
 }
 
 @Composable
-private fun InstallingTaskItem(
-    modifier: Modifier = Modifier,
-    title: AndroidStringText,
-    @DrawableRes
-    runningIcon: Int? = null,
-    task: Task
+private fun ActiveTaskStatus(
+    task: Task,
+    allDone: Boolean,
+    modifier: Modifier = Modifier
 ) {
     val taskStage by task.stage.collectAsStateWithLifecycle()
-    val taskProgress by task.progress.collectAsStateWithLifecycle()
     val taskMessage by task.message.collectAsStateWithLifecycle()
     val rateBytesPerSec by task.rateBytesPerSec.collectAsStateWithLifecycle()
 
-    //任务进度：负数代表不确定
-    val isRunning = taskStage == TaskStage.RUNNING
-    val determinate = isRunning && taskProgress >= 0f
-    val animatedProgress by animateFloatAsState(
-        targetValue = if (determinate) taskProgress.coerceIn(0f, 1f) else 0f,
-        label = "TaskProgress"
-    )
-    val fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)
-
-    //每个任务只占一行，进度条作为这一行的背景填充，不再上下堆叠
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(10.dp))
-            .drawBehind {
-                if (animatedProgress > 0f) {
-                    drawRect(
-                        color = fillColor,
-                        size = Size(width = size.width * animatedProgress, height = size.height)
-                    )
-                }
-            }
-            .padding(horizontal = 8.dp, vertical = 6.dp),
+            .fillMaxWidth()
+            .padding(horizontal = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        val icon = when (taskStage) {
-            TaskStage.PREPARING -> R.drawable.ic_schedule_outlined
-            TaskStage.RUNNING -> runningIcon ?: R.drawable.ic_download
-            TaskStage.COMPLETED -> R.drawable.ic_check
+        if (allDone) {
+            Icon(
+                modifier = Modifier.size(16.dp),
+                painter = painterResource(R.drawable.ic_check),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        } else {
+            CircularProgressIndicator(
+                modifier = Modifier.size(16.dp),
+                strokeWidth = 2.dp
+            )
         }
-        Icon(
-            modifier = Modifier.size(24.dp),
-            painter = painterResource(icon),
-            contentDescription = null
-        )
 
-        //标题 + 当前信息，同一行显示，过长自动省略
-        Row(
-            modifier = Modifier.weight(1f),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        val message = taskMessage?.takeIf { taskStage == TaskStage.RUNNING }
+        if (message != null) {
             AndroidStringText(
-                modifier = Modifier.weight(1f, fill = false),
-                text = title,
-                style = MaterialTheme.typography.labelLarge,
-                maxLines = 1,
+                modifier = Modifier.weight(1f),
+                text = message,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
-            if (isRunning) {
-                taskMessage?.let { message ->
-                    AndroidStringText(
-                        modifier = Modifier.weight(1f, fill = false),
-                        text = message,
-                        style = MaterialTheme.typography.labelMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
+        } else {
+            Spacer(modifier = Modifier.weight(1f))
         }
 
-        if (isRunning) {
+        if (taskStage == TaskStage.RUNNING) {
             rateBytesPerSec?.let { bytes ->
                 val text = remember(bytes) { "${formatFileSize(bytes)}/s" }
                 Text(
                     text = text,
                     style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1
-                )
-            }
-            if (determinate) {
-                Text(
-                    text = "${(taskProgress * 100).toInt()}%",
-                    style = MaterialTheme.typography.labelMedium,
-                    maxLines = 1
-                )
-            } else {
-                //不确定进度：用一个小圆圈代替整条进度条
-                CircularProgressIndicator(
-                    modifier = Modifier.size(16.dp),
-                    strokeWidth = 2.dp
                 )
             }
         }

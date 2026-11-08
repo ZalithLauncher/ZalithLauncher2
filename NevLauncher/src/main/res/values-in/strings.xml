@@ -120,6 +120,7 @@
     <string name="download_game_addon_not_installable">Tidak dapat dipasang secara otomatis</string>
     <string name="theme_color_verdant_dawn">Hutan Fajar yang Hening</string>
     <string name="download_game_install_title">Menginstal Game</string>
+    <string name="download_task_flow_label">ALUR UNDUHAN UTAMA</string>
     <string name="download_game_install_vanilla">Mengunduh Vanila %s</string>
     <string name="download_game_install_base_download_file">Unduh file utama untuk %1$s %2$s</string>
     <string name="download_game_install_base_download_file2">Unduh file utama untuk %s</string>

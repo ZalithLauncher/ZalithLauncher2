@@ -357,6 +357,7 @@
     <string name="download_game_addon_warning_api">%s is not selected. Without installing it, most mods will not work!</string>
     <!-- Title of the task dialog shown while a game is being installed -->
     <string name="download_game_install_title">Installing Game</string>
+    <string name="download_task_flow_label">CORE ASSET PIPELINE</string>
     <!-- Task step in the game install dialog; %s is the Minecraft version being downloaded -->
     <string name="download_game_install_vanilla">Downloading Vanilla %s</string>
     <!-- Task step in the install dialog; %1$s is the loader name, %2$s is its version -->

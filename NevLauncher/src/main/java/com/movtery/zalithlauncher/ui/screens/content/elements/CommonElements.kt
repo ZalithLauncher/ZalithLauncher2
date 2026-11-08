@@ -46,11 +46,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -64,13 +64,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -455,7 +458,7 @@ private fun TaskFlowListColumn(
                 InstallingTaskItem(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 6.dp),
+                        .padding(vertical = 2.dp),
                     title = task.title,
                     runningIcon = task.runningIcon,
                     task = task.task
@@ -478,7 +481,28 @@ private fun InstallingTaskItem(
     val taskMessage by task.message.collectAsStateWithLifecycle()
     val rateBytesPerSec by task.rateBytesPerSec.collectAsStateWithLifecycle()
 
+    //任务进度：负数代表不确定
+    val isRunning = taskStage == TaskStage.RUNNING
+    val determinate = isRunning && taskProgress >= 0f
+    val animatedProgress by animateFloatAsState(
+        targetValue = if (determinate) taskProgress.coerceIn(0f, 1f) else 0f,
+        label = "TaskProgress"
+    )
+    val fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)
+
+    //每个任务只占一行，进度条作为这一行的背景填充，不再上下堆叠
     Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .drawBehind {
+                if (animatedProgress > 0f) {
+                    drawRect(
+                        color = fillColor,
+                        size = Size(width = size.width * animatedProgress, height = size.height)
+                    )
+                }
+            }
+            .padding(horizontal = 8.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
@@ -493,61 +517,53 @@ private fun InstallingTaskItem(
             contentDescription = null
         )
 
-        Column(modifier = modifier.weight(1f)) {
+        //标题 + 当前信息，同一行显示，过长自动省略
+        Row(
+            modifier = Modifier.weight(1f),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             AndroidStringText(
+                modifier = Modifier.weight(1f, fill = false),
                 text = title,
-                style = MaterialTheme.typography.labelLarge
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
-            if (taskStage == TaskStage.RUNNING) {
+            if (isRunning) {
                 taskMessage?.let { message ->
                     AndroidStringText(
-                        modifier = Modifier.padding(top = 4.dp),
+                        modifier = Modifier.weight(1f, fill = false),
                         text = message,
                         style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
-                @Composable
-                fun RateBytesPerSecText() {
-                    rateBytesPerSec?.let { bytes ->
-                        val text = remember(bytes) { "${formatFileSize(bytes)}/s" }
-                        Text(
-                            text = text,
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
-                }
-                if (taskProgress < 0) { //负数则代表不确定
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        LinearProgressIndicator(
-                            modifier = Modifier.weight(1f)
-                        )
-                        RateBytesPerSecText()
-                    }
-                } else {
-                    val progressText = "${(taskProgress * 100).toInt()}%"
+            }
+        }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        LinearProgressIndicator(
-                            progress = { taskProgress },
-                            modifier = Modifier
-                                .weight(1f)
-                                .align(Alignment.CenterVertically)
-                        )
-                        RateBytesPerSecText()
-                        Text(
-                            text = progressText,
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
-                }
+        if (isRunning) {
+            rateBytesPerSec?.let { bytes ->
+                val text = remember(bytes) { "${formatFileSize(bytes)}/s" }
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1
+                )
+            }
+            if (determinate) {
+                Text(
+                    text = "${(taskProgress * 100).toInt()}%",
+                    style = MaterialTheme.typography.labelMedium,
+                    maxLines = 1
+                )
+            } else {
+                //不确定进度：用一个小圆圈代替整条进度条
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp
+                )
             }
         }
     }

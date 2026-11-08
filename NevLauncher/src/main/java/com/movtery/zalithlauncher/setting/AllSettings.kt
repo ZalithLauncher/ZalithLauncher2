@@ -444,6 +444,21 @@ object AllSettings : SettingsRegistry() {
     val launcherUiScale = intSetting("launcherUiScale", 100, 60..150)
 
     /**
+     * 启动器界面可拖动（geser UI）：两指拖动或拖动手柄来移动整个界面
+     */
+    val launcherUiPanEnabled = boolSetting("launcherUiPanEnabled", true)
+
+    /**
+     * 启动器界面拖动偏移量（像素），X 轴
+     */
+    val launcherUiPanX = intSetting("launcherUiPanX", 0, -10000..10000)
+
+    /**
+     * 启动器界面拖动偏移量（像素），Y 轴
+     */
+    val launcherUiPanY = intSetting("launcherUiPanY", 0, -10000..10000)
+
+    /**
      * 主界面操作菜单的停泊侧
      */
     val launcherActionMenuSide = enumSetting("launcherActionMenuSide", ActionMenuSide.END)

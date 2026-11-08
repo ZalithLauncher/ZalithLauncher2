@@ -2209,6 +2209,10 @@
     <!-- Title of the animation speed slider in Launcher settings -->
     <string name="settings_launcher_ui_scale_title">Launcher Size</string>
     <string name="settings_launcher_ui_scale_summary">Make the whole launcher interface smaller or larger. Applied when you release the slider</string>
+    <string name="settings_launcher_ui_pan_title">Movable interface</string>
+    <string name="settings_launcher_ui_pan_summary">Drag the whole launcher interface at any launcher size: slide with two fingers anywhere, or drag the small handle at the bottom of the screen. Double-tap the handle to reset</string>
+    <string name="settings_launcher_ui_pan_reset_title">Reset interface position</string>
+    <string name="settings_launcher_ui_pan_reset_summary">Move the launcher interface back to the center</string>
     <string name="settings_launcher_animate_speed_title">Animation Speed</string>
     <!-- Description of the animation speed setting in Launcher settings -->
     <string name="settings_launcher_animate_speed_summary">Adjust the global animation speed multiplier</string>

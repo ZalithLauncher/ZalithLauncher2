@@ -335,7 +335,7 @@ fun LauncherSettingsScreen(
                     var pendingScale by remember { mutableIntStateOf(AllSettings.launcherUiScale.state) }
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Single,
+                        position = CardPosition.Top,
                         value = pendingScale,
                         title = stringResource(R.string.settings_launcher_ui_scale_title),
                         summary = stringResource(R.string.settings_launcher_ui_scale_summary),
@@ -345,6 +345,27 @@ fun LauncherSettingsScreen(
                         onValueChangeFinished = {
                             AllSettings.launcherUiScale.updateState(pendingScale)
                             AllSettings.launcherUiScale.save(pendingScale)
+                        }
+                    )
+
+                    //geser tampilan: berlaku di semua ukuran launcher
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.launcherUiPanEnabled,
+                        title = stringResource(R.string.settings_launcher_ui_pan_title),
+                        summary = stringResource(R.string.settings_launcher_ui_pan_summary)
+                    )
+
+                    SettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        title = stringResource(R.string.settings_launcher_ui_pan_reset_title),
+                        summary = stringResource(R.string.settings_launcher_ui_pan_reset_summary),
+                        enabled = AllSettings.launcherUiPanEnabled.state,
+                        onClick = {
+                            AllSettings.launcherUiPanX.save(0)
+                            AllSettings.launcherUiPanY.save(0)
                         }
                     )
                 }

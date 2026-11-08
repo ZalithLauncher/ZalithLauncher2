@@ -62,6 +62,7 @@ import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.base.ObserveFullScreenSetting
 import com.movtery.zalithlauncher.ui.buildAppendedText
+import com.movtery.zalithlauncher.ui.components.PannableLauncherUi
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import com.movtery.zalithlauncher.ui.guide.GuideProgress
@@ -348,15 +349,18 @@ class MainActivity : BaseAppCompatActivity() {
                         viewModel = backgroundViewModel
                     )
 
-                    MainScreen(
-                        screenBackStackModel = screenBackStackModel,
-                        eventViewModel = eventViewModel,
-                        modpackImportViewModel = modpackImportViewModel,
-                        modifyVersionViewModel = modifyVersionViewModel,
-                        submitError = {
-                            errorViewModel.showError(it)
-                        }
-                    )
+                    //tampilan launcher bisa digeser di semua ukuran launcher
+                    PannableLauncherUi(modifier = Modifier.fillMaxSize()) {
+                        MainScreen(
+                            screenBackStackModel = screenBackStackModel,
+                            eventViewModel = eventViewModel,
+                            modpackImportViewModel = modpackImportViewModel,
+                            modifyVersionViewModel = modifyVersionViewModel,
+                            submitError = {
+                                errorViewModel.showError(it)
+                            }
+                        )
+                    }
 
                     //节日彩蛋效果层
                     FestivalEffects(

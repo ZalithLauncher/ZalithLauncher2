@@ -129,8 +129,9 @@ android {
     }
 
     defaultConfig {
-        applicationId = zalithPackageName
-        applicationIdSuffix = ".v2"
+        // Keep the original namespace for source compatibility, while allowing branded forks
+        // to ship under an independent Android application ID.
+        applicationId = project.findProperty("application_id") as? String ?: "$zalithPackageName.v2"
         minSdk = 26
         targetSdk = 34
         versionCode = launcherVersionCode
@@ -277,7 +278,11 @@ androidComponents {
 
                 (output.getFilter(ABI)?.identifier ?: "all").let { abi ->
                     val baseName = "$launcherName-${if (variant.buildType == "release") launcherVersionName else "Debug-$launcherVersionName"}"
-                    output.outputFileName = if (abi == "all") "$baseName.apk" else "$baseName-$abi.apk"
+                    output.outputFileName = when {
+                        variant.buildType == "debug" && abi == "all" -> "AEROO-debug.apk"
+                        abi == "all" -> "$baseName.apk"
+                        else -> "$baseName-$abi.apk"
+                    }
                 }
             }
         }

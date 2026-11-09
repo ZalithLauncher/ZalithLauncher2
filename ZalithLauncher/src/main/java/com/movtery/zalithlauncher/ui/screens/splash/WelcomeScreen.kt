@@ -691,6 +691,13 @@ private fun WelcomeIntroduction(
                     text = stringResource(R.string.welcome_screen_intro_core),
                     lineHeight = if (compact) 20.sp else 26.sp
                 )
+                if (BuildKeys.LAUNCHER_NAME != "ZalithLauncher") {
+                    Text(
+                        text = stringResource(R.string.unofficial_modification_notice),
+                        color = MaterialTheme.colorScheme.error,
+                        lineHeight = if (compact) 18.sp else 22.sp
+                    )
+                }
             }
 
             if (documents.isNotEmpty()) {

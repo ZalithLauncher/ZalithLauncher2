@@ -1,4 +1,7 @@
-# Zalith Launcher 2
+# AEROO Launcher (unofficial Zalith Launcher 2 modification)
+
+> This repository builds **AEROO**, an unofficial, separately branded modification of Zalith Launcher 2. It is not affiliated with or endorsed by the original project. See [AEROO build and provenance](AEROO_BUILD.md) for the GitHub Actions APK workflow, attribution, and exact repository changes. The original GPL-3.0 license and notices remain in force.
+
 ![Downloads](https://img.shields.io/github/downloads/ZalithLauncher/ZalithLauncher2/total)
 [![Sponsor](https://img.shields.io/badge/sponsor-30363D?logo=GitHub-Sponsors)](https://afdian.com/a/MovTery)
 

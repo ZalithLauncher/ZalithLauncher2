@@ -1,4 +1,7 @@
-# Zalith Launcher 2
+# AEROO Launcher（Zalith Launcher 2 非官方修改版）
+
+> 本仓库构建的是 **AEROO**，它是 Zalith Launcher 2 的非官方、独立品牌修改版本，与原项目无隶属或背书关系。请参阅 [AEROO 构建与来源说明](AEROO_BUILD.md)，了解 GitHub Actions APK 构建流程及保留的版权和许可声明。
+
 ![Downloads](https://img.shields.io/github/downloads/ZalithLauncher/ZalithLauncher2/total)
 [![Sponsor](https://img.shields.io/badge/sponsor-30363D?logo=GitHub-Sponsors)](https://afdian.com/a/MovTery)
 

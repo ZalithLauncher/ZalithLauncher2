@@ -27,6 +27,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -213,6 +214,18 @@ fun MainScreen(
                     changeTasksExpandedState()
                 },
             )
+
+            if (BuildKeys.LAUNCHER_NAME != "ZalithLauncher") {
+                Text(
+                    text = stringResource(R.string.unofficial_modification_notice),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .padding(horizontal = 12.dp, vertical = 4.dp),
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    style = MaterialTheme.typography.labelSmall
+                )
+            }
 
             Box(
                 modifier = Modifier

@@ -361,10 +361,28 @@ abstract class Launcher(
         val cpuCores = java.lang.Runtime.getRuntime().availableProcessors()
         args.add("-XX:ActiveProcessorCount=$cpuCores")
 
+        // Percepat start JVM sampai logo Mojang muncul.
+        // Opsi yang tidak dikenal runtime tertentu diabaikan, bukan membuat JVM gagal start;
+        // argumen yang sudah ditentukan pengguna tidak ditimpa.
+        if (args.none { it == "-XX:+IgnoreUnrecognizedVMOptions" }) {
+            args.add("-XX:+IgnoreUnrecognizedVMOptions")
+        }
+        // Tidak membuat file hsperfdata (mmap + I/O) saat JVM start
+        args.addUnlessPresent("-XX:-UsePerfData", "UsePerfData")
+        // Lewati verifikasi bytecode untuk class game/mod (bukan class inti Java): load class jauh lebih cepat
+        args.addUnlessPresent("-XX:-BytecodeVerificationRemote", "BytecodeVerificationRemote", "-Xverify")
+        // Hindari SecureRandom menunggu entropi saat start
+        args.addUnlessPresent("-Djava.security.egd=file:/dev/urandom", "-Djava.security.egd")
+
         // Render Distance Smooth: tuning GC agar tidak stutter saat chunk banyak dimuat
         if (AllSettings.smoothRenderDistance.getValue()) {
             args.addSmoothRenderDistanceJvmArgs(cpuCores)
         }
+    }
+
+    /** Tambahkan [arg] hanya jika belum ada argumen yang mengandung salah satu dari [markers] */
+    private fun MutableList<String>.addUnlessPresent(arg: String, vararg markers: String) {
+        if (none { existing -> markers.any { existing.contains(it) } }) add(arg)
     }
 
     protected fun MutableList<String>.purgeArg(argStart: String) {

@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.game.version.download
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.game.download.engine.BatchDownloader
 import com.movtery.zalithlauncher.game.download.engine.BatchProgress
+import com.movtery.zalithlauncher.utils.file.VerifiedFileCache
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -51,6 +52,7 @@ suspend fun Task.runBatchDownloads(
 ) {
     val verifyStarted = System.currentTimeMillis()
     val (reusable, pending) = verifyExistingFilesConcurrently(tasks)
+    withContext(Dispatchers.IO) { VerifiedFileCache.saveIfDirty() }
     Logger.info(TAG, "Local file check done: reusable=${reusable.size} pending=${pending.size}, took=${System.currentTimeMillis() - verifyStarted}ms")
 
     //清单里只要有未声明大小的文件，字节数就不能构成可靠的进度分母

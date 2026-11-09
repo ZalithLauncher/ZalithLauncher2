@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.game.version.download
 
 import com.movtery.zalithlauncher.game.download.engine.BatchDownloader
 import com.movtery.zalithlauncher.game.download.engine.DownloadRequest
+import com.movtery.zalithlauncher.utils.file.VerifiedFileCache
 import com.movtery.zalithlauncher.utils.file.check7z
 import com.movtery.zalithlauncher.utils.file.checkZip
 import com.movtery.zalithlauncher.utils.file.compareSHA1
@@ -78,7 +79,13 @@ class DownloadTask(
             return archiveOrPlainValid(file)
         }
 
-        if (compareSHA1(file, sha1)) return true
+        //file yang tidak berubah sejak lolos verifikasi terakhir tidak perlu di-hash lagi
+        if (VerifiedFileCache.isVerified(file, sha1)) return true
+        if (compareSHA1(file, sha1)) {
+            VerifiedFileCache.markVerified(file, sha1)
+            return true
+        }
+        VerifiedFileCache.forget(file)
         FileUtils.deleteQuietly(file)
         return false
     }

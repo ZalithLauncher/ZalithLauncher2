@@ -2,6 +2,15 @@ name: Build APK
 
 on:
   workflow_dispatch:
+    inputs:
+      variant:
+        description: Android build variant
+        required: true
+        type: choice
+        options:
+          - Debug
+          - Release
+        default: Debug
   workflow_call:
     inputs:
       variant:
@@ -23,7 +32,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch: ["all", "arm", "arm64", "x86", "x86_64"]
+        # One universal APK is enough for debug validation; keep per-ABI release packages.
+        arch: ${{ inputs.variant == 'Debug' && fromJSON('["all"]') || fromJSON('["all", "arm", "arm64", "x86", "x86_64"]') }}
       fail-fast: false
 
     env:
@@ -67,26 +77,40 @@ jobs:
       - name: Install cargo-ndk
         run: |
           version="4.1.2"
-          curl -sL "https://github.com/bbqsrc/cargo-ndk/releases/download/v${version}/cargo-ndk-x86_64-unknown-linux-gnu-v${version}.tgz" |
+          mkdir -p "$HOME/.cargo/bin"
+          curl --fail --silent --show-error --location "https://github.com/bbqsrc/cargo-ndk/releases/download/v${version}/cargo-ndk-x86_64-unknown-linux-gnu-v${version}.tgz" |
             tar xz -C "$HOME/.cargo/bin" --strip-components=1
           chmod +x "$HOME/.cargo/bin"/cargo-ndk*
           cargo ndk --version
 
       - name: Setup Android NDK
         run: |
-          ndk=$(ls -d "$ANDROID_HOME"/ndk/* 2>/dev/null | sort -V | tail -1)
-          if [ -z "$ndk" ] || [ ! -f "$ndk/source.properties" ]; then
-            sdkmanager --install "ndk;27.0.12077973"
-            ndk=$(ls -d "$ANDROID_HOME"/ndk/* | sort -V | tail -1)
+          ndk="$ANDROID_HOME/ndk/25.2.9519653"
+          if [ ! -f "$ndk/source.properties" ]; then
+            sdkmanager --install "ndk;25.2.9519653"
           fi
-          echo "Using NDK at $ndk"
           test -f "$ndk/source.properties"
+          echo "Using NDK at $ndk"
           echo "ANDROID_NDK_HOME=$ndk" >> "$GITHUB_ENV"
+          echo "ANDROID_NDK_ROOT=$ndk" >> "$GITHUB_ENV"
 
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew
-          ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
+          ./gradlew --no-daemon ZalithLauncher:assemble${{ inputs.variant }} \
+            -Darch=${{ matrix.arch }} \
+            -Plauncher_name=AEROO \
+            -Plauncher_app_name="AEROO Launcher" \
+            -Plauncher_short_name=AEROO \
+            -Purl_home=https://github.com/zerobore/AEROO-LAUNCHER \
+            -Papplication_id=com.aeroo.launcher
+
+          if [ "${{ inputs.variant }}" = "Debug" ] && [ "${{ matrix.arch }}" = "all" ]; then
+            mkdir -p ZalithLauncher/build/outputs/aeroo
+            apk=$(find ZalithLauncher/build/outputs/apk/debug -maxdepth 1 -type f -name '*.apk' -print -quit)
+            test -n "$apk"
+            cp "$apk" ZalithLauncher/build/outputs/aeroo/AEROO-debug.apk
+          fi
 
       - name: Upload Release APK for ${{ matrix.arch }}
         if: inputs.variant == 'Release'
@@ -106,8 +130,8 @@ jobs:
 
       - name: Upload Debug APK for ${{ matrix.arch }}
         if: inputs.variant == 'Debug'
-        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
-          name: debug apk (${{ matrix.arch }})
-          path: ZalithLauncher/build/outputs/apk/debug/*.apk
+          name: AEROO-debug-${{ matrix.arch }}
+          path: ZalithLauncher/build/outputs/aeroo/AEROO-debug.apk
+          if-no-files-found: error

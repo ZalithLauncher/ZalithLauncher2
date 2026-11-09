@@ -54,6 +54,9 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
         with:

@@ -369,8 +369,6 @@ abstract class Launcher(
         }
         // Tidak membuat file hsperfdata (mmap + I/O) saat JVM start
         args.addUnlessPresent("-XX:-UsePerfData", "UsePerfData")
-        // Lewati verifikasi bytecode untuk class game/mod (bukan class inti Java): load class jauh lebih cepat
-        args.addUnlessPresent("-XX:-BytecodeVerificationRemote", "BytecodeVerificationRemote", "-Xverify")
         // Hindari SecureRandom menunggu entropi saat start
         args.addUnlessPresent("-Djava.security.egd=file:/dev/urandom", "-Djava.security.egd")
 

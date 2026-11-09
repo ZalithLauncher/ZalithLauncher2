@@ -763,6 +763,7 @@
     <!-- Message in the dialog confirming that you want to force close the running game -->
     <string name="game_dialog_force_close_message">Are you sure you want to force close and return to the main screen?</string>
     <!-- Status text on the game launching overlay, shown while waiting for the game window to appear -->
+    <string name="game_loading_title">LOADING GAME</string>
     <string name="game_loading">The game is running. Waiting for the game screen to appear…</string>
     <!-- Line on the game launching overlay; %s is the name of the version being started -->
     <string name="game_loading_version_name">Game Version: %s</string>

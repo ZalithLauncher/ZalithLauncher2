@@ -283,6 +283,7 @@
     <string name="game_button_mouse_left">Klik Kiri</string>
     <string name="game_button_mouse_right">Klik Kanan</string>
     <string name="game_dialog_force_close_message">Apakah Anda yakin ingin menutup paksa dan kembali ke layar utama?</string>
+    <string name="game_loading_title">LOADING GAME</string>
     <string name="game_loading">Game sedang berjalan, Menunggu logo Mojang muncul…</string>
     <string name="game_loading_version_name">Versi Game: %s</string>
     <string name="game_loading_version_info">Info Game: %s</string>

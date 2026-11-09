@@ -31,8 +31,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -57,6 +55,11 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -925,10 +928,10 @@ private fun GameInfoBox(
         exit = fadeOut() + scaleOut(targetScale = 0.94f),
         modifier = modifier
     ) {
-        val shape = MaterialTheme.shapes.extraLarge
+        val shape = RoundedCornerShape(28.dp)
         val accent = MaterialTheme.colorScheme.primary
 
-        //加载卡片：深红渐变底 + 红色描边与光晕，底部有不确定进度条
+        //加载卡片：深色底 + 强调色描边与光晕；左侧 Nev Launcher 徽标，右侧圆形关闭按钮，底部为进度条
         Box(
             modifier = Modifier
                 .widthIn(max = 560.dp)
@@ -941,50 +944,72 @@ private fun GameInfoBox(
                 .clip(shape)
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color(0xFF2C1315), Color(0xFF170A0B))
+                        listOf(Color(0xFF14171F), Color(0xFF0C0E13))
                     )
                 )
-                .border(width = 1.dp, color = accent.copy(alpha = 0.45f), shape = shape)
+                .border(width = 1.dp, color = accent.copy(alpha = 0.5f), shape = shape)
         ) {
-            Column {
-                Row {
-                    Row(
-                        modifier = Modifier
-                            .weight(1f, fill = false)
-                            .padding(start = 20.dp, top = 18.dp, bottom = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        LoadingIndicator(
-                            modifier = Modifier.align(Alignment.CenterVertically),
-                            color = accent
-                        )
+            Column(
+                modifier = Modifier.padding(start = 20.dp, end = 16.dp, top = 20.dp, bottom = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    //Logo Nev Launcher
+                    Image(
+                        modifier = Modifier.size(60.dp),
+                        painter = painterResource(R.drawable.img_nev_logo),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit
+                    )
 
-                        //提示信息
-                        Column(
-                            modifier = Modifier.weight(1f, fill = false),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.game_loading_title),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            letterSpacing = 0.5.sp,
+                            color = Color.White,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text(
+                            text = versionName,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold,
+                            color = accent,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        versionInfo?.let { info ->
                             Text(
-                                text = stringResource(R.string.game_loading),
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontWeight = FontWeight.SemiBold
+                                text = info,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White.copy(alpha = 0.55f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
-                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                                InfoChip(text = stringResource(R.string.game_loading_version_name, versionName))
-                                versionInfo?.let { info ->
-                                    InfoChip(text = stringResource(R.string.game_loading_version_info, info))
-                                }
-                            }
                         }
                     }
 
-                    IconButton(
-                        modifier = Modifier.padding(top = 4.dp, end = 4.dp),
-                        onClick = onClose
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(Color.White.copy(alpha = 0.08f))
+                            .clickable(onClick = onClose),
+                        contentAlignment = Alignment.Center
                     ) {
                         Icon(
                             modifier = Modifier.size(18.dp),
                             painter = painterResource(R.drawable.ic_close),
+                            tint = Color.White.copy(alpha = 0.7f),
                             contentDescription = stringResource(R.string.generic_close)
                         )
                     }
@@ -993,32 +1018,20 @@ private fun GameInfoBox(
                 LinearProgressIndicator(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(3.dp),
+                        .height(6.dp)
+                        .clip(CircleShape),
                     color = accent,
-                    trackColor = accent.copy(alpha = 0.15f)
+                    trackColor = Color.White.copy(alpha = 0.08f)
+                )
+
+                Text(
+                    text = stringResource(R.string.game_loading),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = Color.White.copy(alpha = 0.6f)
                 )
             }
         }
     }
-}
-
-@Composable
-private fun InfoChip(
-    text: String,
-    modifier: Modifier = Modifier
-) {
-    Text(
-        modifier = modifier
-            .background(
-                color = Color.White.copy(alpha = 0.07f),
-                shape = RoundedCornerShape(8.dp)
-            )
-            .padding(horizontal = 8.dp, vertical = 3.dp),
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis
-    )
 }
 
 @Preview(showBackground = false)

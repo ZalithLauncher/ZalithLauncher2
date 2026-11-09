@@ -54,9 +54,6 @@ jobs:
           distribution: "temurin"
           java-version: "21"
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v5
         with:
@@ -88,12 +85,31 @@ jobs:
 
       - name: Setup Android NDK
         run: |
-          ndk="$ANDROID_HOME/ndk/25.2.9519653"
+          sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          if [ -z "$sdk_root" ]; then
+            echo "ANDROID_HOME and ANDROID_SDK_ROOT are both unset" >&2
+            exit 1
+          fi
+
+          sdkmanager=$(command -v sdkmanager || true)
+          if [ -z "$sdkmanager" ]; then
+            sdkmanager=$(find "$sdk_root/cmdline-tools" -type f -name sdkmanager -print -quit 2>/dev/null || true)
+          fi
+          if [ -z "$sdkmanager" ] || [ ! -x "$sdkmanager" ]; then
+            echo "Could not find executable sdkmanager under $sdk_root/cmdline-tools" >&2
+            find "$sdk_root" -maxdepth 5 -type f -name sdkmanager -print 2>/dev/null || true
+            exit 1
+          fi
+          echo "Using SDK manager at $sdkmanager"
+
+          ndk="$sdk_root/ndk/25.2.9519653"
           if [ ! -f "$ndk/source.properties" ]; then
-            sdkmanager --install "ndk;25.2.9519653"
+            "$sdkmanager" --install "ndk;25.2.9519653"
           fi
           test -f "$ndk/source.properties"
           echo "Using NDK at $ndk"
+          echo "ANDROID_HOME=$sdk_root" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$sdk_root" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_HOME=$ndk" >> "$GITHUB_ENV"
           echo "ANDROID_NDK_ROOT=$ndk" >> "$GITHUB_ENV"
 

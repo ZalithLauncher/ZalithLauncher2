@@ -30,6 +30,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -62,6 +63,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -74,7 +76,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.legal.AvailableAgreement
 import com.movtery.zalithlauncher.ui.base.BaseScreen
@@ -94,6 +95,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
+
+/** Nama peluncur yang ditampilkan di layar Welcome */
+private const val VERTEX_LAUNCHER_NAME = "Vertex Launcher"
 
 @Composable
 fun WelcomeScreen(
@@ -609,13 +613,15 @@ private fun ProductBanner(
         )
     ) {
         Image(
-            modifier = Modifier.size(if (compact) 36.dp else 52.dp),
-            painter = painterResource(R.drawable.img_launcher),
+            modifier = Modifier
+                .size(if (compact) 36.dp else 52.dp)
+                .clip(RoundedCornerShape(percent = 22)),
+            painter = painterResource(R.drawable.img_vertex_launcher),
             contentDescription = null
         )
 
         Text(
-            text = BuildKeys.LAUNCHER_NAME,
+            text = VERTEX_LAUNCHER_NAME,
             style = if (compact) {
                 MaterialTheme.typography.titleSmall
             } else {
@@ -680,17 +686,40 @@ private fun WelcomeIntroduction(
             modifier = modifier,
             verticalArrangement = Arrangement.spacedBy(if (compact) 10.dp else 16.dp),
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth()
+            // Teks pengantar: isi tetap sama, hanya gaya yang diubah (garis aksen + warna/ketebalan)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min)
             ) {
-                Text(
-                    text = stringResource(R.string.welcome_screen_intro_primary, BuildKeys.LAUNCHER_NAME),
-                    lineHeight = if (compact) 20.sp else 26.sp
+                Box(
+                    modifier = Modifier
+                        .width(if (compact) 3.dp else 4.dp)
+                        .fillMaxHeight()
+                        .background(
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = CircleShape
+                        )
                 )
-                Text(
-                    text = stringResource(R.string.welcome_screen_intro_core),
-                    lineHeight = if (compact) 20.sp else 26.sp
-                )
+
+                Spacer(modifier = Modifier.width(if (compact) 10.dp else 14.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(if (compact) 6.dp else 10.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.welcome_screen_intro_primary, VERTEX_LAUNCHER_NAME),
+                        lineHeight = if (compact) 20.sp else 26.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Text(
+                        text = stringResource(R.string.welcome_screen_intro_core),
+                        lineHeight = if (compact) 20.sp else 26.sp,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.72f)
+                    )
+                }
             }
 
             if (documents.isNotEmpty()) {

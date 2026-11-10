@@ -105,6 +105,9 @@ fun writeComponentAssetManifests(assetsDir: File) {
     }
 }
 
+val releaseStorePassword = getKeyFromLocal("STORE_PASSWORD", ".store_password.txt")
+val releaseKeyPassword = getKeyFromLocal("KEY_PASSWORD", ".key_password.txt")
+
 android {
     namespace = zalithPackageName
     compileSdk {
@@ -114,8 +117,6 @@ android {
     }
 
     signingConfigs {
-        val releaseStorePassword = getKeyFromLocal("STORE_PASSWORD", ".store_password.txt")
-        val releaseKeyPassword = getKeyFromLocal("KEY_PASSWORD", ".key_password.txt")
         create("releaseBuild") {
             storeFile = file("zalith_launcher.jks")
             storePassword = releaseStorePassword

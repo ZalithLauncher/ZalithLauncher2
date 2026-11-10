@@ -48,7 +48,7 @@ fun DefaultSwitch(
         checkedThumbColor = NevRed.OnGradient,
         checkedBorderColor = NevRed.OutlineBright,
         checkedIconColor = NevRed.GradientEnd,
-        uncheckedTrackColor = Color(0xFF2A1413),
+        uncheckedTrackColor = NevRed.SurfaceHighest,
         uncheckedBorderColor = NevRed.Outline,
         uncheckedThumbColor = NevRed.Muted
     ),

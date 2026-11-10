@@ -178,7 +178,7 @@ fun EditWidgetDialog(
                         .padding(all = 12.dp),
                     shadowElevation = 3.dp,
                     color = Color.Transparent,
-                    contentColor = Color.White,
+                    contentColor = NevRed.OnPanel,
                     shape = RoundedCornerShape(28.dp),
                     border = BorderStroke(
                         1.dp,
@@ -338,7 +338,7 @@ private fun EditWidgetHeader() {
                 text = stringResource(R.string.control_editor_inspector_subtitle),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.White
+                color = NevRed.OnPanel
             )
         }
         //装饰性的进度短线

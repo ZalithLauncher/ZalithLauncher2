@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -32,25 +33,52 @@ import androidx.compose.ui.unit.dp
  * Gaya tema merah Nev Launcher: gradasi merah-oranye, latar merah gelap, garis tepi oranye.
  */
 object NevRed {
-    val GradientStart = Color(0xFFE8402F)
-    val GradientEnd = Color(0xFFFFB02E)
-    val Panel = Color(0xFF1C0C0B)
-    val PanelDeep = Color(0xFF140808)
-    val Outline = Color(0xFF7A3A22)
-    val OutlineBright = Color(0xFFFF8A3D)
-    val OnGradient = Color(0xFF2A0A06)
-    val DangerTile = Color(0xFF5A2230)
-    val DangerContent = Color(0xFFFF6B8A)
-    val Muted = Color(0xFFD9B8B2)
+    /** Awal gradasi: warna utama tema aktif. */
+    val GradientStart: Color
+        @Composable get() = MaterialTheme.colorScheme.primary
+    /** Akhir gradasi: warna tersier tema aktif. */
+    val GradientEnd: Color
+        @Composable get() = MaterialTheme.colorScheme.tertiary
+    /** Teks/ikon di atas gradasi. */
+    val OnGradient: Color
+        @Composable get() = MaterialTheme.colorScheme.onPrimary
+    val Panel: Color
+        @Composable get() = MaterialTheme.colorScheme.surfaceContainer
+    val PanelDeep: Color
+        @Composable get() = MaterialTheme.colorScheme.surfaceContainerLow
+    val SurfaceHigh: Color
+        @Composable get() = MaterialTheme.colorScheme.surfaceContainerHigh
+    val SurfaceHighest: Color
+        @Composable get() = MaterialTheme.colorScheme.surfaceContainerHighest
+    val Outline: Color
+        @Composable get() = MaterialTheme.colorScheme.outlineVariant
+    val OutlineBright: Color
+        @Composable get() = lerp(
+            MaterialTheme.colorScheme.primary,
+            MaterialTheme.colorScheme.tertiary,
+            0.5f
+        )
+    val OnPanel: Color
+        @Composable get() = MaterialTheme.colorScheme.onSurface
+    val DangerTile: Color
+        @Composable get() = MaterialTheme.colorScheme.errorContainer
+    val DangerContent: Color
+        @Composable get() = MaterialTheme.colorScheme.error
+    val Muted: Color
+        @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
 
     val Gradient: Brush
-        get() = Brush.horizontalGradient(listOf(GradientStart, GradientEnd))
+        @Composable get() = Brush.horizontalGradient(listOf(GradientStart, GradientEnd))
 
     val GradientDiagonal: Brush
-        get() = Brush.linearGradient(listOf(GradientStart, GradientEnd))
+        @Composable get() = Brush.linearGradient(listOf(GradientStart, GradientEnd))
 
     val PanelBrush: Brush
-        get() = Brush.verticalGradient(listOf(Panel, PanelDeep))
+        @Composable get() = Brush.verticalGradient(listOf(Panel, PanelDeep))
+
+    /** Brush satu warna (untuk latar polos yang tetap bertipe Brush). */
+    @Composable
+    fun solid(color: Color): Brush = Brush.horizontalGradient(listOf(color, color))
 }
 
 /**
@@ -106,7 +134,7 @@ fun NevIconTile(
                 modifier = Modifier
                     .size(52.dp)
                     .background(
-                        if (danger) Brush.linearGradient(listOf(NevRed.DangerTile, NevRed.DangerTile))
+                        if (danger) NevRed.solid(NevRed.DangerTile)
                         else NevRed.GradientDiagonal
                     ),
                 contentAlignment = Alignment.Center
@@ -123,7 +151,7 @@ fun NevIconTile(
             text = text,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
-            color = if (danger) NevRed.DangerContent else Color.White,
+            color = if (danger) NevRed.DangerContent else NevRed.OnPanel,
             maxLines = 1
         )
     }
@@ -172,13 +200,13 @@ fun NevPillButton(
 ) {
     val contentColor = when (style) {
         NevPillStyle.Gradient -> NevRed.OnGradient
-        NevPillStyle.Neutral -> Color.White
+        NevPillStyle.Neutral -> NevRed.OnPanel
         NevPillStyle.Danger -> NevRed.DangerContent
     }
     val circleColor = when (style) {
         NevPillStyle.Gradient -> NevRed.OnGradient
-        NevPillStyle.Neutral -> Color(0xFF3A1F1E)
-        NevPillStyle.Danger -> Color(0xFF4A2030)
+        NevPillStyle.Neutral -> NevRed.SurfaceHighest
+        NevPillStyle.Danger -> NevRed.DangerTile
     }
     val circleIcon = when (style) {
         NevPillStyle.Gradient -> NevRed.GradientEnd
@@ -201,8 +229,8 @@ fun NevPillButton(
                 .background(
                     when (style) {
                         NevPillStyle.Gradient -> NevRed.Gradient
-                        NevPillStyle.Neutral -> Brush.horizontalGradient(listOf(Color(0xFF2A1413), Color(0xFF2A1413)))
-                        NevPillStyle.Danger -> Brush.horizontalGradient(listOf(Color(0xFF3A1824), Color(0xFF3A1824)))
+                        NevPillStyle.Neutral -> NevRed.solid(NevRed.SurfaceHigh)
+                        NevPillStyle.Danger -> NevRed.solid(NevRed.DangerTile.copy(alpha = 0.6f))
                     }
                 )
                 .padding(start = 6.dp, end = 18.dp, top = 6.dp, bottom = 6.dp),
@@ -259,7 +287,7 @@ fun NevNumberedTab(
             modifier = Modifier
                 .background(
                     if (selected) NevRed.Gradient
-                    else Brush.horizontalGradient(listOf(Color(0xFF200E0D), Color(0xFF200E0D)))
+                    else NevRed.solid(NevRed.Panel)
                 )
                 .padding(horizontal = 14.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -273,7 +301,7 @@ fun NevNumberedTab(
             )
             androidx.compose.runtime.CompositionLocalProvider(
                 androidx.compose.material3.LocalContentColor provides
-                        if (selected) NevRed.OnGradient else Color.White
+                        if (selected) NevRed.OnGradient else NevRed.OnPanel
             ) {
                 content()
             }
@@ -355,13 +383,13 @@ fun nevTextFieldColors() = androidx.compose.material3.OutlinedTextFieldDefaults.
     focusedBorderColor = NevRed.OutlineBright,
     unfocusedBorderColor = NevRed.Outline,
     cursorColor = NevRed.GradientEnd,
-    focusedContainerColor = Color(0xFF1E0E0D),
-    unfocusedContainerColor = Color(0xFF1E0E0D)
+    focusedContainerColor = NevRed.Panel,
+    unfocusedContainerColor = NevRed.Panel
 )
 
 /** Border gradasi tipis untuk kartu. */
 val NevCardBorder: BorderStroke
-    get() = BorderStroke(
+    @Composable get() = BorderStroke(
         1.dp,
         Brush.horizontalGradient(listOf(NevRed.Outline, NevRed.OutlineBright.copy(alpha = 0.7f)))
     )

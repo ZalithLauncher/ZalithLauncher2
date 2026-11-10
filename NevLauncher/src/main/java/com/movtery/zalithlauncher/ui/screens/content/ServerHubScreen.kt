@@ -235,7 +235,7 @@ private fun ServerHubContent(
                 ),
                 colors = ButtonDefaults.outlinedButtonColors(
                     containerColor = if (favoritesOnly) NevRed.OutlineBright.copy(alpha = 0.18f) else Color.Transparent,
-                    contentColor = Color.White
+                    contentColor = NevRed.OnPanel
                 )
             ) {
                 Text(stringResource(R.string.server_hub_favorites, cards.size), maxLines = 1)
@@ -347,7 +347,7 @@ private fun <T> FilterDropdown(
             onClick = { expanded = true },
             shape = RoundedCornerShape(12.dp),
             border = BorderStroke(1.dp, NevRed.Outline),
-            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = NevRed.OnPanel)
         ) {
             Text(text = label, maxLines = 1)
             Icon(
@@ -513,7 +513,7 @@ private fun Chip(text: String) {
     Text(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(Color(0xFF2A1413))
+            .background(NevRed.SurfaceHigh)
             .border(1.dp, NevRed.Outline, RoundedCornerShape(8.dp))
             .padding(horizontal = 6.dp, vertical = 2.dp),
         text = text,

@@ -178,7 +178,7 @@ fun GameMenuSubscreen(
                 text = "NEV SETTING IN GAME",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = Color.White,
+                color = NevRed.OnPanel,
                 maxLines = 1
             )
         }
@@ -207,7 +207,7 @@ fun GameMenuSubscreen(
                         )
                         .background(
                             if (selected) NevRed.Gradient
-                            else Brush.horizontalGradient(listOf(Color(0xFF200E0D), Color(0xFF200E0D)))
+                            else NevRed.solid(NevRed.SurfaceHigh)
                         )
                         .clickable { onControlMenuTabChange(index) }
                         .padding(horizontal = 12.dp, vertical = 7.dp),
@@ -224,7 +224,7 @@ fun GameMenuSubscreen(
                         text = stringResource(menuTab.labelRes),
                         maxLines = 1,
                         fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                        color = if (selected) NevRed.OnGradient else Color.White,
+                        color = if (selected) NevRed.OnGradient else NevRed.OnPanel,
                         style = MaterialTheme.typography.labelMedium
                     )
                 }

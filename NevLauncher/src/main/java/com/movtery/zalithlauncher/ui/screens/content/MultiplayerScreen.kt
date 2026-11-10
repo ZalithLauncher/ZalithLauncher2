@@ -361,7 +361,7 @@ private fun TutorialMenu(
                         )
                         .background(
                             if (selected) NevRed.Gradient
-                            else Brush.horizontalGradient(listOf(Color(0xFF200E0D), Color(0xFF200E0D)))
+                            else NevRed.solid(NevRed.SurfaceHigh)
                         )
                         .clickable { selectedTabIndex = index }
                         .padding(horizontal = 10.dp, vertical = 8.dp),
@@ -369,7 +369,7 @@ private fun TutorialMenu(
                 ) {
                     MarqueeText(
                         text = stringResource(item.text),
-                        color = if (selected) NevRed.OnGradient else Color.White,
+                        color = if (selected) NevRed.OnGradient else NevRed.OnPanel,
                         style = MaterialTheme.typography.labelLarge.copy(
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
                         )

@@ -681,7 +681,7 @@ private fun sponsorAmountText(plan: SponsorPlan): AnnotatedString {
 }
 
 private fun formatAmount(value: Double): String {
-    return String.format(Locale.ROOT, "¥%.2f", value)
+    return String.format(Locale.ROOT, "CNY %.2f", value)
 }
 
 private val sponsorPreviewItems = listOf(

@@ -1509,7 +1509,6 @@ fun ChangeSkinDialog(
             Surface(
                 modifier = Modifier
                     .padding(all = 6.dp)
-                    .heightIn(min = (maxHeight * 0.85f).coerceAtMost(rememberDialogMaxHeight()))
                     .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight())),
                 shape = MaterialTheme.shapes.extraLarge,
                 color = cardColor(false),

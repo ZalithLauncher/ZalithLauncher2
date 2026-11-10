@@ -665,6 +665,9 @@
     <string name="control_editor_edit_dialog_open_preview">Buka Pratinjau</string>
     <string name="control_editor_edit_dialog_close_preview">Tutup Pratinjau</string>
     <string name="control_editor_edit_dialog_clone_widget">Salin kontrol</string>
+    <string name="control_editor_popup_clone">Klon</string>
+    <string name="control_editor_inspector_tag">NEV // INSPEKTOR</string>
+    <string name="control_editor_inspector_subtitle">Mengedit tombol</string>
     <string name="control_editor_edit_dialog_clone_widget_title">Salin ke Lapisan Kontrol</string>
     <string name="control_editor_edit_category_info">Informasi</string>
     <string name="control_editor_edit_category_event">Event Sentuh</string>

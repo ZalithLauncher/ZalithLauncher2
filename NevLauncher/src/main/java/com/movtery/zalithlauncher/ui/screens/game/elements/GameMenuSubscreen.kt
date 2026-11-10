@@ -26,6 +26,12 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import com.movtery.zalithlauncher.ui.theme.NevRed
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -43,8 +49,6 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SecondaryScrollableTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -86,7 +90,6 @@ import com.movtery.zalithlauncher.ui.components.lazyScrollWithBar
 import com.movtery.zalithlauncher.ui.control.HotbarRule
 import com.movtery.zalithlauncher.ui.control.gyroscope.isGyroscopeAvailable
 import com.movtery.zalithlauncher.ui.theme.cardColor
-import com.movtery.zalithlauncher.ui.theme.cardTitleColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 import com.movtery.zalithlauncher.utils.customResolutionRange
@@ -156,15 +159,16 @@ fun GameMenuSubscreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(cardTitleColor())
-                .padding(horizontal = 12.dp, vertical = 6.dp),
+                .background(NevRed.PanelBrush)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Image(
                 modifier = Modifier
-                    .size(26.dp)
-                    .clip(RoundedCornerShape(6.dp)),
+                    .size(30.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(1.dp, NevRed.OutlineBright, RoundedCornerShape(8.dp)),
                 painter = painterResource(R.drawable.img_nev_logo),
                 contentDescription = null,
                 contentScale = ContentScale.Fit
@@ -173,40 +177,66 @@ fun GameMenuSubscreen(
                 text = "NEV SETTING IN GAME",
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
+                color = Color.White,
                 maxLines = 1
             )
         }
 
-        //顶贴标签栏
-        SecondaryScrollableTabRow(
-            selectedTabIndex = tabIndex,
-            edgePadding = 0.dp,
-            minTabWidth = 72.dp,
-            containerColor = cardTitleColor(),
+        //顶贴标签栏：渐变胶囊标签
+        val tabScroll = rememberScrollState()
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(NevRed.PanelDeep)
+                .horizontalScroll(tabScroll)
+                .padding(horizontal = 10.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             menuTabs.forEachIndexed { index, menuTab ->
-                Tab(
-                    selected = index == tabIndex,
-                    onClick = {
-                        onControlMenuTabChange(index)
-                    },
-                    icon = {
-                        Icon(
-                            modifier = Modifier.size(menuTab.iconSize),
-                            painter = painterResource(menuTab.iconRes),
-                            contentDescription = null
+                val selected = index == tabIndex
+                val tabShape = RoundedCornerShape(50)
+                Row(
+                    modifier = Modifier
+                        .clip(tabShape)
+                        .border(
+                            1.dp,
+                            if (selected) NevRed.OutlineBright else NevRed.Outline.copy(alpha = 0.7f),
+                            tabShape
                         )
-                    },
-                    text = {
-                        Text(
-                            text = stringResource(menuTab.labelRes),
-                            maxLines = 1,
-                            style = MaterialTheme.typography.labelSmall
+                        .background(
+                            if (selected) NevRed.Gradient
+                            else Brush.horizontalGradient(listOf(Color(0xFF200E0D), Color(0xFF200E0D)))
                         )
-                    }
-                )
+                        .clickable { onControlMenuTabChange(index) }
+                        .padding(horizontal = 12.dp, vertical = 7.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Icon(
+                        modifier = Modifier.size(menuTab.iconSize),
+                        painter = painterResource(menuTab.iconRes),
+                        contentDescription = null,
+                        tint = if (selected) NevRed.OnGradient else NevRed.Muted
+                    )
+                    Text(
+                        text = stringResource(menuTab.labelRes),
+                        maxLines = 1,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+                        color = if (selected) NevRed.OnGradient else Color.White,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
             }
         }
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(1.dp)
+                .background(
+                    Brush.horizontalGradient(listOf(Color.Transparent, NevRed.Outline, Color.Transparent))
+                )
+        )
 
         HorizontalPager(
             state = pagerState,

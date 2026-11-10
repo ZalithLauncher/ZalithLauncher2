@@ -18,29 +18,15 @@
 
 package com.movtery.zalithlauncher.ui.screens.main.control_editor
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraintsScope
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.guide.GuideHost
@@ -66,6 +52,10 @@ import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import com.movtery.zalithlauncher.ui.guide.NextTipLabel
 import com.movtery.zalithlauncher.ui.guide.rememberAppGuides
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_widget.EditWidgetDialog
+import com.movtery.zalithlauncher.ui.theme.NevIconTile
+import com.movtery.zalithlauncher.ui.theme.NevPopupContainer
+import com.movtery.zalithlauncher.ui.theme.NevPopupDivider
+import com.movtery.zalithlauncher.ui.theme.NevPopupRow
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.style_cabinet.OpenCabinetSource
 import com.movtery.zalithlauncher.viewmodel.EditorViewModel
 import java.io.File
@@ -122,34 +112,41 @@ fun BoxWithConstraintsScope.ControlEditor(
                     viewModel.selectedWidget = null
                 },
                 floatingButtons = {
-                    //设置属性
-                    ActionButton(
-                        painter = painterResource(R.drawable.ic_settings_filled),
-                        text = stringResource(R.string.generic_setting),
-                        onClick = viewModel::openWidgetEditor
-                    )
-                    //复制控件
-                    ActionButton(
-                        painter = painterResource(R.drawable.ic_file_copy_filled),
-                        text = stringResource(R.string.control_editor_edit_dialog_clone_widget),
-                        onClick = {
-                            val widget = viewModel.selectedWidget
-                            if (widget != null) {
-                                viewModel.requestCloneWidget(widget.data, widget.layer)
-                            }
+                    NevPopupContainer {
+                        NevPopupRow {
+                            //设置属性
+                            NevIconTile(
+                                painter = painterResource(R.drawable.ic_settings_filled),
+                                text = stringResource(R.string.generic_setting),
+                                onClick = viewModel::openWidgetEditor
+                            )
+                            NevPopupDivider()
+                            //复制控件
+                            NevIconTile(
+                                painter = painterResource(R.drawable.ic_file_copy_filled),
+                                text = stringResource(R.string.control_editor_popup_clone),
+                                onClick = {
+                                    val widget = viewModel.selectedWidget
+                                    if (widget != null) {
+                                        viewModel.requestCloneWidget(widget.data, widget.layer)
+                                    }
+                                }
+                            )
+                            NevPopupDivider()
+                            //删除
+                            NevIconTile(
+                                painter = painterResource(R.drawable.ic_delete_filled),
+                                text = stringResource(R.string.generic_delete),
+                                danger = true,
+                                onClick = {
+                                    val widget = viewModel.selectedWidget
+                                    if (widget != null) {
+                                        viewModel.requestDeleteWidget(widget.data, widget.layer)
+                                    }
+                                }
+                            )
                         }
-                    )
-                    //删除
-                    ActionButton(
-                        painter = painterResource(R.drawable.ic_delete_filled),
-                        text = stringResource(R.string.generic_delete),
-                        onClick = {
-                            val widget = viewModel.selectedWidget
-                            if (widget != null) {
-                                viewModel.requestDeleteWidget(widget.data, widget.layer)
-                            }
-                        }
-                    )
+                    }
                 },
                 enableSnap = AllSettings.editorEnableWidgetSnap.state,
                 snapInAllLayers = AllSettings.editorSnapInAllLayers.state,
@@ -302,40 +299,5 @@ fun BoxWithConstraintsScope.ControlEditor(
 
         //全部对话框
         EditorDialogHost(viewModel)
-    }
-}
-
-@Composable
-private fun ActionButton(
-    painter: Painter,
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Surface(
-        modifier = modifier.semantics { role = Role.Button },
-        shape = ButtonDefaults.shape,
-        color = MaterialTheme.colorScheme.primary,
-        contentColor = MaterialTheme.colorScheme.onPrimary,
-        onClick = onClick
-    ) {
-        Row(
-            modifier = Modifier.padding(all = 6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Icon(
-                modifier = Modifier
-                    .padding(start = 6.dp)
-                    .size(20.dp),
-                painter = painter,
-                contentDescription = text
-            )
-            Text(
-                modifier = Modifier.padding(end = 6.dp),
-                text = text,
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
     }
 }

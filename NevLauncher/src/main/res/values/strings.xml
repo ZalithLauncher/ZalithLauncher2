@@ -2369,6 +2369,9 @@
     <string name="control_editor_edit_dialog_close_preview">Close Preview</string>
     <!-- Button cloning a control, shown above a selected control and in the widget edit dialog -->
     <string name="control_editor_edit_dialog_clone_widget">Clone Control</string>
+    <string name="control_editor_popup_clone">Clone</string>
+    <string name="control_editor_inspector_tag">NEV // INSPECTOR</string>
+    <string name="control_editor_inspector_subtitle">Editing control</string>
     <!-- Title of the dialog picking the control layer to clone a widget to -->
     <string name="control_editor_edit_dialog_clone_widget_title">Clone to Control Layer</string>
     <!-- Confirmation message when deleting a widget in the control layout editor -->

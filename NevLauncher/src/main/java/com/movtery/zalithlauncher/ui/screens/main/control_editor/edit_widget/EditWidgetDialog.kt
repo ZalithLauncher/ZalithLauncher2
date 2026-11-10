@@ -18,6 +18,21 @@
 
 package com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_widget
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import com.movtery.zalithlauncher.ui.theme.NevNumberedTab
+import com.movtery.zalithlauncher.ui.theme.NevPillButton
+import com.movtery.zalithlauncher.ui.theme.NevPillStyle
+import com.movtery.zalithlauncher.ui.theme.NevRed
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.fadeIn
@@ -39,10 +54,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -70,7 +82,6 @@ import com.movtery.layer_controller.observable.ObservableTranslatableString
 import com.movtery.layer_controller.observable.ObservableWidget
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
-import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.clearWith
@@ -78,8 +89,6 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.CategoryItem
 import com.movtery.zalithlauncher.ui.screens.rememberSwapTween
 import com.movtery.zalithlauncher.ui.screens.rememberTitledNavBackStack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
-import com.movtery.zalithlauncher.ui.theme.cardColor
-import com.movtery.zalithlauncher.ui.theme.onCardColor
 
 private enum class EditWidgetDialogState(val alpha: Float, val buttonText: Int) {
     /** 完全不透明 */
@@ -164,19 +173,25 @@ fun EditWidgetDialog(
 
                 Surface(
                     modifier = Modifier
-                        .fillMaxWidth(0.75f)
+                        .fillMaxWidth(0.9f)
                         .fillMaxHeight()
-                        .padding(all = 16.dp),
+                        .padding(all = 12.dp),
                     shadowElevation = 3.dp,
-                    color = cardColor(false),
-                    contentColor = onCardColor(),
-                    shape = MaterialTheme.shapes.extraLarge
+                    color = Color.Transparent,
+                    contentColor = Color.White,
+                    shape = RoundedCornerShape(28.dp),
+                    border = BorderStroke(
+                        1.dp,
+                        Brush.horizontalGradient(listOf(NevRed.Outline, NevRed.OutlineBright))
+                    )
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(horizontal = 4.dp)
+                            .background(NevRed.PanelBrush)
+                            .padding(horizontal = 8.dp)
                     ) {
+                        EditWidgetHeader()
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -220,16 +235,18 @@ fun EditWidgetDialog(
                             modifier = Modifier
                                 .padding(all = 8.dp)
                                 .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             if (dialogTransparent != EditWidgetDialogState.SEMI_TRANSPARENT) {
-                                Button(
+                                NevPillButton(
+                                    text = stringResource(dialogTransparent.buttonText),
+                                    painter = painterResource(R.drawable.ic_image_filled),
+                                    style = NevPillStyle.Gradient,
                                     onClick = {
                                         dialogTransparent = dialogTransparent.nextByUser()
                                     }
-                                ) {
-                                    MarqueeText(text = stringResource(dialogTransparent.buttonText))
-                                }
+                                )
                                 Spacer(Modifier.width(16.dp))
                             } else {
                                 //占位用，防止右侧按钮向左靠齐
@@ -242,34 +259,43 @@ fun EditWidgetDialog(
                             }
                             Row(
                                 modifier = Modifier
+                                    .border(
+                                        BorderStroke(1.dp, NevRed.Outline),
+                                        RoundedCornerShape(50)
+                                    )
+                                    .padding(4.dp)
                                     .fadeEdge(
                                         state = scrollState,
                                         direction = EdgeDirection.Horizontal
                                     )
                                     .horizontalScroll(state = scrollState),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                FilledTonalButton(
+                                NevPillButton(
+                                    text = stringResource(R.string.generic_delete),
+                                    painter = painterResource(R.drawable.ic_delete_filled),
+                                    style = NevPillStyle.Danger,
                                     onClick = {
                                         onDelete(data.data, data.layer)
                                     }
-                                ) {
-                                    MarqueeText(text = stringResource(R.string.generic_delete))
-                                }
+                                )
 
-                                FilledTonalButton(
+                                NevPillButton(
+                                    text = stringResource(R.string.control_editor_edit_dialog_clone_widget),
+                                    painter = painterResource(R.drawable.ic_file_copy_filled),
+                                    style = NevPillStyle.Neutral,
                                     onClick = {
                                         onClone(data.data, data.layer)
                                     }
-                                ) {
-                                    MarqueeText(text = stringResource(R.string.control_editor_edit_dialog_clone_widget))
-                                }
+                                )
 
-                                Button(
+                                NevPillButton(
+                                    text = stringResource(R.string.generic_close),
+                                    painter = painterResource(R.drawable.ic_close),
+                                    style = NevPillStyle.Gradient,
                                     onClick = onDismissRequest
-                                ) {
-                                    MarqueeText(text = stringResource(R.string.generic_close))
-                                }
+                                )
                             }
                         }
                     }
@@ -280,6 +306,69 @@ fun EditWidgetDialog(
 }
 
 @Composable
+private fun EditWidgetHeader() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .background(NevRed.GradientDiagonal, RoundedCornerShape(14.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                modifier = Modifier.size(26.dp),
+                painter = painterResource(R.drawable.ic_settings_filled),
+                contentDescription = null,
+                tint = NevRed.OnGradient
+            )
+        }
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = stringResource(R.string.control_editor_inspector_tag),
+                style = MaterialTheme.typography.labelMedium,
+                fontFamily = FontFamily.Monospace,
+                color = NevRed.OutlineBright
+            )
+            Text(
+                text = stringResource(R.string.control_editor_inspector_subtitle),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
+        //装饰性的进度短线
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            repeat(6) { index ->
+                Box(
+                    modifier = Modifier
+                        .size(width = 18.dp, height = 5.dp)
+                        .background(
+                            if (index < 4) NevRed.Gradient
+                            else Brush.horizontalGradient(listOf(NevRed.Outline, NevRed.Outline)),
+                            RoundedCornerShape(50)
+                        )
+                )
+            }
+        }
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(
+                Brush.horizontalGradient(
+                    listOf(Color.Transparent, NevRed.Outline, Color.Transparent)
+                )
+            )
+    )
+}
+
+@Composable
 private fun EditWidgetTabLayout(
     modifier: Modifier = Modifier,
     items: List<CategoryItem>,
@@ -287,28 +376,31 @@ private fun EditWidgetTabLayout(
     navigateTo: (TitledNavKey) -> Unit
 ) {
     Column(
-        modifier = modifier.verticalScroll(rememberScrollState()),
+        modifier = modifier
+            .width(190.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 6.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(12.dp))
-        items.forEach { item ->
-            NavigationRailItem(
+        items.forEachIndexed { index, item ->
+            NevNumberedTab(
+                modifier = Modifier.fillMaxWidth(),
+                number = index + 1,
                 selected = currentKey == item.key,
                 onClick = {
                     navigateTo(item.key)
-                },
-                icon = {
-                    item.icon()
-                },
-                label = {
-                    Text(
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                        text = stringResource(item.textRes),
-                        maxLines = 1,
-                        style = MaterialTheme.typography.labelMedium
-                    )
                 }
-            )
+            ) {
+                item.icon()
+                Text(
+                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                    text = stringResource(item.textRes),
+                    maxLines = 1,
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
         }

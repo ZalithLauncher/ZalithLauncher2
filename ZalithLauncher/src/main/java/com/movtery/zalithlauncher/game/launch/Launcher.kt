@@ -333,6 +333,9 @@ abstract class Launcher(
         args.purgeArg("-XX:+UseTransparentHugePages")
         args.purgeArg("-XX:+UseLargePagesInMetaspace")
         args.purgeArg("-XX:+UseLargePages")
+        args.purgeArg("-XX:MinHeapFreeRatio")
+        args.purgeArg("-XX:MaxHeapFreeRatio")
+        args.purgeArg("-XX:ParallelGCThreads")
         args.purgeArg("-Dorg.lwjgl.opengl.libname")
         // Don't let the user specify a custom Freetype library (as the user is unlikely to specify a version compiled for Android)
         args.purgeArg("-Dorg.lwjgl.freetype.libname")
@@ -340,9 +343,16 @@ abstract class Launcher(
         args.purgeArg("-XX:ActiveProcessorCount")
 
         //Add automatically generated args
-        val ramAllocationString = ramAllocation.toString()
-        args.add("-Xms${ramAllocationString}M")
-        args.add("-Xmx${ramAllocationString}M")
+        // 初始堆只提交一部分：-Xms == -Xmx 会让 JVM 启动即占满整块堆，且永远不会归还给系统
+        val initialHeap = (ramAllocation / 4).coerceIn(256, 1024).coerceAtMost(ramAllocation)
+        args.add("-Xms${initialHeap}M")
+        args.add("-Xmx${ramAllocation}M")
+        // GC 之后把空闲堆还给系统（只有 Xms < Xmx 时才有效果）
+        args.add("-XX:MinHeapFreeRatio=10")
+        args.add("-XX:MaxHeapFreeRatio=30")
+        // 限制 GC 线程数，避免大小核机器上按全核数开线程抢 CPU
+        val gcThreads = java.lang.Runtime.getRuntime().availableProcessors().coerceAtMost(4)
+        args.add("-XX:ParallelGCThreads=$gcThreads")
 
         args.add("-Dorg.lwjgl.openal.libname=${PathManager.DIR_NATIVE_LIB}/libopenal.so")
 

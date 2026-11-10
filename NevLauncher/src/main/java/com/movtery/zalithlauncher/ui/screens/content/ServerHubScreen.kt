@@ -26,7 +26,13 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import com.movtery.zalithlauncher.ui.theme.nevTextFieldColors
+import com.movtery.zalithlauncher.ui.theme.NevGradientButton
+import com.movtery.zalithlauncher.ui.theme.NevCardBorder
+import com.movtery.zalithlauncher.ui.theme.NevRed
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.border
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -191,6 +197,7 @@ private fun ServerHubContent(
                 onValueChange = { query = it },
                 singleLine = true,
                 shape = CircleShape,
+                colors = nevTextFieldColors(),
                 placeholder = { Text(stringResource(R.string.server_hub_search_hint)) }
             )
 
@@ -224,8 +231,11 @@ private fun ServerHubContent(
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(
                     width = if (favoritesOnly) 2.dp else 1.dp,
-                    color = if (favoritesOnly) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.outline
+                    color = if (favoritesOnly) NevRed.OutlineBright else NevRed.Outline
+                ),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = if (favoritesOnly) NevRed.OutlineBright.copy(alpha = 0.18f) else Color.Transparent,
+                    contentColor = Color.White
                 )
             ) {
                 Text(stringResource(R.string.server_hub_favorites, cards.size), maxLines = 1)
@@ -233,6 +243,8 @@ private fun ServerHubContent(
             OutlinedButton(
                 onClick = { showAdd = true },
                 shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, NevRed.Outline),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = NevRed.GradientEnd),
                 contentPadding = PaddingValues(horizontal = 12.dp)
             ) {
                 Icon(
@@ -333,7 +345,9 @@ private fun <T> FilterDropdown(
     Box {
         OutlinedButton(
             onClick = { expanded = true },
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, NevRed.Outline),
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
         ) {
             Text(text = label, maxLines = 1)
             Icon(
@@ -369,7 +383,7 @@ private fun ServerHubCard(
         modifier = Modifier.fillMaxWidth(),
         influencedByBackground = false,
         shape = RoundedCornerShape(16.dp),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        border = NevCardBorder
     ) {
         Column(
             modifier = Modifier
@@ -469,18 +483,15 @@ private fun ServerHubCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Button(
-                    onClick = onPlay,
-                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp)
-                ) {
+                NevGradientButton(onClick = onPlay) {
                     Icon(
                         modifier = Modifier.size(16.dp),
                         painter = painterResource(R.drawable.ic_play_arrow_filled),
                         contentDescription = null
                     )
                     Text(
-                        modifier = Modifier.padding(start = 4.dp),
-                        text = stringResource(R.string.server_hub_play)
+                        text = stringResource(R.string.server_hub_play),
+                        fontWeight = FontWeight.Bold
                     )
                 }
                 Spacer(modifier = Modifier.weight(1f))
@@ -502,11 +513,12 @@ private fun Chip(text: String) {
     Text(
         modifier = Modifier
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .background(Color(0xFF2A1413))
+            .border(1.dp, NevRed.Outline, RoundedCornerShape(8.dp))
             .padding(horizontal = 6.dp, vertical = 2.dp),
         text = text,
         style = MaterialTheme.typography.labelSmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        color = NevRed.Muted,
         maxLines = 1
     )
 }
@@ -559,12 +571,14 @@ private fun AddServerDialog(
                     value = name,
                     onValueChange = { name = it },
                     singleLine = true,
+                    colors = nevTextFieldColors(),
                     label = { Text(stringResource(R.string.server_hub_add_name)) }
                 )
                 OutlinedTextField(
                     value = address,
                     onValueChange = { address = it },
                     singleLine = true,
+                    colors = nevTextFieldColors(),
                     label = { Text(stringResource(R.string.server_hub_add_address)) },
                     placeholder = { Text("play.contoh.com:25565") }
                 )

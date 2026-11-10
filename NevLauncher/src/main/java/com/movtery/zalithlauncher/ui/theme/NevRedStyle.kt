@@ -280,3 +280,88 @@ fun NevNumberedTab(
         }
     }
 }
+
+/**
+ * Tab atas (ikon + label di bawahnya) bergaya Nev; yang terpilih memakai gradasi merah-oranye.
+ * Dipakai di layar Pengaturan dan Unduh.
+ */
+@Composable
+fun NevTopTab(
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: @Composable () -> Unit,
+    label: @Composable () -> Unit
+) {
+    val shape = RoundedCornerShape(16.dp)
+    Surface(
+        onClick = onClick,
+        modifier = modifier.semantics { role = Role.Tab },
+        shape = shape,
+        color = Color.Transparent,
+        border = if (selected) BorderStroke(1.dp, NevRed.OutlineBright) else null
+    ) {
+        Column(
+            modifier = Modifier
+                .then(
+                    if (selected) Modifier.background(NevRed.GradientDiagonal) else Modifier
+                )
+                .padding(horizontal = 14.dp, vertical = 6.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            androidx.compose.runtime.CompositionLocalProvider(
+                androidx.compose.material3.LocalContentColor provides
+                        if (selected) NevRed.OnGradient else NevRed.Muted
+            ) {
+                icon()
+                label()
+            }
+        }
+    }
+}
+
+/**
+ * Tombol kecil bergradasi merah-oranye (mis. "Main" di kartu server).
+ */
+@Composable
+fun NevGradientButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit
+) {
+    val shape = RoundedCornerShape(50)
+    Surface(
+        onClick = onClick,
+        modifier = modifier.semantics { role = Role.Button },
+        shape = shape,
+        color = Color.Transparent,
+        contentColor = NevRed.OnGradient
+    ) {
+        Row(
+            modifier = Modifier
+                .background(NevRed.Gradient)
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            content = content
+        )
+    }
+}
+
+/** Warna kolom teks bergaris oranye gelap (kolom cari, dialog tambah server, dll). */
+@Composable
+fun nevTextFieldColors() = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = NevRed.OutlineBright,
+    unfocusedBorderColor = NevRed.Outline,
+    cursorColor = NevRed.GradientEnd,
+    focusedContainerColor = Color(0xFF1E0E0D),
+    unfocusedContainerColor = Color(0xFF1E0E0D)
+)
+
+/** Border gradasi tipis untuk kartu. */
+val NevCardBorder: BorderStroke
+    get() = BorderStroke(
+        1.dp,
+        Brush.horizontalGradient(listOf(NevRed.Outline, NevRed.OutlineBright.copy(alpha = 0.7f)))
+    )

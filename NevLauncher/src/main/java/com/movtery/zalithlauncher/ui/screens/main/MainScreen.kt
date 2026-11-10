@@ -85,6 +85,7 @@ import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.ui.theme.NevRed
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
@@ -506,10 +507,8 @@ private fun SideRailItem(
     text: String,
     onClick: () -> Unit
 ) {
-    val tint = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else LocalContentColor.current
-    val selectedBrush = Brush.linearGradient(
-        listOf(MaterialTheme.colorScheme.primary.copy(alpha = 0.85f), MaterialTheme.colorScheme.primaryContainer)
-    )
+    val tint = if (selected) NevRed.OnGradient else LocalContentColor.current
+    val selectedBrush = NevRed.GradientDiagonal
     Box(
         modifier = Modifier
             .size(48.dp)

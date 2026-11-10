@@ -33,8 +33,17 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SecondaryTabRow
-import androidx.compose.material3.Tab
+import com.movtery.zalithlauncher.ui.theme.NevRed
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -64,14 +73,12 @@ import com.movtery.zalithlauncher.ui.components.NotificationCheck
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.animated
-import com.movtery.zalithlauncher.ui.components.influencedByBackgroundColor
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPosition
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCardColumn
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SwitchSettingsCard
-import com.movtery.zalithlauncher.ui.theme.cardTitleColor
 import com.movtery.zalithlauncher.utils.file.shareFile
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
@@ -333,24 +340,41 @@ private fun TutorialMenu(
             pagerState.animateScrollToPage(selectedTabIndex)
         }
 
-        //顶贴标签栏
-        SecondaryTabRow(
-            containerColor = influencedByBackgroundColor(
-                color = cardTitleColor(),
-                influencedAlpha = 0.5f * (AllSettings.launcherBackgroundOpacity.state.toFloat() / 100f)
-            ),
-            selectedTabIndex = selectedTabIndex
+        //顶贴标签栏：渐变胶囊标签
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             tabs.forEachIndexed { index, item ->
-                Tab(
-                    selected = index == selectedTabIndex,
-                    onClick = {
-                        selectedTabIndex = index
-                    },
-                    text = {
-                        MarqueeText(text = stringResource(item.text))
-                    }
-                )
+                val selected = index == selectedTabIndex
+                val tabShape = RoundedCornerShape(50)
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(tabShape)
+                        .border(
+                            1.dp,
+                            if (selected) NevRed.OutlineBright else NevRed.Outline.copy(alpha = 0.7f),
+                            tabShape
+                        )
+                        .background(
+                            if (selected) NevRed.Gradient
+                            else Brush.horizontalGradient(listOf(Color(0xFF200E0D), Color(0xFF200E0D)))
+                        )
+                        .clickable { selectedTabIndex = index }
+                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    MarqueeText(
+                        text = stringResource(item.text),
+                        color = if (selected) NevRed.OnGradient else Color.White,
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium
+                        )
+                    )
+                }
             }
         }
 

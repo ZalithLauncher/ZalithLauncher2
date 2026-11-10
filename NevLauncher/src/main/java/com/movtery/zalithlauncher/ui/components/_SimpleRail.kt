@@ -43,11 +43,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
+import com.movtery.zalithlauncher.ui.theme.NevRed
 
 /**
  * 导航栏item组件，可包含图标与文字。当item被选中时，
@@ -61,7 +63,7 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
  * @param selectedPadding item被选中时，其内部内容的内边距
  * @param unSelectedPadding item未被选中时，其内部内容的内边距
  * @param shape 定义item裁剪边界与点击区域的形状。
- * @param backgroundColor item被选中时，显示的动画背景颜色。
+ * @param backgroundBrush item被选中时，显示的动画背景（渐变）。
  * @param selectedContentColor item被选中时，图标与文字的颜色。
  * @param unselectedContentColor item未被选中时，图标与文字的颜色。
  */
@@ -75,8 +77,8 @@ fun TextRailItem(
     selectedPadding: PaddingValues = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
     unSelectedPadding: PaddingValues = selectedPadding,
     shape: Shape = MaterialTheme.shapes.extraLarge,
-    backgroundColor: Color = MaterialTheme.colorScheme.secondaryContainer,
-    selectedContentColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    backgroundBrush: Brush = NevRed.Gradient,
+    selectedContentColor: Color = NevRed.OnGradient,
     unselectedContentColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     enabled: Boolean = true
 ) {
@@ -106,7 +108,7 @@ fun TextRailItem(
 
             //绘制胶囊形状背景
             drawRoundRect(
-                color = backgroundColor,
+                brush = backgroundBrush,
                 topLeft = Offset(left, 0f),
                 size = Size(currentWidth, size.height),
                 cornerRadius = CornerRadius(size.height / 2, size.height / 2)

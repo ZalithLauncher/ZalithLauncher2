@@ -35,6 +35,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.theme.NevRed
 
 @Composable
 fun DefaultSwitch(
@@ -42,7 +43,15 @@ fun DefaultSwitch(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    colors: SwitchColors = SwitchDefaults.colors(),
+    colors: SwitchColors = SwitchDefaults.colors(
+        checkedTrackColor = NevRed.GradientEnd,
+        checkedThumbColor = NevRed.OnGradient,
+        checkedBorderColor = NevRed.OutlineBright,
+        checkedIconColor = NevRed.GradientEnd,
+        uncheckedTrackColor = Color(0xFF2A1413),
+        uncheckedBorderColor = NevRed.Outline,
+        uncheckedThumbColor = NevRed.Muted
+    ),
     interactionSource: MutableInteractionSource? = null
 ) {
     Switch(

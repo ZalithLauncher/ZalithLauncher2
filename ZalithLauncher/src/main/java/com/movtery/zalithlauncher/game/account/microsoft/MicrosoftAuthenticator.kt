@@ -99,10 +99,24 @@ const val XSTS_AUTH_URL = "https://xsts.auth.xboxlive.com"
 const val MINECRAFT_SERVICES_URL = "https://api.minecraftservices.com"
 
 /**
+ * 构建产物必须在编译期提供 Microsoft OAuth 客户端 ID，
+ * 否则微软端点对设备码/刷新令牌请求一律返回 400（client_id 为空）
+ */
+private fun requireOAuthClientId() {
+    if (BuildKeys.OAUTH_CLIENT_ID.isBlank()) {
+        throw IllegalStateException(
+            "Microsoft sign-in is unavailable: this build has no OAUTH_CLIENT_ID. " +
+                "Set the OAUTH_CLIENT_ID secret (or .oauth_client_id.txt) and install a new APK."
+        )
+    }
+}
+
+/**
  * 从 Microsoft 身份验证终端节点获取设备代码响应
  * 设备代码用于在单独的设备或浏览器上授权用户
  */
 suspend fun fetchDeviceCodeResponse(context: CoroutineContext): DeviceCodeResponse = coroutineScope {
+    requireOAuthClientId()
     withRetry {
         submitForm(
             url = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/devicecode",
@@ -283,6 +297,7 @@ private suspend fun refreshAccessToken(
     context: CoroutineContext
 ): Pair<String, String> {
     update(AsyncStatus.GETTING_ACCESS_TOKEN)
+    requireOAuthClientId()
 
     return withRetry {
         try {

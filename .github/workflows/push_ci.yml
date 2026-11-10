@@ -5,12 +5,20 @@ on:
     branches:
       - '**'
   workflow_dispatch:
+    inputs:
+      variant:
+        description: 'Build variant'
+        type: choice
+        options:
+          - Release
+          - Debug
+        default: Release
 
 jobs:
   Build:
     uses: ./.github/workflows/build.yml
     with:
-      variant: Debug
+      variant: ${{ inputs.variant || 'Release' }}
     secrets:
       KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}

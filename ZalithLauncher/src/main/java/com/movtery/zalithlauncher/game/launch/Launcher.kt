@@ -60,6 +60,14 @@ import java.util.TimeZone
 
 private const val TAG = "Launcher"
 
+/** 用户可能自行指定的垃圾回收器参数；一旦出现，就不再注入启动器的 G1 配置 */
+private val GC_FLAGS = listOf(
+    "-XX:+UseG1GC", "-XX:-UseG1GC",
+    "-XX:+UseZGC", "-XX:+UseShenandoahGC",
+    "-XX:+UseSerialGC", "-XX:+UseParallelGC",
+    "-XX:+UseConcMarkSweepGC", "-XX:+UseEpsilonGC"
+)
+
 abstract class Launcher(
     val onExit: (code: Int, isSignal: Boolean) -> Unit,
     val openPath: (folder: File) -> Unit
@@ -353,6 +361,27 @@ abstract class Launcher(
         // 限制 GC 线程数，避免大小核机器上按全核数开线程抢 CPU
         val gcThreads = java.lang.Runtime.getRuntime().availableProcessors().coerceAtMost(4)
         args.add("-XX:ParallelGCThreads=$gcThreads")
+
+        // 关掉 hsperfdata 写盘与外部 System.gc() 触发的整堆停顿（模组常调用）
+        args.purgeArg("-XX:+PerfDisableSharedMem")
+        args.purgeArg("-XX:-PerfDisableSharedMem")
+        args.purgeArg("-XX:+DisableExplicitGC")
+        args.purgeArg("-XX:-DisableExplicitGC")
+        args.add("-XX:+PerfDisableSharedMem")
+        args.add("-XX:+DisableExplicitGC")
+
+        // 客户端 G1 调优：缩短 young GC 停顿以减小掉帧；移动端内存小、核心少，
+        // ZGC/Shenandoah 的并发开销反而会让 FPS 下降，因此只在用户没指定 GC 时用 G1
+        val userPickedGc = args.any { arg -> GC_FLAGS.any { arg.startsWith(it) } }
+        if (!userPickedGc && !runtime.isJDK8 && runtime.javaVersion >= 17) {
+            args.add("-XX:+UseG1GC")
+            args.add("-XX:MaxGCPauseMillis=37")
+            args.add("-XX:G1NewSizePercent=23")
+            args.add("-XX:G1ReservePercent=20")
+            args.add("-XX:InitiatingHeapOccupancyPercent=10")
+            args.add("-XX:SurvivorRatio=32")
+            args.add("-XX:+ParallelRefProcEnabled")
+        }
 
         args.add("-Dorg.lwjgl.openal.libname=${PathManager.DIR_NATIVE_LIB}/libopenal.so")
 

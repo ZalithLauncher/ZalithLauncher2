@@ -114,11 +114,13 @@ android {
     }
 
     signingConfigs {
+        val releaseStorePassword = getKeyFromLocal("STORE_PASSWORD", ".store_password.txt")
+        val releaseKeyPassword = getKeyFromLocal("KEY_PASSWORD", ".key_password.txt")
         create("releaseBuild") {
             storeFile = file("zalith_launcher.jks")
-            storePassword = getKeyFromLocal("STORE_PASSWORD", ".store_password.txt")
+            storePassword = releaseStorePassword
             keyAlias = "movtery_zalith"
-            keyPassword = getKeyFromLocal("KEY_PASSWORD", ".key_password.txt")
+            keyPassword = releaseKeyPassword
         }
         create("debugBuild") {
             storeFile = file("zalith_launcher_debug.jks")
@@ -142,7 +144,13 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("releaseBuild")
+            signingConfig = if (releaseStorePassword.isNotEmpty() && releaseKeyPassword.isNotEmpty()) {
+                signingConfigs.getByName("releaseBuild")
+            } else {
+                // CI without the signing secrets: still produce an installable, optimized APK
+                logger.warn("BUILD: release signing secrets not set, signing release with the debug key")
+                signingConfigs.getByName("debugBuild")
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

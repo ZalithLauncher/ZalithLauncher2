@@ -21,9 +21,11 @@ jobs:
   build:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     strategy:
       matrix:
-        arch: ["all", "arm", "arm64", "x86", "x86_64"]
+        arch: ["arm64"]
       fail-fast: false
 
     env:
@@ -95,6 +97,16 @@ jobs:
         with:
           name: release apk (${{ matrix.arch }})
           path: ZalithLauncher/build/outputs/apk/release/*.apk
+
+      - name: Publish direct APK download
+        if: inputs.variant == 'Release'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view ci-latest >/dev/null 2>&1 ||
+            gh release create ci-latest --title "CI latest" --notes "Automatic build of the newest commit."
+          gh release upload ci-latest ZalithLauncher/build/outputs/apk/release/*.apk --clobber
 
       - name: Upload Release Mapping for ${{ matrix.arch }}
         if: inputs.variant == 'Release'

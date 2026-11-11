@@ -33,6 +33,13 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import com.movtery.zalithlauncher.ui.theme.NevRed
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.border
+import androidx.compose.foundation.background
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -132,13 +139,15 @@ private fun <E> BaseListSettingsCard(
                     IconButton(
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
-                            .size(34.dp)
+                            .size(48.dp)
+                            .border(1.dp, NevRed.Outline, CircleShape)
                             .rotate(rotation),
                         enabled = enabled,
                         onClick = { onExpandChange(!expanded) }
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_arrow_drop_down_rounded),
+                            tint = NevRed.GradientEnd,
                             contentDescription = stringResource(if (expanded) R.string.generic_expand else R.string.generic_collapse)
                         )
                     }
@@ -228,11 +237,29 @@ fun <E> ListSettingsCard(
         innerShape = innerShape,
         summary = summary,
         middleLayout = {
-            Text(
-                modifier = Modifier.alpha(0.7f),
-                text = stringResource(R.string.settings_element_selected, getItemText(selectedItem)),
-                style = MaterialTheme.typography.labelSmall
-            )
+            //Chip nilai terpilih: titik oranye + nama
+            Row(
+                modifier = Modifier
+                    .padding(top = 4.dp)
+                    .border(1.dp, NevRed.Outline, RoundedCornerShape(50))
+                    .background(NevRed.GradientEnd.copy(alpha = 0.10f), RoundedCornerShape(50))
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(10.dp)
+                        .background(NevRed.GradientEnd, CircleShape)
+                )
+                Text(
+                    text = getItemText(selectedItem),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = NevRed.GradientEnd,
+                    maxLines = 1
+                )
+            }
         },
         trailingIcon = trailingIcon,
         enabled = enabled,

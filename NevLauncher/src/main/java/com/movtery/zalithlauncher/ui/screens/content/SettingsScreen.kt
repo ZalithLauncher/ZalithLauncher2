@@ -33,7 +33,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.MaterialTheme
-import com.movtery.zalithlauncher.ui.theme.NevTopTab
+import com.movtery.zalithlauncher.ui.theme.NevPillBar
+import com.movtery.zalithlauncher.ui.theme.NevPillTab
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -133,46 +134,41 @@ private fun TabMenu(
     val ctx = rememberAnimatedContext(isVisible = isVisible)
 
     val scrollState = rememberScrollState()
-    Row(
+    Box(
         modifier = modifier
-            .fadeEdge(scrollState, direction = EdgeDirection.Horizontal)
-            .height(IntrinsicSize.Min)
+            .padding(horizontal = 12.dp)
             .padding(top = 8.dp)
             .animated(ctx, from = AnimatedDirection.Top)
-            .horizontalScroll(scrollState),
-        verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.width(12.dp))
-        settingItems.forEach { item ->
-            if (item.division) {
-                VerticalDivider(
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp)
-                        .fillMaxHeight(0.6f)
-                        .alpha(0.4f),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            NevTopTab(
-                selected = settingsScreenKey == item.key,
-                onClick = {
-                    navigateTo(item.key)
-                },
-                icon = {
-                    item.icon()
-                },
-                label = {
-                    Text(
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                        text = stringResource(item.textRes),
-                        maxLines = 1,
-                        style = MaterialTheme.typography.labelMedium
+        NevPillBar(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fadeEdge(scrollState, direction = EdgeDirection.Horizontal)
+                    .horizontalScroll(scrollState),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                settingItems.forEachIndexed { index, item ->
+                    NevPillTab(
+                        number = index + 1,
+                        selected = settingsScreenKey == item.key,
+                        onClick = {
+                            navigateTo(item.key)
+                        },
+                        icon = {
+                            item.icon()
+                        },
+                        label = {
+                            Text(
+                                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                                text = stringResource(item.textRes),
+                                maxLines = 1
+                            )
+                        }
                     )
-                }
-            )
 
-            Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                }
+            }
         }
     }
 }

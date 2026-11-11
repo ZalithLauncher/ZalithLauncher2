@@ -161,6 +161,11 @@ object AllSettings : SettingsRegistry() {
     val jvmArgs = stringSetting("jvmArgs", "")
 
     /**
+     * 用户在应用内填写的 Microsoft OAuth 客户端 ID（优先于构建期内置的值）
+     */
+    val oauthClientId = stringSetting("oauthClientId", "")
+
+    /**
      * 已禁用的原生库插件列表
      */
     val disableNativeLibPlugins = stringListSetting("nativeLibPlugins", emptyList())

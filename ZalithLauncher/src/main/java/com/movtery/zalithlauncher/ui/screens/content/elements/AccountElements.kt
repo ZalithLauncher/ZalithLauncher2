@@ -113,6 +113,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.petlib.ArmModel
 import com.movtery.petlib.PetAnimation
 import com.movtery.zalithlauncher.BuildKeys
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountType
@@ -733,6 +734,31 @@ fun MicrosoftLoginMethodDialog(
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.height(16.dp))
+
+                    if (BuildKeys.OAUTH_CLIENT_ID.isBlank()) {
+                        var clientId by rememberSaveable {
+                            mutableStateOf(AllSettings.oauthClientId.getValue())
+                        }
+                        Text(
+                            text = stringResource(R.string.account_label_oauth_client_id),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        OwnOutlinedTextField(
+                            modifier = Modifier.fillMaxWidth(),
+                            value = clientId,
+                            onValueChange = {
+                                clientId = it
+                                AllSettings.oauthClientId.save(it.trim())
+                            },
+                            singleLine = true,
+                            shape = MaterialTheme.shapes.large,
+                            supportingText = {
+                                Text(text = stringResource(R.string.account_supporting_oauth_client_id))
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
 
                     Column(
                         modifier = Modifier.fillMaxWidth(),

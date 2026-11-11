@@ -42,6 +42,7 @@ import com.movtery.zalithlauncher.game.account.microsoft.models.XSTSAuthResult
 import com.movtery.zalithlauncher.game.account.microsoft.models.XSTSProperties
 import com.movtery.zalithlauncher.game.account.microsoft.models.XSTSRequest
 import com.movtery.zalithlauncher.game.account.wardrobe.SkinModelType
+import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.game.account.yggdrasil.findUsing
 import com.movtery.zalithlauncher.game.account.yggdrasil.getPlayerProfile
 import com.movtery.zalithlauncher.game.account.yggdrasil.getSkinModel
@@ -99,14 +100,17 @@ const val XSTS_AUTH_URL = "https://xsts.auth.xboxlive.com"
 const val MINECRAFT_SERVICES_URL = "https://api.minecraftservices.com"
 
 /**
- * 构建产物必须在编译期提供 Microsoft OAuth 客户端 ID，
- * 否则微软端点对设备码/刷新令牌请求一律返回 400（client_id 为空）
+ * 客户端 ID 优先取应用内填写的值，其次取构建期内置的值；
+ * 两者都为空时微软端点对设备码/刷新令牌请求一律返回 400
  */
+private fun oauthClientId(): String =
+    AllSettings.oauthClientId.getValue().trim().ifBlank { BuildKeys.OAUTH_CLIENT_ID }
+
 private fun requireOAuthClientId() {
-    if (BuildKeys.OAUTH_CLIENT_ID.isBlank()) {
+    if (oauthClientId().isBlank()) {
         throw IllegalStateException(
-            "Microsoft sign-in is unavailable: this build has no OAUTH_CLIENT_ID. " +
-                "Set the OAUTH_CLIENT_ID secret (or .oauth_client_id.txt) and install a new APK."
+            "Microsoft sign-in is unavailable: no OAuth client ID. " +
+                "Open the Microsoft sign-in dialog and paste the Azure app client ID."
         )
     }
 }
@@ -121,7 +125,7 @@ suspend fun fetchDeviceCodeResponse(context: CoroutineContext): DeviceCodeRespon
         submitForm(
             url = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/devicecode",
             parameters = Parameters.build {
-                append("client_id", BuildKeys.OAUTH_CLIENT_ID)
+                append("client_id", oauthClientId())
                 append("scope", SCOPES.joinToString(" "))
             },
             context = context
@@ -163,7 +167,7 @@ suspend fun getTokenResponse(
                     formParameters = Parameters.build {
                         append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
                         append("device_code", codeResponse.deviceCode)
-                        append("client_id", BuildKeys.OAUTH_CLIENT_ID)
+                        append("client_id", oauthClientId())
                         append("tenant", TENANT)
                     }
                 ) {
@@ -304,7 +308,7 @@ private suspend fun refreshAccessToken(
             val response = submitForm<JsonObject>(
                 url = "$LIVE_AUTH_URL/oauth20_token.srf",
                 parameters = Parameters.build {
-                    append("client_id", BuildKeys.OAUTH_CLIENT_ID)
+                    append("client_id", oauthClientId())
                     append("refresh_token", refreshToken)
                     append("grant_type", "refresh_token")
                 },

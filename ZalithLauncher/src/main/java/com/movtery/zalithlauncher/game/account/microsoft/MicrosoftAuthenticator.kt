@@ -111,6 +111,24 @@ private fun oauthClientId(): String =
 /** Minecraft 官方客户端的公开 client id，第三方启动器通用，不需要自建 Azure 应用 */
 private const val MINECRAFT_PUBLIC_CLIENT_ID = "00000000402b5328"
 
+/** 传统 MSA 客户端使用的 scope（Live Connect） */
+private const val MSA_LEGACY_SCOPE = "service::user.auth.xboxlive.com::MBI_SSL"
+
+/** Azure 应用的 client id 是 GUID（含连字符）；传统 MSA 客户端（如 00000000402b5328）不带连字符，必须走 Live Connect 端点 */
+private fun useLegacyMsaEndpoints(): Boolean = !oauthClientId().contains('-')
+
+private fun deviceCodeUrl(): String = if (useLegacyMsaEndpoints()) {
+    "$LIVE_AUTH_URL/oauth20_connect.srf"
+} else {
+    "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/devicecode"
+}
+
+private fun tokenUrlForClient(): String = if (useLegacyMsaEndpoints()) {
+    "$LIVE_AUTH_URL/oauth20_token.srf"
+} else {
+    "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/token"
+}
+
 private fun requireOAuthClientId() {
     if (oauthClientId().isBlank()) {
         throw IllegalStateException(
@@ -128,10 +146,15 @@ suspend fun fetchDeviceCodeResponse(context: CoroutineContext): DeviceCodeRespon
     requireOAuthClientId()
     withRetry {
         submitForm(
-            url = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/devicecode",
+            url = deviceCodeUrl(),
             parameters = Parameters.build {
                 append("client_id", oauthClientId())
-                append("scope", SCOPES.joinToString(" "))
+                if (useLegacyMsaEndpoints()) {
+                    append("scope", MSA_LEGACY_SCOPE)
+                    append("response_type", "device_code")
+                } else {
+                    append("scope", SCOPES.joinToString(" "))
+                }
             },
             context = context
         )
@@ -145,7 +168,7 @@ suspend fun fetchDeviceCodeResponse(context: CoroutineContext): DeviceCodeRespon
 suspend fun getTokenResponse(
     codeResponse: DeviceCodeResponse,
     context: CoroutineContext,
-    tokenUrl: String = "$MICROSOFT_AUTH_URL$TENANT/oauth2/v2.0/token",
+    tokenUrl: String = tokenUrlForClient(),
     checkCancelled: suspend (time: Int) -> Boolean
 ): TokenResponse = coroutineScope {
     var pollingInterval = codeResponse.interval * 1000L
@@ -191,7 +214,8 @@ suspend fun getTokenResponse(
                     Logger.debug(TAG, "Slowing down polling to ${pollingInterval}ms")
                 }
                 else -> {
-                    if (response["token_type"]?.jsonPrimitive?.content == "Bearer") {
+                    // Live Connect 返回 token_type="bearer"（小写），Azure 返回 "Bearer"，统一看 access_token
+                    if (response["access_token"].text().isNotEmpty()) {
                         Logger.debug(TAG, "Access token successfully retrieved")
                         return@coroutineScope TokenResponse(
                             accessToken = response["access_token"].text(),
@@ -316,6 +340,7 @@ private suspend fun refreshAccessToken(
                     append("client_id", oauthClientId())
                     append("refresh_token", refreshToken)
                     append("grant_type", "refresh_token")
+                    if (useLegacyMsaEndpoints()) append("scope", MSA_LEGACY_SCOPE)
                 },
                 context = context
             )

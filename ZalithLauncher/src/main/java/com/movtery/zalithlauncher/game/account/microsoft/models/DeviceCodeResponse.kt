@@ -34,5 +34,5 @@ data class DeviceCodeResponse(
     @SerialName("interval")
     val interval: Int,
     @SerialName("message")
-    val message: String
+    val message: String = ""
 )

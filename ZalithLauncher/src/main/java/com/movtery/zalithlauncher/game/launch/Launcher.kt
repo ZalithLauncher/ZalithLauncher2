@@ -375,6 +375,8 @@ abstract class Launcher(
         val userPickedGc = args.any { arg -> GC_FLAGS.any { arg.startsWith(it) } }
         if (!userPickedGc && !runtime.isJDK8 && runtime.javaVersion >= 17) {
             args.add("-XX:+UseG1GC")
+            // G1NewSizePercent 是 experimental 参数，必须先解锁，否则 JVM 直接拒绝启动
+            args.add("-XX:+UnlockExperimentalVMOptions")
             args.add("-XX:MaxGCPauseMillis=37")
             args.add("-XX:G1NewSizePercent=23")
             args.add("-XX:G1ReservePercent=20")

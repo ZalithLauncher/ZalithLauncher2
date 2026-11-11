@@ -374,7 +374,6 @@
     <string name="account_other_login_saving_server">Menyimpan server</string>
     <string name="account_other_login_adding_failure">Gagal menambahkan server autentikasi</string>
     <string name="account_other_login_register">Belum punya akun? Daftar di sini!</string>
-    <string name="account_elyby_default_badge">Default</string>
     <string name="account_elyby_login_hint">Masuk dengan nama pengguna atau email Ely.by. Jika autentikasi dua langkah aktif, isi kata sandi dengan format kata_sandi:token.</string>
     <string name="account_other_login_delete_server_title">Hapus Server Autentikasi</string>
     <string name="account_other_login_delete_server_message">Kamu yakin ingin menghapus server autentikasi %s?</string>

@@ -490,15 +490,6 @@ fun LoginMenuDialog(
                                 .padding(start = 12.dp, end = 6.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            //Ely.by (default, bawaan)
-                            LoginItem(
-                                modifier = Modifier.fillMaxWidth(),
-                                title = "${ElyBy.NAME} · ${stringResource(R.string.account_elyby_default_badge)}",
-                                onClick = {
-                                    onAuthServerLogin(ElyBy.server)
-                                    onDismissRequest()
-                                }
-                            )
                             //微软登录
                             LoginItem(
                                 modifier = Modifier.fillMaxWidth(),
@@ -529,6 +520,18 @@ fun LoginMenuDialog(
                             ),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+                            item {
+                                //Ely.by (bawaan), sejajar di kanan Microsoft
+                                LoginItem(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    title = ElyBy.NAME,
+                                    onClick = {
+                                        onAuthServerLogin(ElyBy.server)
+                                        onDismissRequest()
+                                    }
+                                )
+                            }
+
                             item {
                                 //添加认证服务器
                                 InfoLayoutTextItem(

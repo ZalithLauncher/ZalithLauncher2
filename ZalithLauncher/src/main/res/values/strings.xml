@@ -1861,6 +1861,10 @@
     <!-- Summary of the request max refresh rate switch in the Renderer settings tab -->
     <string name="settings_renderer_max_refresh_rate_summary">Request the display to switch to the highest refresh rate supported at the current resolution, lifting the frame rate cap on some devices</string>
     <!-- Switch title in the Renderer settings tab to log converted shader code to a file -->
+    <string name="settings_renderer_fsr_title">FSR 1.0 Upscaling</string>
+    <string name="settings_renderer_fsr_summary">Render the game at a lower resolution and upscale it to the screen with AMD FidelityFX Super Resolution 1.0. Raises FPS noticeably on devices limited by pixel fill rate, at the cost of some sharpness. Disable it if the picture becomes broken or black.</string>
+    <string name="settings_renderer_fsr_quality_title">FSR Quality</string>
+    <string name="settings_renderer_fsr_quality_summary">Lower quality renders fewer pixels (higher FPS, softer image)</string>
     <string name="settings_renderer_shader_dump_title">Shader Logging</string>
     <!-- Summary of the shader logging switch in the Renderer settings tab -->
     <string name="settings_renderer_shader_dump_summary">Output the converted shader code during game runtime to a log file for easier debugging and graphics rendering analysis</string>

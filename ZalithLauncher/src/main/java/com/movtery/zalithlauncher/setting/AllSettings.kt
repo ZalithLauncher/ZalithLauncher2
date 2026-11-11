@@ -111,6 +111,16 @@ object AllSettings : SettingsRegistry() {
     val requestMaxRefreshRate = boolSetting("requestMaxRefreshRate", true)
 
     /**
+     * FSR1 上采样：以低分辨率渲染后在交换缓冲前放大
+     */
+    val fsrEnabled = boolSetting("fsrEnabled", false)
+
+    /**
+     * FSR 质量：1=Ultra Quality 2=Quality 3=Balanced 4=Performance
+     */
+    val fsrQuality = intSetting("fsrQuality", 2, 1..4)
+
+    /**
      * 使用系统的 Vulkan 驱动
      */
     val zinkPreferSystemDriver = boolSetting("zinkPreferSystemDriver", false)

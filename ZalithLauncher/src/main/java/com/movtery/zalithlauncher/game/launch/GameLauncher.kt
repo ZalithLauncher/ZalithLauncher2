@@ -213,6 +213,11 @@ class GameLauncher(
         super.dlopenEngine()
         appendTitle("DLOPEN Renderer")
 
+        // FSR 上采样钩子（原生库随 pojavexec 一起构建）
+        if (AllSettings.fsrEnabled.getValue()) {
+            ZLBridge.fsrInit(AllSettings.fsrQuality.getValue())
+        }
+
         //声音引擎加载后，dlopen渲染器的库
         RendererPluginManager.selectedRendererPlugin?.let { renderer ->
             val libs by renderer.getDlopenLibrary()

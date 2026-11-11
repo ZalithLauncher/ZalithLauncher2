@@ -385,11 +385,48 @@ fun RendererSettingsScreen(
 
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
+                        position = CardPosition.Middle,
                         unit = AllSettings.dumpShaders,
                         title = stringResource(R.string.settings_renderer_shader_dump_title),
                         summary = stringResource(R.string.settings_renderer_shader_dump_summary)
                     )
+
+                    SwitchSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Bottom,
+                        unit = AllSettings.fsrEnabled,
+                        title = stringResource(R.string.settings_renderer_fsr_title),
+                        summary = stringResource(R.string.settings_renderer_fsr_summary)
+                    )
+                }
+            }
+
+            if (AllSettings.fsrEnabled.state) {
+                AnimatedItem { ctx ->
+                    SettingsCardColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .animated(ctx)
+                    ) {
+                        val fsrQualities = listOf(
+                            1 to "Ultra Quality (1.3x)",
+                            2 to "Quality (1.5x)",
+                            3 to "Balanced (1.7x)",
+                            4 to "Performance (2.0x)"
+                        )
+                        ListSettingsCard(
+                            modifier = Modifier.fillMaxWidth(),
+                            position = CardPosition.Bottom,
+                            items = fsrQualities,
+                            currentId = AllSettings.fsrQuality.state.toString(),
+                            defaultId = AllSettings.fsrQuality.defaultValue.toString(),
+                            title = stringResource(R.string.settings_renderer_fsr_quality_title),
+                            summary = stringResource(R.string.settings_renderer_fsr_quality_summary),
+                            getItemText = { it.second },
+                            getItemId = { it.first.toString() },
+                            onValueChange = { AllSettings.fsrQuality.save(it.first) }
+                        )
+                    }
                 }
             }
         }

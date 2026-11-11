@@ -79,6 +79,9 @@ public final class ZLBridge {
     //Utils
     @Keep public static native int chdir(String path);
 
+    // FSR 上采样：preset 1=UltraQuality 2=Quality 3=Balanced 4=Performance
+    @Keep public static native void fsrInit(int qualityPreset);
+
     //Narrator (flite)
     /**
      * 返回当前（Dalvik/ART）JavaVM 指针，供游戏 JVM 侧原生代码经环境变量 attach 回安卓运行时

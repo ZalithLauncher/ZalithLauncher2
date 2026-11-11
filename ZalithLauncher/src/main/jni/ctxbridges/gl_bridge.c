@@ -17,6 +17,9 @@
 //
 
 static const char* g_LogTag = "GLBridge";
+
+// FSR 上采样钩子（fsr/fsr_hook.cpp），未启用时为空实现
+void fsr_apply(void);
 static __thread gl_render_window_t* currentBundle;
 static EGLDisplay g_EglDisplay;
 
@@ -234,7 +237,9 @@ void gl_swap_buffers() {
         currentBundle->state = STATE_RENDERER_ALIVE;
     }
 
-    if (currentBundle->surface != NULL)
+    if (currentBundle->surface != NULL) {
+        fsr_apply();
+
         if (!bridge_eglSwapBuffers(g_EglDisplay, currentBundle->surface) && eglGetError_p() == EGL_BAD_SURFACE)
         {
             bridge_eglMakeCurrent(g_EglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -247,6 +252,7 @@ void gl_swap_buffers() {
             }
             __android_log_print(ANDROID_LOG_INFO, g_LogTag, "The window has died, awaiting window change");
         }
+    }
 
 }
 

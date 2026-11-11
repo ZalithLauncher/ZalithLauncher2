@@ -24,7 +24,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -677,7 +676,11 @@ private fun getVersionComponents(
 
 /** Grup rilis Minecraft berdasarkan seri versi (mis. 1.21, 1.20, 26). */
 private data class VersionGroup(
+    val id: String,
+    val type: MinecraftVersion.Type,
+    /** Teks besar di kartu (mis. "1.21", "2025", "1.7") */
     val key: String,
+    /** Nama update resmi (hanya untuk rilis tertentu) */
     val title: String?,
     val versions: List<MinecraftVersion>
 ) {
@@ -725,14 +728,49 @@ private fun groupKeyOf(id: String): String {
 private fun groupKeyOrder(key: String): List<Int> =
     key.split('.').map { it.toIntOrNull() ?: 0 }
 
-/** Pisahkan versi rilis menjadi grup (terbaru dulu), sisanya tetap datar. */
-private fun List<MinecraftVersion>.toGroups(): Pair<List<VersionGroup>, List<MinecraftVersion>> {
-    val releases = filter { it.type == MinecraftVersion.Type.Release }
-    val others = filter { it.type != MinecraftVersion.Type.Release }
-    val groups = releases
-        .groupBy { groupKeyOf(it.version.id) }
-        .map { (key, list) -> VersionGroup(key, GROUP_TITLES[key], list) }
+private val TYPE_ORDER = listOf(
+    MinecraftVersion.Type.Release,
+    MinecraftVersion.Type.Snapshot,
+    MinecraftVersion.Type.AprilFools,
+    MinecraftVersion.Type.OldBeta,
+    MinecraftVersion.Type.OldAlpha,
+    MinecraftVersion.Type.Unknown,
+)
+
+/** Kunci grup (teks besar kartu) untuk satu versi, sesuai tipenya. */
+private fun groupKeyFor(version: MinecraftVersion): String {
+    val id = version.version.id
+    return when (version.type) {
+        MinecraftVersion.Type.Release -> groupKeyOf(id)
+        //Beta/Alpha lama: "b1.7.3" -> "1.7", "a1.2.6" -> "1.2"
+        MinecraftVersion.Type.OldBeta,
+        MinecraftVersion.Type.OldAlpha -> {
+            val k = groupKeyOf(id.dropWhile { !it.isDigit() })
+            //Contoh "rd-132211" / "inf-20100618": pakai awalan saja agar teks kartu tidak kepanjangan
+            if (k.length > 6) id.substringBefore('-') else k
+        }
+        //Snapshot, April Mop, dan lainnya dikelompokkan per tahun rilis
+        else -> version.version.releaseTime.take(4).ifEmpty { id }
+    }
+}
+
+/** Kelompokkan semua versi menjadi kartu seri: per tipe, lalu terbaru dulu. */
+private fun List<MinecraftVersion>.toGroups(): List<VersionGroup> {
+    return groupBy { it.type to groupKeyFor(it) }
+        .map { (pair, list) ->
+            val (type, key) = pair
+            VersionGroup(
+                id = "${type.name}:$key",
+                type = type,
+                key = key,
+                title = if (type == MinecraftVersion.Type.Release) GROUP_TITLES[key] else null,
+                versions = list
+            )
+        }
         .sortedWith { a, b ->
+            val ta = TYPE_ORDER.indexOf(a.type)
+            val tb = TYPE_ORDER.indexOf(b.type)
+            if (ta != tb) return@sortedWith ta.compareTo(tb)
             val ka = groupKeyOrder(a.key)
             val kb = groupKeyOrder(b.key)
             var r = 0
@@ -742,8 +780,24 @@ private fun List<MinecraftVersion>.toGroups(): Pair<List<VersionGroup>, List<Min
             }
             r
         }
-    return groups to others
 }
+
+@Composable
+private fun groupTypeName(type: MinecraftVersion.Type): String = stringResource(
+    when (type) {
+        MinecraftVersion.Type.Release -> R.string.download_game_type_release
+        MinecraftVersion.Type.Snapshot -> R.string.download_game_type_snapshot
+        MinecraftVersion.Type.AprilFools -> R.string.download_game_type_april_fools
+        MinecraftVersion.Type.OldBeta -> R.string.download_game_type_old_beta
+        MinecraftVersion.Type.OldAlpha -> R.string.download_game_type_old_alpha
+        MinecraftVersion.Type.Unknown -> R.string.download_game_type_old
+    }
+)
+
+/** Nama kartu: nama update resmi untuk rilis, nama tipe untuk Snapshot/April Mop/Beta/Alpha. */
+@Composable
+private fun VersionGroup.displayTitle(): String? =
+    title ?: if (type == MinecraftVersion.Type.Release) null else groupTypeName(type)
 
 @Composable
 private fun VersionBrowser(
@@ -754,8 +808,8 @@ private fun VersionBrowser(
     onVersionSelect: (MinecraftVersion) -> Unit,
     openLink: (url: String) -> Unit
 ) {
-    val (groups, others) = remember(versions) { versions.toGroups() }
-    val opened = openGroup?.let { key -> groups.firstOrNull { it.key == key } }
+    val groups = remember(versions) { versions.toGroups() }
+    val opened = openGroup?.let { id -> groups.firstOrNull { it.id == id } }
 
     BackHandler(enabled = opened != null) { onOpenGroup(null) }
 
@@ -780,24 +834,12 @@ private fun VersionBrowser(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        gridItems(groups, key = { "group-${it.key}" }) { group ->
+        gridItems(groups, key = { "group-${it.id}" }) { group ->
             val index = groups.indexOf(group)
             VersionGroupCard(
                 group = group,
                 accent = GROUP_ACCENTS[index % GROUP_ACCENTS.size],
-                onClick = { onOpenGroup(group.key) }
-            )
-        }
-        gridItems(
-            items = others,
-            key = { "other-${it.version.id}" },
-            span = { GridItemSpan(maxLineSpan) }
-        ) { version ->
-            VersionItemLayout(
-                modifier = Modifier.fillMaxWidth(),
-                version = version,
-                onClick = { onVersionSelect(version) },
-                onAccessWiki = openLink
+                onClick = { onOpenGroup(group.id) }
             )
         }
     }
@@ -863,7 +905,7 @@ private fun VersionGroupCard(
                     .padding(all = 16.dp)
             ) {
                 Text(
-                    text = "MC // RELEASE",
+                    text = "MC // ${groupTypeName(group.type).uppercase()}",
                     style = MaterialTheme.typography.labelSmall,
                     fontFamily = FontFamily.Monospace,
                     color = accent.copy(alpha = 0.9f),
@@ -876,7 +918,7 @@ private fun VersionGroupCard(
                     color = accent,
                     maxLines = 1
                 )
-                group.title?.let { title ->
+                group.displayTitle()?.let { title ->
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleMedium,
@@ -987,7 +1029,7 @@ private fun VersionGroupDetail(
                     ) {
                         Text(
                             modifier = Modifier.weight(1f),
-                            text = listOfNotNull(group.key, group.title).joinToString("  ·  "),
+                            text = listOfNotNull(group.key, group.displayTitle()).joinToString("  ·  "),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = accent,
@@ -1032,7 +1074,7 @@ private fun VersionGroupInfoPanel(
             color = accent,
             maxLines = 1
         )
-        group.title?.let {
+        group.displayTitle()?.let {
             Text(
                 text = it,
                 style = MaterialTheme.typography.titleMedium,

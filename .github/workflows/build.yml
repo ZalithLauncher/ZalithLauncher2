@@ -21,8 +21,6 @@ jobs:
   build:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     strategy:
       matrix:
         arch: ["arm64"]

@@ -196,7 +196,8 @@ suspend fun getTokenResponse(
                         append("grant_type", "urn:ietf:params:oauth:grant-type:device_code")
                         append("device_code", codeResponse.deviceCode)
                         append("client_id", oauthClientId())
-                        append("tenant", TENANT)
+                        // Live Connect 不接受 tenant 参数（会返回 invalid_request）
+                        if (!useLegacyMsaEndpoints()) append("tenant", TENANT)
                     }
                 ) {
                     contentType(ContentType.Application.FormUrlEncoded)

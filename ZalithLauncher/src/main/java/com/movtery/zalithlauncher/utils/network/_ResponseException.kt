@@ -9,6 +9,16 @@ import io.ktor.http.HttpStatusCode
 fun ResponseException.toLocal(): AndroidStringText {
     val statusCode = response.status
     val codeString = statusCode.value.toString()
+    // 把服务端返回的错误内容一起显示，否则 400 只能看到一句无用的通用提示
+    val serverDetail = message
+        ?.substringAfter("Text: \"", "")
+        ?.substringBeforeLast("\"")
+        ?.take(400)
+        ?.trim()
+        .orEmpty()
+    if (serverDetail.isNotEmpty()) {
+        return androidText("($codeString) $serverDetail")
+    }
     val textRes = when (statusCode) {
         HttpStatusCode.BadRequest -> R.string.error_bad_request
         HttpStatusCode.Unauthorized -> R.string.error_unauthorized

@@ -372,6 +372,7 @@ private suspend fun authenticateXBL(accessToken: String, update: (AsyncStatus) -
 
         val response = GLOBAL_CLIENT.post("$XBL_AUTH_URL/user/authenticate") {
             contentType(ContentType.Application.Json)
+            header("x-xbl-contract-version", "1")
             setBody(requestBody)
         }.safeBodyAsJson<JsonObject>()
 
@@ -411,6 +412,7 @@ private suspend fun authenticateXSTS(
         try {
             val response = httpPostJson<JsonObject>(
                 url = "$XSTS_AUTH_URL/xsts/authorize",
+                headers = listOf("x-xbl-contract-version" to "1"),
                 body = XSTSRequest(
                     properties = XSTSProperties(
                         sandboxId = "RETAIL",

@@ -19,6 +19,9 @@
 package com.movtery.zalithlauncher.ui.screens.content.download.game
 
 import androidx.activity.compose.BackHandler
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil3.compose.AsyncImage
+import com.movtery.zalithlauncher.game.versioninfo.VersionCoverRepository
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -782,6 +785,11 @@ private fun List<MinecraftVersion>.toGroups(): List<VersionGroup> {
         }
 }
 
+/** URL gambar sampul grup: versi pembuka seri (rilis paling awal) diutamakan, lalu versi lain. */
+private fun VersionGroup.coverUrl(covers: Map<String, String>): String? =
+    versions.sortedBy { it.version.releaseTime }
+        .firstNotNullOfOrNull { covers[it.version.id] }
+
 @Composable
 private fun groupTypeName(type: MinecraftVersion.Type): String = stringResource(
     when (type) {
@@ -809,6 +817,8 @@ private fun VersionBrowser(
     openLink: (url: String) -> Unit
 ) {
     val groups = remember(versions) { versions.toGroups() }
+    val covers by VersionCoverRepository.covers.collectAsStateWithLifecycle()
+    LaunchedEffect(Unit) { VersionCoverRepository.ensureLoaded() }
     val opened = openGroup?.let { id -> groups.firstOrNull { it.id == id } }
 
     BackHandler(enabled = opened != null) { onOpenGroup(null) }
@@ -818,6 +828,7 @@ private fun VersionBrowser(
             modifier = modifier,
             group = opened,
             accent = GROUP_ACCENTS[groups.indexOf(opened).coerceAtLeast(0) % GROUP_ACCENTS.size],
+            coverUrl = opened.coverUrl(covers),
             onClose = { onOpenGroup(null) },
             onVersionSelect = onVersionSelect,
             openLink = openLink
@@ -839,6 +850,7 @@ private fun VersionBrowser(
             VersionGroupCard(
                 group = group,
                 accent = GROUP_ACCENTS[index % GROUP_ACCENTS.size],
+                coverUrl = group.coverUrl(covers),
                 onClick = { onOpenGroup(group.id) }
             )
         }
@@ -849,6 +861,7 @@ private fun VersionBrowser(
 private fun VersionGroupCard(
     group: VersionGroup,
     accent: Color,
+    coverUrl: String?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -878,23 +891,37 @@ private fun VersionGroupCard(
                 )
             )
         ) {
-            //Dekorasi blok Minecraft samar sebagai latar kartu
-            Image(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .size(120.dp)
-                    .alpha(0.22f),
-                painter = painterResource(R.drawable.img_minecraft),
-                contentDescription = null,
-                contentScale = ContentScale.Fit
-            )
-            //Peredupan agar teks tetap terbaca
+            if (coverUrl != null) {
+                //Gambar sampul seri memenuhi kartu
+                AsyncImage(
+                    modifier = Modifier.fillMaxSize(),
+                    model = coverUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                //Tanpa gambar (offline/tidak tersedia): blok Minecraft samar sebagai dekorasi
+                Image(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .size(120.dp)
+                        .alpha(0.22f),
+                    painter = painterResource(R.drawable.img_minecraft),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit
+                )
+            }
+            //Peredupan atas dan bawah agar teks tetap terbaca di atas gambar
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
-                            listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f))
+                            listOf(
+                                Color.Black.copy(alpha = if (coverUrl != null) 0.55f else 0f),
+                                Color.Transparent,
+                                Color.Black.copy(alpha = 0.7f)
+                            )
                         )
                     )
             )
@@ -967,6 +994,7 @@ private fun VersionGroupDetail(
     modifier: Modifier = Modifier,
     group: VersionGroup,
     accent: Color,
+    coverUrl: String?,
     onClose: () -> Unit,
     onVersionSelect: (MinecraftVersion) -> Unit,
     openLink: (url: String) -> Unit
@@ -1013,6 +1041,7 @@ private fun VersionGroupDetail(
                             .fillMaxHeight(),
                         group = group,
                         accent = accent,
+                        coverUrl = coverUrl,
                         onClose = onClose
                     )
                     list(Modifier.weight(0.62f).fillMaxHeight())
@@ -1057,6 +1086,7 @@ private fun VersionGroupInfoPanel(
     modifier: Modifier = Modifier,
     group: VersionGroup,
     accent: Color,
+    coverUrl: String?,
     onClose: () -> Unit
 ) {
     NevInnerPanel(modifier = modifier, accent = accent) {
@@ -1096,14 +1126,23 @@ private fun VersionGroupInfoPanel(
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(all = 10.dp),
-                painter = painterResource(R.drawable.img_minecraft),
-                contentDescription = null,
-                contentScale = ContentScale.Fit
-            )
+            if (coverUrl != null) {
+                AsyncImage(
+                    modifier = Modifier.fillMaxSize(),
+                    model = coverUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Image(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(all = 10.dp),
+                    painter = painterResource(R.drawable.img_minecraft),
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit
+                )
+            }
         }
         Spacer(modifier = Modifier.size(10.dp))
         Text(

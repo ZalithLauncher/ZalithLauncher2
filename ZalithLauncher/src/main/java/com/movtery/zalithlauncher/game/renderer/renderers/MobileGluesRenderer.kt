@@ -58,7 +58,7 @@ object MobileGluesRenderer : ConfigurableRenderer {
             id = "enableANGLE",
             title = R.string.renderer_config_mg_angle_title,
             description = R.string.renderer_config_mg_angle_desc,
-            default = 0
+            default = 1
         ) {
             option(0, R.string.renderer_config_mg_angle_disable_when_possible)
             option(1, R.string.renderer_config_mg_angle_enable_when_possible)

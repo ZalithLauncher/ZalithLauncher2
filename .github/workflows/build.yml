@@ -1,0 +1,113 @@
+name: Build APK
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      variant:
+        required: true
+        type: string
+    secrets:
+      KEY_PASSWORD:
+        required: false
+      STORE_PASSWORD:
+        required: false
+      OAUTH_CLIENT_ID:
+        required: false
+      CURSEFORGE_API_KEY:
+        required: false
+
+jobs:
+  build:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: ["all", "arm", "arm64", "x86", "x86_64"]
+      fail-fast: false
+
+    env:
+      KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+      OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
+      CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: "temurin"
+          java-version: "21"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          add-job-summary: "on-failure"
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            PetLib/rust/target
+          key: petlib-rust-${{ runner.os }}-${{ hashFiles('PetLib/rust/Cargo.lock') }}
+          restore-keys: petlib-rust-${{ runner.os }}-
+
+      - name: Install cargo-ndk
+        run: |
+          version="4.1.2"
+          curl -sL "https://github.com/bbqsrc/cargo-ndk/releases/download/v${version}/cargo-ndk-x86_64-unknown-linux-gnu-v${version}.tgz" |
+            tar xz -C "$HOME/.cargo/bin" --strip-components=1
+          chmod +x "$HOME/.cargo/bin"/cargo-ndk*
+          cargo ndk --version
+
+      - name: Setup Android NDK
+        run: |
+          ndk=$(ls -d "$ANDROID_HOME"/ndk/* 2>/dev/null | sort -V | tail -1)
+          if [ -z "$ndk" ] || [ ! -f "$ndk/source.properties" ]; then
+            sdkmanager --install "ndk;27.0.12077973"
+            ndk=$(ls -d "$ANDROID_HOME"/ndk/* | sort -V | tail -1)
+          fi
+          echo "Using NDK at $ndk"
+          test -f "$ndk/source.properties"
+          echo "ANDROID_NDK_HOME=$ndk" >> "$GITHUB_ENV"
+
+      - name: Build APK for ${{ matrix.arch }}
+        run: |
+          chmod +x gradlew
+          ./gradlew NevLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
+
+      - name: Upload Release APK for ${{ matrix.arch }}
+        if: inputs.variant == 'Release'
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: release apk (${{ matrix.arch }})
+          path: NevLauncher/build/outputs/apk/release/*.apk
+
+      - name: Upload Release Mapping for ${{ matrix.arch }}
+        if: inputs.variant == 'Release'
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: mapping (${{ matrix.arch }})
+          path: NevLauncher/build/outputs/mapping/release/mapping.txt
+
+      - name: Upload Debug APK for ${{ matrix.arch }}
+        if: inputs.variant == 'Debug'
+        continue-on-error: true
+        uses: actions/upload-artifact@v7
+        with:
+          name: debug apk (${{ matrix.arch }})
+          path: NevLauncher/build/outputs/apk/debug/*.apk

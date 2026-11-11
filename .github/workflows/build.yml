@@ -86,7 +86,15 @@ jobs:
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew
-          ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }}
+          set -o pipefail
+          ./gradlew ZalithLauncher:assemble${{ inputs.variant }} -Darch=${{ matrix.arch }} 2>&1 | tee build.log
+
+      - name: Publish build log on failure
+        if: failure()
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload ci-latest build.log --clobber
 
       - name: Upload Release APK for ${{ matrix.arch }}
         if: inputs.variant == 'Release'

@@ -69,7 +69,7 @@ object MobileGluesRenderer : ConfigurableRenderer {
             id = "enableNoError",
             title = R.string.renderer_config_mg_noerror_title,
             description = R.string.renderer_config_mg_noerror_desc,
-            default = 0
+            default = 2
         ) {
             option(0, R.string.renderer_config_mg_noerror_auto)
             option(1, R.string.renderer_config_mg_noerror_off)
@@ -196,7 +196,7 @@ object MobileGluesRenderer : ConfigurableRenderer {
             id = "maxGlslCacheSize",
             title = R.string.renderer_config_mg_glslcache_title,
             description = R.string.renderer_config_mg_glslcache_desc,
-            defaultValue = ConfigScalar.IntValue(32),
+            defaultValue = ConfigScalar.IntValue(128),
             emptyValue = ConfigScalar.IntValue(-1),
             target = ConfigTarget.JsonField("maxGlslCacheSize")
         )

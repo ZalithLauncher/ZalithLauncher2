@@ -52,7 +52,8 @@ object AllSettings : SettingsRegistry() {
     /**
      * 全局渲染器
      */
-    val renderer = stringSetting("renderer", "")
+    // 默认使用 MobileGlues（未安装该插件时会自动回落到列表首个渲染器）
+    val renderer = stringSetting("renderer", "acaf8100-bbaf-4d68-b30d-38bf42fcd640")
 
     /**
      * 为渲染器插件叠加 SFPEW 兼容层

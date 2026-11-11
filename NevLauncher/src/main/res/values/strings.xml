@@ -1100,6 +1100,8 @@
     <string name="account_other_login_adding_failure">Failed to add auth server</string>
     <!-- Link button in the auth server login dialog that opens the server register page -->
     <string name="account_other_login_register">No account? Register here!</string>
+    <string name="account_elyby_default_badge">Default</string>
+    <string name="account_elyby_login_hint">Sign in with your Ely.by username or email. If two-factor authentication is on, enter your password as password:token.</string>
     <!-- Title of the dialog for deleting an auth server -->
     <string name="account_other_login_delete_server_title">Delete Auth Server</string>
     <!-- Message in the delete auth server dialog; %s is the server name -->

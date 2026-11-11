@@ -23,6 +23,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.database.AppDatabase
+import com.movtery.zalithlauncher.game.account.auth_server.ElyBy
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServerDao
 import com.movtery.zalithlauncher.setting.AllSettings
@@ -118,11 +119,16 @@ object AccountsManager {
      */
     fun reloadAuthServers() {
         scope.launch {
-            val loadedServers = authServerDao.getAllServers()
+            //Ely.by selalu bawaan; jangan dobel bila pernah ditambahkan manual
+            val loadedServers = authServerDao.getAllServers().filterNot { ElyBy.isElyBy(it) }
             _authServers.clear()
+            _authServers.add(ElyBy.server)
             _authServers.addAll(loadedServers)
 
-            _authServers.sortWith { o1, o2 -> o1.serverName.compareTo(o2.serverName) }
+            //Ely.by tetap di urutan pertama, sisanya urut nama
+            _authServers.sortWith(
+                compareBy<AuthServer>({ !ElyBy.isElyBy(it) }, { it.serverName })
+            )
             _authServersFlow.value = _authServers.toList()
 
             Logger.info(TAG, "Loaded ${_authServers.size} auth servers")
@@ -288,6 +294,7 @@ object AccountsManager {
      * 从数据库中删除认证服务器，并刷新
      */
     fun deleteAuthServer(server: AuthServer) {
+        if (ElyBy.isElyBy(server)) return //server bawaan tidak bisa dihapus
         scope.launch {
             authServerDao.deleteServer(server)
             reloadAuthServers()

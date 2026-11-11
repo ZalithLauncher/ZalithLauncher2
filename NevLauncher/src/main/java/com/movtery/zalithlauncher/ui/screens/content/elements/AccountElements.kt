@@ -121,6 +121,7 @@ import com.movtery.zalithlauncher.game.account.AccountType
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.account.accountErrorText
 import com.movtery.zalithlauncher.game.account.accountUUID
+import com.movtery.zalithlauncher.game.account.auth_server.ElyBy
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.auth_server.models.AuthResult
 import com.movtery.zalithlauncher.game.account.getAccountTypeName
@@ -489,6 +490,15 @@ fun LoginMenuDialog(
                                 .padding(start = 12.dp, end = 6.dp),
                             verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
+                            //Ely.by (default, bawaan)
+                            LoginItem(
+                                modifier = Modifier.fillMaxWidth(),
+                                title = "${ElyBy.NAME} · ${stringResource(R.string.account_elyby_default_badge)}",
+                                onClick = {
+                                    onAuthServerLogin(ElyBy.server)
+                                    onDismissRequest()
+                                }
+                            )
                             //微软登录
                             LoginItem(
                                 modifier = Modifier.fillMaxWidth(),
@@ -532,7 +542,7 @@ fun LoginMenuDialog(
                                 )
                             }
 
-                            items(authServers) { server ->
+                            items(authServers.filterNot { ElyBy.isElyBy(it) }) { server ->
                                 LoginItem(
                                     title = server.serverName,
                                     icon = {
@@ -1176,6 +1186,15 @@ fun OtherServerLoginDialog(
                             singleLine = true,
                             shape = MaterialTheme.shapes.large
                         )
+                        if (ElyBy.isElyBy(server)) {
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                text = stringResource(R.string.account_elyby_login_hint),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                         if (!server.register.isNullOrEmpty()) {
                             Column(
                                 modifier = Modifier.fillMaxWidth(),

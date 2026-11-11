@@ -541,6 +541,44 @@ private val verdantDawnLight = lightColorScheme(
     surfaceContainerHighest = surfaceContainerHighestLight.verdantDawn,
 )
 
+private val nevLavaLight = lightColorScheme(
+    primary = primaryLight.nevLava,
+    onPrimary = onPrimaryLight.nevLava,
+    primaryContainer = primaryContainerLight.nevLava,
+    onPrimaryContainer = onPrimaryContainerLight.nevLava,
+    secondary = secondaryLight.nevLava,
+    onSecondary = onSecondaryLight.nevLava,
+    secondaryContainer = secondaryContainerLight.nevLava,
+    onSecondaryContainer = onSecondaryContainerLight.nevLava,
+    tertiary = tertiaryLight.nevLava,
+    onTertiary = onTertiaryLight.nevLava,
+    tertiaryContainer = tertiaryContainerLight.nevLava,
+    onTertiaryContainer = onTertiaryContainerLight.nevLava,
+    error = errorLight.nevLava,
+    onError = onErrorLight.nevLava,
+    errorContainer = errorContainerLight.nevLava,
+    onErrorContainer = onErrorContainerLight.nevLava,
+    background = backgroundLight.nevLava,
+    onBackground = onBackgroundLight.nevLava,
+    surface = surfaceLight.nevLava,
+    onSurface = onSurfaceLight.nevLava,
+    surfaceVariant = surfaceVariantLight.nevLava,
+    onSurfaceVariant = onSurfaceVariantLight.nevLava,
+    outline = outlineLight.nevLava,
+    outlineVariant = outlineVariantLight.nevLava,
+    scrim = scrimLight.nevLava,
+    inverseSurface = inverseSurfaceLight.nevLava,
+    inverseOnSurface = inverseOnSurfaceLight.nevLava,
+    inversePrimary = inversePrimaryLight.nevLava,
+    surfaceDim = surfaceDimLight.nevLava,
+    surfaceBright = surfaceBrightLight.nevLava,
+    surfaceContainerLowest = surfaceContainerLowestLight.nevLava,
+    surfaceContainerLow = surfaceContainerLowLight.nevLava,
+    surfaceContainer = surfaceContainerLight.nevLava,
+    surfaceContainerHigh = surfaceContainerHighLight.nevLava,
+    surfaceContainerHighest = surfaceContainerHighestLight.nevLava,
+)
+
 private val verdantDawnDark = darkColorScheme(
     primary = primaryDark.verdantDawn,
     onPrimary = onPrimaryDark.verdantDawn,
@@ -577,6 +615,44 @@ private val verdantDawnDark = darkColorScheme(
     surfaceContainer = surfaceContainerDark.verdantDawn,
     surfaceContainerHigh = surfaceContainerHighDark.verdantDawn,
     surfaceContainerHighest = surfaceContainerHighestDark.verdantDawn,
+)
+
+private val nevLavaDark = darkColorScheme(
+    primary = primaryDark.nevLava,
+    onPrimary = onPrimaryDark.nevLava,
+    primaryContainer = primaryContainerDark.nevLava,
+    onPrimaryContainer = onPrimaryContainerDark.nevLava,
+    secondary = secondaryDark.nevLava,
+    onSecondary = onSecondaryDark.nevLava,
+    secondaryContainer = secondaryContainerDark.nevLava,
+    onSecondaryContainer = onSecondaryContainerDark.nevLava,
+    tertiary = tertiaryDark.nevLava,
+    onTertiary = onTertiaryDark.nevLava,
+    tertiaryContainer = tertiaryContainerDark.nevLava,
+    onTertiaryContainer = onTertiaryContainerDark.nevLava,
+    error = errorDark.nevLava,
+    onError = onErrorDark.nevLava,
+    errorContainer = errorContainerDark.nevLava,
+    onErrorContainer = onErrorContainerDark.nevLava,
+    background = backgroundDark.nevLava,
+    onBackground = onBackgroundDark.nevLava,
+    surface = surfaceDark.nevLava,
+    onSurface = onSurfaceDark.nevLava,
+    surfaceVariant = surfaceVariantDark.nevLava,
+    onSurfaceVariant = onSurfaceVariantDark.nevLava,
+    outline = outlineDark.nevLava,
+    outlineVariant = outlineVariantDark.nevLava,
+    scrim = scrimDark.nevLava,
+    inverseSurface = inverseSurfaceDark.nevLava,
+    inverseOnSurface = inverseOnSurfaceDark.nevLava,
+    inversePrimary = inversePrimaryDark.nevLava,
+    surfaceDim = surfaceDimDark.nevLava,
+    surfaceBright = surfaceBrightDark.nevLava,
+    surfaceContainerLowest = surfaceContainerLowestDark.nevLava,
+    surfaceContainerLow = surfaceContainerLowDark.nevLava,
+    surfaceContainer = surfaceContainerDark.nevLava,
+    surfaceContainerHigh = surfaceContainerHighDark.nevLava,
+    surfaceContainerHighest = surfaceContainerHighestDark.nevLava,
 )
 
 private fun customLight(
@@ -632,6 +708,7 @@ fun NevLauncherTheme(
                 ColorThemeType.VERDANTFIELD -> verdantFieldDark
                 ColorThemeType.URBAN_ASH -> urbanAshDark
                 ColorThemeType.VERDANT_DAWN -> verdantDawnDark
+                ColorThemeType.NEV_LAVA -> nevLavaDark
                 ColorThemeType.CUSTOM -> customDark(
                     color = customColor,
                     style = customPaletteStyle
@@ -647,6 +724,7 @@ fun NevLauncherTheme(
                 ColorThemeType.VERDANTFIELD -> verdantFieldLight
                 ColorThemeType.URBAN_ASH -> urbanAshLight
                 ColorThemeType.VERDANT_DAWN -> verdantDawnLight
+                ColorThemeType.NEV_LAVA -> nevLavaLight
                 ColorThemeType.CUSTOM -> customLight(
                     color = customColor,
                     style = customPaletteStyle

@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.home.version
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -35,6 +36,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -46,6 +48,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.input.pointer.pointerInput
@@ -67,6 +70,7 @@ import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.content.home.CardIconShape
+import com.movtery.zalithlauncher.ui.theme.NevRed
 
 /** 版本卡片启动回调 */
 val LocalHomeCardLauncher = staticCompositionLocalOf<(Version) -> Unit> { {} }
@@ -423,7 +427,15 @@ private fun CardTexts(
 @Composable
 private fun TextLaunchButton(version: Version, modifier: Modifier = Modifier) {
     val onLaunch = LocalHomeCardLauncher.current
-    Button(onClick = { onLaunch(version) }, modifier = modifier) {
+    Button(
+        onClick = { onLaunch(version) },
+        modifier = modifier.background(NevRed.Gradient, CircleShape),
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            contentColor = NevRed.OnGradient
+        )
+    ) {
         Icon(
             modifier = Modifier.size(16.dp),
             painter = painterResource(R.drawable.ic_play_arrow_filled),
@@ -442,7 +454,12 @@ private fun CompactLaunchButton(version: Version, modifier: Modifier = Modifier)
     val onLaunch = LocalHomeCardLauncher.current
     Button(
         onClick = { onLaunch(version) },
-        modifier = modifier,
+        modifier = modifier.background(NevRed.Gradient, CircleShape),
+        shape = CircleShape,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Color.Transparent,
+            contentColor = NevRed.OnGradient
+        ),
         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
     ) {
         Icon(

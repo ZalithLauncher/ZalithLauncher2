@@ -382,7 +382,7 @@ private fun ServerHubCard(
     BackgroundCard(
         modifier = Modifier.fillMaxWidth(),
         influencedByBackground = false,
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(22.dp),
         border = NevCardBorder
     ) {
         Column(
@@ -512,10 +512,10 @@ private fun ServerHubCard(
 private fun Chip(text: String) {
     Text(
         modifier = Modifier
-            .clip(RoundedCornerShape(8.dp))
+            .clip(CircleShape)
             .background(NevRed.SurfaceHigh)
-            .border(1.dp, NevRed.Outline, RoundedCornerShape(8.dp))
-            .padding(horizontal = 6.dp, vertical = 2.dp),
+            .border(1.dp, NevRed.Outline, CircleShape)
+            .padding(horizontal = 10.dp, vertical = 3.dp),
         text = text,
         style = MaterialTheme.typography.labelSmall,
         color = NevRed.Muted,

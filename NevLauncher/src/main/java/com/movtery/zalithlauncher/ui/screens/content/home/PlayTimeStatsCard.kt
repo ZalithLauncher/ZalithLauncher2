@@ -1,6 +1,10 @@
 package com.movtery.zalithlauncher.ui.screens.content.home
 
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -79,11 +82,10 @@ fun PlayTimeStatsCard(
     val locale = LocalConfiguration.current.locales[0] ?: Locale.getDefault()
     val totalSeconds = week.sumOf { it.seconds }
     val maxSeconds = (week.maxOfOrNull { it.seconds } ?: 0L).coerceAtLeast(1L)
+    val gridColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
 
     BackgroundCard(
-        modifier = modifier
-            .fillMaxWidth()
-            .widthIn(max = 520.dp),
+        modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.extraLarge
     ) {
         Column(
@@ -113,7 +115,22 @@ fun PlayTimeStatsCard(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(ChartHeight + 44.dp),
+                    .height(ChartHeight + 44.dp)
+                    .drawBehind {
+                        //garis bantu putus-putus di belakang batang
+                        val dash = PathEffect.dashPathEffect(floatArrayOf(10f, 10f))
+                        val top = 18.dp.toPx()
+                        val bottom = size.height - 26.dp.toPx()
+                        listOf(top, top + (bottom - top) / 2f).forEach { y ->
+                            drawLine(
+                                color = gridColor,
+                                start = Offset(0f, y),
+                                end = Offset(size.width, y),
+                                strokeWidth = 1.dp.toPx(),
+                                pathEffect = dash
+                            )
+                        }
+                    },
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 week.forEach { day ->
@@ -139,10 +156,17 @@ private fun DayBar(
     modifier: Modifier = Modifier
 ) {
     val primary = MaterialTheme.colorScheme.primary
-    val barColor = when {
-        day.seconds <= 0L -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
-        day.isToday -> primary
-        else -> primary.copy(alpha = 0.55f)
+    val tertiary = MaterialTheme.colorScheme.tertiary
+    //batang berisi memakai gradasi tema (primer ke tersier), hari kosong abu-abu datar
+    val barBrush = when {
+        day.seconds <= 0L -> Brush.verticalGradient(
+            listOf(
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f),
+                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f)
+            )
+        )
+        day.isToday -> Brush.verticalGradient(listOf(tertiary, primary))
+        else -> Brush.verticalGradient(listOf(tertiary.copy(alpha = 0.85f), primary.copy(alpha = 0.85f)))
     }
 
     Column(
@@ -170,9 +194,9 @@ private fun DayBar(
             val barHeight = (ChartHeight * fraction.coerceIn(0f, 1f)).coerceAtLeast(MinBarHeight)
             Box(
                 modifier = Modifier
-                    .fillMaxWidth(0.7f)
+                    .fillMaxWidth(0.8f)
                     .height(barHeight)
-                    .background(barColor, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 3.dp, bottomEnd = 3.dp))
+                    .background(barBrush, RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp, bottomStart = 3.dp, bottomEnd = 3.dp))
             )
         }
 

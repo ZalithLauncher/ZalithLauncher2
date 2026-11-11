@@ -20,6 +20,12 @@ package com.movtery.zalithlauncher.ui.screens.content
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
+import com.movtery.zalithlauncher.ui.theme.NevRed
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,9 +35,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -54,7 +61,6 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedDirection
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
-import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
@@ -65,8 +71,6 @@ import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.BaseFileItem
 import com.movtery.zalithlauncher.ui.screens.content.elements.CreateNewDirDialog
 import com.movtery.zalithlauncher.ui.screens.navigateTo
-import com.movtery.zalithlauncher.ui.theme.itemColor
-import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 import com.movtery.zalithlauncher.utils.file.sortWithFileName
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
@@ -255,17 +259,20 @@ private fun TopPathHeader(
     path: String,
     modifier: Modifier = Modifier,
 ) {
-    CardTitleLayout(modifier = modifier) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 12.dp, end = 12.dp, top = 16.dp, bottom = 12.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.files_current_path, path),
-                style = MaterialTheme.typography.labelMedium
-            )
-        }
+    //bar path berbentuk kapsul dengan garis tepi gradasi
+    val barShape = RoundedCornerShape(20.dp)
+    Box(
+        modifier = modifier
+            .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 6.dp)
+            .border(1.dp, Brush.horizontalGradient(listOf(NevRed.Outline, NevRed.OutlineBright)), barShape)
+            .background(NevRed.PanelBrush, barShape)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.files_current_path, path),
+            style = MaterialTheme.typography.labelLarge,
+            maxLines = 2
+        )
     }
 }
 
@@ -291,8 +298,11 @@ private fun FilesLayout(
             )
 
             if (files.isNotEmpty()) {
-                val scrollState = rememberLazyListState()
-                LazyColumn(
+                val scrollState = rememberLazyGridState()
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 260.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
@@ -305,9 +315,7 @@ private fun FilesLayout(
                 ) {
                     items(files, key = { it.absolutePath }) { file ->
                         FileItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 6.dp),
+                            modifier = Modifier.fillMaxWidth(),
                             file = file,
                             onClick = {
                                 if (!selectFile && file.isDirectory) {
@@ -336,8 +344,8 @@ private fun FileItem(
     modifier: Modifier = Modifier,
     file: File,
     onClick: () -> Unit = {},
-    color: Color = itemColor(),
-    contentColor: Color = onItemColor(),
+    color: Color = NevRed.Panel,
+    contentColor: Color = NevRed.OnPanel,
 ) {
     val scale = remember { Animatable(initialValue = 0.95f) }
     LaunchedEffect(Unit) {
@@ -347,7 +355,8 @@ private fun FileItem(
         modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
         color = color,
         contentColor = contentColor,
-        shape = MaterialTheme.shapes.large,
+        shape = RoundedCornerShape(18.dp),
+        border = BorderStroke(1.dp, NevRed.Outline),
         onClick = onClick
     ) {
         BaseFileItem(

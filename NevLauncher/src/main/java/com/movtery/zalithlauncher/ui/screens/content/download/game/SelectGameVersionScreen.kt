@@ -18,7 +18,22 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.download.game
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import com.movtery.zalithlauncher.ui.theme.NevFilterChip
+import com.movtery.zalithlauncher.ui.theme.NevRed
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
@@ -78,7 +93,6 @@ import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
-import com.movtery.zalithlauncher.ui.components.CheckChip
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
@@ -141,6 +155,9 @@ private class VersionsViewModel: ViewModel() {
     //简易版本类型过滤器
     var versionFilter by mutableStateOf(VersionFilter())
         private set
+
+    /** Grup rilis yang sedang dibuka (mis. "1.21"); null = tampilkan kartu grup */
+    var openGroup by mutableStateOf<String?>(null)
 
     fun filterWith(filter: VersionFilter) {
         versionFilter = filter
@@ -315,9 +332,11 @@ private fun SelectGameVersionContent(
                             }
                         )
 
-                        VersionList(
+                        VersionBrowser(
                             modifier = Modifier.weight(1f),
                             versions = state.versions,
+                            openGroup = viewModel.openGroup,
+                            onOpenGroup = { viewModel.openGroup = it },
                             onVersionSelect = onVersionSelect,
                             openLink = { url ->
                                 eventViewModel.sendEvent(EventViewModel.Event.OpenLink(url))
@@ -357,8 +376,8 @@ private fun VersionHeader(
     itemContentColor: Color,
     onRefreshClick: () -> Unit = {}
 ) {
-    Column(modifier = modifier) {
-        BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = modifier.padding(top = 10.dp)) {
+        BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp)) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -413,16 +432,19 @@ private fun VersionHeader(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     SimpleTextInputField(
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier
+                            .weight(1f)
+                            .border(1.dp, NevRed.OutlineBright.copy(alpha = 0.7f), RoundedCornerShape(50)),
                         value = versionFilter.id,
                         onValueChange = { onVersionFilterChange(versionFilter.copy(id = it)) },
-                        color = itemContainerColor,
+                        color = NevRed.Panel.copy(alpha = 0.72f),
                         contentColor = itemContentColor,
+                        contextPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
                         singleLine = true,
                         hint = {
                             Text(
                                 text = stringResource(R.string.generic_search),
-                                style = TextStyle(color = itemContentColor).copy(fontSize = 12.sp)
+                                style = TextStyle(color = itemContentColor).copy(fontSize = 14.sp)
                             )
                         }
                     )
@@ -453,13 +475,11 @@ private fun VersionTypeItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    CheckChip(
+    NevFilterChip(
         modifier = modifier,
+        text = text,
         selected = selected,
-        onClick = onClick,
-        label = {
-            Text(text)
-        },
+        onClick = onClick
     )
 }
 
@@ -645,6 +665,265 @@ private fun getVersionComponents(
                 null,
                 version.summary?.let { stringResource(it) }
             )
+        }
+    }
+}
+
+/** Grup rilis Minecraft berdasarkan seri versi (mis. 1.21, 1.20, 26). */
+private data class VersionGroup(
+    val key: String,
+    val title: String?,
+    val versions: List<MinecraftVersion>
+) {
+    val latest: MinecraftVersion get() = versions.maxBy { it.version.releaseTime }
+}
+
+private val GROUP_TITLES = mapOf(
+    "26" to "Drop 2026",
+    "1.21" to "Tricky Trials",
+    "1.20" to "Trails & Tales",
+    "1.19" to "The Wild Update",
+    "1.18" to "Caves & Cliffs II",
+    "1.17" to "Caves & Cliffs I",
+    "1.16" to "Nether Update",
+    "1.15" to "Buzzy Bees",
+    "1.14" to "Village & Pillage",
+    "1.13" to "Update Aquatic",
+    "1.12" to "World of Color",
+    "1.11" to "Exploration Update",
+    "1.10" to "Frostburn Update",
+    "1.9" to "Combat Update",
+    "1.8" to "Bountiful Update",
+    "1.6" to "Horse Update",
+    "1.5" to "Redstone Update",
+    "1.4" to "Pretty Scary Update",
+    "1.2" to "Anvil Update",
+)
+
+/** Warna aksen kartu grup (bergantian). */
+private val GROUP_ACCENTS = listOf(
+    Color(0xFF7FE3FF),
+    Color(0xFFFFA25C),
+    Color(0xFFFF8FC8),
+    Color(0xFF8CE99A),
+    Color(0xFFB69CFF),
+    Color(0xFFFFD866),
+)
+
+private fun groupKeyOf(id: String): String {
+    val parts = id.split('.')
+    val major = parts.firstOrNull()?.toIntOrNull() ?: return id
+    return if (major >= 2 || parts.size < 2) parts[0] else "${parts[0]}.${parts[1].takeWhile { it.isDigit() }}"
+}
+
+private fun groupKeyOrder(key: String): List<Int> =
+    key.split('.').map { it.toIntOrNull() ?: 0 }
+
+/** Pisahkan versi rilis menjadi grup (terbaru dulu), sisanya tetap datar. */
+private fun List<MinecraftVersion>.toGroups(): Pair<List<VersionGroup>, List<MinecraftVersion>> {
+    val releases = filter { it.type == MinecraftVersion.Type.Release }
+    val others = filter { it.type != MinecraftVersion.Type.Release }
+    val groups = releases
+        .groupBy { groupKeyOf(it.version.id) }
+        .map { (key, list) -> VersionGroup(key, GROUP_TITLES[key], list) }
+        .sortedWith { a, b ->
+            val ka = groupKeyOrder(a.key)
+            val kb = groupKeyOrder(b.key)
+            var r = 0
+            for (i in 0 until maxOf(ka.size, kb.size)) {
+                r = (kb.getOrElse(i) { 0 }).compareTo(ka.getOrElse(i) { 0 })
+                if (r != 0) break
+            }
+            r
+        }
+    return groups to others
+}
+
+@Composable
+private fun VersionBrowser(
+    modifier: Modifier = Modifier,
+    versions: List<MinecraftVersion>,
+    openGroup: String?,
+    onOpenGroup: (String?) -> Unit,
+    onVersionSelect: (MinecraftVersion) -> Unit,
+    openLink: (url: String) -> Unit
+) {
+    val (groups, others) = remember(versions) { versions.toGroups() }
+    val opened = openGroup?.let { key -> groups.firstOrNull { it.key == key } }
+
+    BackHandler(enabled = opened != null) { onOpenGroup(null) }
+
+    if (opened != null) {
+        Column(modifier = modifier) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                IconButton(onClick = { onOpenGroup(null) }) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_arrow_back),
+                        contentDescription = stringResource(R.string.download_game_group_back)
+                    )
+                }
+                Text(
+                    text = listOfNotNull(opened.key, opened.title).joinToString("  ·  "),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            VersionList(
+                modifier = Modifier.weight(1f),
+                versions = opened.versions,
+                onVersionSelect = onVersionSelect,
+                openLink = openLink
+            )
+        }
+        return
+    }
+
+    val gridState = androidx.compose.foundation.lazy.grid.rememberLazyGridState()
+    LazyVerticalGrid(
+        modifier = modifier,
+        state = gridState,
+        columns = GridCells.Adaptive(minSize = 200.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        gridItems(groups, key = { "group-${it.key}" }) { group ->
+            val index = groups.indexOf(group)
+            VersionGroupCard(
+                group = group,
+                accent = GROUP_ACCENTS[index % GROUP_ACCENTS.size],
+                onClick = { onOpenGroup(group.key) }
+            )
+        }
+        gridItems(
+            items = others,
+            key = { "other-${it.version.id}" },
+            span = { GridItemSpan(maxLineSpan) }
+        ) { version ->
+            VersionItemLayout(
+                modifier = Modifier.fillMaxWidth(),
+                version = version,
+                onClick = { onVersionSelect(version) },
+                onAccessWiki = openLink
+            )
+        }
+    }
+}
+
+@Composable
+private fun VersionGroupCard(
+    group: VersionGroup,
+    accent: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(28.dp)
+    val scale = remember { Animatable(initialValue = 0.95f) }
+    LaunchedEffect(Unit) {
+        scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
+    }
+
+    Surface(
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(1f)
+            .graphicsLayer(scaleX = scale.value, scaleY = scale.value),
+        onClick = onClick,
+        shape = shape,
+        color = Color.Transparent,
+        border = androidx.compose.foundation.BorderStroke(
+            1.5.dp,
+            Brush.linearGradient(listOf(accent.copy(alpha = 0.9f), accent.copy(alpha = 0.35f)))
+        )
+    ) {
+        Box(
+            modifier = Modifier.background(
+                Brush.verticalGradient(
+                    listOf(accent.copy(alpha = 0.28f), NevRed.PanelDeep, NevRed.Panel)
+                )
+            )
+        ) {
+            //Dekorasi blok Minecraft samar sebagai latar kartu
+            Image(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .size(120.dp)
+                    .alpha(0.22f),
+                painter = painterResource(R.drawable.img_minecraft),
+                contentDescription = null,
+                contentScale = ContentScale.Fit
+            )
+            //Peredupan agar teks tetap terbaca
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f))
+                        )
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(all = 16.dp)
+            ) {
+                Text(
+                    text = "MC // RELEASE",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontFamily = FontFamily.Monospace,
+                    color = accent.copy(alpha = 0.9f),
+                    maxLines = 1
+                )
+                Text(
+                    text = group.key,
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = accent,
+                    maxLines = 1
+                )
+                group.title?.let { title ->
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        maxLines = 2
+                    )
+                }
+
+                Spacer(modifier = Modifier.weight(1f))
+
+                Box(
+                    modifier = Modifier
+                        .border(1.dp, accent.copy(alpha = 0.8f), RoundedCornerShape(50))
+                        .background(Color.Black.copy(alpha = 0.35f), RoundedCornerShape(50))
+                        .padding(horizontal = 14.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.download_game_group_count, group.versions.size),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontFamily = FontFamily.Monospace,
+                        color = accent,
+                        maxLines = 1
+                    )
+                }
+                Spacer(modifier = Modifier.size(8.dp))
+                Text(
+                    text = stringResource(R.string.download_game_group_latest, group.latest.version.id),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontFamily = FontFamily.Monospace,
+                    color = Color.White.copy(alpha = 0.85f),
+                    maxLines = 1
+                )
+            }
         }
     }
 }

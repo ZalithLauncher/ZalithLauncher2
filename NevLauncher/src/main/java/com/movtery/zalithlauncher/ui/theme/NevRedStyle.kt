@@ -393,3 +393,180 @@ val NevCardBorder: BorderStroke
         1.dp,
         Brush.horizontalGradient(listOf(NevRed.Outline, NevRed.OutlineBright.copy(alpha = 0.7f)))
     )
+
+/**
+ * Tab atas bergaya kapsul untuk layar Unduh: lingkaran ikon di kiri, nomor kecil ("01") di atas label.
+ * Yang terpilih memakai gradasi merah-oranye.
+ */
+@Composable
+fun NevPillTab(
+    number: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: @Composable () -> Unit,
+    label: @Composable () -> Unit
+) {
+    val shape = RoundedCornerShape(50)
+    Surface(
+        onClick = onClick,
+        modifier = modifier.semantics { role = Role.Tab },
+        shape = shape,
+        color = Color.Transparent,
+        border = if (selected) BorderStroke(1.dp, NevRed.OutlineBright) else null
+    ) {
+        Row(
+            modifier = Modifier
+                .then(if (selected) Modifier.background(NevRed.Gradient) else Modifier)
+                .padding(start = 6.dp, end = 18.dp, top = 6.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            val content = if (selected) NevRed.OnGradient else NevRed.OnPanel
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .border(
+                        1.dp,
+                        if (selected) NevRed.OnGradient.copy(alpha = 0.35f) else NevRed.Outline,
+                        RoundedCornerShape(50)
+                    )
+                    .background(
+                        if (selected) NevRed.OnGradient.copy(alpha = 0.18f)
+                        else NevRed.SurfaceHigh.copy(alpha = 0.6f),
+                        RoundedCornerShape(50)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                androidx.compose.runtime.CompositionLocalProvider(
+                    androidx.compose.material3.LocalContentColor provides
+                            if (selected) content else NevRed.Muted
+                ) {
+                    icon()
+                }
+            }
+            Column {
+                Text(
+                    text = "%02d".format(number),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                    color = if (selected) NevRed.OnGradient.copy(alpha = 0.8f) else NevRed.GradientEnd
+                )
+                androidx.compose.runtime.CompositionLocalProvider(
+                    androidx.compose.material3.LocalContentColor provides content
+                ) {
+                    androidx.compose.material3.ProvideTextStyle(
+                        MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    ) {
+                        label()
+                    }
+                }
+            }
+        }
+    }
+}
+
+/** Wadah kapsul bergaris gradasi untuk deretan tab atas. */
+@Composable
+fun NevPillBar(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    val shape = RoundedCornerShape(50)
+    Box(
+        modifier = modifier
+            .border(
+                BorderStroke(
+                    1.dp,
+                    Brush.horizontalGradient(listOf(NevRed.OutlineBright.copy(alpha = 0.8f), NevRed.Outline))
+                ),
+                shape
+            )
+            .background(NevRed.Panel.copy(alpha = 0.72f), shape)
+            .padding(horizontal = 4.dp, vertical = 4.dp)
+    ) {
+        content()
+    }
+}
+
+/** Ikon berlian (kotak diputar 45°) kecil untuk chip filter. */
+@Composable
+fun NevDiamondIcon(
+    color: Color,
+    modifier: Modifier = Modifier,
+    filled: Boolean = false
+) {
+    androidx.compose.foundation.Canvas(modifier = modifier.size(18.dp)) {
+        val s = size.minDimension
+        val path = androidx.compose.ui.graphics.Path().apply {
+            moveTo(s / 2f, 0f)
+            lineTo(s, s / 2f)
+            lineTo(s / 2f, s)
+            lineTo(0f, s / 2f)
+            close()
+        }
+        drawPath(
+            path = path,
+            color = color,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(width = s * 0.12f)
+        )
+        if (filled) {
+            val inner = androidx.compose.ui.graphics.Path().apply {
+                moveTo(s / 2f, s * 0.28f)
+                lineTo(s * 0.72f, s / 2f)
+                lineTo(s / 2f, s * 0.72f)
+                lineTo(s * 0.28f, s / 2f)
+                close()
+            }
+            drawPath(inner, color)
+        }
+    }
+}
+
+/**
+ * Chip filter bergaya Nev: berlian + teks kapital monospasi.
+ * Terpilih: gradasi merah-oranye; tidak terpilih: panel gelap bergaris oranye.
+ */
+@Composable
+fun NevFilterChip(
+    text: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(16.dp)
+    Surface(
+        onClick = onClick,
+        modifier = modifier.semantics { role = Role.Checkbox },
+        shape = shape,
+        color = Color.Transparent,
+        border = BorderStroke(
+            1.dp,
+            if (selected) NevRed.OutlineBright else NevRed.Outline.copy(alpha = 0.8f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .background(
+                    if (selected) NevRed.GradientDiagonal
+                    else NevRed.solid(NevRed.Panel.copy(alpha = 0.72f))
+                )
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            NevDiamondIcon(
+                color = if (selected) NevRed.OnGradient else NevRed.GradientEnd.copy(alpha = 0.9f),
+                filled = selected
+            )
+            Text(
+                text = text.uppercase(),
+                style = MaterialTheme.typography.titleSmall,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                fontWeight = FontWeight.Bold,
+                color = if (selected) NevRed.OnGradient else NevRed.OnPanel,
+                maxLines = 1
+            )
+        }
+    }
+}

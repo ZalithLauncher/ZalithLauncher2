@@ -1569,4 +1569,7 @@
     <string name="play_time_stats_none">Belum ada waktu bermain</string>
     <string name="play_time_stats_hours_minutes">%1$dj %2$dm</string>
     <string name="play_time_stats_minutes">%1$dm</string>
+    <string name="download_game_group_count">%1$d versi</string>
+    <string name="download_game_group_latest">Terbaru: %1$s</string>
+    <string name="download_game_group_back">Kembali</string>
 </resources>

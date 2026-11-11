@@ -3178,4 +3178,7 @@
     <string name="play_time_stats_none">No playtime yet</string>
     <string name="play_time_stats_hours_minutes">%1$dh %2$dm</string>
     <string name="play_time_stats_minutes">%1$dm</string>
+    <string name="download_game_group_count">%1$d versions</string>
+    <string name="download_game_group_latest">Latest: %1$s</string>
+    <string name="download_game_group_back">Back</string>
 </resources>

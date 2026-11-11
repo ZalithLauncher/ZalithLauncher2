@@ -104,7 +104,12 @@ const val MINECRAFT_SERVICES_URL = "https://api.minecraftservices.com"
  * 两者都为空时微软端点对设备码/刷新令牌请求一律返回 400
  */
 private fun oauthClientId(): String =
-    AllSettings.oauthClientId.getValue().trim().ifBlank { BuildKeys.OAUTH_CLIENT_ID }
+    AllSettings.oauthClientId.getValue().trim()
+        .ifBlank { BuildKeys.OAUTH_CLIENT_ID }
+        .ifBlank { MINECRAFT_PUBLIC_CLIENT_ID }
+
+/** Minecraft 官方客户端的公开 client id，第三方启动器通用，不需要自建 Azure 应用 */
+private const val MINECRAFT_PUBLIC_CLIENT_ID = "00000000402b5328"
 
 private fun requireOAuthClientId() {
     if (oauthClientId().isBlank()) {

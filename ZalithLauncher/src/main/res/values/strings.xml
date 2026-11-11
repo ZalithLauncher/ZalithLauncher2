@@ -1005,7 +1005,7 @@
     <!-- Title of the Microsoft account login help dialog -->
     <string name="account_supporting_microsoft_tip_title">Add Microsoft Account</string>
     <string name="account_label_oauth_client_id">OAuth Client ID</string>
-    <string name="account_supporting_oauth_client_id">Paste the Application (client) ID of your Azure app registration. Account type must allow personal Microsoft accounts and \"Allow public client flows\" must be enabled.</string>
+    <string name="account_supporting_oauth_client_id">Optional. Leave empty to use the built-in Minecraft client ID. Paste your own Azure app client ID only if that does not work.</string>
     <!-- Intro line above the shortcut links in the Microsoft login help dialog -->
     <string name="account_supporting_microsoft_tip_link_text">Shortcuts you might need:</string>
     <!-- Link button opening the Minecraft purchase page; also shown when creating an offline account -->

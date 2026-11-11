@@ -570,3 +570,102 @@ fun NevFilterChip(
         }
     }
 }
+
+/** Bingkai besar bergaris gradasi oranye untuk satu layar penuh (dialog-like). */
+@Composable
+fun NevPanelFrame(
+    modifier: Modifier = Modifier,
+    cornerRadius: androidx.compose.ui.unit.Dp = 36.dp,
+    content: @Composable () -> Unit
+) {
+    val shape = RoundedCornerShape(cornerRadius)
+    Box(
+        modifier = modifier
+            .border(
+                BorderStroke(
+                    1.2.dp,
+                    Brush.horizontalGradient(listOf(NevRed.OutlineBright.copy(alpha = 0.8f), NevRed.Outline))
+                ),
+                shape
+            )
+            .background(
+                Brush.verticalGradient(
+                    listOf(NevRed.Panel.copy(alpha = 0.82f), NevRed.PanelDeep.copy(alpha = 0.9f))
+                ),
+                shape
+            )
+            .padding(12.dp)
+    ) {
+        content()
+    }
+}
+
+/** Panel dalam (mis. panel info di kiri) dengan garis tepi berwarna aksen. */
+@Composable
+fun NevInnerPanel(
+    modifier: Modifier = Modifier,
+    accent: Color = NevRed.OutlineBright,
+    cornerRadius: androidx.compose.ui.unit.Dp = 26.dp,
+    content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
+) {
+    val shape = RoundedCornerShape(cornerRadius)
+    Column(
+        modifier = modifier
+            .border(1.dp, accent.copy(alpha = 0.75f), shape)
+            .background(
+                Brush.verticalGradient(
+                    listOf(accent.copy(alpha = 0.14f), NevRed.PanelDeep.copy(alpha = 0.85f))
+                ),
+                shape
+            )
+            .padding(16.dp),
+        content = content
+    )
+}
+
+/**
+ * Tombol aksi bergradasi merah-oranye (mis. "Pasang"), ikon opsional di kiri teks.
+ */
+@Composable
+fun NevActionButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    painter: Painter? = null,
+    enabled: Boolean = true,
+    cornerRadius: androidx.compose.ui.unit.Dp = 20.dp
+) {
+    Surface(
+        onClick = onClick,
+        enabled = enabled,
+        modifier = modifier.semantics { role = Role.Button },
+        shape = RoundedCornerShape(cornerRadius),
+        color = Color.Transparent,
+        contentColor = NevRed.OnGradient
+    ) {
+        Row(
+            modifier = Modifier
+                .background(
+                    if (enabled) NevRed.Gradient
+                    else NevRed.solid(NevRed.SurfaceHigh)
+                )
+                .padding(horizontal = 18.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)
+        ) {
+            if (painter != null) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painter,
+                    contentDescription = null
+                )
+            }
+            Text(
+                text = text,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
+        }
+    }
+}

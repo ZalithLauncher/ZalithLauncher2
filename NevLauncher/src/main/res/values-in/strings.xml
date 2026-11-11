@@ -1572,4 +1572,10 @@
     <string name="download_game_group_count">%1$d versi</string>
     <string name="download_game_group_latest">Terbaru: %1$s</string>
     <string name="download_game_group_back">Kembali</string>
+    <string name="download_game_install_button">Pasang</string>
+    <string name="download_game_addon_choose">Pilih</string>
+    <string name="download_game_group_badge_latest">Terbaru</string>
+    <string name="download_game_group_category">Kategori // Minecraft</string>
+    <string name="download_game_install_label">Pasang // Minecraft</string>
+    <string name="download_game_group_hint">Ketuk versi untuk memilih mod loader dan memasang.</string>
 </resources>

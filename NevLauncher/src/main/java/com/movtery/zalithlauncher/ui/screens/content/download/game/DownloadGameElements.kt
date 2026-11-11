@@ -23,7 +23,15 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import com.movtery.zalithlauncher.ui.theme.NevRed
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -154,7 +162,9 @@ private fun AddonTextLayout(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleMedium,
+            fontFamily = FontFamily.Monospace,
+            fontWeight = FontWeight.Bold
         )
         summary()
     }
@@ -222,14 +232,22 @@ fun <E> AddonListLayout(
 
     Surface(
         modifier = modifier,
-        shape = shape,
-        color = color,
-        contentColor = contentColor
+        shape = RoundedCornerShape(26.dp),
+        color = Color.Transparent,
+        contentColor = NevRed.OnPanel,
+        border = BorderStroke(
+            1.dp,
+            Brush.horizontalGradient(listOf(NevRed.Outline, NevRed.OutlineBright.copy(alpha = 0.8f)))
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .backgroundGlass(blur, color, influencedByBackground)
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(NevRed.Panel.copy(alpha = 0.8f), NevRed.PanelDeep.copy(alpha = 0.9f))
+                    )
+                )
         ) {
             AddonListHeader(
                 modifier = Modifier.fillMaxWidth(),
@@ -311,16 +329,25 @@ private fun <E> AddonListHeader(
     Row(
         modifier = modifier
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(vertical = 4.dp),
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.width(16.dp))
-        Image(
-            modifier = Modifier.size(34.dp),
-            painter = iconPainter,
-            contentDescription = null
-        )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(14.dp))
+        //Ubin ikon bergaris oranye
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .border(1.dp, NevRed.OutlineBright.copy(alpha = 0.8f), RoundedCornerShape(16.dp))
+                .background(NevRed.PanelDeep, RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                modifier = Modifier.size(38.dp),
+                painter = iconPainter,
+                contentDescription = null
+            )
+        }
+        Spacer(modifier = Modifier.width(14.dp))
 
         when(state) {
             is AddonState.None -> {
@@ -345,26 +372,42 @@ private fun <E> AddonListHeader(
                         targetValue = if (expanded) -180f else 0f,
                         animationSpec = getAnimateTween()
                     )
-                    Icon(
-                        modifier = Modifier
-                            .size(34.dp)
-                            .rotate(rotation),
-                        painter = painterResource(R.drawable.ic_arrow_drop_down_rounded),
-                        contentDescription = stringResource(if (expanded) R.string.generic_expand else R.string.generic_collapse)
-                    )
                     if (selectedItem != null) {
-                        Spacer(modifier = Modifier.width(8.dp))
                         IconButton(
-                            modifier = Modifier
-                                .size(34.dp),
+                            modifier = Modifier.size(40.dp),
                             onClick = onClear
                         ) {
                             Icon(
-                                modifier = Modifier.size(24.dp),
+                                modifier = Modifier.size(22.dp),
                                 painter = painterResource(R.drawable.ic_deselect),
                                 contentDescription = stringResource(R.string.generic_clear)
                             )
                         }
+                        Spacer(modifier = Modifier.width(6.dp))
+                    }
+                    //Tombol pil "PILIH ▾"
+                    Row(
+                        modifier = Modifier
+                            .background(NevRed.Gradient, RoundedCornerShape(50))
+                            .padding(start = 22.dp, end = 14.dp, top = 12.dp, bottom = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.download_game_addon_choose).uppercase(),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = NevRed.OnGradient,
+                            maxLines = 1
+                        )
+                        Icon(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .rotate(rotation),
+                            painter = painterResource(R.drawable.ic_arrow_drop_down_rounded),
+                            tint = NevRed.OnGradient,
+                            contentDescription = stringResource(if (expanded) R.string.generic_expand else R.string.generic_collapse)
+                        )
                     }
                 }
             }
@@ -398,7 +441,7 @@ private fun <E> AddonListHeader(
             }
         }
 
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(14.dp))
     }
 }
 

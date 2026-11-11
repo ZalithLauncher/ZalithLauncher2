@@ -3181,4 +3181,10 @@
     <string name="download_game_group_count">%1$d versions</string>
     <string name="download_game_group_latest">Latest: %1$s</string>
     <string name="download_game_group_back">Back</string>
+    <string name="download_game_install_button">Install</string>
+    <string name="download_game_addon_choose">Choose</string>
+    <string name="download_game_group_badge_latest">Latest</string>
+    <string name="download_game_group_category">Category // Minecraft</string>
+    <string name="download_game_install_label">Install // Minecraft</string>
+    <string name="download_game_group_hint">Tap a version to choose a mod loader and install.</string>
 </resources>

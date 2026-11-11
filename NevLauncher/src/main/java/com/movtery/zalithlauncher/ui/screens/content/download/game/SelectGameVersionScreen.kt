@@ -32,7 +32,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import com.movtery.zalithlauncher.ui.theme.NevActionButton
 import com.movtery.zalithlauncher.ui.theme.NevFilterChip
+import com.movtery.zalithlauncher.ui.theme.NevInnerPanel
+import com.movtery.zalithlauncher.ui.theme.NevPanelFrame
 import com.movtery.zalithlauncher.ui.theme.NevRed
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.Orientation
@@ -51,7 +54,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.HorizontalDivider
@@ -754,33 +760,14 @@ private fun VersionBrowser(
     BackHandler(enabled = opened != null) { onOpenGroup(null) }
 
     if (opened != null) {
-        Column(modifier = modifier) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                IconButton(onClick = { onOpenGroup(null) }) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_arrow_back),
-                        contentDescription = stringResource(R.string.download_game_group_back)
-                    )
-                }
-                Text(
-                    text = listOfNotNull(opened.key, opened.title).joinToString("  ·  "),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            VersionList(
-                modifier = Modifier.weight(1f),
-                versions = opened.versions,
-                onVersionSelect = onVersionSelect,
-                openLink = openLink
-            )
-        }
+        VersionGroupDetail(
+            modifier = modifier,
+            group = opened,
+            accent = GROUP_ACCENTS[groups.indexOf(opened).coerceAtLeast(0) % GROUP_ACCENTS.size],
+            onClose = { onOpenGroup(null) },
+            onVersionSelect = onVersionSelect,
+            openLink = openLink
+        )
         return
     }
 
@@ -924,6 +911,291 @@ private fun VersionGroupCard(
                     maxLines = 1
                 )
             }
+        }
+    }
+}
+
+
+/**
+ * Detail satu seri rilis: panel info di kiri (kategori, nomor seri, sampul, jumlah versi, tombol Tutup)
+ * dan daftar versi bernomor di kanan dengan tombol Pasang.
+ */
+@Composable
+private fun VersionGroupDetail(
+    modifier: Modifier = Modifier,
+    group: VersionGroup,
+    accent: Color,
+    onClose: () -> Unit,
+    onVersionSelect: (MinecraftVersion) -> Unit,
+    openLink: (url: String) -> Unit
+) {
+    val latestId = group.latest.version.id
+    NevPanelFrame(
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = 12.dp, vertical = 8.dp)
+    ) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val wide = maxWidth >= 600.dp
+            val list: @Composable (Modifier) -> Unit = { m ->
+                val listState = rememberLazyListState()
+                LazyColumn(
+                    modifier = m.nonInteractiveScrollbar(
+                        state = listState.scrollIndicatorState!!,
+                        orientation = Orientation.Vertical,
+                    ),
+                    state = listState,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    itemsIndexed(group.versions, key = { _, v -> v.version.id }) { index, version ->
+                        VersionNumberedRow(
+                            number = index + 1,
+                            version = version,
+                            accent = accent,
+                            isLatest = version.version.id == latestId,
+                            onClick = { onVersionSelect(version) },
+                            openLink = openLink
+                        )
+                    }
+                }
+            }
+
+            if (wide) {
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    VersionGroupInfoPanel(
+                        modifier = Modifier
+                            .weight(0.38f)
+                            .fillMaxHeight(),
+                        group = group,
+                        accent = accent,
+                        onClose = onClose
+                    )
+                    list(Modifier.weight(0.62f).fillMaxHeight())
+                }
+            } else {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        Text(
+                            modifier = Modifier.weight(1f),
+                            text = listOfNotNull(group.key, group.title).joinToString("  ·  "),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = accent,
+                            maxLines = 1
+                        )
+                        Text(
+                            modifier = Modifier
+                                .border(1.dp, NevRed.Outline, RoundedCornerShape(50))
+                                .clickable(onClick = onClose)
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            text = stringResource(R.string.generic_close),
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    list(Modifier.weight(1f).fillMaxWidth())
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun VersionGroupInfoPanel(
+    modifier: Modifier = Modifier,
+    group: VersionGroup,
+    accent: Color,
+    onClose: () -> Unit
+) {
+    NevInnerPanel(modifier = modifier, accent = accent) {
+        Text(
+            text = stringResource(R.string.download_game_group_category).uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            fontFamily = FontFamily.Monospace,
+            color = accent.copy(alpha = 0.9f),
+            maxLines = 1
+        )
+        Text(
+            text = group.key,
+            style = MaterialTheme.typography.displayMedium,
+            fontWeight = FontWeight.ExtraBold,
+            color = accent,
+            maxLines = 1
+        )
+        group.title?.let {
+            Text(
+                text = it,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White,
+                maxLines = 2
+            )
+        }
+        Spacer(modifier = Modifier.size(10.dp))
+        //Sampul seri (placeholder bergradasi + blok Minecraft)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(3.2f)
+                .clip(RoundedCornerShape(18.dp))
+                .border(1.dp, accent.copy(alpha = 0.7f), RoundedCornerShape(18.dp))
+                .background(
+                    Brush.horizontalGradient(listOf(accent.copy(alpha = 0.35f), NevRed.PanelDeep))
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(all = 10.dp),
+                painter = painterResource(R.drawable.img_minecraft),
+                contentDescription = null,
+                contentScale = ContentScale.Fit
+            )
+        }
+        Spacer(modifier = Modifier.size(10.dp))
+        Text(
+            text = stringResource(R.string.download_game_group_count, group.versions.size),
+            style = MaterialTheme.typography.titleMedium,
+            fontFamily = FontFamily.Monospace,
+            color = accent,
+            maxLines = 1
+        )
+        Spacer(modifier = Modifier.size(6.dp))
+        Text(
+            modifier = Modifier.alpha(0.8f),
+            text = stringResource(R.string.download_game_group_hint),
+            style = MaterialTheme.typography.bodySmall
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            onClick = onClose,
+            shape = RoundedCornerShape(50),
+            color = Color.Transparent,
+            border = androidx.compose.foundation.BorderStroke(1.dp, NevRed.OutlineBright.copy(alpha = 0.8f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(NevRed.SurfaceHigh.copy(alpha = 0.7f))
+                    .padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = stringResource(R.string.generic_close),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun VersionNumberedRow(
+    number: Int,
+    version: MinecraftVersion,
+    accent: Color,
+    isLatest: Boolean,
+    onClick: () -> Unit,
+    openLink: (url: String) -> Unit
+) {
+    val (_, _, wikiUrl, _) = getVersionComponents(version)
+    val shape = RoundedCornerShape(24.dp)
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick,
+        shape = shape,
+        color = Color.Transparent,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            if (isLatest) NevRed.OutlineBright else NevRed.Outline.copy(alpha = 0.75f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(NevRed.Panel.copy(alpha = 0.8f), NevRed.PanelDeep.copy(alpha = 0.9f))
+                    )
+                )
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
+        ) {
+            Text(
+                text = "%02d".format(number),
+                style = MaterialTheme.typography.labelLarge,
+                fontFamily = FontFamily.Monospace,
+                color = accent
+            )
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = version.version.id,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontFamily = FontFamily.Monospace,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1
+                    )
+                    if (isLatest) {
+                        Text(
+                            modifier = Modifier
+                                .background(NevRed.Gradient, RoundedCornerShape(50))
+                                .padding(horizontal = 10.dp, vertical = 3.dp),
+                            text = stringResource(R.string.download_game_group_badge_latest).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = NevRed.OnGradient,
+                            maxLines = 1
+                        )
+                    }
+                }
+                Text(
+                    modifier = Modifier.alpha(0.7f),
+                    text = formatDate(
+                        input = version.version.releaseTime,
+                        pattern = stringResource(R.string.date_format)
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontFamily = FontFamily.Monospace
+                )
+            }
+            wikiUrl?.let { url ->
+                IconButton(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .border(1.dp, NevRed.Outline, RoundedCornerShape(50)),
+                    onClick = { openLink(url) }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_link),
+                        contentDescription = "Wiki",
+                        tint = NevRed.GradientEnd
+                    )
+                }
+            }
+            NevActionButton(
+                text = stringResource(R.string.download_game_install_button),
+                painter = painterResource(R.drawable.ic_download_2_filled),
+                onClick = onClick
+            )
         }
     }
 }

@@ -900,15 +900,12 @@ private fun VersionGroupCard(
                     contentScale = ContentScale.Crop
                 )
             } else {
-                //Tanpa gambar (offline/tidak tersedia): blok Minecraft samar sebagai dekorasi
-                Image(
-                    modifier = Modifier
-                        .align(Alignment.BottomEnd)
-                        .size(120.dp)
-                        .alpha(0.22f),
-                    painter = painterResource(R.drawable.img_minecraft),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit
+                //Tanpa gambar resmi (seri lama, snapshot, April Mop, offline): sampul piksel buatan sendiri
+                PixelCover(
+                    modifier = Modifier.fillMaxSize(),
+                    seed = group.id,
+                    type = group.type,
+                    accent = accent
                 )
             }
             //Peredupan atas dan bawah agar teks tetap terbaca di atas gambar
@@ -918,7 +915,7 @@ private fun VersionGroupCard(
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                Color.Black.copy(alpha = if (coverUrl != null) 0.55f else 0f),
+                                Color.Black.copy(alpha = 0.55f),
                                 Color.Transparent,
                                 Color.Black.copy(alpha = 0.7f)
                             )
@@ -1134,13 +1131,11 @@ private fun VersionGroupInfoPanel(
                     contentScale = ContentScale.Crop
                 )
             } else {
-                Image(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(all = 10.dp),
-                    painter = painterResource(R.drawable.img_minecraft),
-                    contentDescription = null,
-                    contentScale = ContentScale.Fit
+                PixelCover(
+                    modifier = Modifier.fillMaxSize(),
+                    seed = group.id,
+                    type = group.type,
+                    accent = accent
                 )
             }
         }
@@ -1277,6 +1272,108 @@ private fun VersionNumberedRow(
                 painter = painterResource(R.drawable.ic_download_2_filled),
                 onClick = onClick
             )
+        }
+    }
+}
+
+
+/**
+ * Sampul piksel buatan sendiri untuk kartu tanpa gambar resmi.
+ * Bentuknya pemandangan blok: langit, bintang/awan, matahari atau bulan, dan bukit berlapis.
+ * Seed dari id grup, jadi tiap kartu punya pemandangan berbeda tapi selalu sama untuk kartu yang sama.
+ * Tema warna mengikuti tipe: Rilis (hijau), Snapshot (malam), April Mop (warna-warni), Beta/Alpha (kecokelatan).
+ */
+@Composable
+private fun PixelCover(
+    seed: String,
+    type: MinecraftVersion.Type,
+    accent: Color,
+    modifier: Modifier = Modifier
+) {
+    androidx.compose.foundation.Canvas(modifier = modifier) {
+        val rng = kotlin.random.Random(seed.hashCode())
+        val cols = 22
+        val cell = size.width / cols
+        val rows = kotlin.math.ceil(size.height / cell).toInt() + 1
+
+        fun px(col: Int, row: Int, color: Color, w: Int = 1, h: Int = 1) {
+            drawRect(
+                color = color,
+                topLeft = androidx.compose.ui.geometry.Offset(col * cell, row * cell),
+                size = androidx.compose.ui.geometry.Size(cell * w + 0.6f, cell * h + 0.6f)
+            )
+        }
+        fun shade(c: Color, f: Float) = Color(
+            red = (c.red * f).coerceIn(0f, 1f),
+            green = (c.green * f).coerceIn(0f, 1f),
+            blue = (c.blue * f).coerceIn(0f, 1f),
+            alpha = c.alpha
+        )
+
+        val night = type == MinecraftVersion.Type.Snapshot
+        val festive = type == MinecraftVersion.Type.AprilFools
+        val old = type == MinecraftVersion.Type.OldBeta ||
+                type == MinecraftVersion.Type.OldAlpha ||
+                type == MinecraftVersion.Type.Unknown
+
+        val skyTop = when {
+            night -> Color(0xFF0A0F2C)
+            festive -> Color(0xFF3B1F6B)
+            old -> Color(0xFF5A3B22)
+            else -> shade(accent, 0.55f)
+        }
+        val skyBottom = when {
+            night -> shade(accent, 0.45f)
+            festive -> Color(0xFFFF7AC8)
+            old -> Color(0xFFE9A15A)
+            else -> accent.copy(alpha = 0.9f)
+        }
+        drawRect(Brush.verticalGradient(listOf(skyTop, skyBottom)))
+
+        //Bintang (malam) atau awan (lainnya)
+        if (night || old) {
+            repeat(26) {
+                px(rng.nextInt(cols), rng.nextInt(rows / 2), Color.White.copy(alpha = 0.35f + rng.nextFloat() * 0.5f))
+            }
+        } else {
+            repeat(3) {
+                val c = rng.nextInt(cols - 4)
+                val r = 1 + rng.nextInt(maxOf(1, rows / 4))
+                px(c, r, Color.White.copy(alpha = 0.55f), 3, 1)
+                px(c + 1, r - 1, Color.White.copy(alpha = 0.55f), 2, 1)
+            }
+        }
+
+        //Matahari / bulan (kotak piksel)
+        val bodyColor = when {
+            night -> Color(0xFFE8ECFF)
+            festive -> Color(0xFFFFF176)
+            else -> Color(0xFFFFE27A)
+        }
+        val bx = 2 + rng.nextInt(cols - 6)
+        px(bx, 1, bodyColor, 3, 3)
+        px(bx, 1, Color.White.copy(alpha = 0.35f), 3, 1)
+
+        //Bukit berlapis: lapisan belakang lebih gelap dan lebih tinggi
+        for (layer in 0 until 2) {
+            var h = rows / 2 + rng.nextInt(2) + layer * 2
+            val depth = if (layer == 0) 0.55f else 1f
+            for (col in 0 until cols) {
+                val lo = rows / 2 - 1 + layer
+                h = (h + rng.nextInt(-1, 2)).coerceIn(lo, maxOf(lo, rows - 3))
+                for (row in h until rows) {
+                    val d = row - h
+                    val base = when {
+                        festive -> Color.hsv(((col * 17 + row * 9 + seed.hashCode()) % 360 + 360) % 360f, 0.65f, 0.95f)
+                        d == 0 -> if (old) Color(0xFFC9A66B) else if (night) Color(0xFF3F7F57) else Color(0xFF5DB04E)
+                        d < 3 -> if (old) Color(0xFF8B6239) else Color(0xFF7A5230)
+                        else -> if (night) Color(0xFF4A4F63) else Color(0xFF7F7F86)
+                    }
+                    //Variasi kecerahan acak memberi kesan tekstur piksel
+                    val tex = 0.88f + rng.nextFloat() * 0.2f
+                    px(col, row, shade(base, depth * tex))
+                }
+            }
         }
     }
 }

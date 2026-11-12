@@ -55,6 +55,8 @@ const val URL_PROJECT_INFO: String = "https://api.github.com/repos/ZalithLaunche
 const val URL_COMMUNITY: String = "https://github.com/ZalithLauncher/ZalithLauncher2/graphs/contributors"
 const val URL_WEBLATE: String = "https://hosted.weblate.org/projects/zalithlauncher2"
 const val URL_SUPPORT: String = "https://ifdian.net/a/MovTery"
+/** Halaman donasi Nev Launcher (NestMC) */
+const val URL_DONATE: String = "https://sociabuzz.com/nestmc/tribe"
 const val URL_EASYTIER: String = "https://easytier.cn/"
 
 const val URL_GITHUB_RENDERER_PLUGINS = "https://github.com/ShirosakiMio/FCLRendererPlugin/releases/tag/Renderer"

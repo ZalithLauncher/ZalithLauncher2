@@ -110,6 +110,9 @@ import com.movtery.zalithlauncher.ui.screens.content.FileSelectorScreen
 import com.movtery.zalithlauncher.ui.screens.content.LauncherScreen
 import com.movtery.zalithlauncher.ui.screens.content.LicenseScreen
 import com.movtery.zalithlauncher.ui.screens.content.LogViewScreen
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+import com.movtery.zalithlauncher.ui.screens.content.DonateScreen
 import com.movtery.zalithlauncher.ui.screens.content.MultiplayerScreen
 import com.movtery.zalithlauncher.ui.screens.content.ServerHubScreen
 import com.movtery.zalithlauncher.ui.screens.content.SettingsScreen
@@ -191,6 +194,7 @@ fun MainScreen(
             contentColor = onBackgroundColor(),
             inServerHubScreen = mainScreenKey is NormalNavKey.ServerHub,
             inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer,
+            inDonateScreen = mainScreenKey is NormalNavKey.Donate,
             inDownloadScreen = mainScreenKey is NestedNavKey.Download,
             inSettingsScreen = mainScreenKey is NestedNavKey.Settings,
             toSettingsScreen = {
@@ -212,6 +216,12 @@ fun MainScreen(
                 screenBackStackModel.mainScreen.removeAndNavigateTo(
                     removes = screenBackStackModel.clearBeforeNavKeys,
                     screenKey = NormalNavKey.Multiplayer
+                )
+            },
+            toDonateScreen = {
+                screenBackStackModel.mainScreen.removeAndNavigateTo(
+                    removes = screenBackStackModel.clearBeforeNavKeys,
+                    screenKey = NormalNavKey.Donate
                 )
             },
             openFileManager = {
@@ -465,18 +475,21 @@ private fun SideRail(
     contentColor: Color,
     inServerHubScreen: Boolean,
     inMultiplayerScreen: Boolean,
+    inDonateScreen: Boolean,
     inDownloadScreen: Boolean,
     inSettingsScreen: Boolean,
     toSettingsScreen: () -> Unit,
     toDownloadScreen: () -> Unit,
     toServerHubScreen: () -> Unit,
     toMultiplayerScreen: () -> Unit,
+    toDonateScreen: () -> Unit,
     openFileManager: () -> Unit,
 ) {
     CompositionLocalProvider(LocalContentColor provides contentColor) {
         Column(
             modifier = modifier
-                .padding(top = 52.dp, bottom = 12.dp),
+                .padding(top = 52.dp, bottom = 12.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
@@ -497,6 +510,12 @@ private fun SideRail(
                 painter = painterResource(R.drawable.ic_group_filled),
                 text = stringResource(R.string.terracotta),
                 onClick = { if (!inMultiplayerScreen) toMultiplayerScreen() }
+            )
+            SideRailItem(
+                selected = inDonateScreen,
+                painter = painterResource(R.drawable.ic_favorite_filled),
+                text = stringResource(R.string.donate_menu),
+                onClick = { if (!inDonateScreen) toDonateScreen() }
             )
             SideRailItem(
                 selected = inDownloadScreen,
@@ -769,6 +788,12 @@ private fun NavigationUI(
                 }
                 entry<NormalNavKey.Multiplayer> {
                     MultiplayerScreen(
+                        backScreenViewModel = screenBackStackModel,
+                        eventViewModel = eventViewModel
+                    )
+                }
+                entry<NormalNavKey.Donate> {
+                    DonateScreen(
                         backScreenViewModel = screenBackStackModel,
                         eventViewModel = eventViewModel
                     )

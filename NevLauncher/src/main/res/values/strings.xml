@@ -3202,4 +3202,10 @@
     <string name="storage_home_folder_restart_message">Permission granted. Restart the launcher to move its files to the \"NevLauncher\" folder on your home storage. Existing data will be moved automatically.</string>
     <string name="storage_home_folder_restart">Restart</string>
     <string name="storage_home_folder_later">Later</string>
+
+    <!-- Menu dan layar donasi Nev Launcher -->
+    <string name="donate_menu">Donasi</string>
+    <string name="donate_title">Dukung Nev Launcher</string>
+    <string name="donate_message">Donasimu membantu Nev Launcher tetap gratis dan terus berkembang terimakasih</string>
+    <string name="donate_button">Donasi Sekarang</string>
 </resources>

@@ -67,6 +67,11 @@ sealed interface NormalNavKey : TitledNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.terracotta_terracotta)
     }
 
+    /** Dukung Nev Launcher: ajakan donasi */
+    @Serializable data object Donate : NormalNavKey {
+        @Contextual override val title: AndroidStringText = androidText(R.string.donate_title)
+    }
+
     /** 查看日志屏幕 */
     @Serializable data class LogView(
         val logPath: String

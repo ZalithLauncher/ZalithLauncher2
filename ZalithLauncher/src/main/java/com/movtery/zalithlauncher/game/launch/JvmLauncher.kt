@@ -24,7 +24,6 @@ import android.net.Uri
 import androidx.compose.ui.unit.IntSize
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.bridge.LoggerBridge
 import com.movtery.zalithlauncher.game.multirt.Runtime
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
 import com.movtery.zalithlauncher.game.path.GamePathManager
@@ -35,15 +34,11 @@ import com.movtery.zalithlauncher.ui.activities.runJar
 import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
-import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 
 private const val TAG = "JvmLauncher"
-
-/** 安装器等轻量任务的内存上限 */
-private const val INSTALL_RAM_ALLOCATION = 512
 
 open class JvmLauncher(
     private val context: Context,
@@ -53,32 +48,17 @@ open class JvmLauncher(
 ) : Launcher(onExit, openPath) {
     override fun exit() {}
 
-    override fun progressFinalUserArgs(args: MutableList<String>, ramAllocation: Int) {
-        if (jvmLaunchInfo.useUserJvm) {
-            super.progressFinalUserArgs(args, ramAllocation)
-        } else {
-            super.progressFinalUserArgs(args, INSTALL_RAM_ALLOCATION)
-        }
-    }
-
     override suspend fun launch(screenSize: IntSize): Int {
         generateLauncherProfiles(jvmLaunchInfo.userHome)
         initLwjglComponent(context, 0)
-        val (runtime, argList) = getStartupNeeded()
+        val runtime = getStartupRuntime()
 
         this.runtime = runtime
 
         return launchJvm(
             context = context,
-            preJvmArgs = getCacioJavaArgs(screenSize, runtime.javaVersion == 8),
-            jvmArgs = argList,
-            programArgs = emptyList(),
+            profile = JvmLaunchProfile(jvmLaunchInfo),
             userHome = jvmLaunchInfo.userHome ?: GamePathManager.getUserPath(),
-            userArgs = if (jvmLaunchInfo.useUserJvm) {
-                AllSettings.jvmArgs.getValue()
-            } else {
-                ""
-            },
             screenSize = screenSize,
             useLocalLanguage = false
         )
@@ -92,19 +72,15 @@ open class JvmLauncher(
         PathManager.DIR_FILES_EXTERNAL, LogName.JVM.fileName
     )
 
-    private fun getStartupNeeded(): Pair<Runtime, List<String>> {
-        val argList: MutableList<String> = ArrayList(jvmLaunchInfo.jvmArgs.splitPreservingQuotes())
-
-        val runtime = jvmLaunchInfo.jreName?.let { jreName ->
+    /**
+     * 获取 Java 运行环境
+     */
+    private fun getStartupRuntime(): Runtime {
+        return jvmLaunchInfo.jreName?.let { jreName ->
             RuntimesManager.forceReload(jreName)
         } ?: run {
             RuntimesManager.forceReload(AllSettings.javaRuntime.getValue())
         }
-
-        LoggerBridge.appendTitle("Launch JVM")
-        LoggerBridge.appendInfo("Java arguments: \r\n${argList.joinToString("\r\n")}")
-
-        return Pair(runtime, argList)
     }
 }
 

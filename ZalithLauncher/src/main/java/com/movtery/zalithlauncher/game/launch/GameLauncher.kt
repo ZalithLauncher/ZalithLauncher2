@@ -29,45 +29,32 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ZLApplication
 import com.movtery.zalithlauncher.bridge.LoggerBridge.appendInfo
 import com.movtery.zalithlauncher.bridge.LoggerBridge.appendTitle
-import com.movtery.zalithlauncher.bridge.ZLBridge
-import com.movtery.zalithlauncher.context.readAssetFile
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountType
 import com.movtery.zalithlauncher.game.account.offline.OfflineYggdrasilServer
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.download.game.parseLibraryComponents
-import com.movtery.zalithlauncher.game.multirt.Runtime
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
-import com.movtery.zalithlauncher.game.plugin.Plugin
-import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
-import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.game.renderer.ConfigurableRenderer
 import com.movtery.zalithlauncher.game.renderer.RendererLaunchConfig
 import com.movtery.zalithlauncher.game.renderer.Renderers
-import com.movtery.zalithlauncher.game.renderer.getSfpewLibraryPath
-import com.movtery.zalithlauncher.game.renderer.isSfpewEnabledFor
 import com.movtery.zalithlauncher.game.renderer.prepareRendererLaunchConfig
 import com.movtery.zalithlauncher.game.support.touch_controller.ControllerProxy
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.path.LibPath
-import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.utils.GSON
 import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.file.child
 import com.movtery.zalithlauncher.utils.file.ensureDirectorySilently
 import com.movtery.zalithlauncher.utils.logging.Logger
-import com.movtery.zalithlauncher.utils.string.isEqualTo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import org.lwjgl.glfw.CallbackBridge
 import java.io.File
-import javax.microedition.khronos.egl.EGL10
-import javax.microedition.khronos.egl.EGLConfig
-import javax.microedition.khronos.egl.EGLContext
 
 private const val TAG = "GameLauncher"
 
@@ -154,25 +141,8 @@ class GameLauncher(
         return launchGame(
             screenSize = screenSize,
             clientJar = clientJar,
-            javaRuntime = javaRuntime,
-            customArgs = customArgs,
+            javaRuntime = javaRuntime
         )
-    }
-
-    override fun MutableMap<String, String>.putJavaArgs() {
-        val versionInfo = version.getVersionInfo()
-        //Fix Forge 1.7.2
-        val is172 = (versionInfo?.minecraftVersion ?: "0.0").isEqualTo("1.7.2")
-        if (is172 && versionInfo?.hasLoader(ModLoader.FORGE) == true) {
-            Logger.debug(TAG, "Is Forge 1.7.2, use the patched sorting method.")
-            put("sort.patch", "true")
-        }
-
-        //Jna
-        jnaDir?.let { dir ->
-            val dirPath = dir.absolutePath
-            put("jna.boot.library.path", dirPath) //覆盖父类添加的jna路径
-        }
     }
 
     override fun chdir(): String {
@@ -183,62 +153,10 @@ class GameLauncher(
 
     override fun getLogFile(): File = version.getLatestLog()
 
-    override fun initEnv(screenSize: IntSize): MutableMap<String, String> {
-        val envMap = super.initEnv(screenSize)
-
-        envMap["DRIVER_PATH"] = DriverPluginManager.getDriver(version.getDriver()).path
-
-        checkAndUsedJSPH(envMap, runtime)
-        version.getVersionInfo()?.loaderInfos?.forEach { info ->
-            info.getLoaderEnvKey()?.let { loaderKey ->
-                envMap[loaderKey] = "1"
-            }
-        }
-        if (Renderers.isCurrentRendererValid()) {
-            setRendererEnv(envMap, version, configuredRenderer)
-        }
-        envMap["ZALITH_VERSION_CODE"] = BuildConfig.VERSION_CODE.toString()
-
-        //lwjgl3ify 实例：注入 XDG 数据目录兜底，避免其向不存在的 ~/.local/share
-        //写桌面快捷方式时抛出异常杀死 RFB 主线程，导致游戏静默退出
-        if (File(version.getGameDir(), "config/lwjgl3ify.cfg").isFile()) {
-            val xdgDataHome = File(version.getGameDir(), ".local/share")
-            if (!xdgDataHome.isDirectory) xdgDataHome.mkdirs()
-            envMap["XDG_DATA_HOME"] = xdgDataHome.absolutePath
-        }
-        return envMap
-    }
-
-    override fun dlopenEngine() {
-        super.dlopenEngine()
-        appendTitle("DLOPEN Renderer")
-
-        //声音引擎加载后，dlopen渲染器的库
-        RendererPluginManager.selectedRendererPlugin?.let { renderer ->
-            val libs by renderer.getDlopenLibrary()
-            libs.forEach { libPath ->
-                ZLBridge.dlopen(libPath)
-            }
-        }
-
-        val rendererLib = getRendererLibrary() ?: return
-        if (!ZLBridge.dlopen(rendererLib) && !ZLBridge.dlopen(findInLdLibPath(rendererLib))) {
-            Logger.error(TAG, "Failed to load renderer $rendererLib")
-        }
-    }
-
-    override fun progressFinalUserArgs(args: MutableList<String>, ramAllocation: Int) {
-        super.progressFinalUserArgs(args, version.getRamAllocation(activity))
-        if (Renderers.isCurrentRendererValid()) {
-            args.add("-Dorg.lwjgl.opengl.libname=${getGameRendererLibrary(version, configuredRenderer)}")
-        }
-    }
-
     private suspend fun launchGame(
         screenSize: IntSize,
         clientJar: File,
-        javaRuntime: String,
-        customArgs: String
+        javaRuntime: String
     ): Int {
         val runtime = RuntimesManager.forceReload(javaRuntime)
 
@@ -253,31 +171,27 @@ class GameLauncher(
 
         //初始化运行环境
         this.runtime = runtime
-        val launchArgs = LaunchArgs(
-            runtimeLibraryPath = getRuntimeLibraryPath(),
+        val profile = GameLaunchProfile(
+            activity = activity,
+            version = version,
             account = usingAccount,
             offlineServer = offlineServer,
-            gameDirPath = gameDirPath,
-            version = version,
-            clientJar = clientJar,
-            gameManifest = gameManifest,
-            lwjglVersion = lwjglVersion,
             runtime = runtime,
-            readAssetsFile = { path -> activity.readAssetFile(path) },
-            getCacioJavaArgs = { isJava8 ->
-                getCacioJavaArgs(screenSize, isJava8)
-            }
+            gameManifest = gameManifest,
+            clientJar = clientJar,
+            gameDirPath = gameDirPath,
+            runtimeLibraryPath = getRuntimeLibraryPath(),
+            lwjglVersion = lwjglVersion,
+            jnaDir = jnaDir,
+            configuredRenderer = configuredRenderer
         )
 
         tryStartTouchProxy()
 
         return launchJvm(
             context = activity,
-            preJvmArgs = launchArgs.getPreJvmArgs(),
-            jvmArgs = launchArgs.getJvmArgs(),
-            programArgs = launchArgs.getProgramArgs(),
+            profile = profile,
             userHome = version.getGameHome(),
-            userArgs = customArgs,
             screenSize = screenSize
         )
     }
@@ -431,203 +345,3 @@ class GameLauncher(
     }
 }
 
-private fun checkAndUsedJSPH(envMap: MutableMap<String, String>, runtime: Runtime) {
-    if (runtime.javaVersion < 11) return //onUseJSPH
-    val dir = File(PathManager.DIR_NATIVE_LIB).takeIf { it.isDirectory } ?: return
-    val jsphHome = if (runtime.javaVersion == 17) "libjsph17" else "libjsph21"
-    dir.listFiles { _, name -> name.startsWith(jsphHome) }?.takeIf { it.isNotEmpty() }?.let {
-        val libName = "${PathManager.DIR_NATIVE_LIB}/$jsphHome.so"
-        envMap["JSP"] = libName
-    }
-}
-
-private fun setRendererEnv(
-    envMap: MutableMap<String, String>,
-    version: Version,
-    configuredRenderer: RendererLaunchConfig?,
-) {
-    val renderer = Renderers.getCurrentRenderer()
-    val rendererId = renderer.getRendererId()
-
-    // SDL 环境变量
-    envMap["SDL_OPENGL_LIBRARY"] = rendererId
-
-    if (rendererId.startsWith("opengles2")) {
-        envMap["LIBGL_ES"] = "2"
-        envMap["LIBGL_MIPMAP"] = "3"
-        envMap["LIBGL_NOERROR"] = "1"
-        envMap["LIBGL_NOINTOVLHACK"] = "1"
-        envMap["LIBGL_NORMALIZE"] = "1"
-    }
-
-    if (renderer is ConfigurableRenderer) {
-        envMap += checkNotNull(configuredRenderer) {
-            "Renderer configuration has not been prepared"
-        }.environment
-    } else {
-        envMap += renderer.getRendererEnv().value
-    }
-
-    renderer.getRendererEGL()?.let { eglName ->
-        envMap["POJAVEXEC_EGL"] = eglName
-
-        val eglPath = if (eglName.startsWith("/")) {
-            // 路径不存在时不设置，交给 SDL 按自身默认解析
-            eglName
-        } else {
-            // eglName 已是绝对路径时直接使用，仅裸名拼接库目录
-            val nativeLibPath = if (renderer is Plugin) {
-                renderer.getNativeLibPath()
-            } else {
-                PathManager.DIR_NATIVE_LIB
-            }
-            "$nativeLibPath/$eglName"
-        }
-        if (eglPath.isNotEmpty() && File(eglPath).isFile()) {
-            envMap["SDL_EGL_LIBRARY"] = eglPath
-        }
-    }
-
-    envMap["POJAV_RENDERER"] = rendererId
-
-    if (isSfpewEnabledFor(renderer, version, configuredRenderer)) {
-        envMap["SFPEW_LAYER"] = "1"
-        envMap["SFPEW_EGL"] = envMap["SDL_EGL_LIBRARY"]
-            ?: envMap["POJAVEXEC_EGL"]
-            ?: "libEGL.so"
-        if (version.isSfpewRelaxedContextEnabled()) {
-            envMap["SFPEW_RELAXED_CONTEXT"] = "1"
-        }
-        val sfpewLibraryPath = getSfpewLibraryPath()
-        envMap["SDL_OPENGL_LIBRARY"] = sfpewLibraryPath
-        envMap["SDL_EGL_LIBRARY"] = sfpewLibraryPath
-    }
-
-    if (RendererPluginManager.selectedRendererPlugin != null) return
-
-    if (renderer.mesaBased) {
-        // Mesa 系渲染器的 OSMesa 桥依据该变量定位 Mesa 库
-        envMap["LIB_MESA_NAME"] = getRendererLibrary() ?: "null"
-        envMap["MESA_GLSL_CACHE_DIR"] = PathManager.DIR_CACHE.absolutePath
-    }
-
-    if (renderer.needsZinkDriverOverride) {
-        envMap["MESA_LOADER_DRIVER_OVERRIDE"] = "zink"
-        envMap["MESA_GL_VERSION_OVERRIDE"] = "4.6"
-        envMap["MESA_GLSL_VERSION_OVERRIDE"] = "460"
-        envMap["force_glsl_extensions_warn"] = "true"
-        envMap["allow_higher_compat_version"] = "true"
-        envMap["allow_glsl_extension_directive_midshader"] = "true"
-    }
-
-    if (!envMap.containsKey("LIBGL_ES")) {
-        val glesMajor = getDetectedVersion()
-        Logger.info(TAG, "GLES version detected: $glesMajor")
-
-        envMap["LIBGL_ES"] = if (glesMajor < 3) {
-            //fallback to 2 since it's the minimum for the entire app
-            "2"
-        } else if (rendererId.startsWith("opengles")) {
-            rendererId.replace("opengles", "").replace("_5", "")
-        } else {
-            // TODO if can: other backends such as Vulkan.
-            // Sure, they should provide GLES 3 support.
-            "3"
-        }
-    }
-}
-
-private fun getRendererLibrary(): String? {
-    return if (!Renderers.isCurrentRendererValid()) null
-    else Renderers.getCurrentRenderer().getRendererLibrary()
-}
-
-private fun getGameRendererLibrary(version: Version, configuredRenderer: RendererLaunchConfig?): String? {
-    if (!Renderers.isCurrentRendererValid()) return null
-    val renderer = Renderers.getCurrentRenderer()
-    return if (isSfpewEnabledFor(renderer, version, configuredRenderer)) {
-        getSfpewLibraryPath()
-    } else {
-        renderer.getRendererLibrary()
-    }
-}
-
-/**
- * [Modified from PojavLauncher](https://github.com/PojavLauncherTeam/PojavLauncher/blob/98947f2/app_pojavlauncher/src/main/java/net/kdt/pojavlaunch/utils/JREUtils.java#L505-L516)
- */
-private fun hasExtension(extensions: String, name: String): Boolean {
-    var start = extensions.indexOf(name)
-    while (start >= 0) {
-        // check that we didn't find a prefix of a longer extension name
-        val end = start + name.length
-        if (end == extensions.length || extensions[end] == ' ') {
-            return true
-        }
-        start = extensions.indexOf(name, end)
-    }
-    return false
-}
-
-private const val EGL_OPENGL_ES_BIT: Int = 0x0001
-private const val EGL_OPENGL_ES2_BIT: Int = 0x0004
-private const val EGL_OPENGL_ES3_BIT_KHR: Int = 0x0040
-
-private fun getDetectedVersion(): Int {
-    val egl = EGLContext.getEGL() as EGL10
-    val display = egl.eglGetDisplay(EGL10.EGL_DEFAULT_DISPLAY)
-    val numConfigs = IntArray(1)
-    if (egl.eglInitialize(display, null)) {
-        try {
-            val checkES3: Boolean = hasExtension(egl.eglQueryString(display, EGL10.EGL_EXTENSIONS), "EGL_KHR_create_context")
-            if (egl.eglGetConfigs(display, null, 0, numConfigs)) {
-                val configs = arrayOfNulls<EGLConfig>(
-                    numConfigs[0]
-                )
-                if (egl.eglGetConfigs(display, configs, numConfigs[0], numConfigs)) {
-                    var highestEsVersion = 0
-                    val value = IntArray(1)
-                    for (i in 0..<numConfigs[0]) {
-                        if (egl.eglGetConfigAttrib(
-                                display, configs[i],
-                                EGL10.EGL_RENDERABLE_TYPE, value
-                            )
-                        ) {
-                            if (checkES3 && ((value[0] and EGL_OPENGL_ES3_BIT_KHR) == EGL_OPENGL_ES3_BIT_KHR)) {
-                                if (highestEsVersion < 3) highestEsVersion = 3
-                            } else if ((value[0] and EGL_OPENGL_ES2_BIT) == EGL_OPENGL_ES2_BIT) {
-                                if (highestEsVersion < 2) highestEsVersion = 2
-                            } else if ((value[0] and EGL_OPENGL_ES_BIT) == EGL_OPENGL_ES_BIT) {
-                                if (highestEsVersion < 1) highestEsVersion = 1
-                            }
-                        } else {
-                            Logger.warning(TAG,
-                                ("Getting config attribute with "
-                                        + "EGL10#eglGetConfigAttrib failed "
-                                        + "(" + i + "/" + numConfigs[0] + "): "
-                                        + egl.eglGetError())
-                            )
-                        }
-                    }
-                    return highestEsVersion
-                } else {
-                    Logger.error(TAG,
-                        "Getting configs with EGL10#eglGetConfigs failed: "
-                                + egl.eglGetError()
-                    )
-                    return -1
-                }
-            } else {
-                Logger.error(TAG,
-                    "Getting number of configs with EGL10#eglGetConfigs failed: "
-                            + egl.eglGetError()
-                )
-                return -2
-            }
-        } finally {
-            egl.eglTerminate(display)
-        }
-    } else {
-        Logger.error(TAG, "Couldn't initialize EGL.")
-        return -3
-    }
-}

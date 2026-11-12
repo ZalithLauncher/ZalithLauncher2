@@ -19,13 +19,10 @@
 package com.movtery.zalithlauncher.game.launch
 
 import android.content.Context
-import android.os.Build
 import android.os.LocaleList
 import android.system.Os
 import android.util.ArrayMap
-import androidx.annotation.CallSuper
 import androidx.compose.ui.unit.IntSize
-import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.bridge.LoggerBridge
 import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
@@ -42,7 +39,6 @@ import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.setting.unit.getOrMin
 import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.device.Architecture.ARCH_X86
 import com.movtery.zalithlauncher.utils.device.Architecture.is64BitsDevice
@@ -56,7 +52,6 @@ import org.apache.commons.io.FileUtils
 import java.io.File
 import java.io.IOException
 import java.util.Locale
-import java.util.TimeZone
 
 private const val TAG = "Launcher"
 
@@ -130,11 +125,8 @@ abstract class Launcher(
 
     protected suspend fun launchJvm(
         context: Context,
-        preJvmArgs: List<String>,
-        jvmArgs: List<String>,
-        programArgs: List<String>,
+        profile: LaunchProfile,
         userHome: String,
-        userArgs: String,
         screenSize: IntSize,
         useLocalLanguage: Boolean = true
     ): Int {
@@ -142,51 +134,46 @@ abstract class Launcher(
 
         ZLBridge.setLdLibraryPath(getRuntimeLibraryPath())
 
+        val ctx = LaunchContext(
+            runtime = runtime,
+            javaHome = getJavaHome(),
+            screenSize = screenSize,
+            lwjglNativesDir = lwjglNativesDir,
+            libraryPath = getLibraryPath(),
+            userHome = userHome,
+            useLocalLanguage = useLocalLanguage,
+            resolvFile = ensureDNSConfig(),
+            minecraftPath = getMinecraftPath()
+        )
+
         LoggerBridge.appendTitle("Env Map")
-        setEnv(screenSize)
+        setEnv(ctx, profile)
 
         LoggerBridge.appendTitle("DLOPEN Java Runtime")
         dlopenJavaRuntime()
 
-        dlopenEngine()
+        dlopenEngine(ctx, profile)
 
-        return launchJavaVM(
-            context = context,
-            preJvmArgs = preJvmArgs,
-            jvmArgs = jvmArgs,
-            programArgs = programArgs,
-            userHome = userHome,
-            userArgs = userArgs,
-            screenSize = screenSize,
-            useLocalLanguage = useLocalLanguage
-        )
+        return launchJavaVM(context, profile, ctx, screenSize)
     }
 
     //伪 suspend 函数，等待 JVM 的退出代码
     private suspend fun launchJavaVM(
         context: Context,
-        preJvmArgs: List<String>,
-        jvmArgs: List<String>,
-        programArgs: List<String>,
-        userHome: String,
-        userArgs: String,
-        screenSize: IntSize,
-        useLocalLanguage: Boolean
+        profile: LaunchProfile,
+        ctx: LaunchContext,
+        screenSize: IntSize
     ): Int {
-        val userArguments = userArgs.splitPreservingQuotes()
-        val args = getJavaArgs(
-            userHome = userHome,
-            userArguments = userArguments,
-            screenSize = screenSize,
-            useLocalLanguage = useLocalLanguage
-        ).toMutableList()
+        val userArguments = profile.userJvmArgs().splitPreservingQuotes()
+        val args = buildOverridableJavaArgs(ctx, profile, userArguments).toMutableList()
 
-        args.addAll(preJvmArgs)
+        args.addAll(profile.preJvmArgs())
+        args.addAll(getCacioJavaArgs(screenSize, runtime.javaVersion == 8))
         args.addAll(userArguments)
-        progressFinalUserArgs(args)
+        applyFinalArgs(args, profile.ramAllocation())
 
-        args.addAll(jvmArgs)
-        args.addAll(programArgs)
+        args.addAll(profile.jvmArgs())
+        args.addAll(profile.programArgs())
         args.add(0, "$runtimeHome/bin/java")
 
         LoggerBridge.appendTitle("JVM Args")
@@ -212,78 +199,31 @@ abstract class Launcher(
     }
 
     /**
-     * 添加 JVM 参数
+     * 清除用户指定的受限参数
      */
-    protected open fun MutableMap<String, String>.putJavaArgs() {}
+    private fun applyFinalArgs(args: MutableList<String>, ramAllocation: Int) {
+        args.purgeRestrictedArgs()
 
-    private fun getJavaArgs(
-        userHome: String,
-        userArguments: List<String>,
-        screenSize: IntSize,
-        useLocalLanguage: Boolean
-    ): List<String> {
-        val resolvFile = ensureDNSConfig()
+        //Add automatically generated args
+        val ramAllocationString = ramAllocation.toString()
+        args.add("-Xms${ramAllocationString}M")
+        args.add("-Xmx${ramAllocationString}M")
 
-        val overridableArguments = mutableMapOf<String, String>().apply {
-            put("java.home", getJavaHome())
-            put("java.io.tmpdir", PathManager.DIR_CACHE.absolutePath)
-            put("jna.boot.library.path", PathManager.DIR_NATIVE_LIB)
-            put("user.home", userHome)
-            if (useLocalLanguage) {
-                put("user.language", System.getProperty("user.language") ?: "en")
-                put("user.country", Locale.getDefault().country)
-            }
-            put("user.timezone", TimeZone.getDefault().id)
-            put("os.name", "Linux")
-            put("os.version", "Android-${Build.VERSION.RELEASE}")
-            put("pojav.path.minecraft", getMinecraftPath())
-            put("pojav.path.private.account", PathManager.DIR_DATA_BASES.absolutePath)
-            put("org.lwjgl.vulkan.libname", "libvulkan.so")
-            // LWJGL 3.4 的 Library.loadSystem 通过该属性定位 native 库。
-            // 指向 per-version natives 目录，保证 3.4.x 游戏加载对应版本的 liblwjgl.so 等。
-            put("org.lwjgl.librarypath", lwjglNativesDir)
-            put("glfwstub.windowWidth", screenSize.width.toString())
-            put("glfwstub.windowHeight", screenSize.height.toString())
-            put("glfwstub.initEgl", "false")
-            put("ext.net.resolvPath", resolvFile.absolutePath)
+        args.add("-Dorg.lwjgl.openal.libname=${PathManager.DIR_NATIVE_LIB}/libopenal.so")
 
-            put("log4j2.formatMsgNoLookups", "true")
-            // Fix RCE vulnerability of log4j2
-            put("java.rmi.server.useCodebaseOnly", "true")
-            put("com.sun.jndi.rmi.object.trustURLCodebase", "false")
-            put("com.sun.jndi.cosnaming.object.trustURLCodebase", "false")
+        // Force LWJGL to use the Freetype library intended for it, instead of using the one
+        // that we ship with Java (since it may be older than what's needed).
+        // 始终指向 LWJGL 组件 natives 目录内的库，禁止回退到应用原生 libs 目录（其中不含 LWJGL 系库）
+        args.add("-Dorg.lwjgl.freetype.libname=${File(lwjglNativesDir, "libfreetype.so").absolutePath}")
 
-            put("net.minecraft.clientmodname", BuildKeys.LAUNCHER_NAME)
+        // Our spirv-cross is compiled shared, so it gets named shared.
+        args.add("-Dorg.lwjgl.spvc.libname=spirv-cross-c-shared")
 
-            // fml
-            put("fml.earlyprogresswindow", "false")
-            put("fml.ignoreInvalidMinecraftCertificates", "true")
-            put("fml.ignorePatchDiscrepancies", "true")
+        // We don't have jemalloc for our LWJGL so set the allocator to system to avoid error logs
+        args.add("-Dorg.lwjgl.system.allocator=system")
 
-            put("loader.disable_forked_guis", "true")
-            put("jdk.lang.Process.launchMechanism", "FORK")
-
-            put("sodium.checks.issue2561", "false")
-
-            put("file.encoding", "UTF-8")
-            put("sun.stdout.encoding", "UTF-8")
-            put("sun.stderr.encoding", "UTF-8")
-
-            put("cpu.name", getSocName())
-
-            putJavaArgs()
-        }.map { entry ->
-            "-D${entry.key}=${entry.value}"
-        }
-
-        return overridableArguments.filter { arg ->
-            val stripped = arg.substringBefore('=')
-            val overridden = userArguments.any { it.startsWith(stripped) }
-            if (overridden) {
-                Logger.info(TAG, "Arg skipped: $arg")
-            }
-            !overridden
-        }
+        // Some phones are not using the right number of cores, fix that
+        args.add("-XX:ActiveProcessorCount=${java.lang.Runtime.getRuntime().availableProcessors()}")
     }
 
     /**
@@ -322,54 +262,6 @@ abstract class Launcher(
                 add("119.29.29.29")
             }
         }
-    }
-
-    /**
-     * @param args 需要进行处理的参数
-     * @param ramAllocation 指定内存空间大小
-     */
-    protected open fun progressFinalUserArgs(
-        args: MutableList<String>,
-        ramAllocation: Int = AllSettings.ramAllocation.getOrMin()
-    ) {
-        args.purgeArg("-Xms")
-        args.purgeArg("-Xmx")
-        args.purgeArg("-d32")
-        args.purgeArg("-d64")
-        args.purgeArg("-Xint")
-        args.purgeArg("-XX:+UseTransparentHugePages")
-        args.purgeArg("-XX:+UseLargePagesInMetaspace")
-        args.purgeArg("-XX:+UseLargePages")
-        args.purgeArg("-Dorg.lwjgl.opengl.libname")
-        // Don't let the user specify a custom Freetype library (as the user is unlikely to specify a version compiled for Android)
-        args.purgeArg("-Dorg.lwjgl.freetype.libname")
-        // Overridden by us to specify the exact number of cores that the android system has
-        args.purgeArg("-XX:ActiveProcessorCount")
-
-        //Add automatically generated args
-        val ramAllocationString = ramAllocation.toString()
-        args.add("-Xms${ramAllocationString}M")
-        args.add("-Xmx${ramAllocationString}M")
-
-        args.add("-Dorg.lwjgl.openal.libname=${PathManager.DIR_NATIVE_LIB}/libopenal.so")
-
-        // Force LWJGL to use the Freetype library intended for it, instead of using the one
-        // that we ship with Java (since it may be older than what's needed).
-        // 始终指向 LWJGL 组件 natives 目录内的库，禁止回退到应用原生 libs 目录（其中不含 LWJGL 系库）
-        args.add("-Dorg.lwjgl.freetype.libname=${File(lwjglNativesDir, "libfreetype.so").absolutePath}")
-
-        // Our spirv-cross is compiled shared, so it gets named shared.
-        args.add("-Dorg.lwjgl.spvc.libname=spirv-cross-c-shared")
-
-        // We don't have jemalloc for our LWJGL so set the allocator to system to avoid error logs
-        args.add("-Dorg.lwjgl.system.allocator=system")
-
-        // Some phones are not using the right number of cores, fix that
-        args.add("-XX:ActiveProcessorCount=${java.lang.Runtime.getRuntime().availableProcessors()}")
-    }
-
-    protected fun MutableList<String>.purgeArg(argStart: String) {
-        removeIf { arg: String -> arg.startsWith(argStart) }
     }
 
     protected fun getJavaLibDir(): String {
@@ -439,16 +331,6 @@ abstract class Launcher(
         return path.joinToString(":")
     }
 
-    protected fun findInLdLibPath(libName: String): String {
-        val path = getLibraryPath()
-        return path.split(":").find { libPath ->
-            val file = File(libPath, libName)
-            file.exists() && file.isFile
-        }?.let {
-            File(it, libName).absolutePath
-        } ?: libName
-    }
-
     private fun locateLibs(path: File): List<File> {
         val children = path.listFiles() ?: return emptyList()
         return children.flatMap { file ->
@@ -460,9 +342,9 @@ abstract class Launcher(
         }
     }
 
-    private fun setEnv(screenSize: IntSize) {
+    private fun setEnv(ctx: LaunchContext, profile: LaunchProfile) {
         val envMap = runCatching {
-            initEnv(screenSize)
+            initEnv(ctx, profile)
         }.onFailure {
             LoggerBridge.appendTitle("Init Env Failed")
             LoggerBridge.append(it.stackTraceToString())
@@ -477,13 +359,13 @@ abstract class Launcher(
         }
     }
 
-    @CallSuper
-    protected open fun initEnv(screenSize: IntSize): MutableMap<String, String> {
+    private fun initEnv(ctx: LaunchContext, profile: LaunchProfile): MutableMap<String, String> {
         val envMap: MutableMap<String, String> = ArrayMap()
         setJavaEnv(
-            screenSize = screenSize,
+            screenSize = ctx.screenSize,
             envMap = { envMap }
         )
+        profile.onInitEnv(ctx, envMap)
         return envMap
     }
 
@@ -538,75 +420,8 @@ abstract class Launcher(
         }
     }
 
-    @CallSuper
-    protected open fun dlopenEngine() {
+    private fun dlopenEngine(ctx: LaunchContext, profile: LaunchProfile) {
         ZLBridge.dlopen("${PathManager.DIR_NATIVE_LIB}/libopenal.so")
+        profile.onDlopenEngine(ctx)
     }
-}
-
-fun getCacioJavaArgs(
-    screenSize: IntSize,
-    isJava8: Boolean
-): List<String> {
-    val argsList: MutableList<String> = ArrayList()
-
-    // Caciocavallo config AWT-enabled version
-    argsList.add("-Djava.awt.headless=false")
-    argsList.add("-Dcacio.managed.screensize=${screenSize.width}x${screenSize.height}")
-    argsList.add("-Dcacio.font.fontmanager=sun.awt.X11FontManager")
-    argsList.add("-Dcacio.font.fontscaler=sun.font.FreetypeFontScaler")
-    argsList.add("-Dswing.defaultlaf=javax.swing.plaf.nimbus.NimbusLookAndFeel")
-    if (isJava8) {
-        argsList.add("-Dawt.toolkit=net.java.openjdk.cacio.ctc.CTCToolkit")
-        argsList.add("-Djava.awt.graphicsenv=net.java.openjdk.cacio.ctc.CTCGraphicsEnvironment")
-    } else {
-        argsList.add("-Dawt.toolkit=com.github.caciocavallosilano.cacio.ctc.CTCToolkit")
-        argsList.add("-Djava.awt.graphicsenv=com.github.caciocavallosilano.cacio.ctc.CTCGraphicsEnvironment")
-        argsList.add("-javaagent:${LibPath.CACIO_17_AGENT.absolutePath}")
-
-        argsList.add("--add-exports=java.desktop/java.awt=ALL-UNNAMED")
-        argsList.add("--add-exports=java.desktop/java.awt.peer=ALL-UNNAMED")
-        argsList.add("--add-exports=java.desktop/sun.awt.image=ALL-UNNAMED")
-        argsList.add("--add-exports=java.desktop/sun.java2d=ALL-UNNAMED")
-        argsList.add("--add-exports=java.desktop/java.awt.dnd.peer=ALL-UNNAMED")
-        argsList.add("--add-exports=java.desktop/sun.awt=ALL-UNNAMED")
-        argsList.add("--add-exports=java.desktop/sun.awt.event=ALL-UNNAMED")
-        argsList.add("--add-exports=java.desktop/sun.awt.datatransfer=ALL-UNNAMED")
-        argsList.add("--add-exports=java.desktop/sun.font=ALL-UNNAMED")
-        argsList.add("--add-exports=java.base/sun.security.action=ALL-UNNAMED")
-        argsList.add("--add-opens=java.base/java.util=ALL-UNNAMED")
-        argsList.add("--add-opens=java.desktop/java.awt=ALL-UNNAMED")
-        argsList.add("--add-opens=java.desktop/sun.font=ALL-UNNAMED")
-        argsList.add("--add-opens=java.desktop/sun.java2d=ALL-UNNAMED")
-        argsList.add("--add-opens=java.base/java.lang.reflect=ALL-UNNAMED")
-
-        // Opens the java.net package to Arc DNS injector on Java 9+
-        argsList.add("--add-opens=java.base/java.net=ALL-UNNAMED")
-    }
-
-    val cacioClassPath = StringBuilder()
-    cacioClassPath.append("-Xbootclasspath/").append(if (isJava8) "p" else "a")
-    val cacioFiles = if (isJava8) LibPath.CACIO_8 else LibPath.CACIO_17
-    cacioFiles.listFiles()?.onEach {
-        if (it.name.endsWith(".jar")) cacioClassPath.append(":").append(it.absolutePath)
-    }
-
-    argsList.add(cacioClassPath.toString())
-
-    return argsList
-}
-
-/**
- * 获取设备 SoC 名称，在 API 31+ 读取系统属性 ro.soc.model，若失败则返回 Build.HARDWARE
- */
-fun getSocName(): String {
-    return runCatching {
-        ProcessBuilder("getprop", "ro.soc.model")
-            .start()
-            .inputStream
-            .bufferedReader()
-            .use { reader ->
-                reader.readLine()
-            }
-    }.getOrNull()?.takeIf { it.isNotBlank() } ?: Build.HARDWARE
 }

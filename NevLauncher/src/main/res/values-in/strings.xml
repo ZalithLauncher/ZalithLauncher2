@@ -1586,4 +1586,12 @@
     <string name="download_game_group_category">Kategori // Minecraft</string>
     <string name="download_game_install_label">Pasang // Minecraft</string>
     <string name="download_game_group_hint">Ketuk versi untuk memilih mod loader dan memasang.</string>
+
+    <!-- Dialog izin penyimpanan agar data launcher disimpan di folder NevLauncher di beranda -->
+    <string name="storage_home_folder_title">Folder Nev Launcher</string>
+    <string name="storage_home_folder_message">Nev Launcher bisa menyimpan filenya (game, log, layout kontrol) di folder \"NevLauncher\" pada penyimpanan utama (beranda), bukan di Android/data. Aktifkan dulu izin penyimpanan eksternal untuk launcher.</string>
+    <string name="storage_home_folder_message_sdk30">Nev Launcher bisa menyimpan filenya (game, log, layout kontrol) di folder \"NevLauncher\" pada penyimpanan utama (beranda), bukan di Android/data. Aktifkan dulu izin \"Kelola semua file di perangkat\" untuk launcher.</string>
+    <string name="storage_home_folder_restart_message">Izin sudah diberikan. Mulai ulang launcher untuk memindahkan filenya ke folder \"NevLauncher\" di beranda. Data yang sudah ada akan dipindah otomatis.</string>
+    <string name="storage_home_folder_restart">Mulai ulang</string>
+    <string name="storage_home_folder_later">Nanti</string>
 </resources>

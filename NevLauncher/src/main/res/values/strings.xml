@@ -3194,4 +3194,12 @@
     <string name="download_game_group_category">Category // Minecraft</string>
     <string name="download_game_install_label">Install // Minecraft</string>
     <string name="download_game_group_hint">Tap a version to choose a mod loader and install.</string>
+
+    <!-- Dialog asking for storage permission so launcher data can live in the NevLauncher folder on home storage -->
+    <string name="storage_home_folder_title">Folder Nev Launcher</string>
+    <string name="storage_home_folder_message">Nev Launcher can keep its files (game, logs, control layouts) in the \"NevLauncher\" folder on your home storage instead of Android/data. Please enable the external storage permission for the launcher.</string>
+    <string name="storage_home_folder_message_sdk30">Nev Launcher can keep its files (game, logs, control layouts) in the \"NevLauncher\" folder on your home storage instead of Android/data. Please enable the \"Manage all files on device\" permission for the launcher.</string>
+    <string name="storage_home_folder_restart_message">Permission granted. Restart the launcher to move its files to the \"NevLauncher\" folder on your home storage. Existing data will be moved automatically.</string>
+    <string name="storage_home_folder_restart">Restart</string>
+    <string name="storage_home_folder_later">Later</string>
 </resources>

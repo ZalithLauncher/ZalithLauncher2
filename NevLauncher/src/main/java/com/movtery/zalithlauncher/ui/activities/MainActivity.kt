@@ -23,6 +23,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Process
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.WindowManager
@@ -83,6 +84,9 @@ import com.movtery.zalithlauncher.ui.theme.NevLauncherTheme
 import com.movtery.zalithlauncher.ui.theme.festivals.FestivalEffects
 import com.movtery.zalithlauncher.ui.theme.festivals.FestivalTapObserver
 import com.movtery.zalithlauncher.ui.theme.showThemed
+import com.movtery.zalithlauncher.utils.canHandlePermission
+import com.movtery.zalithlauncher.utils.checkStoragePermissions
+import com.movtery.zalithlauncher.utils.hasStoragePermission
 import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.ui.vulkan_checker.VCOperation
 import com.movtery.zalithlauncher.ui.vulkan_checker.VulkanChecker
@@ -218,6 +222,9 @@ class MainActivity : BaseAppCompatActivity() {
         //加载插件
         PluginLoader.loadAllPlugins(this, false)
         refreshData()
+
+        //minta izin agar folder Nev Launcher bisa disimpan di beranda
+        promptHomeStorageIfNeeded()
 
         //注册文件管理器事件监听
         fmEventRegistrar = FileManagerEventRegistrar(this, ::onFileManagerEvent).also { it.start() }
@@ -808,6 +815,50 @@ class MainActivity : BaseAppCompatActivity() {
     override fun onResume() {
         super.onResume()
         ControlManager.checkDefaultAndRefresh(this@MainActivity)
+        offerRestartForHomeStorage()
+    }
+
+    private var homeStorageRestartShown = false
+
+    /**
+     * Minta izin "Kelola semua file" satu kali, supaya folder Nev Launcher bisa dipindah
+     * ke beranda (/NevLauncher) dan tidak lagi di Android/data.
+     */
+    private fun promptHomeStorageIfNeeded() {
+        if (!canHandlePermission || hasStoragePermission || PathManager.isUsingPublicStorage) return
+        val prefs = getSharedPreferences("nev_storage", MODE_PRIVATE)
+        if (prefs.getBoolean("home_storage_prompted", false)) return
+        prefs.edit().putBoolean("home_storage_prompted", true).apply()
+
+        checkStoragePermissions(
+            activity = this,
+            title = R.string.storage_home_folder_title,
+            message = getString(R.string.storage_home_folder_message),
+            messageSdk30 = getString(R.string.storage_home_folder_message_sdk30)
+        )
+    }
+
+    /**
+     * Izin baru diberikan, tetapi folder data baru dipilih saat proses dimulai,
+     * jadi tawarkan restart agar pindah ke beranda.
+     */
+    private fun offerRestartForHomeStorage() {
+        if (homeStorageRestartShown) return
+        if (!hasStoragePermission || PathManager.isUsingPublicStorage || PathManager.publicStorageFailed) return
+        homeStorageRestartShown = true
+
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.storage_home_folder_title)
+            .setMessage(R.string.storage_home_folder_restart_message)
+            .setPositiveButton(R.string.storage_home_folder_restart) { _, _ ->
+                val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
+                    ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                if (launchIntent != null) startActivity(launchIntent)
+                finishAffinity()
+                Process.killProcess(Process.myPid())
+            }
+            .setNegativeButton(R.string.storage_home_folder_later, null)
+            .showThemed()
     }
 
     @SuppressLint("RestrictedApi")

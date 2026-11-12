@@ -18,8 +18,12 @@
 
 package com.movtery.zalithlauncher.path
 
+import android.Manifest
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Environment
+import androidx.core.content.ContextCompat
 import com.movtery.zalithlauncher.game.launch.LogName
 import com.movtery.zalithlauncher.utils.file.ensureDirectorySilently
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -28,8 +32,26 @@ import java.io.File
 
 private const val TAG = "PathManager"
 
+/** Nama folder Nev Launcher di beranda (penyimpanan utama), mis. /storage/emulated/0/NevLauncher */
+private const val PUBLIC_DIR_NAME = "NevLauncher"
+/** Folder game di dalam folder data launcher */
+private const val GAME_DIR_NAME = ".minecraft"
+
 class PathManager {
     companion object {
+        /** Folder data eksternal yang sudah ditentukan untuk proses ini (ditentukan sekali agar tidak berubah di tengah jalan) */
+        private var resolvedExternalDir: File? = null
+
+        /** True bila folder data Nev Launcher berada di beranda (bukan di Android/data) */
+        @Volatile
+        var isUsingPublicStorage: Boolean = false
+            private set
+
+        /** True bila izin sudah ada tetapi folder di beranda gagal dipakai, sehingga kembali ke Android/data */
+        @Volatile
+        var publicStorageFailed: Boolean = false
+            private set
+
         lateinit var DIR_FILES_PRIVATE: File
         lateinit var DIR_FILES_EXTERNAL: File
         lateinit var DIR_CACHE: File
@@ -68,15 +90,7 @@ class PathManager {
 
         fun refreshPaths(context: Context) {
             DIR_FILES_PRIVATE = context.filesDir
-            DIR_FILES_EXTERNAL = context.getExternalFilesDir(null) ?: run {
-                //from FCL (commit 744156a)
-                val externalDir = File(Environment.getExternalStorageDirectory(), "Android/data/${context.packageName}/files")
-                if (externalDir.ensureDirectorySilently()) externalDir
-                else {
-                    Logger.warning(TAG, "External files dir is inaccessible, falling back to internal storage: ${externalDir.absolutePath}")
-                    File(DIR_FILES_PRIVATE, "data_files")
-                }
-            }
+            DIR_FILES_EXTERNAL = resolveExternalDir(context)
             DIR_CACHE = context.cacheDir
             DIR_NATIVE_LIB = context.applicationInfo.nativeLibraryDir
             DIR_RUNTIME_MOD = context.getDir("runtime_mod", 0)
@@ -113,6 +127,90 @@ class PathManager {
 
             createDirs()
             handleLegacy()
+        }
+
+        /**
+         * Tentukan folder data eksternal Nev Launcher.
+         * Bila izin akses semua file sudah diberikan, dipakai folder "NevLauncher" di beranda;
+         * kalau belum (atau gagal), tetap memakai folder lama di Android/data.
+         * Hasilnya ditentukan sekali per proses.
+         */
+        private fun resolveExternalDir(context: Context): File {
+            resolvedExternalDir?.let { return it }
+
+            val legacyDir = context.getExternalFilesDir(null) ?: run {
+                //from FCL (commit 744156a)
+                val externalDir = File(Environment.getExternalStorageDirectory(), "Android/data/${context.packageName}/files")
+                if (externalDir.ensureDirectorySilently()) externalDir
+                else {
+                    Logger.warning(TAG, "External files dir is inaccessible, falling back to internal storage: ${externalDir.absolutePath}")
+                    File(DIR_FILES_PRIVATE, "data_files")
+                }
+            }
+
+            val resolved = tryPublicDir(context, legacyDir) ?: legacyDir
+            resolvedExternalDir = resolved
+            Logger.info(TAG, "Launcher data directory: ${resolved.absolutePath}")
+            return resolved
+        }
+
+        private fun hasAllFilesAccess(context: Context): Boolean {
+            return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Environment.isExternalStorageManager()
+            } else {
+                ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED &&
+                        ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+            }
+        }
+
+        /**
+         * @return folder di beranda, atau null bila izin belum ada / folder tidak bisa dipakai
+         */
+        private fun tryPublicDir(context: Context, legacyDir: File): File? {
+            if (!hasAllFilesAccess(context)) return null
+
+            val publicDir = File(Environment.getExternalStorageDirectory(), PUBLIC_DIR_NAME)
+            if (!publicDir.ensureDirectorySilently()) {
+                Logger.warning(TAG, "Unable to use home storage directory, using Android/data: ${publicDir.absolutePath}")
+                publicStorageFailed = true
+                return null
+            }
+            if (!migrateLegacyData(legacyDir, publicDir)) {
+                publicStorageFailed = true
+                return null
+            }
+            isUsingPublicStorage = true
+            return publicDir
+        }
+
+        /**
+         * Pindahkan data lama dari Android/data ke folder di beranda (dipindah, bukan disalin).
+         * Folder game (.minecraft) dipindah lebih dulu; bila gagal, tidak ada yang dipindah
+         * dan launcher tetap memakai folder lama agar data tidak terlihat hilang.
+         * @return false bila folder game gagal dipindah
+         */
+        private fun migrateLegacyData(legacyDir: File, publicDir: File): Boolean {
+            if (!legacyDir.isDirectory) return true
+
+            val legacyGame = File(legacyDir, GAME_DIR_NAME)
+            val publicGame = File(publicDir, GAME_DIR_NAME)
+            if (legacyGame.exists() && !publicGame.exists()) {
+                if (!legacyGame.renameTo(publicGame)) {
+                    Logger.warning(TAG, "Failed to move game folder to ${publicGame.absolutePath}, keeping ${legacyDir.absolutePath}")
+                    return false
+                }
+            }
+
+            //sisanya (log, layout kontrol, dll.) dipindah semampunya, tidak menimpa file yang sudah ada
+            legacyDir.listFiles()?.forEach { child ->
+                if (child.name == GAME_DIR_NAME) return@forEach
+                val dest = File(publicDir, child.name)
+                if (dest.exists()) return@forEach
+                if (!child.renameTo(dest)) {
+                    Logger.warning(TAG, "Failed to move ${child.absolutePath} to ${dest.absolutePath}")
+                }
+            }
+            return true
         }
 
         private fun createDirs() {

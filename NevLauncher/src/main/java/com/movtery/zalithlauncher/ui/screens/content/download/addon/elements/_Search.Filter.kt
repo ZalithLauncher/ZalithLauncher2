@@ -18,6 +18,11 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.download.addon.elements
 
+import com.movtery.zalithlauncher.ui.theme.nevTextFieldColors
+import androidx.compose.foundation.BorderStroke
+import com.movtery.zalithlauncher.ui.theme.NevCardBorder
+import com.movtery.zalithlauncher.ui.theme.NevRed
+import com.movtery.zalithlauncher.ui.theme.nevGlow
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateFloatAsState
@@ -292,10 +297,10 @@ private fun <E> SuggestionsText(
     ) {
         val fieldShape by animateShapeAsState(
             if (showSuggestions) RoundedCornerShape(
-                topStart = 16.0.dp, topEnd = 16.0.dp,
+                topStart = 24.0.dp, topEnd = 24.0.dp,
                 bottomStart = 0.dp, bottomEnd = 0.dp
             )
-            else RoundedCornerShape(16.0.dp)
+            else RoundedCornerShape(24.0.dp)
         )
         OwnOutlinedTextField(
             modifier = modifier
@@ -304,6 +309,7 @@ private fun <E> SuggestionsText(
             value = value,
             onValueChange = onValueChange,
             shape = fieldShape,
+            colors = nevTextFieldColors(),
             label = {
                 Text(text = label)
             },
@@ -336,8 +342,10 @@ private fun <E> SuggestionsText(
             },
             shape = RoundedCornerShape(
                 topStart = 0.dp, topEnd = 0.dp,
-                bottomStart = 16.0.dp, bottomEnd = 16.0.dp,
-            )
+                bottomStart = 24.0.dp, bottomEnd = 24.0.dp,
+            ),
+            containerColor = NevRed.PanelDeep,
+            border = NevCardBorder
         ) {
             suggestions.forEach { item ->
                 DropdownMenuItem(
@@ -366,7 +374,7 @@ private fun <E> SuggestionsText(
 @Composable
 fun BaseFilterLayout(
     modifier: Modifier = Modifier,
-    shape: Shape = MaterialTheme.shapes.large,
+    shape: Shape = RoundedCornerShape(20.dp),
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
@@ -383,18 +391,20 @@ fun BaseFilterLayout(
 
     if (onClick != null) {
         Surface(
-            modifier = modifier,
+            modifier = modifier.nevGlow(shape, 5.dp, 0.35f),
             shape = shape,
             color = color,
             contentColor = contentColor,
+            border = BorderStroke(1.dp, NevRed.Outline),
             onClick = onClick,
         ) { Content() }
     } else {
         Surface(
-            modifier = modifier,
+            modifier = modifier.nevGlow(shape, 5.dp, 0.35f),
             shape = shape,
             color = color,
             contentColor = contentColor,
+            border = BorderStroke(1.dp, NevRed.Outline),
         ) { Content() }
     }
 }

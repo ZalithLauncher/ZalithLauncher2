@@ -18,6 +18,10 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.download.addon.elements
 
+import androidx.compose.foundation.BorderStroke
+import com.movtery.zalithlauncher.ui.theme.NevCardBorder
+import com.movtery.zalithlauncher.ui.theme.NevRed
+import com.movtery.zalithlauncher.ui.theme.nevGlow
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
@@ -236,7 +240,7 @@ fun ResultListLayout(
 private fun PageController(
     modifier: Modifier = Modifier,
     page: AddonPage,
-    shape: Shape = MaterialTheme.shapes.large,
+    shape: Shape = RoundedCornerShape(50),
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
@@ -312,10 +316,11 @@ private fun PageController(
     }
 
     Surface(
-        modifier = modifier,
+        modifier = modifier.nevGlow(shape, 6.dp, 0.4f),
         shape = shape,
         color = color,
-        contentColor = contentColor
+        contentColor = contentColor,
+        border = NevCardBorder
     ) {
         Row(
             modifier = Modifier
@@ -442,7 +447,7 @@ fun ResultProjectLayout(
     isInstalled: Boolean = false,
 //    isFavorite: Boolean = false,
 //    onFavoriteClick: (() -> Unit)? = null,
-    shape: Shape = MaterialTheme.shapes.large,
+    shape: Shape = RoundedCornerShape(20.dp),
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
@@ -457,10 +462,13 @@ fun ResultProjectLayout(
     }
 
     Surface(
-        modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
+        modifier = modifier
+            .nevGlow(shape, 6.dp, 0.4f)
+            .graphicsLayer(scaleY = scale.value, scaleX = scale.value),
         shape = shape,
         color = color,
         contentColor = contentColor,
+        border = NevCardBorder,
         onClick = onClick
     ) {
         Row(

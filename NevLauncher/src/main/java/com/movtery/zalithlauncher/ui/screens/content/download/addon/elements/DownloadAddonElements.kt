@@ -18,6 +18,11 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.download.addon.elements
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import com.movtery.zalithlauncher.ui.theme.NevCardBorder
+import com.movtery.zalithlauncher.ui.theme.NevRed
+import com.movtery.zalithlauncher.ui.theme.nevGlow
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
@@ -224,7 +229,7 @@ fun AddonVersionItemLayout(
     infoMap: VersionInfoMap,
     defaultExpanded: Boolean = infoMap.isAdapt,
     maxListHeight: Dp = rememberMaxHeight(),
-    shape: Shape = MaterialTheme.shapes.large,
+    shape: Shape = RoundedCornerShape(20.dp),
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
@@ -235,10 +240,11 @@ fun AddonVersionItemLayout(
     var expanded by remember(infoMap) { mutableStateOf(defaultExpanded) }
 
     Surface(
-        modifier = modifier,
+        modifier = modifier.nevGlow(shape, 6.dp, 0.4f),
         shape = shape,
         color = color,
-        contentColor = contentColor
+        contentColor = contentColor,
+        border = NevCardBorder
     ) {
         Column(
             modifier = Modifier

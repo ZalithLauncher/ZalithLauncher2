@@ -74,6 +74,7 @@ fun EditorDialogHost(viewModel: EditorViewModel) {
     val cabinetItems by viewModel.styleCabinet.items.collectAsStateWithLifecycle()
 
     val context = LocalContext.current
+    LaunchedEffect(viewModel) { viewModel.seedPresetShapeStyles() }
     val editorToast: (Int) -> Unit = { resId ->
         Toast.makeText(context, context.getString(resId), Toast.LENGTH_SHORT).show()
     }

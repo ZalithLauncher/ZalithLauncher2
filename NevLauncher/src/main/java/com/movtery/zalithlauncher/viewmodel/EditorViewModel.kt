@@ -470,6 +470,15 @@ class EditorViewModel : ViewModel() {
      * Tambahkan banyak gaya bentuk bawaan (bertema merah) ke layout.
      * Gaya dengan nama yang sudah ada dilewati. Mengembalikan jumlah gaya yang ditambahkan.
      */
+    private var presetsSeeded = false
+
+    /** Tambahkan bentuk bawaan otomatis sekali per sesi editor. */
+    fun seedPresetShapeStyles() {
+        if (presetsSeeded) return
+        presetsSeeded = true
+        addPresetShapeStyles()
+    }
+
     fun addPresetShapeStyles(): Int {
         val existing = observableLayout.styles.value.map { it.name }.toSet()
         //nama, topStart, topEnd, bottomEnd, bottomStart

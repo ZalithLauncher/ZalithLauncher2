@@ -18,6 +18,13 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
+import com.movtery.zalithlauncher.ui.theme.nevGlow
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import com.movtery.zalithlauncher.ui.theme.NevCardBorder
 import com.movtery.zalithlauncher.ui.theme.NevRed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -490,11 +497,13 @@ fun LoginMenuDialog(
                 modifier = Modifier
                     .padding(all = 6.dp)
                     .fillMaxWidth()
-                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight())),
-                shape = MaterialTheme.shapes.extraLarge,
-                color = cardColor(false),
-                contentColor = onCardColor(),
-                shadowElevation = 6.dp
+                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
+                    .nevGlow(RoundedCornerShape(28.dp), 16.dp, 0.8f),
+                shape = RoundedCornerShape(28.dp),
+                color = NevRed.PanelDeep,
+                contentColor = NevRed.OnPanel,
+                border = NevCardBorder,
+                shadowElevation = 0.dp
             ) {
                 Column(
                     modifier = Modifier.fillMaxWidth()
@@ -1027,8 +1036,13 @@ fun LocalLoginDialog(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        FilledTonalButton(
+                        androidx.compose.material3.OutlinedButton(
                             modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(50),
+                            border = androidx.compose.foundation.BorderStroke(1.5.dp, NevRed.OutlineBright),
+                            colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                                contentColor = NevRed.OnPanel
+                            ),
                             onClick = onDismissRequest
                         ) {
                             MarqueeText(text = stringResource(R.string.generic_cancel))
@@ -1629,7 +1643,8 @@ fun ChangeSkinDialog(
                                 .fillMaxHeight()
                                 .weight(1f)
                                 .clip(MaterialTheme.shapes.large)
-                                .background(itemColor(false)),
+                                .background(NevRed.Panel)
+                                .border(1.dp, NevRed.Outline, MaterialTheme.shapes.large),
                             contentAlignment = Alignment.Center
                         ) {
                             PetModelView(
@@ -1803,9 +1818,27 @@ fun ChangeSkinDialog(
                             Text(text = stringResource(R.string.generic_cancel))
                         }
 
+                        val canConfirm = skinState != ChangeSkin.None || capeState != ChangeCape.None
+                        val pill = RoundedCornerShape(50)
                         Button(
-                            modifier = Modifier.weight(1f),
-                            enabled = skinState != ChangeSkin.None || capeState != ChangeCape.None,
+                            modifier = Modifier
+                                .weight(1f)
+                                .then(
+                                    if (canConfirm) Modifier.nevGlow(pill, 10.dp, 0.9f)
+                                    else Modifier
+                                )
+                                .background(
+                                    if (canConfirm) NevRed.Gradient else NevRed.solid(NevRed.SurfaceHigh),
+                                    pill
+                                ),
+                            shape = pill,
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = Color.Transparent,
+                                disabledContainerColor = Color.Transparent,
+                                contentColor = NevRed.OnGradient,
+                                disabledContentColor = NevRed.Muted.copy(alpha = 0.6f)
+                            ),
+                            enabled = canConfirm,
                             onClick = {
                                 when (skinState) {
                                     is ChangeSkin.ChangeSkinData -> {
@@ -1890,31 +1923,191 @@ fun SelectCapeDialog(
         }
     }
 
-    SimpleListDialog(
-        title = stringResource(R.string.account_change_cape_select_cape),
-        items = capes,
-        onItemSelected = { cape ->
-            onSelected(cape)
-        },
-        current = selectedCape,
-        itemLayout = { cape, isCurrent, onClick ->
-            val name = capeLocals[cape] ?: androidText(cape.alias)
-            CapeListItem(
+    val panelShape = RoundedCornerShape(28.dp)
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(all = 16.dp)
+                .fillMaxWidth(0.94f)
+                .heightIn(max = rememberDialogMaxHeight())
+                .nevGlow(panelShape, 18.dp, 0.8f)
+                .clip(panelShape)
+                .background(NevRed.PanelBrush)
+                .border(NevCardBorder, panelShape)
+                .padding(horizontal = 20.dp, vertical = 18.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            //Header: ubin ikon gradasi + label kecil + judul + tombol tutup
+            Row(
                 modifier = Modifier.fillMaxWidth(),
-                selected = isCurrent,
-                cape = cape,
-                name = name,
-                size = capeSize,
-                density = density,
-                onClick = onClick,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(14.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(54.dp)
+                        .nevGlow(RoundedCornerShape(16.dp), 10.dp, 0.9f)
+                        .background(NevRed.GradientDiagonal, RoundedCornerShape(16.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        modifier = Modifier.size(28.dp),
+                        painter = painterResource(R.drawable.ic_checkroom),
+                        contentDescription = null,
+                        tint = NevRed.OnGradient
+                    )
+                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.account_cape_kicker),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
+                        letterSpacing = 2.sp,
+                        color = NevRed.GradientEnd
+                    )
+                    Text(
+                        text = stringResource(R.string.account_change_cape_select_cape),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = NevRed.OnPanel
+                    )
+                }
+                Surface(
+                    onClick = onDismiss,
+                    shape = CircleShape,
+                    color = Color.Transparent,
+                    border = BorderStroke(1.5.dp, NevRed.OutlineBright),
+                    contentColor = NevRed.OnPanel
+                ) {
+                    Icon(
+                        modifier = Modifier
+                            .padding(12.dp)
+                            .size(22.dp),
+                        painter = painterResource(R.drawable.ic_close),
+                        contentDescription = stringResource(R.string.generic_close)
+                    )
+                }
+            }
+
+            Text(
+                text = stringResource(R.string.account_cape_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = NevRed.Muted
             )
-        },
-        onDismissRequest = { selected ->
-            if (!selected) {
-                onDismiss()
+
+            androidx.compose.foundation.lazy.grid.LazyVerticalGrid(
+                modifier = Modifier.weight(1f, fill = false),
+                columns = androidx.compose.foundation.lazy.grid.GridCells.Adaptive(minSize = 140.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 8.dp, top = 4.dp)
+            ) {
+                items(capes.size) { index ->
+                    val cape = capes[index]
+                    val name = capeLocals[cape] ?: androidText(cape.alias)
+                    CapeGridCard(
+                        selected = cape == selectedCape,
+                        cape = cape,
+                        name = name,
+                        density = density,
+                        onClick = { onSelected(cape) }
+                    )
+                }
             }
         }
-    )
+    }
+}
+
+/** Kartu jubah bergrid: ubin gelap berisi gambar jubah, nama di bawah, lencana centang bila terpilih. */
+@Composable
+private fun CapeGridCard(
+    selected: Boolean,
+    cape: PlayerProfile.Cape,
+    name: AndroidStringText,
+    density: Density,
+    onClick: () -> Unit,
+) {
+    val avatar by produceState<ImageBitmap?>(null, cape, density) {
+        value = withContext(Dispatchers.IO) {
+            if (cape != EmptyCape) {
+                getCapeAvatar(cape = cape, size = 96.dp, density = density)?.asImageBitmap()
+            } else null
+        }
+    }
+    val shape = RoundedCornerShape(20.dp)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(if (selected) Modifier.nevGlow(shape, 10.dp, 0.9f) else Modifier)
+            .clip(shape)
+            .background(NevRed.Panel)
+            .border(
+                if (selected) BorderStroke(
+                    2.dp,
+                    Brush.linearGradient(listOf(NevRed.GradientStart, NevRed.GradientEnd))
+                ) else BorderStroke(1.dp, NevRed.Outline),
+                shape
+            )
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(112.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.Black.copy(alpha = 0.4f)),
+            contentAlignment = Alignment.Center
+        ) {
+            val bmp = avatar
+            if (bmp != null) {
+                Image(
+                    modifier = Modifier
+                        .fillMaxHeight(0.82f)
+                        .aspectRatio(bmp.width.toFloat() / bmp.height.toFloat()),
+                    bitmap = bmp,
+                    contentDescription = null,
+                    filterQuality = androidx.compose.ui.graphics.FilterQuality.None
+                )
+            } else if (cape == EmptyCape) {
+                Icon(
+                    modifier = Modifier.size(40.dp),
+                    painter = painterResource(R.drawable.ic_close),
+                    contentDescription = null,
+                    tint = NevRed.Muted
+                )
+            }
+            if (selected) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(6.dp)
+                        .size(26.dp)
+                        .nevGlow(CircleShape, 6.dp, 0.9f)
+                        .background(NevRed.GradientDiagonal, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        painter = painterResource(R.drawable.ic_check),
+                        contentDescription = null,
+                        tint = NevRed.OnGradient
+                    )
+                }
+            }
+        }
+        AndroidStringText(
+            text = name,
+            style = MaterialTheme.typography.labelLarge.copy(color = NevRed.OnPanel),
+            fontWeight = FontWeight.Bold,
+            maxLines = 1
+        )
+    }
 }
 
 @Composable

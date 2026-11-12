@@ -791,6 +791,8 @@
     <string name="account_change_cape_import_invalid">Bukan cape yang valid. Pakai PNG berukuran 64×32 atau 22×17 (atau kelipatannya)</string>
     <string name="account_change_cape_fetch_all">Ambil semua jubah</string>
     <string name="account_change_cape_fetch_all_failed">Tidak dapat mengambil jubah</string>
+    <string name="account_cape_kicker">LEMARI // JUBAH</string>
+    <string name="account_cape_subtitle">Pilih jubah mana pun untuk akun ini. Jubah terlihat di game untukmu.</string>
     <string name="account_change_cape_select_cape">Pilih jubah</string>
     <string name="account_change_cape_apply">Menerapkan jubah</string>
     <string name="account_change_cape_apply_success">Berhasil mengubah jubah Anda menjadi: %s</string>

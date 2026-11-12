@@ -984,6 +984,8 @@
     <!-- Progress message while the fetched capes are being cached -->
     <string name="account_change_cape_cache_all">Caching all capes</string>
     <!-- Title of the cape selection dialog -->
+    <string name="account_cape_kicker">WARDROBE // CAPE</string>
+    <string name="account_cape_subtitle">Pick any cape for this account. The cape shows up in game for you.</string>
     <string name="account_change_cape_select_cape">Select Cape</string>
     <!-- Progress message while the selected cape is being applied -->
     <string name="account_change_cape_apply">Applying cape</string>

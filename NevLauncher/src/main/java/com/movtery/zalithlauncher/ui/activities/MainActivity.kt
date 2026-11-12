@@ -232,6 +232,11 @@ class MainActivity : BaseAppCompatActivity() {
             }
         }
 
+        //pasang latar Nether bawaan (sekali saja, bila belum ada latar)
+        lifecycleScope.launch {
+            backgroundViewModel.seedDefaultBackground(applicationContext)
+        }
+
         //拉取当月赞助者数据
         lifecycleScope.launch {
             sponsorsViewModel.loadOnStart(

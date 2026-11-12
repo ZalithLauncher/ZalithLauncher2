@@ -466,7 +466,9 @@ object AllSettings : SettingsRegistry() {
     /**
      * 启动器背景元素不透明度
      */
-    val launcherBackgroundOpacity = intSetting("launcherBackgroundOpacity", 80, 20..100)
+    /** Latar bawaan (gambar Nether) sudah pernah disalin ke berkas latar launcher */
+    val defaultBackgroundSeeded = boolSetting("defaultBackgroundSeeded", false)
+    val launcherBackgroundOpacity = intSetting("launcherBackgroundOpacity", 65, 20..100)
 
     /**
      * 启动器视频背景音量

@@ -36,6 +36,7 @@ import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.unit.toSize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.copyLocalFile
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
@@ -162,6 +163,26 @@ class BackgroundViewModel: ViewModel() {
                 }
             }
         }
+    }
+
+    /**
+     * Pasang gambar Nether bawaan sebagai latar launcher sekali saja,
+     * hanya jika pengguna belum memiliki latar sendiri.
+     */
+    suspend fun seedDefaultBackground(context: Context) {
+        withContext(Dispatchers.IO) {
+            if (AllSettings.defaultBackgroundSeeded.state) return@withContext
+            if (!backgroundFile.exists()) {
+                runCatching {
+                    backgroundFile.parentFile?.mkdirs()
+                    context.resources.openRawResource(R.raw.img_default_background).use { input ->
+                        backgroundFile.outputStream().use { output -> input.copyTo(output) }
+                    }
+                }
+            }
+            AllSettings.defaultBackgroundSeeded.save(true)
+        }
+        updateState()
     }
 
     suspend fun delete() {

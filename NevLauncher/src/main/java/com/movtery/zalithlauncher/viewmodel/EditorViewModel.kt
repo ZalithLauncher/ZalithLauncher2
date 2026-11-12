@@ -526,7 +526,7 @@ class EditorViewModel : ViewModel() {
             observableLayout.addStyle(
                 com.movtery.layer_controller.data.DefaultButtonStyle.copy(
                     name = name,
-                    uuid = com.movtery.layer_controller.utils.randomUUID(),
+                    uuid = java.util.UUID.randomUUID().toString().replace("-", "").take(12),
                     commonStyle = true,
                     lightStyle = config,
                     darkStyle = config

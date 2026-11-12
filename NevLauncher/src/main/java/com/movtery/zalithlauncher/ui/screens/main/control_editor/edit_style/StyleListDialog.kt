@@ -81,6 +81,7 @@ fun StyleListDialog(
     onDelete: (ObservableButtonStyle) -> Unit,
     onFavorite: (ObservableButtonStyle) -> Unit,
     onOpenCabinet: () -> Unit,
+    onAddPresets: () -> Unit = {},
     onClose: () -> Unit
 ) {
     Dialog(
@@ -159,11 +160,19 @@ fun StyleListDialog(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        //样式收藏柜入口
-                        FilledTonalButton(
-                            onClick = onOpenCabinet
-                        ) {
-                            MarqueeText(text = stringResource(R.string.control_editor_style_cabinet))
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            //样式收藏柜入口
+                            FilledTonalButton(
+                                onClick = onOpenCabinet
+                            ) {
+                                MarqueeText(text = stringResource(R.string.control_editor_style_cabinet))
+                            }
+                            //tambah banyak bentuk bawaan
+                            FilledTonalButton(
+                                onClick = onAddPresets
+                            ) {
+                                MarqueeText(text = stringResource(R.string.control_editor_style_add_shapes))
+                            }
                         }
 
                         Row(horizontalArrangement = Arrangement.End) {

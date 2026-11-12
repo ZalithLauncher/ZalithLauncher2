@@ -1432,6 +1432,9 @@
     <string name="guide_editor_styles_title">Ingin mengubah tampilan kontrolmu?</string>
     <string name="guide_editor_styles_text">Kamu bisa membuat tampilan untuk kontrol agar cepat digunakan kembali dan ditukar</string>
     <!--  样式收藏柜  -->
+    <string name="control_editor_style_add_shapes">Tambah bentuk bawaan</string>
+    <string name="control_editor_style_add_shapes_done">%1$d gaya bentuk ditambahkan</string>
+    <string name="control_editor_style_add_shapes_none">Semua bentuk bawaan sudah ada</string>
     <string name="control_editor_style_cabinet">Koleksi Gaya</string>
     <string name="control_editor_style_cabinet_empty">Koleksi gaya masih kosong. Kamu bisa menambahkan gaya dari daftar tampilan kontrol atau daftar gaya joystick.</string>
     <string name="control_editor_style_cabinet_favorite">Tambahkan ke Koleksi Gaya</string>

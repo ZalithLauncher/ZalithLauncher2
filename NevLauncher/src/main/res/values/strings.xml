@@ -2566,6 +2566,9 @@
     <!-- Confirmation message when deleting a joystick style; %s is its name -->
     <string name="control_editor_edit_joystick_style_list_delete">Are you sure you want to delete the joystick style %s?</string>
     <!-- Editor menu button and dialog title for the cabinet of favorited styles -->
+    <string name="control_editor_style_add_shapes">Add preset shapes</string>
+    <string name="control_editor_style_add_shapes_done">%1$d shape styles added</string>
+    <string name="control_editor_style_add_shapes_none">All preset shapes already exist</string>
     <string name="control_editor_style_cabinet">Style Cabinet</string>
     <!-- Shown in the style cabinet dialog when no styles have been favorited yet -->
     <string name="control_editor_style_cabinet_empty">The style cabinet is empty. You can add styles from the control appearance list or the joystick style list.</string>

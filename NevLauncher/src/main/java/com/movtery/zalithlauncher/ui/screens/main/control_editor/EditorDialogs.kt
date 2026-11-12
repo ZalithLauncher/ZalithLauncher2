@@ -185,6 +185,15 @@ private fun EditorOperationDialogs(
                 onOpenCabinet = {
                     viewModel.openStyleCabinet(OpenCabinetSource.ControlStyle)
                 },
+                onAddPresets = {
+                    val count = viewModel.addPresetShapeStyles()
+                    android.widget.Toast.makeText(
+                        context,
+                        if (count > 0) context.getString(R.string.control_editor_style_add_shapes_done, count)
+                        else context.getString(R.string.control_editor_style_add_shapes_none),
+                        android.widget.Toast.LENGTH_SHORT
+                    ).show()
+                },
                 onClose = viewModel::dismissOperation
             )
         }

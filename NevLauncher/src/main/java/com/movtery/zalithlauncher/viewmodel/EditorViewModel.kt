@@ -467,6 +467,77 @@ class EditorViewModel : ViewModel() {
     }
 
     /**
+     * Tambahkan banyak gaya bentuk bawaan (bertema merah) ke layout.
+     * Gaya dengan nama yang sudah ada dilewati. Mengembalikan jumlah gaya yang ditambahkan.
+     */
+    fun addPresetShapeStyles(): Int {
+        val existing = observableLayout.styles.value.map { it.name }.toSet()
+        //nama, topStart, topEnd, bottomEnd, bottomStart
+        val shapes = listOf(
+            listOf("default", 0f, 0f, 0f, 0f),
+            listOf("rounded", 12f, 12f, 12f, 12f),
+            listOf("soft", 24f, 24f, 24f, 24f),
+            listOf("pill", 50f, 50f, 50f, 50f),
+            listOf("circle", 100f, 100f, 100f, 100f),
+            listOf("topstart", 28f, 0f, 0f, 0f),
+            listOf("topend", 0f, 28f, 0f, 0f),
+            listOf("bottomstart", 0f, 0f, 0f, 28f),
+            listOf("bottomend", 0f, 0f, 28f, 0f),
+            listOf("start", 28f, 0f, 0f, 28f),
+            listOf("end", 0f, 28f, 28f, 0f),
+            listOf("top", 28f, 28f, 0f, 0f),
+            listOf("bottom", 0f, 0f, 28f, 28f),
+            listOf("diagonal", 28f, 0f, 28f, 0f),
+            listOf("diagonal2", 0f, 28f, 0f, 28f),
+            listOf("leaf", 40f, 0f, 40f, 0f),
+            listOf("leaf2", 0f, 40f, 0f, 40f),
+            listOf("tab", 14f, 14f, 0f, 0f),
+            listOf("notch", 6f, 22f, 6f, 22f),
+            listOf("drop", 50f, 50f, 50f, 0f),
+            listOf("drop2", 50f, 50f, 0f, 50f),
+            listOf("drop3", 0f, 50f, 50f, 50f),
+            listOf("drop4", 50f, 0f, 50f, 50f),
+        )
+        val base = com.movtery.layer_controller.data.DefaultButtonStyle.lightStyle
+        var added = 0
+        shapes.forEach { row ->
+            val name = row[0] as String
+            if (name in existing) return@forEach
+            val shape = com.movtery.layer_controller.data.ButtonShape(
+                topStart = row[1] as Float,
+                topEnd = row[2] as Float,
+                bottomEnd = row[3] as Float,
+                bottomStart = row[4] as Float
+            )
+            val config = base.copy(
+                alpha = 1f,
+                pressedAlpha = 1f,
+                backgroundColor = androidx.compose.ui.graphics.Color(0xFF140505),
+                pressedBackgroundColor = androidx.compose.ui.graphics.Color(0xFFB3141A),
+                contentColor = androidx.compose.ui.graphics.Color.White,
+                pressedContentColor = androidx.compose.ui.graphics.Color.White,
+                borderWidth = 2,
+                pressedBorderWidth = 2,
+                borderColor = androidx.compose.ui.graphics.Color(0xFFFF3B30),
+                pressedBorderColor = androidx.compose.ui.graphics.Color(0xFFFF6A5A),
+                borderRadius = shape,
+                pressedBorderRadius = shape
+            )
+            observableLayout.addStyle(
+                com.movtery.layer_controller.data.DefaultButtonStyle.copy(
+                    name = name,
+                    uuid = com.movtery.layer_controller.utils.randomUUID(),
+                    commonStyle = true,
+                    lightStyle = config,
+                    darkStyle = config
+                )
+            )
+            added++
+        }
+        return added
+    }
+
+    /**
      * 复制控件外观
      */
     fun cloneStyle(style: ObservableButtonStyle) {

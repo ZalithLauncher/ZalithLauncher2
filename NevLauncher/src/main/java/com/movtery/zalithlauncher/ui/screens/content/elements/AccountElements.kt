@@ -18,6 +18,10 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
+import com.movtery.zalithlauncher.ui.theme.NevCardBorder
+import com.movtery.zalithlauncher.ui.theme.NevRed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MenuDefaults
 import android.content.Context
 import android.widget.Toast
 import android.graphics.Bitmap
@@ -393,8 +397,23 @@ fun AccountItem(
                     DropdownMenu(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false },
-                        shape = MaterialTheme.shapes.large,
+                        shape = RoundedCornerShape(22.dp),
+                        containerColor = NevRed.PanelDeep,
+                        tonalElevation = 0.dp,
+                        shadowElevation = 14.dp,
+                        border = NevCardBorder,
                     ) {
+                        //warna menu: teks terang, ikon merah menyala, "Hapus" merah tegas
+                        val itemColors = MenuDefaults.itemColors(
+                            textColor = NevRed.OnPanel,
+                            leadingIconColor = NevRed.GradientStart,
+                            disabledTextColor = NevRed.Muted.copy(alpha = 0.5f),
+                            disabledLeadingIconColor = NevRed.Muted.copy(alpha = 0.4f)
+                        )
+                        val deleteColors = MenuDefaults.itemColors(
+                            textColor = NevRed.DangerContent,
+                            leadingIconColor = NevRed.DangerContent
+                        )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.account_wardrobe)) },
                             leadingIcon = {
@@ -404,6 +423,7 @@ fun AccountItem(
                                 )
                             },
                             enabled = account.isSkinChangeAllowed(),
+                            colors = itemColors,
                             onClick = {
                                 menuExpanded = false
                                 openChangeSkinDialog()
@@ -417,6 +437,7 @@ fun AccountItem(
                                     contentDescription = null
                                 )
                             },
+                            colors = itemColors,
                             onClick = {
                                 menuExpanded = false
                                 onCopyUUID()
@@ -430,6 +451,7 @@ fun AccountItem(
                                     contentDescription = null
                                 )
                             },
+                            colors = deleteColors,
                             onClick = {
                                 menuExpanded = false
                                 onDeleteClick()

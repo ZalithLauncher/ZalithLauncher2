@@ -64,13 +64,15 @@ open class JvmLauncher(
     override suspend fun launch(screenSize: IntSize): Int {
         generateLauncherProfiles(jvmLaunchInfo.userHome)
         initLwjglComponent(context, 0)
-        val (runtime, argList) = getStartupNeeded(screenSize)
+        val (runtime, argList) = getStartupNeeded()
 
         this.runtime = runtime
 
         return launchJvm(
             context = context,
+            preJvmArgs = getCacioJavaArgs(screenSize, runtime.javaVersion == 8),
             jvmArgs = argList,
+            programArgs = emptyList(),
             userHome = jvmLaunchInfo.userHome ?: GamePathManager.getUserPath(),
             userArgs = if (jvmLaunchInfo.useUserJvm) {
                 AllSettings.jvmArgs.getValue()
@@ -90,21 +92,13 @@ open class JvmLauncher(
         PathManager.DIR_FILES_EXTERNAL, LogName.JVM.fileName
     )
 
-    private fun getStartupNeeded(
-        screenSize: IntSize
-    ): Pair<Runtime, List<String>> {
-        val args = jvmLaunchInfo.jvmArgs.splitPreservingQuotes()
+    private fun getStartupNeeded(): Pair<Runtime, List<String>> {
+        val argList: MutableList<String> = ArrayList(jvmLaunchInfo.jvmArgs.splitPreservingQuotes())
 
         val runtime = jvmLaunchInfo.jreName?.let { jreName ->
             RuntimesManager.forceReload(jreName)
         } ?: run {
             RuntimesManager.forceReload(AllSettings.javaRuntime.getValue())
-        }
-
-        val argList: MutableList<String> = ArrayList(
-            getCacioJavaArgs(screenSize, runtime.javaVersion == 8)
-        ).apply {
-            addAll(args)
         }
 
         LoggerBridge.appendTitle("Launch JVM")

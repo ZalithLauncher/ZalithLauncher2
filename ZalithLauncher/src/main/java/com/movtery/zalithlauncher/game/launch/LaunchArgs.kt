@@ -65,10 +65,69 @@ class LaunchArgs(
     private val readAssetsFile: (path: String) -> String,
     private val getCacioJavaArgs: (isJava8: Boolean) -> List<String>
 ) {
-    fun getAllArgs(): List<String> {
+    fun getPreJvmArgs(): List<String> {
         val argsList: MutableList<String> = ArrayList()
 
-        argsList.addAll(getJavaArgs())
+        if (account.isLocalAccount()) {
+            if (account.hasSkinFile) {
+                //该离线账号拥有本地皮肤，启用离线yggdrasil服务器
+                offlineServer.start()
+                offlineServer.addCharacter(account)
+                offlineServer.getPort()?.let { port ->
+                    val msg = "Using offline Yggdrasil server on port $port"
+                    LoggerBridge.append(msg)
+                    Logger.info(TAG, msg)
+                    argsList.add("-javaagent:${LibPath.AUTHLIB_INJECTOR.absolutePath}=http://localhost:$port")
+                    argsList.add("-Dauthlibinjector.side=client")
+                } ?: run {
+                    //无法获取端口号，说明服务器未成功启动
+                    val msg = "Failed to start offline Yggdrasil server!"
+                    LoggerBridge.append(msg)
+                    Logger.warning(TAG, msg)
+                    //本次启动将被忽略，为避免浪费性能，关停服务器
+                    offlineServer.stop()
+                }
+            }
+        } else if (account.isAuthServerAccount()) {
+            if (account.otherBaseUrl!!.contains("auth.mc-user.com")) {
+                argsList.add("-javaagent:${LibPath.NIDE_8_AUTH.absolutePath}=${account.otherBaseUrl!!.replace("https://auth.mc-user.com:233/", "")}")
+                argsList.add("-Dnide8auth.client=true")
+            } else {
+                argsList.add("-javaagent:${LibPath.AUTHLIB_INJECTOR.absolutePath}=${account.otherBaseUrl}")
+                argsList.add("-Dauthlibinjector.side=client")
+            }
+        }
+
+        argsList.addAll(getCacioJavaArgs(runtime.javaVersion == 8))
+
+        return argsList
+    }
+
+    fun getJvmArgs(): List<String> {
+        val argsList: MutableList<String> = ArrayList()
+
+        //MioLibPatcher 需作为 JVM 选项注册在 cacio agent 之后、-cp 之前
+        argsList.add("-javaagent:${LibPath.MIO_LIB_PATCHER.absolutePath}")
+
+        val configFilePath = version.getVersionPath().child("log4j2.xml")
+        if (!configFilePath.exists()) {
+            val is7 = (version.getVersionInfo()?.minecraftVersion ?: "0.0").isLowerTo("1.12")
+            runCatching {
+                val content = if (is7) {
+                    readAssetsFile("components/log4j-1.7.xml")
+                } else {
+                    readAssetsFile("components/log4j-1.12.xml")
+                }
+                configFilePath.writeText(content)
+            }.onFailure {
+                Logger.warning(TAG, "Failed to write fallback Log4j configuration autonomously!", it)
+            }
+        }
+        argsList.add("-Dlog4j.configurationFile=${configFilePath.absolutePath}")
+        argsList.add("-Dminecraft.client.jar=${clientJar.absolutePath}")
+        argsList.add("-Dminecraft.launcher.brand=${BuildKeys.LAUNCHER_NAME}")
+        argsList.add("-Dminecraft.launcher.version=${BuildConfig.VERSION_NAME}")
+
         argsList.addAll(getMinecraftJVMArgs())
         argsList.addAll(NativePluginManager.getJVMEnv())
 
@@ -77,6 +136,12 @@ class LaunchArgs(
             val pkg: String = gameManifest.mainClass.substring(0, gameManifest.mainClass.lastIndexOf("."))
             argsList.add("$pkg/$pkg=ALL-UNNAMED")
         }
+
+        return argsList
+    }
+
+    fun getProgramArgs(): List<String> {
+        val argsList: MutableList<String> = ArrayList()
 
         argsList.add("mio.Wrapper")
         argsList.add(gameManifest.mainClass)
@@ -178,66 +243,6 @@ class LaunchArgs(
         "lwjgl-$versionDir-merged-modules.jar" -> 1
         "lwjgl-lwjglx.jar" -> 3 // 桥接层放最后，仅 LWJGL2 使用
         else -> 2
-    }
-
-    private fun getJavaArgs(): List<String> {
-        val argsList: MutableList<String> = ArrayList()
-
-        if (account.isLocalAccount()) {
-            if (account.hasSkinFile) {
-                //该离线账号拥有本地皮肤，启用离线yggdrasil服务器
-                offlineServer.start()
-                offlineServer.addCharacter(account)
-                offlineServer.getPort()?.let { port ->
-                    val msg = "Using offline Yggdrasil server on port $port"
-                    LoggerBridge.append(msg)
-                    Logger.info(TAG, msg)
-                    argsList.add("-javaagent:${LibPath.AUTHLIB_INJECTOR.absolutePath}=http://localhost:$port")
-                    argsList.add("-Dauthlibinjector.side=client")
-                } ?: run {
-                    //无法获取端口号，说明服务器未成功启动
-                    val msg = "Failed to start offline Yggdrasil server!"
-                    LoggerBridge.append(msg)
-                    Logger.warning(TAG, msg)
-                    //本次启动将被忽略，为避免浪费性能，关停服务器
-                    offlineServer.stop()
-                }
-            }
-        } else if (account.isAuthServerAccount()) {
-            if (account.otherBaseUrl!!.contains("auth.mc-user.com")) {
-                argsList.add("-javaagent:${LibPath.NIDE_8_AUTH.absolutePath}=${account.otherBaseUrl!!.replace("https://auth.mc-user.com:233/", "")}")
-                argsList.add("-Dnide8auth.client=true")
-            } else {
-                argsList.add("-javaagent:${LibPath.AUTHLIB_INJECTOR.absolutePath}=${account.otherBaseUrl}")
-                argsList.add("-Dauthlibinjector.side=client")
-            }
-        }
-
-        argsList.addAll(getCacioJavaArgs(runtime.javaVersion == 8))
-
-        //MioLibPatcher 需作为 JVM 选项注册在 cacio agent 之后、-cp 之前
-        argsList.add("-javaagent:${LibPath.MIO_LIB_PATCHER.absolutePath}")
-
-        val configFilePath = version.getVersionPath().child("log4j2.xml")
-        if (!configFilePath.exists()) {
-            val is7 = (version.getVersionInfo()?.minecraftVersion ?: "0.0").isLowerTo("1.12")
-            runCatching {
-                val content = if (is7) {
-                    readAssetsFile("components/log4j-1.7.xml")
-                } else {
-                    readAssetsFile("components/log4j-1.12.xml")
-                }
-                configFilePath.writeText(content)
-            }.onFailure {
-                Logger.warning(TAG, "Failed to write fallback Log4j configuration autonomously!", it)
-            }
-        }
-        argsList.add("-Dlog4j.configurationFile=${configFilePath.absolutePath}")
-        argsList.add("-Dminecraft.client.jar=${clientJar.absolutePath}")
-        argsList.add("-Dminecraft.launcher.brand=${BuildKeys.LAUNCHER_NAME}")
-        argsList.add("-Dminecraft.launcher.version=${BuildConfig.VERSION_NAME}")
-
-        return argsList
     }
 
     private fun getMinecraftJVMArgs(): Array<String> {

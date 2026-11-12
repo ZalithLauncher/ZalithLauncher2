@@ -267,13 +267,15 @@ class GameLauncher(
             getCacioJavaArgs = { isJava8 ->
                 getCacioJavaArgs(screenSize, isJava8)
             }
-        ).getAllArgs()
+        )
 
         tryStartTouchProxy()
 
         return launchJvm(
             context = activity,
-            jvmArgs = launchArgs,
+            preJvmArgs = launchArgs.getPreJvmArgs(),
+            jvmArgs = launchArgs.getJvmArgs(),
+            programArgs = launchArgs.getProgramArgs(),
             userHome = version.getGameHome(),
             userArgs = customArgs,
             screenSize = screenSize

@@ -130,7 +130,9 @@ abstract class Launcher(
 
     protected suspend fun launchJvm(
         context: Context,
+        preJvmArgs: List<String>,
         jvmArgs: List<String>,
+        programArgs: List<String>,
         userHome: String,
         userArgs: String,
         screenSize: IntSize,
@@ -150,7 +152,9 @@ abstract class Launcher(
 
         return launchJavaVM(
             context = context,
+            preJvmArgs = preJvmArgs,
             jvmArgs = jvmArgs,
+            programArgs = programArgs,
             userHome = userHome,
             userArgs = userArgs,
             screenSize = screenSize,
@@ -161,21 +165,28 @@ abstract class Launcher(
     //伪 suspend 函数，等待 JVM 的退出代码
     private suspend fun launchJavaVM(
         context: Context,
+        preJvmArgs: List<String>,
         jvmArgs: List<String>,
+        programArgs: List<String>,
         userHome: String,
         userArgs: String,
         screenSize: IntSize,
         useLocalLanguage: Boolean
     ): Int {
+        val userArguments = userArgs.splitPreservingQuotes()
         val args = getJavaArgs(
             userHome = userHome,
-            userArgumentsString = userArgs,
+            userArguments = userArguments,
             screenSize = screenSize,
             useLocalLanguage = useLocalLanguage
         ).toMutableList()
+
+        args.addAll(preJvmArgs)
+        args.addAll(userArguments)
         progressFinalUserArgs(args)
 
         args.addAll(jvmArgs)
+        args.addAll(programArgs)
         args.add(0, "$runtimeHome/bin/java")
 
         LoggerBridge.appendTitle("JVM Args")
@@ -207,11 +218,10 @@ abstract class Launcher(
 
     private fun getJavaArgs(
         userHome: String,
-        userArgumentsString: String,
+        userArguments: List<String>,
         screenSize: IntSize,
         useLocalLanguage: Boolean
     ): List<String> {
-        val userArguments = userArgumentsString.splitPreservingQuotes().toMutableList()
         val resolvFile = ensureDNSConfig()
 
         val overridableArguments = mutableMapOf<String, String>().apply {
@@ -266,7 +276,7 @@ abstract class Launcher(
             "-D${entry.key}=${entry.value}"
         }
 
-        val additionalArguments = overridableArguments.filter { arg ->
+        return overridableArguments.filter { arg ->
             val stripped = arg.substringBefore('=')
             val overridden = userArguments.any { it.startsWith(stripped) }
             if (overridden) {
@@ -274,9 +284,6 @@ abstract class Launcher(
             }
             !overridden
         }
-
-        userArguments += additionalArguments
-        return userArguments
     }
 
     /**

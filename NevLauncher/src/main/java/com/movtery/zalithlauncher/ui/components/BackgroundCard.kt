@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.NevCardBorder
+import com.movtery.zalithlauncher.ui.theme.nevGlow
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.cardTitleColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -71,7 +72,7 @@ fun BackgroundCard(
     content: @Composable ColumnScope.() -> Unit
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.nevGlow(shape, 6.dp, 0.45f),
         shape = shape,
         colors = colors,
         elevation = elevation,
@@ -106,7 +107,7 @@ fun BackgroundCard(
     content: @Composable @UiComposable ColumnScope.() -> Unit
 ) {
     Card(
-        modifier = modifier,
+        modifier = modifier.nevGlow(shape, 6.dp, 0.45f),
         shape = shape,
         colors = colors,
         elevation = elevation,

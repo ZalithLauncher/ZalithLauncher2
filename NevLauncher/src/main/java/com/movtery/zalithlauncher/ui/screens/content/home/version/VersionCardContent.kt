@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.home.version
 
+import com.movtery.zalithlauncher.ui.theme.nevGlow
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -429,7 +430,9 @@ private fun TextLaunchButton(version: Version, modifier: Modifier = Modifier) {
     val onLaunch = LocalHomeCardLauncher.current
     Button(
         onClick = { onLaunch(version) },
-        modifier = modifier.background(NevRed.Gradient, CircleShape),
+        modifier = modifier
+            .nevGlow(CircleShape, 10.dp, 0.9f)
+            .background(NevRed.Gradient, CircleShape),
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(
             containerColor = Color.Transparent,

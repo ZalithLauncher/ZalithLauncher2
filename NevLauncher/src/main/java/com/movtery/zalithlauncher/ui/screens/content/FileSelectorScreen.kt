@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.content
 
+import com.movtery.zalithlauncher.ui.theme.nevGlow
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.BorderStroke
@@ -352,11 +353,13 @@ private fun FileItem(
         scale.animateTo(targetValue = 1f, animationSpec = getAnimateTween())
     }
     Surface(
-        modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
+        modifier = modifier
+            .nevGlow(RoundedCornerShape(18.dp), 6.dp, 0.4f)
+            .graphicsLayer(scaleY = scale.value, scaleX = scale.value),
         color = color,
         contentColor = contentColor,
         shape = RoundedCornerShape(18.dp),
-        border = BorderStroke(1.dp, NevRed.Outline),
+        border = BorderStroke(1.dp, NevRed.OutlineBright.copy(alpha = 0.6f)),
         onClick = onClick
     ) {
         BaseFileItem(

@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.screens.main
 
+import com.movtery.zalithlauncher.ui.theme.nevGlow
 import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -526,6 +527,7 @@ private fun SideRailItem(
     Column(
         modifier = Modifier
             .width(72.dp)
+            .then(if (selected) Modifier.nevGlow(RoundedCornerShape(18.dp), 10.dp, 0.9f) else Modifier)
             .clip(RoundedCornerShape(18.dp))
             .then(if (selected) Modifier.background(selectedBrush) else Modifier)
             .clickable(onClick = onClick)

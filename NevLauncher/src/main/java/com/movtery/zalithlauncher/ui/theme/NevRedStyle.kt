@@ -1,5 +1,9 @@
 package com.movtery.zalithlauncher.ui.theme
 
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.composed
+import androidx.compose.ui.draw.shadow
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -324,7 +328,8 @@ fun NevTopTab(
     val shape = RoundedCornerShape(16.dp)
     Surface(
         onClick = onClick,
-        modifier = modifier.semantics { role = Role.Tab },
+        modifier = (if (selected) modifier.nevGlow(shape, 10.dp, 0.9f) else modifier)
+            .semantics { role = Role.Tab },
         shape = shape,
         color = Color.Transparent,
         border = if (selected) BorderStroke(1.dp, NevRed.OutlineBright) else null
@@ -361,7 +366,9 @@ fun NevGradientButton(
     val shape = RoundedCornerShape(50)
     Surface(
         onClick = onClick,
-        modifier = modifier.semantics { role = Role.Button },
+        modifier = modifier
+            .nevGlow(shape, 10.dp, 0.9f)
+            .semantics { role = Role.Button },
         shape = shape,
         color = Color.Transparent,
         contentColor = NevRed.OnGradient
@@ -387,12 +394,38 @@ fun nevTextFieldColors() = androidx.compose.material3.OutlinedTextFieldDefaults.
     unfocusedContainerColor = NevRed.Panel
 )
 
-/** Border gradasi tipis untuk kartu. */
+/** Border gradasi merah menyala untuk kartu. */
 val NevCardBorder: BorderStroke
     @Composable get() = BorderStroke(
-        1.dp,
-        Brush.horizontalGradient(listOf(NevRed.Outline, NevRed.OutlineBright.copy(alpha = 0.7f)))
+        1.5.dp,
+        Brush.linearGradient(
+            listOf(
+                NevRed.GradientStart.copy(alpha = 0.85f),
+                NevRed.Outline,
+                NevRed.GradientEnd.copy(alpha = 0.85f)
+            )
+        )
     )
+
+/**
+ * Efek glow merah: bayangan berwarna tema di sekeliling bentuk (di luar isi, tidak menutupi konten).
+ * @param radius jarak sebar cahaya
+ * @param intensity 0..1, kekuatan cahaya
+ */
+fun Modifier.nevGlow(
+    shape: Shape,
+    radius: Dp = 8.dp,
+    intensity: Float = 0.6f
+): Modifier = composed {
+    val c = MaterialTheme.colorScheme.primary
+    shadow(
+        elevation = radius,
+        shape = shape,
+        clip = false,
+        ambientColor = c.copy(alpha = intensity),
+        spotColor = c.copy(alpha = intensity)
+    )
+}
 
 /**
  * Tab atas bergaya kapsul untuk layar Unduh: lingkaran ikon di kiri, nomor kecil ("01") di atas label.

@@ -128,6 +128,7 @@ private fun EditorOperationDialogs(
     editorToast: (Int) -> Unit
 ) {
     /** 复制控件层时新层的默认名称 */
+    val context = LocalContext.current
     val defaultLayerName = stringResource(R.string.control_editor_edit_layer_default)
 
     when (val operation = viewModel.editorOperation) {

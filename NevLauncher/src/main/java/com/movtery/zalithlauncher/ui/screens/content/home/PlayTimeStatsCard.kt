@@ -97,10 +97,21 @@ fun PlayTimeStatsCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = stringResource(R.string.play_time_stats_title),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.play_time_stats_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        modifier = Modifier.alpha(0.7f),
+                        text = stringResource(R.string.play_time_stats_period),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
                 Text(
                     modifier = Modifier.alpha(0.8f),
                     text = if (totalSeconds > 0L) {

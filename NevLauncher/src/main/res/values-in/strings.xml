@@ -1565,7 +1565,9 @@
     <string name="server_hub_add_done">Server ditambahkan</string>
     <string name="server_hub_add_exists">Server ini sudah ada di daftar</string>
     <string name="server_hub_add_invalid">Alamat server tidak valid</string>
-    <string name="play_time_stats_title">Waktu bermain pekan ini</string>
+    <string name="play_time_stats_title">Waktu Bermain</string>
+    <string name="play_time_stats_period">(Pekan Ini)</string>
+    <string name="main_play">Main</string>
     <string name="play_time_stats_total">Total: %1$s</string>
     <string name="play_time_stats_none">Belum ada waktu bermain</string>
     <string name="play_time_stats_hours_minutes">%1$dj %2$dm</string>

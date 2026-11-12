@@ -395,7 +395,7 @@ object AllSettings : SettingsRegistry() {
      */
     val launcherColorTheme = enumSetting(
         "launcherColorTheme",
-        ColorThemeType.EMBERMIRE
+        ColorThemeType.NEV_LAVA
     )
 
     /**

@@ -40,6 +40,12 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import com.movtery.zalithlauncher.ui.theme.NevGradientButton
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.Image
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -524,16 +530,24 @@ private fun VersionsContent(
     }
 
     val playPart: @Composable (Modifier) -> Unit = { buttonModifier ->
-        ScalingActionButton(
+        NevGradientButton(
             modifier = buttonModifier,
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp),
             onClick = {
                 onLaunchGame(null)
-            },
-            content = {
-                MarqueeText(text = stringResource(R.string.main_play))
             }
-        )
+        ) {
+            Icon(
+                modifier = Modifier.size(20.dp),
+                painter = painterResource(R.drawable.ic_play_arrow_filled),
+                contentDescription = null
+            )
+            Text(
+                text = stringResource(R.string.main_play),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1
+            )
+        }
     }
 
     if (horizontal) {
@@ -542,7 +556,7 @@ private fun VersionsContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             versionPart(Modifier.weight(1f))
-            playPart(Modifier.width(88.dp).padding(end = 12.dp))
+            playPart(Modifier.padding(end = 16.dp))
         }
     } else {
         Column(modifier = modifier) {
@@ -573,14 +587,27 @@ private fun ActionMenuCardContent(
             .then(modifier),
         shape = MaterialTheme.shapes.extraLarge
     ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+        //logo N besar samar di sisi kanan banner, di belakang tombol Main
+        Image(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = 120.dp)
+                .fillMaxHeight(0.9f)
+                .alpha(0.30f),
+            painter = painterResource(R.drawable.img_nev_logo),
+            contentDescription = null,
+            contentScale = ContentScale.Fit
+        )
         Row(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
                     Brush.horizontalGradient(
                         listOf(
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.40f),
-                            Color.Transparent
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.70f),
+                            MaterialTheme.colorScheme.surfaceContainerLowest.copy(alpha = 0.55f),
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.45f)
                         )
                     )
                 ),
@@ -604,6 +631,7 @@ private fun ActionMenuCardContent(
                 toVersionManageScreen = toVersionManageScreen,
                 toVersionSettingsScreen = toVersionSettingsScreen,
             )
+        }
         }
     }
 }

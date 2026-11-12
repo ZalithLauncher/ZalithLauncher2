@@ -62,6 +62,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -181,7 +186,7 @@ fun MainScreen(
         SideRail(
             modifier = Modifier
                 .fillMaxHeight()
-                .width(64.dp),
+                .width(84.dp),
             contentColor = onBackgroundColor(),
             inServerHubScreen = mainScreenKey is NormalNavKey.ServerHub,
             inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer,
@@ -374,9 +379,17 @@ private fun <E: TitledNavKey> TopBar(
                         )
 
                         if (festivals.isEmpty()) {
+                            //"NEV" merah, sisanya putih, huruf besar tebal seperti referensi
+                            val name = BuildKeys.LAUNCHER_NAME.trim()
+                            val first = name.substringBefore(' ').uppercase()
+                            val rest = name.substringAfter(' ', "").uppercase()
                             Text(
-                                text = BuildKeys.LAUNCHER_NAME,
+                                text = buildAnnotatedString {
+                                    withStyle(SpanStyle(color = NevRed.GradientStart)) { append(first) }
+                                    if (rest.isNotEmpty()) append(" $rest")
+                                },
                                 style = style,
+                                fontWeight = FontWeight.ExtraBold,
                                 softWrap = softWarp,
                                 maxLines = maxLines
                             )
@@ -509,19 +522,30 @@ private fun SideRailItem(
 ) {
     val tint = if (selected) NevRed.OnGradient else LocalContentColor.current
     val selectedBrush = NevRed.GradientDiagonal
-    Box(
+    //ikon di atas, label di bawah; item terpilih berlatar pil bergradasi
+    Column(
         modifier = Modifier
-            .size(48.dp)
-            .clip(MaterialTheme.shapes.large)
+            .width(72.dp)
+            .clip(RoundedCornerShape(18.dp))
             .then(if (selected) Modifier.background(selectedBrush) else Modifier)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center
+            .clickable(onClick = onClick)
+            .padding(vertical = 8.dp, horizontal = 2.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(3.dp)
     ) {
         Icon(
-            modifier = Modifier.size(24.dp),
+            modifier = Modifier.size(26.dp),
             painter = painter,
             contentDescription = text,
             tint = tint
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            color = tint,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

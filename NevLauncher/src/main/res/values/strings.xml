@@ -294,6 +294,7 @@
     <!-- Launch button on the home screen; also the title of the final launch step -->
     <string name="main_launch_game">Launch</string>
     <string name="main_play">Play</string>
+    <string name="play_time_stats_period">(This week)</string>
     <!-- Title of the launch step that scans the installed mods -->
     <string name="launch_check_mods">Checking mods</string>
     <!-- Title of the side panel listing running download and install tasks -->
@@ -3174,7 +3175,7 @@
     <string name="server_hub_add_done">Server added</string>
     <string name="server_hub_add_exists">This server is already in the list</string>
     <string name="server_hub_add_invalid">Invalid server address</string>
-    <string name="play_time_stats_title">Playtime this week</string>
+    <string name="play_time_stats_title">Playtime</string>
     <string name="play_time_stats_total">Total: %1$s</string>
     <string name="play_time_stats_none">No playtime yet</string>
     <string name="play_time_stats_hours_minutes">%1$dh %2$dm</string>

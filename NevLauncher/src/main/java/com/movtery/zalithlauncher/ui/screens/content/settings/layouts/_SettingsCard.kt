@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.TitleAndSummary
+import com.movtery.zalithlauncher.ui.theme.LocalNevStyle
 
 /**
  * 根据卡片在UI组中的位置，选择不同的圆角形状
@@ -157,46 +158,49 @@ fun rememberSettingsCardShape(
     outerShape: Dp = 22.dp,
     innerShape: Dp = 18.dp
 ): Shape {
-    return remember(position, outerShape, innerShape) {
+    val style = LocalNevStyle.current
+    val outer = outerShape * style.cardOuterScale
+    val inner = innerShape * style.cardInnerScale
+    return remember(position, outer, inner) {
         when (position) {
             CardPosition.Top -> RoundedCornerShape(
-                topStart = outerShape,
-                topEnd = outerShape,
-                bottomStart = innerShape,
-                bottomEnd = innerShape
+                topStart = outer,
+                topEnd = outer,
+                bottomStart = inner,
+                bottomEnd = inner
             )
             CardPosition.TopStart -> RoundedCornerShape(
-                topStart = outerShape,
-                topEnd = innerShape,
-                bottomStart = innerShape,
-                bottomEnd = innerShape
+                topStart = outer,
+                topEnd = inner,
+                bottomStart = inner,
+                bottomEnd = inner
             )
             CardPosition.TopEnd -> RoundedCornerShape(
-                topStart = innerShape,
-                topEnd = outerShape,
-                bottomStart = innerShape,
-                bottomEnd = innerShape
+                topStart = inner,
+                topEnd = outer,
+                bottomStart = inner,
+                bottomEnd = inner
             )
-            CardPosition.Middle -> RoundedCornerShape(innerShape)
+            CardPosition.Middle -> RoundedCornerShape(inner)
             CardPosition.Bottom -> RoundedCornerShape(
-                topStart = innerShape,
-                topEnd = innerShape,
-                bottomStart = outerShape,
-                bottomEnd = outerShape
+                topStart = inner,
+                topEnd = inner,
+                bottomStart = outer,
+                bottomEnd = outer
             )
             CardPosition.BottomStart -> RoundedCornerShape(
-                topStart = innerShape,
-                topEnd = innerShape,
-                bottomStart = outerShape,
-                bottomEnd = innerShape
+                topStart = inner,
+                topEnd = inner,
+                bottomStart = outer,
+                bottomEnd = inner
             )
             CardPosition.BottomEnd -> RoundedCornerShape(
-                topStart = innerShape,
-                topEnd = innerShape,
-                bottomStart = innerShape,
-                bottomEnd = outerShape
+                topStart = inner,
+                topEnd = inner,
+                bottomStart = inner,
+                bottomEnd = outer
             )
-            CardPosition.Single -> RoundedCornerShape(outerShape)
+            CardPosition.Single -> RoundedCornerShape(outer)
         }
     }
 }

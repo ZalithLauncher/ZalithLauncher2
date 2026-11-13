@@ -37,11 +37,16 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
+import com.movtery.zalithlauncher.ui.theme.LocalNevStyle
 import com.movtery.zalithlauncher.ui.theme.NevCardBorder
 import com.movtery.zalithlauncher.ui.theme.nevGlow
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.cardTitleColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
+
+/** Menerapkan opasitas panel dari gaya desain aktif (kaca pada gaya Cryogenic). */
+@Composable
+private fun Color.styledAlpha(): Color = copy(alpha = alpha * LocalNevStyle.current.cardAlpha)
 
 @Composable
 private fun flatCardElevation() = CardDefaults.cardElevation(
@@ -63,7 +68,7 @@ fun BackgroundCard(
     influencedByBackground: Boolean = true,
     shape: Shape = CardDefaults.shape,
     colors: CardColors = CardDefaults.cardColors(
-        containerColor = cardColor(influencedByBackground),
+        containerColor = cardColor(influencedByBackground).styledAlpha(),
         contentColor = onCardColor()
     ),
     elevation: CardElevation = flatCardElevation(),
@@ -95,9 +100,9 @@ fun BackgroundCard(
     influencedByBackground: Boolean = true,
     shape: Shape = CardDefaults.shape,
     colors: CardColors = CardDefaults.cardColors(
-        containerColor = cardColor(influencedByBackground),
+        containerColor = cardColor(influencedByBackground).styledAlpha(),
         contentColor = onCardColor(),
-        disabledContainerColor = cardColor(influencedByBackground)
+        disabledContainerColor = cardColor(influencedByBackground).styledAlpha()
     ),
     elevation: CardElevation = flatCardElevation(),
     blur: Int = AllSettings.backgroundBlur.state,

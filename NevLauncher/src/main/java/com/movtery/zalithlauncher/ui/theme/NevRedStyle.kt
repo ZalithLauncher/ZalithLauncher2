@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -100,9 +99,9 @@ fun NevPopupContainer(
                     1.dp,
                     Brush.horizontalGradient(listOf(NevRed.Outline, NevRed.OutlineBright))
                 ),
-                shape = RoundedCornerShape(24.dp)
+                shape = nevShape(24.dp)
             )
-            .background(NevRed.PanelBrush, RoundedCornerShape(24.dp))
+            .background(NevRed.PanelBrush, nevShape(24.dp))
             .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         content()
@@ -130,7 +129,7 @@ fun NevIconTile(
     ) {
         Surface(
             onClick = onClick,
-            shape = RoundedCornerShape(14.dp),
+            shape = nevShape(14.dp),
             color = Color.Transparent,
             border = if (danger) BorderStroke(1.dp, NevRed.DangerContent.copy(alpha = 0.6f)) else null
         ) {
@@ -216,7 +215,7 @@ fun NevPillButton(
         NevPillStyle.Gradient -> NevRed.GradientEnd
         else -> contentColor
     }
-    val shape = RoundedCornerShape(50)
+    val shape = nevPillShape()
     Surface(
         onClick = onClick,
         modifier = modifier.semantics { role = Role.Button },
@@ -244,7 +243,7 @@ fun NevPillButton(
             Box(
                 modifier = Modifier
                     .size(34.dp)
-                    .background(circleColor, RoundedCornerShape(50)),
+                    .background(circleColor, nevPillShape()),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -276,7 +275,7 @@ fun NevNumberedTab(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = nevShape(18.dp)
     Surface(
         onClick = onClick,
         modifier = modifier.semantics { role = Role.Tab },
@@ -325,7 +324,7 @@ fun NevTopTab(
     icon: @Composable () -> Unit,
     label: @Composable () -> Unit
 ) {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = nevShape(16.dp)
     Surface(
         onClick = onClick,
         modifier = (if (selected) modifier.nevGlow(shape, 10.dp, 0.9f) else modifier)
@@ -363,7 +362,7 @@ fun NevGradientButton(
     modifier: Modifier = Modifier,
     content: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit
 ) {
-    val shape = RoundedCornerShape(50)
+    val shape = nevPillShape()
     Surface(
         onClick = onClick,
         modifier = modifier
@@ -397,7 +396,7 @@ fun nevTextFieldColors() = androidx.compose.material3.OutlinedTextFieldDefaults.
 /** Border gradasi merah menyala untuk kartu. */
 val NevCardBorder: BorderStroke
     @Composable get() = BorderStroke(
-        1.5.dp,
+        LocalNevStyle.current.cardBorderWidth,
         Brush.linearGradient(
             listOf(
                 NevRed.GradientStart.copy(alpha = 0.85f),
@@ -418,12 +417,14 @@ fun Modifier.nevGlow(
     intensity: Float = 0.6f
 ): Modifier = composed {
     val c = MaterialTheme.colorScheme.primary
+    val style = LocalNevStyle.current
+    val glow = (intensity * style.glowIntensityScale).coerceIn(0f, 1f)
     shadow(
-        elevation = radius,
+        elevation = radius * style.glowRadiusScale,
         shape = shape,
         clip = false,
-        ambientColor = c.copy(alpha = intensity),
-        spotColor = c.copy(alpha = intensity)
+        ambientColor = c.copy(alpha = glow),
+        spotColor = c.copy(alpha = glow)
     )
 }
 
@@ -440,7 +441,7 @@ fun NevPillTab(
     icon: @Composable () -> Unit,
     label: @Composable () -> Unit
 ) {
-    val shape = RoundedCornerShape(50)
+    val shape = nevPillShape()
     Surface(
         onClick = onClick,
         modifier = modifier.semantics { role = Role.Tab },
@@ -462,12 +463,12 @@ fun NevPillTab(
                     .border(
                         1.dp,
                         if (selected) NevRed.OnGradient.copy(alpha = 0.35f) else NevRed.Outline,
-                        RoundedCornerShape(50)
+                        nevPillShape()
                     )
                     .background(
                         if (selected) NevRed.OnGradient.copy(alpha = 0.18f)
                         else NevRed.SurfaceHigh.copy(alpha = 0.6f),
-                        RoundedCornerShape(50)
+                        nevPillShape()
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -505,7 +506,7 @@ fun NevPillBar(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val shape = RoundedCornerShape(50)
+    val shape = nevPillShape()
     Box(
         modifier = modifier
             .border(
@@ -567,7 +568,7 @@ fun NevFilterChip(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(16.dp)
+    val shape = nevShape(16.dp)
     Surface(
         onClick = onClick,
         modifier = modifier.semantics { role = Role.Checkbox },
@@ -611,7 +612,7 @@ fun NevPanelFrame(
     cornerRadius: androidx.compose.ui.unit.Dp = 36.dp,
     content: @Composable () -> Unit
 ) {
-    val shape = RoundedCornerShape(cornerRadius)
+    val shape = nevShape(cornerRadius)
     Box(
         modifier = modifier
             .border(
@@ -641,7 +642,7 @@ fun NevInnerPanel(
     cornerRadius: androidx.compose.ui.unit.Dp = 26.dp,
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit
 ) {
-    val shape = RoundedCornerShape(cornerRadius)
+    val shape = nevShape(cornerRadius)
     Column(
         modifier = modifier
             .border(1.dp, accent.copy(alpha = 0.75f), shape)
@@ -672,7 +673,7 @@ fun NevActionButton(
         onClick = onClick,
         enabled = enabled,
         modifier = modifier.semantics { role = Role.Button },
-        shape = RoundedCornerShape(cornerRadius),
+        shape = nevShape(cornerRadius),
         color = Color.Transparent,
         contentColor = NevRed.OnGradient
     ) {

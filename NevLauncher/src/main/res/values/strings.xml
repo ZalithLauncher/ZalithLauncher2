@@ -149,6 +149,10 @@
     <string name="settings_display_design_theme_summary">Pick the overall look of the launcher.</string>
     <string name="settings_display_theme_nev_lava_desc">Red and orange, bold gaming look.</string>
     <string name="settings_display_theme_cryogenic_desc">Ice blue and cyan, dark futuristic panels.</string>
+    <string name="settings_display_style_title">Design Style</string>
+    <string name="settings_display_style_summary">Changes the shape and feel of panels, tabs and buttons, independent of color.</string>
+    <string name="settings_display_style_nev">Classic (rounded)</string>
+    <string name="settings_display_style_cryogenic">Cryogenic (glass, cut corners)</string>
     <!-- Title of the color picker dialog -->
     <string name="theme_color_picker_title">Color Picker</string>
     <!-- Button in the color picker dialog to edit the color as a hex code -->

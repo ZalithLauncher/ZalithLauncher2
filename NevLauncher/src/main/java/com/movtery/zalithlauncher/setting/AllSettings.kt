@@ -46,6 +46,7 @@ import com.movtery.zalithlauncher.ui.control.mouse.CENTER_HOTSPOT
 import com.movtery.zalithlauncher.ui.control.mouse.CursorHotspot
 import com.movtery.zalithlauncher.ui.control.mouse.LEFT_TOP_HOTSPOT
 import com.movtery.zalithlauncher.ui.theme.ColorThemeType
+import com.movtery.zalithlauncher.ui.theme.DesignStyleType
 
 
 object AllSettings : SettingsRegistry() {
@@ -396,6 +397,14 @@ object AllSettings : SettingsRegistry() {
     val launcherColorTheme = enumSetting(
         "launcherColorTheme",
         ColorThemeType.NEV_LAVA
+    )
+
+    /**
+     * Gaya desain (bentuk sudut, garis tepi, cahaya, transparansi panel), terpisah dari warna
+     */
+    val launcherDesignStyle = enumSetting(
+        "launcherDesignStyle",
+        DesignStyleType.NEV
     )
 
     /**

@@ -51,10 +51,12 @@ import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPosition
+import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.EnumSettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.ListSettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCardColumn
 import com.movtery.zalithlauncher.ui.theme.ColorThemeType
+import com.movtery.zalithlauncher.ui.theme.DesignStyleType
 
 /**
  * Tema desain yang bisa dipilih di tab Tampilan.
@@ -138,6 +140,22 @@ fun DisplaySettingsScreen(
                             }
                         }
                     }
+
+                    EnumSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.launcherDesignStyle,
+                        title = stringResource(R.string.settings_display_style_title),
+                        summary = stringResource(R.string.settings_display_style_summary),
+                        entries = DesignStyleType.entries,
+                        getRadioEnable = { true },
+                        getRadioText = { type ->
+                            when (type) {
+                                DesignStyleType.NEV -> stringResource(R.string.settings_display_style_nev)
+                                DesignStyleType.CRYOGENIC -> stringResource(R.string.settings_display_style_cryogenic)
+                            }
+                        }
+                    )
 
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),

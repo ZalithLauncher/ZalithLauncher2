@@ -91,6 +91,7 @@ import com.movtery.zalithlauncher.game.version.saves.isCompatible
 import com.movtery.zalithlauncher.game.version.saves.parseLevelDatFile
 import com.movtery.zalithlauncher.game.version.saves.unpackSaveZip
 import com.movtery.zalithlauncher.path.PathManager
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
@@ -155,10 +156,6 @@ private class SavesManageViewModel(
     var allSaves by mutableStateOf<List<SaveData>>(emptyList())
         private set
     var filteredSaves by mutableStateOf<List<SaveData>?>(null)
-        private set
-    var sortByEnum by mutableStateOf(SortByEnum.Name)
-        private set
-    var isAscending by mutableStateOf(true)
         private set
 
     var savesState by mutableStateOf<LoadingState>(LoadingState.Loading)
@@ -248,12 +245,13 @@ private class SavesManageViewModel(
     }
 
     fun updateSortBy(sortByEnum: SortByEnum) {
-        this.sortByEnum = sortByEnum
+        MiscSettings.savesSortBy.save(sortByEnum)
         filterSaves()
     }
 
     fun updateSortOrder() {
-        this.isAscending = !this.isAscending
+        val ascending = MiscSettings.savesSortAscending
+        ascending.save(!ascending.state)
         filterSaves()
     }
 
@@ -262,6 +260,8 @@ private class SavesManageViewModel(
     )
 
     private fun filterSaves() {
+        val sortByEnum = MiscSettings.savesSortBy.state
+        val isAscending = MiscSettings.savesSortAscending.state
         filteredSaves = allSaves
             .takeIf { it.isNotEmpty() }
             ?.filterSaves(minecraftVersion, savesFilter)
@@ -391,9 +391,9 @@ fun SavesManagerScreen(
                     savesFilter = viewModel.savesFilter,
                     onSavesFilterChange = { viewModel.updateFilter(it) },
                     supportedSortByEnums = viewModel.supportedSortByEnums,
-                    sortByEnum = viewModel.sortByEnum,
+                    sortByEnum = MiscSettings.savesSortBy.state,
                     onSortByChanged = { viewModel.updateSortBy(it) },
-                    isAscending = viewModel.isAscending,
+                    isAscending = MiscSettings.savesSortAscending.state,
                     onToggleSortOrder = { viewModel.updateSortOrder() },
                     savesDir = savesDir,
                     swapToDownload = swapToDownload,

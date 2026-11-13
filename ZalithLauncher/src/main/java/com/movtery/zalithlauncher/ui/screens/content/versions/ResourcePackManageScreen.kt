@@ -89,6 +89,7 @@ import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
 import com.movtery.zalithlauncher.game.version.resource_pack.ResourcePackInfo
 import com.movtery.zalithlauncher.game.version.resource_pack.parseResourcePack
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.ContentCheckBox
@@ -143,10 +144,6 @@ private class ResourcePackManageViewModel(
     var allPacks by mutableStateOf<List<ResourcePackInfo>>(emptyList())
         private set
     var filteredPacks by mutableStateOf<List<ResourcePackInfo>?>(null)
-        private set
-    var sortByEnum by mutableStateOf(SortByEnum.Name)
-        private set
-    var isAscending by mutableStateOf(true)
         private set
 
     var packState by mutableStateOf<LoadingState>(LoadingState.None)
@@ -230,12 +227,13 @@ private class ResourcePackManageViewModel(
     }
 
     fun updateSortBy(sortByEnum: SortByEnum) {
-        this.sortByEnum = sortByEnum
+        MiscSettings.resourcePackSortBy.save(sortByEnum)
         filterPacks()
     }
 
     fun updateSortOrder() {
-        this.isAscending = !this.isAscending
+        val ascending = MiscSettings.resourcePackSortAscending
+        ascending.save(!ascending.state)
         filterPacks()
     }
 
@@ -244,6 +242,8 @@ private class ResourcePackManageViewModel(
     )
 
     private fun filterPacks() {
+        val sortByEnum = MiscSettings.resourcePackSortBy.state
+        val isAscending = MiscSettings.resourcePackSortAscending.state
         filteredPacks = allPacks
             .takeIf { it.isNotEmpty() }
             ?.filterPacks(packFilter)
@@ -359,9 +359,9 @@ fun ResourcePackManageScreen(
                     packFilter = viewModel.packFilter,
                     changePackFilter = { viewModel.updateFilter(it) },
                     supportedSortByEnums = viewModel.supportedSortByEnums,
-                    sortByEnum = viewModel.sortByEnum,
+                    sortByEnum = MiscSettings.resourcePackSortBy.state,
                     onSortByChanged = { viewModel.updateSortBy(it) },
-                    isAscending = viewModel.isAscending,
+                    isAscending = MiscSettings.resourcePackSortAscending.state,
                     onToggleSortOrder = { viewModel.updateSortOrder() },
                     resourcePackDir = resourcePackDir,
                     onDeleteAll = {

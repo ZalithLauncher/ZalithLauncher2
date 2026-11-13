@@ -49,6 +49,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -125,6 +126,14 @@ fun RendererConfigDialog(
     }
     val session = sessionState.value ?: return
     var showResetDialog by remember { mutableStateOf(false) }
+
+    DisposableEffect(session) {
+        onDispose {
+            if (session.isModified()) {
+                session.save()
+            }
+        }
+    }
 
     Dialog(
         onDismissRequest = onDismissRequest,

@@ -23,7 +23,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 
 /**
- * 配置对话框的编辑会话，管理一个渲染器的全部配置项状态及整体重置；
+ * 配置对话框的编辑会话，管理一个渲染器的全部配置项状态、延迟保存及整体重置；
  * 构建时清理存储中已不在规范内的失效配置项
  */
 class RendererConfigSession(
@@ -46,6 +46,12 @@ class RendererConfigSession(
     }
 
     val hasOverrides: Boolean get() = states.any { it.isOverridden }
+
+    fun isModified(): Boolean = states.any { it.isModified() }
+
+    fun save() {
+        states.forEach { it.save() }
+    }
 
     fun resetAll() {
         localStore.removeRenderer(rendererId)
@@ -70,24 +76,47 @@ class ConfigEntryState(
     var isOverridden by mutableStateOf(false)
         private set
 
+    private var storedValue: ConfigScalar? = null
+    private var storedEnabled: Boolean? = null
+    private var valueModified = false
+    private var pendingEnabled: Boolean? = null
+
     init {
         reload()
     }
 
     fun saveValue(newValue: ConfigScalar) {
-        val coerced = entry.coerce(newValue)
-        localStore.putValue(rendererId, entry.id, coerced)
-        value = coerced
-        updateOverride()
+        value = entry.coerce(newValue)
+        valueModified = true
+        isOverridden = true
     }
 
     fun saveEnabled(newValue: Boolean) {
         if (newValue && entry is OrderedChoiceEntry) {
-            reload()
-            localStore.putValue(rendererId, entry.id, value)
+            if (!valueModified) reload()
+            valueModified = true
         }
-        localStore.putEnabled(rendererId, entry.id, newValue)
         enabled = newValue
+        pendingEnabled = newValue
+        isOverridden = true
+    }
+
+    fun isModified(): Boolean =
+        (valueModified && storedValue != value) ||
+                (pendingEnabled != null && storedEnabled != pendingEnabled)
+
+    fun save() {
+        if (valueModified && storedValue != value) {
+            localStore.putValue(rendererId, entry.id, value)
+            storedValue = value
+        }
+        val newEnabled = pendingEnabled
+        if (newEnabled != null && storedEnabled != newEnabled) {
+            localStore.putEnabled(rendererId, entry.id, newEnabled)
+            storedEnabled = newEnabled
+        }
+        valueModified = false
+        pendingEnabled = null
         updateOverride()
     }
 
@@ -97,14 +126,17 @@ class ConfigEntryState(
     }
 
     fun reload() {
+        storedValue = localStore.getValue(rendererId, entry.id)
+        storedEnabled = localStore.getEnabled(rendererId, entry.id)
         val state = resolveEntry(rendererId, entry, localStore, globalStore, inheritedValues())
         value = state.value
         enabled = state.enabled
+        valueModified = false
+        pendingEnabled = null
         updateOverride()
     }
 
     private fun updateOverride() {
-        isOverridden = localStore.getValue(rendererId, entry.id) != null ||
-                localStore.getEnabled(rendererId, entry.id) != null
+        isOverridden = storedValue != null || storedEnabled != null
     }
 }

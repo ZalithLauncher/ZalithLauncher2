@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.theme
 
 import android.os.Build
+import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
@@ -44,6 +45,7 @@ import com.movtery.zalithlauncher.utils.festival.Festival
 import com.movtery.zalithlauncher.utils.festival.LocalFestivals
 import com.movtery.zalithlauncher.viewmodel.BackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
+import top.yukonga.miuix.kmp.utils.MiuixOverscrollFactory
 
 private val embermireLight = lightColorScheme(
     primary = primaryLight.embermire,
@@ -675,7 +677,8 @@ fun ZalithLauncherTheme(
 
     CompositionLocalProvider(
         LocalBackgroundViewModel provides backgroundViewModel,
-        LocalFestivals provides festivals
+        LocalFestivals provides festivals,
+        LocalOverscrollFactory provides MiuixOverscrollFactory,
     ) {
         MaterialExpressiveTheme(
             colorScheme = currentDisplayScheme,

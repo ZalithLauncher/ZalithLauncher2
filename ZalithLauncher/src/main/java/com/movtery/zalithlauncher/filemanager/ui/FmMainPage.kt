@@ -53,7 +53,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -104,6 +103,7 @@ import com.movtery.zalithlauncher.filemanager.viewmodel.FileManagerUiState
 import com.movtery.zalithlauncher.filemanager.viewmodel.FileManagerViewModel
 import com.movtery.zalithlauncher.filemanager.viewmodel.SearchUiState
 import com.movtery.zalithlauncher.filemanager.viewmodel.applyVisibility
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.utils.file.formatFileSize
 import com.movtery.zalithlauncher.utils.formatDate
@@ -289,7 +289,7 @@ private fun MainContent(
         rawList
     }
 
-    PullToRefreshBox(
+    PullToRefreshLayout(
         modifier = Modifier
             .fillMaxSize()
             .graphicsLayer { alpha = contentAlpha.value },

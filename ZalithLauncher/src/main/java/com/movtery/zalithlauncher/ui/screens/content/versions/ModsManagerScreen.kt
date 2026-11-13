@@ -670,6 +670,29 @@ fun ModsManagerScreen(
 
         val ctx = rememberAnimatedContext(isVisible = isVisible)
 
+        var modsOperation by remember { mutableStateOf<ModsOperation>(ModsOperation.None) }
+        /** 运行任务并刷新模组列表 */
+        fun runProgress(task: () -> Unit) {
+            viewModel.doInScope {
+                withContext(Dispatchers.IO) {
+                    modsOperation = ModsOperation.Progress
+                    task()
+                    modsOperation = ModsOperation.None
+                    viewModel.refresh(context)
+                }
+            }
+        }
+
+        ModsOperation(
+            modsOperation = modsOperation,
+            updateOperation = { modsOperation = it },
+            onDelete = { mod ->
+                runProgress {
+                    FileUtils.deleteQuietly(mod.file)
+                }
+            }
+        )
+
         VersionChunkBackground(
             modifier = Modifier
                 .fillMaxSize()
@@ -677,92 +700,70 @@ fun ModsManagerScreen(
                 .animated(ctx),
             paddingValues = PaddingValues()
         ) {
-            PullToRefreshLayout(
-                modifier = Modifier.fillMaxSize(),
-                isRefreshing = false,
-                enabled = viewModel.modsState !is LoadingState.Loading,
-                onRefresh = { viewModel.refresh(context) }
-            ) {
-                when (viewModel.modsState) {
-                    LoadingState.None -> {
-                        var modsOperation by remember { mutableStateOf<ModsOperation>(ModsOperation.None) }
-                        /** 运行任务并刷新模组列表 */
-                        fun runProgress(task: () -> Unit) {
-                            viewModel.doInScope {
-                                withContext(Dispatchers.IO) {
-                                    modsOperation = ModsOperation.Progress
-                                    task()
-                                    modsOperation = ModsOperation.None
-                                    viewModel.refresh(context)
-                                }
-                            }
+            Column(modifier = Modifier.fillMaxSize()) {
+                ModsActionsHeader(
+                    modifier = Modifier.fillMaxWidth(),
+                    nameFilter = viewModel.nameFilter,
+                    onNameFilterChange = { viewModel.updateFilter(it, context) },
+                    stateFilter = viewModel.stateFilter,
+                    onStateFilterChange = { viewModel.updateStateFilter(it, context) },
+                    allModsCount = viewModel.allMods.size,
+                    enabledModsCount = viewModel.enabledCount.takeIf { it >= 0 },
+                    disabledModsCount = viewModel.disabledCount.takeIf { it >= 0 },
+                    supportedSortByEnums = viewModel.supportedSortByEnums,
+                    sortByEnum = viewModel.sortByEnum,
+                    onSortByChanged = { viewModel.updateSortBy(it, context) },
+                    isAscending = viewModel.isAscending,
+                    onToggleSortOrder = { viewModel.updateSortOrder(context) },
+                    hasModLoader = hasModLoader,
+                    onUpdateMods = {
+                        if (
+                            updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
+                            viewModel.deleteAllOperation == DeleteAllOperation.None
+                        ) {
+                            updaterViewModel.modsUpdateOperation = ModsUpdateOperation.Warning(viewModel.selectedMods)
                         }
-
-                        ModsOperation(
-                            modsOperation = modsOperation,
-                            updateOperation = { modsOperation = it },
-                            onDelete = { mod ->
-                                runProgress {
-                                    FileUtils.deleteQuietly(mod.file)
+                    },
+                    modsDir = modsDir,
+                    onDeleteAll = {
+                        if (
+                            updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
+                            viewModel.deleteAllOperation == DeleteAllOperation.None &&
+                            viewModel.selectedMods.isNotEmpty()
+                        ) {
+                            viewModel.deleteAllOperation = DeleteAllOperation.Warning(
+                                files = viewModel.selectedMods.map { mod ->
+                                    mod.localMod.file
                                 }
-                            }
-                        )
-
-                        Column {
-                            ModsActionsHeader(
-                                modifier = Modifier.fillMaxWidth(),
-                                nameFilter = viewModel.nameFilter,
-                                onNameFilterChange = { viewModel.updateFilter(it, context) },
-                                stateFilter = viewModel.stateFilter,
-                                onStateFilterChange = { viewModel.updateStateFilter(it, context) },
-                                allModsCount = viewModel.allMods.size,
-                                enabledModsCount = viewModel.enabledCount.takeIf { it >= 0 },
-                                disabledModsCount = viewModel.disabledCount.takeIf { it >= 0 },
-                                supportedSortByEnums = viewModel.supportedSortByEnums,
-                                sortByEnum = viewModel.sortByEnum,
-                                onSortByChanged = { viewModel.updateSortBy(it, context) },
-                                isAscending = viewModel.isAscending,
-                                onToggleSortOrder = { viewModel.updateSortOrder(context) },
-                                hasModLoader = hasModLoader,
-                                onUpdateMods = {
-                                    if (
-                                        updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
-                                        viewModel.deleteAllOperation == DeleteAllOperation.None
-                                    ) {
-                                        updaterViewModel.modsUpdateOperation = ModsUpdateOperation.Warning(viewModel.selectedMods)
-                                    }
-                                },
-                                modsDir = modsDir,
-                                onDeleteAll = {
-                                    if (
-                                        updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
-                                        viewModel.deleteAllOperation == DeleteAllOperation.None &&
-                                        viewModel.selectedMods.isNotEmpty()
-                                    ) {
-                                        viewModel.deleteAllOperation = DeleteAllOperation.Warning(
-                                            files = viewModel.selectedMods.map { mod ->
-                                                mod.localMod.file
-                                            }
-                                        )
-                                    }
-                                },
-                                isModsSelected = viewModel.selectedMods.isNotEmpty(),
-                                canUpdate = viewModel.canUpdate,
-                                onSelectAll = {
-                                    viewModel.selectAllMods()
-                                },
-                                onClearModsSelected = {
-                                    viewModel.clearSelected()
-                                },
-                                swapToDownload = swapToDownload,
-                                refresh = { viewModel.refresh(context) },
-                                submitError = submitError
                             )
+                        }
+                    },
+                    isModsSelected = viewModel.selectedMods.isNotEmpty(),
+                    canUpdate = viewModel.canUpdate,
+                    onSelectAll = {
+                        viewModel.selectAllMods()
+                    },
+                    onClearModsSelected = {
+                        viewModel.clearSelected()
+                    },
+                    swapToDownload = swapToDownload,
+                    refresh = { viewModel.refresh(context) },
+                    submitError = submitError,
+                    enabled = viewModel.modsState is LoadingState.None,
+                )
 
+                PullToRefreshLayout(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    isRefreshing = false,
+                    enabled = viewModel.modsState !is LoadingState.Loading,
+                    onRefresh = { viewModel.refresh(context) }
+                ) {
+                    when (viewModel.modsState) {
+                        LoadingState.None -> {
                             ModsList(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
+                                modifier = Modifier.fillMaxSize(),
                                 hasModLoader = hasModLoader,
                                 modsList = viewModel.filteredMods,
                                 selectedMods = viewModel.selectedMods,
@@ -807,13 +808,13 @@ fun ModsManagerScreen(
                                 }
                             )
                         }
-                    }
-                    LoadingState.Loading -> {
-                        Box(
-                            Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            LoadingIndicator()
+                        LoadingState.Loading -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                LoadingIndicator()
+                            }
                         }
                     }
                 }
@@ -849,7 +850,8 @@ private fun ModsActionsHeader(
     refresh: () -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit = {},
     inputFieldColor: Color = itemColor(),
-    inputFieldContentColor: Color = onItemColor()
+    inputFieldContentColor: Color = onItemColor(),
+    enabled: Boolean = true,
 ) {
     CardTitleLayout(modifier = modifier) {
         BoxWithConstraints(
@@ -864,7 +866,8 @@ private fun ModsActionsHeader(
                 Box {
                     var expanded by remember { mutableStateOf(false) }
                     IconButton(
-                        onClick = { expanded = !expanded }
+                        onClick = { expanded = !expanded },
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_filter_alt_outlined),
@@ -894,6 +897,7 @@ private fun ModsActionsHeader(
                                         }
                                     }
                                 },
+                                enabled = enabled,
                                 onClick = {
                                     onStateFilterChange(filter)
                                     expanded = false
@@ -914,7 +918,8 @@ private fun ModsActionsHeader(
                 Box {
                     var expanded by remember { mutableStateOf(false) }
                     IconButton(
-                        onClick = { expanded = !expanded }
+                        onClick = { expanded = !expanded },
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_sort),
@@ -928,7 +933,8 @@ private fun ModsActionsHeader(
                         currentEnum = sortByEnum,
                         onEnumChanged = onSortByChanged,
                         isAscending = isAscending,
-                        onToggleSortOrder = onToggleSortOrder
+                        onToggleSortOrder = onToggleSortOrder,
+                        enabled = enabled,
                     )
                 }
 
@@ -946,7 +952,8 @@ private fun ModsActionsHeader(
                     },
                     color = inputFieldColor,
                     contentColor = inputFieldContentColor,
-                    singleLine = true
+                    singleLine = true,
+                    enabled = enabled,
                 )
 
                 AnimatedVisibility(
@@ -956,7 +963,8 @@ private fun ModsActionsHeader(
                     Row {
                         if (hasModLoader && canUpdate) {
                             IconButton(
-                                onClick = onUpdateMods
+                                onClick = onUpdateMods,
+                                enabled = enabled,
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_update),
@@ -966,7 +974,8 @@ private fun ModsActionsHeader(
                         }
 
                         IconButton(
-                            onClick = onDeleteAll
+                            onClick = onDeleteAll,
+                            enabled = enabled,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_delete_outlined),
@@ -975,7 +984,8 @@ private fun ModsActionsHeader(
                         }
 
                         IconButton(
-                            onClick = onSelectAll
+                            onClick = onSelectAll,
+                            enabled = enabled,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_select_all),
@@ -984,6 +994,7 @@ private fun ModsActionsHeader(
                         }
 
                         IconButton(
+                            enabled = enabled,
                             onClick = {
                                 if (isModsSelected) onClearModsSelected()
                             }
@@ -1035,17 +1046,20 @@ private fun ModsActionsHeader(
                             TaskSystem.submitTask(
                                 taskBuilder(uris)
                             )
-                        }
+                        },
+                        enabled = enabled,
                     )
 
                     IconTextButton(
                         onClick = swapToDownload,
                         painter = painterResource(R.drawable.ic_download_2_filled),
-                        text = stringResource(R.string.generic_download)
+                        text = stringResource(R.string.generic_download),
+                        enabled = enabled,
                     )
 
                     IconButton(
-                        onClick = refresh
+                        onClick = refresh,
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_refresh),

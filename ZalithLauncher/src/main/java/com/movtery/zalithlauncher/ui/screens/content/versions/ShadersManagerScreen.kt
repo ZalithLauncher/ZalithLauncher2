@@ -314,6 +314,33 @@ fun ShadersManagerScreen(
         )
 
         val ctx = rememberAnimatedContext(isVisible = isVisible)
+        val operationScope = rememberCoroutineScope()
+
+        var shaderOperation by remember { mutableStateOf<ShaderOperation>(ShaderOperation.None) }
+        fun runProgress(task: () -> Unit) {
+            operationScope.launch(Dispatchers.IO) {
+                shaderOperation = ShaderOperation.Progress
+                task()
+                shaderOperation = ShaderOperation.None
+                viewModel.refresh()
+            }
+        }
+        ShaderOperation(
+            shaderOperation = shaderOperation,
+            updateOperation = { shaderOperation = it },
+            shadersDir = shadersDir,
+            renameShaderPack = { info, newName ->
+                runProgress {
+                    val file = info.file
+                    file.renameTo(File(shadersDir, "$newName.${file.extension}"))
+                }
+            },
+            deleteShaderPack = { info ->
+                runProgress {
+                    FileUtils.deleteQuietly(info.file)
+                }
+            }
+        )
 
         VersionChunkBackground(
             modifier = Modifier
@@ -322,78 +349,51 @@ fun ShadersManagerScreen(
                 .animated(ctx),
             paddingValues = PaddingValues()
         ) {
-            val operationScope = rememberCoroutineScope()
-
-            PullToRefreshLayout(
-                modifier = Modifier.fillMaxSize(),
-                isRefreshing = false,
-                enabled = viewModel.shadersState !is LoadingState.Loading,
-                onRefresh = viewModel::refresh,
-            ) {
-                when (viewModel.shadersState) {
-                    LoadingState.None -> {
-                        var shaderOperation by remember { mutableStateOf<ShaderOperation>(ShaderOperation.None) }
-                        fun runProgress(task: () -> Unit) {
-                            operationScope.launch(Dispatchers.IO) {
-                                shaderOperation = ShaderOperation.Progress
-                                task()
-                                shaderOperation = ShaderOperation.None
-                                viewModel.refresh()
-                            }
-                        }
-                        ShaderOperation(
-                            shaderOperation = shaderOperation,
-                            updateOperation = { shaderOperation = it },
-                            shadersDir = shadersDir,
-                            renameShaderPack = { info, newName ->
-                                runProgress {
-                                    val file = info.file
-                                    file.renameTo(File(shadersDir, "$newName.${file.extension}"))
+            Column(modifier = Modifier.fillMaxSize()) {
+                ShadersActionsHeader(
+                    modifier = Modifier.fillMaxWidth(),
+                    nameFilter = viewModel.nameFilter,
+                    onNameFilterChange = { viewModel.updateFilter(it) },
+                    supportedSortByEnums = viewModel.supportedSortByEnums,
+                    sortByEnum = viewModel.sortByEnum,
+                    onSortByChanged = { viewModel.updateSortBy(it) },
+                    isAscending = viewModel.isAscending,
+                    onToggleSortOrder = { viewModel.updateSortOrder() },
+                    shadersDir = shadersDir,
+                    onDeleteAll = {
+                        val selected = viewModel.selectedPacks
+                        if (
+                            viewModel.deleteAllOperation == DeleteAllOperation.None &&
+                            selected.isNotEmpty()
+                        ) {
+                            viewModel.deleteAllOperation = DeleteAllOperation.Warning(
+                                files = selected.map { pack ->
+                                    pack.file
                                 }
-                            },
-                            deleteShaderPack = { info ->
-                                runProgress {
-                                    FileUtils.deleteQuietly(info.file)
-                                }
-                            }
-                        )
-
-                        Column {
-                            ShadersActionsHeader(
-                                modifier = Modifier.fillMaxWidth(),
-                                nameFilter = viewModel.nameFilter,
-                                onNameFilterChange = { viewModel.updateFilter(it) },
-                                supportedSortByEnums = viewModel.supportedSortByEnums,
-                                sortByEnum = viewModel.sortByEnum,
-                                onSortByChanged = { viewModel.updateSortBy(it) },
-                                isAscending = viewModel.isAscending,
-                                onToggleSortOrder = { viewModel.updateSortOrder() },
-                                shadersDir = shadersDir,
-                                onDeleteAll = {
-                                    val selected = viewModel.selectedPacks
-                                    if (
-                                        viewModel.deleteAllOperation == DeleteAllOperation.None &&
-                                        selected.isNotEmpty()
-                                    ) {
-                                        viewModel.deleteAllOperation = DeleteAllOperation.Warning(
-                                            files = selected.map { pack ->
-                                                pack.file
-                                            }
-                                        )
-                                    }
-                                },
-                                isFilesSelected = viewModel.selectedPacks.isNotEmpty(),
-                                onSelectAll = { viewModel.selectAllFiles() },
-                                onClearFilesSelected = { viewModel.clearSelected() },
-                                swapToDownload = swapToDownload,
-                                refresh = { viewModel.refresh() },
-                                submitError = submitError
                             )
+                        }
+                    },
+                    isFilesSelected = viewModel.selectedPacks.isNotEmpty(),
+                    onSelectAll = { viewModel.selectAllFiles() },
+                    onClearFilesSelected = { viewModel.clearSelected() },
+                    swapToDownload = swapToDownload,
+                    refresh = { viewModel.refresh() },
+                    submitError = submitError,
+                    enabled = viewModel.shadersState is LoadingState.None,
+                )
 
+                PullToRefreshLayout(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    isRefreshing = false,
+                    enabled = viewModel.shadersState !is LoadingState.Loading,
+                    onRefresh = viewModel::refresh,
+                ) {
+                    when (viewModel.shadersState) {
+                        LoadingState.None -> {
                             ShadersList(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
+                                modifier = Modifier.fillMaxSize(),
                                 shadersList = viewModel.filteredShaders,
                                 selectedPacks = viewModel.selectedPacks,
                                 removeFromSelected = { viewModel.selectedPacks.remove(it) },
@@ -401,13 +401,13 @@ fun ShadersManagerScreen(
                                 updateOperation = { shaderOperation = it }
                             )
                         }
-                    }
-                    LoadingState.Loading -> {
-                        Box(
-                            Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            LoadingIndicator()
+                        LoadingState.Loading -> {
+                            Box(
+                                Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                LoadingIndicator()
+                            }
                         }
                     }
                 }
@@ -436,6 +436,7 @@ private fun ShadersActionsHeader(
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
     inputFieldColor: Color = itemColor(),
     inputFieldContentColor: Color = onItemColor(),
+    enabled: Boolean = true,
 ) {
     CardTitleLayout(modifier = modifier) {
         BoxWithConstraints(
@@ -448,7 +449,8 @@ private fun ShadersActionsHeader(
                 Box {
                     var expanded by remember { mutableStateOf(false) }
                     IconButton(
-                        onClick = { expanded = !expanded }
+                        onClick = { expanded = !expanded },
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_sort),
@@ -462,7 +464,8 @@ private fun ShadersActionsHeader(
                         currentEnum = sortByEnum,
                         onEnumChanged = onSortByChanged,
                         isAscending = isAscending,
-                        onToggleSortOrder = onToggleSortOrder
+                        onToggleSortOrder = onToggleSortOrder,
+                        enabled = enabled,
                     )
                 }
 
@@ -480,7 +483,8 @@ private fun ShadersActionsHeader(
                     },
                     color = inputFieldColor,
                     contentColor = inputFieldContentColor,
-                    singleLine = true
+                    singleLine = true,
+                    enabled = enabled,
                 )
 
                 AnimatedVisibility(
@@ -489,7 +493,8 @@ private fun ShadersActionsHeader(
                 ) {
                     Row {
                         IconButton(
-                            onClick = onDeleteAll
+                            onClick = onDeleteAll,
+                            enabled = enabled,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_delete_outlined),
@@ -498,7 +503,8 @@ private fun ShadersActionsHeader(
                         }
 
                         IconButton(
-                            onClick = onSelectAll
+                            onClick = onSelectAll,
+                            enabled = enabled,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_select_all),
@@ -509,7 +515,8 @@ private fun ShadersActionsHeader(
                         IconButton(
                             onClick = {
                                 if (isFilesSelected) onClearFilesSelected()
-                            }
+                            },
+                            enabled = enabled,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_deselect),
@@ -558,17 +565,20 @@ private fun ShadersActionsHeader(
                             TaskSystem.submitTask(
                                 taskBuilder(uris)
                             )
-                        }
+                        },
+                        enabled = enabled,
                     )
 
                     IconTextButton(
                         onClick = swapToDownload,
                         painter = painterResource(R.drawable.ic_download_2_filled),
-                        text = stringResource(R.string.generic_download)
+                        text = stringResource(R.string.generic_download),
+                        enabled = enabled,
                     )
 
                     IconButton(
-                        onClick = refresh
+                        onClick = refresh,
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_refresh),

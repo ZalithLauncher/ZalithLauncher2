@@ -41,16 +41,21 @@ object NativePluginManager: ApkPluginManager() {
     /**
      * 获取所有未禁用的原生库插件
      */
-    fun getCheckedPlugins(): List<NativePlugin> =
-        nativePlugins.filter { it.packageName !in disabledPlugins }
+    fun getCheckedPlugins(): List<NativePlugin> {
+        if (nativePlugins.isEmpty()) return emptyList()
+        val disabled = disabledPlugins.toSet()
+        return nativePlugins.filter { it.packageName !in disabled }
+    }
 
     /**
      * 获取所有未禁用的原生库插件的 native lib dir
      */
     fun getPaths(): List<String> {
+        if (nativePlugins.isEmpty()) return emptyList()
+        val disabled = disabledPlugins.toSet()
         return buildList {
             nativePlugins.forEach { plugin ->
-                if (plugin.packageName in disabledPlugins) return@forEach
+                if (plugin.packageName in disabled) return@forEach
                 add(plugin.path)
             }
         }
@@ -60,9 +65,11 @@ object NativePluginManager: ApkPluginManager() {
      * 获取所有未禁用的原生库插件的 JVM 环境参数
      */
     fun getJVMEnv(): List<String> {
+        if (nativePlugins.isEmpty()) return emptyList()
+        val disabled = disabledPlugins.toSet()
         return buildList {
             nativePlugins.forEach { plugin ->
-                if (plugin.packageName in disabledPlugins) return@forEach
+                if (plugin.packageName in disabled) return@forEach
                 addAll(plugin.envList)
             }
         }

@@ -36,7 +36,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.CURSOR_ENABLED
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
 import com.movtery.zalithlauncher.setting.enums.MouseTouchBlockMode
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadStickCameraListener
@@ -84,12 +84,12 @@ fun SwitchableMouseLayout(
     modifier: Modifier = Modifier,
     screenSize: IntSize,
     cursorMode: CursorMode,
-    controlMode: MouseControlMode = AllSettings.mouseControlMode.state,
-    touchBlockMode: MouseTouchBlockMode = AllSettings.mouseTouchBlockMode.state,
-    enableMouseClick: Boolean = AllSettings.enableMouseClick.state,
-    longPressTimeoutMillis: Long = AllSettings.mouseLongPressDelay.state.toLong(),
-    requestPointerCapture: Boolean = !AllSettings.physicalMouseMode.state,
-    hideMouseInClickMode: Boolean = AllSettings.hideMouse.state,
+    controlMode: MouseControlMode = ControlSettings.mouseControlMode.state,
+    touchBlockMode: MouseTouchBlockMode = ControlSettings.mouseTouchBlockMode.state,
+    enableMouseClick: Boolean = ControlSettings.enableMouseClick.state,
+    longPressTimeoutMillis: Long = ControlSettings.mouseLongPressDelay.state.toLong(),
+    requestPointerCapture: Boolean = !ControlSettings.physicalMouseMode.state,
+    hideMouseInClickMode: Boolean = ControlSettings.hideMouse.state,
     gamepadViewModel: GamepadViewModel? = null,
     onTouch: () -> Unit = {},
     onMouse: () -> Unit = {},
@@ -108,10 +108,10 @@ fun SwitchableMouseLayout(
     onReleasePointer: (PointerId) -> Unit = {},
     enableScrollGesture: Boolean = false,
     onScrollGesture: (Offset) -> Unit = {},
-    mouseSize: Dp = AllSettings.mouseSize.state.dp,
-    cursorSensitivity: Int = AllSettings.cursorSensitivity.state,
-    gamepadCursorSensitivity: Int = AllSettings.gamepadCursorSensitivity.state,
-    gamepadCameraSensitivity: Int = AllSettings.gamepadCameraSensitivity.state
+    mouseSize: Dp = ControlSettings.mouseSize.state.dp,
+    cursorSensitivity: Int = ControlSettings.cursorSensitivity.state,
+    gamepadCursorSensitivity: Int = ControlSettings.gamepadCursorSensitivity.state,
+    gamepadCameraSensitivity: Int = ControlSettings.gamepadCameraSensitivity.state
 ) {
     val screenWidth: Float = screenSize.width.toFloat()
     val screenHeight: Float = screenSize.height.toFloat()

@@ -32,7 +32,9 @@ import com.movtery.zalithlauncher.game.launch.LogName
 import com.movtery.zalithlauncher.game.path.getVersionsHome
 import com.movtery.zalithlauncher.game.support.touch_controller.VibrationHandler
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
+import com.movtery.zalithlauncher.setting.GameSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 import com.movtery.zalithlauncher.setting.unit.getOrMin
 import com.movtery.zalithlauncher.ui.screens.content.elements.QuickPlay
 import com.movtery.zalithlauncher.utils.GSON
@@ -207,18 +209,18 @@ class Version(
 
     private fun String.getValueOrDefault(default: String): String = this.takeIf { it.isNotEmpty() } ?: default
 
-    fun getRenderer(): String = versionConfig.renderer.getValueOrDefault(AllSettings.renderer.getValue())
+    fun getRenderer(): String = versionConfig.renderer.getValueOrDefault(RendererSettings.renderer.getValue())
 
     fun isSfpewPluginLayerEnabled(): Boolean = versionConfig.isSfpewPluginLayerEnabled()
 
     fun isSfpewRelaxedContextEnabled(): Boolean = versionConfig.isSfpewRelaxedContextEnabled()
 
-    fun getDriver(): String = versionConfig.driver.getValueOrDefault(AllSettings.vulkanDriver.getValue())
+    fun getDriver(): String = versionConfig.driver.getValueOrDefault(RendererSettings.vulkanDriver.getValue())
 
-    fun getGraphicsApi(): GraphicsApi = versionConfig.graphicsApi ?: AllSettings.graphicsApi.getValue()
+    fun getGraphicsApi(): GraphicsApi = versionConfig.graphicsApi ?: RendererSettings.graphicsApi.getValue()
 
     fun getControlPath(): File? = versionConfig.control
-        .getValueOrDefault(AllSettings.controlLayout.getValue())
+        .getValueOrDefault(ControlSettings.controlLayout.getValue())
         .takeIf { it.isNotEmpty() }
         ?.let { fileName -> File(PathManager.DIR_CONTROL_LAYOUTS, fileName) }
 
@@ -228,14 +230,14 @@ class Version(
 
     fun getGameArgs(): String = versionConfig.gameArgs
 
-    fun getCustomInfo(): String = versionConfig.customInfo.getValueOrDefault(AllSettings.versionCustomInfo.getValue())
+    fun getCustomInfo(): String = versionConfig.customInfo.getValueOrDefault(GameSettings.versionCustomInfo.getValue())
         .replace("[zl_version]", BuildConfig.VERSION_NAME)
 
     fun getServerIp(): String? = versionConfig.serverIp.takeIf { it.isNotEmptyOrBlank() }
 
     fun getRamAllocation(context: Context = GlobalContext): Int = versionConfig.ramAllocation.takeIf { it >= 256 }?.let {
         min(it, getMaxMemoryForSettings(context))
-    } ?: AllSettings.ramAllocation.getOrMin()
+    } ?: GameSettings.ramAllocation.getOrMin()
 
     fun getTouchVibrateDuration(): Int? = versionConfig.touchVibrateDuration.takeIf { it >= 80 }
 

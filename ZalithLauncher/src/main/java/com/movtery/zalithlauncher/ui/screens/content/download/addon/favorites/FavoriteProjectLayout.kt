@@ -53,7 +53,7 @@ import androidx.compose.ui.unit.sp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.download.addon.favorites.FavoriteEntry
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformFilterCode
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.AddonIcon
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.ClassesIdentifier
@@ -80,7 +80,7 @@ fun FavoriteProjectLayout(
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
-    blur: Int = AllSettings.backgroundBlur.state
+    blur: Int = LauncherSettings.backgroundBlur.state
 ) {
     val context = LocalContext.current
     val project = entry.project

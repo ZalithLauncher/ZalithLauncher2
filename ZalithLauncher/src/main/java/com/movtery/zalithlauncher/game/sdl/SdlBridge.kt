@@ -26,7 +26,7 @@ import android.view.Surface
 import android.view.ViewGroup
 import androidx.annotation.Keep
 import androidx.annotation.MainThread
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.ui.control.gamepad.isGamepadDevice
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -171,7 +171,7 @@ object SdlBridge {
      * SDL 请求唤起输入法时，启动器侧是否响应
      */
     @JvmStatic
-    fun getSdlImeAutoShowEnabled(): Boolean = AllSettings.sdlAutoShowIme.state
+    fun getSdlImeAutoShowEnabled(): Boolean = ControlSettings.sdlAutoShowIme.state
 
     @JvmStatic
     @MainThread

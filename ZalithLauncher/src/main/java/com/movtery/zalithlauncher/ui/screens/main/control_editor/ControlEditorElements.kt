@@ -67,7 +67,7 @@ import com.movtery.layer_controller.utils.snap.SnapMode
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.CURSOR_ENABLED
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameUiSettings
 import com.movtery.zalithlauncher.ui.components.DualMenuSubscreen
 import com.movtery.zalithlauncher.ui.components.FloatingBall
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -518,8 +518,8 @@ private fun EditorMenuContent(
             MenuSwitchButton(
                 modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_widget_snap),
-                switch = AllSettings.editorEnableWidgetSnap.state,
-                onSwitch = { AllSettings.editorEnableWidgetSnap.save(it) },
+                switch = GameUiSettings.editorEnableWidgetSnap.state,
+                onSwitch = { GameUiSettings.editorEnableWidgetSnap.save(it) },
                 color = color,
                 contentColor = contentColor,
             )
@@ -530,8 +530,8 @@ private fun EditorMenuContent(
             MenuSwitchButton(
                 modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_widget_snap_all_layers),
-                switch = AllSettings.editorSnapInAllLayers.state,
-                onSwitch = { AllSettings.editorSnapInAllLayers.save(it) },
+                switch = GameUiSettings.editorSnapInAllLayers.state,
+                onSwitch = { GameUiSettings.editorSnapInAllLayers.save(it) },
                 color = color,
                 contentColor = contentColor,
             )
@@ -543,8 +543,8 @@ private fun EditorMenuContent(
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(R.string.control_editor_menu_widget_snap_mode),
                 items = SnapMode.entries,
-                currentItem = AllSettings.editorWidgetSnapMode.state,
-                onItemChange = { AllSettings.editorWidgetSnapMode.save(it) },
+                currentItem = GameUiSettings.editorWidgetSnapMode.state,
+                onItemChange = { GameUiSettings.editorWidgetSnapMode.save(it) },
                 getItemText = { mode ->
                     val textRes = when (mode) {
                         SnapMode.FullScreen -> R.string.control_editor_menu_widget_snap_mode_fullscreen

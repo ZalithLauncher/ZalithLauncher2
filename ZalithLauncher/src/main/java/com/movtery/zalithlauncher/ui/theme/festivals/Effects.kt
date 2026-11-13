@@ -40,7 +40,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.utils.festival.Festival
 
@@ -49,7 +49,7 @@ fun FestivalEffects(
     festivals: List<Festival>,
     modifier: Modifier = Modifier,
 ) {
-    val enableEffects = AllSettings.launcherFestivalEffects.state
+    val enableEffects = LauncherSettings.launcherFestivalEffects.state
     val effectTypes = remember(festivals) { FestivalEffectType.of(festivals) }
     if (!enableEffects || effectTypes.isEmpty()) return
 

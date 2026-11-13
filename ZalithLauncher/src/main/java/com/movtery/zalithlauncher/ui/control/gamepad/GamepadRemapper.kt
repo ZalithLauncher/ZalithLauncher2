@@ -23,7 +23,7 @@ import android.util.SparseArray
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import kotlinx.parcelize.IgnoredOnParcel
@@ -172,7 +172,7 @@ data class GamepadRemapper(
     private fun getDeadzone(event: MotionEvent, axis: Int): Float {
         return try {
             val range = event.device?.getMotionRange(axis, InputDevice.SOURCE_JOYSTICK)
-            val deadzoneScale = AllSettings.gamepadDeadZoneScale.state / 100f
+            val deadzoneScale = ControlSettings.gamepadDeadZoneScale.state / 100f
             val deadzone = (range?.flat ?: 0f) * deadzoneScale
             max(deadzone, 0.1f * deadzoneScale)
         } catch (e: Exception) {

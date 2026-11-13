@@ -58,7 +58,7 @@ import com.movtery.zalithlauncher.path.URL_CLOUD_DRIVE_DRIVER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_CLOUD_RENDERER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_GITHUB_DRIVER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_GITHUB_RENDERER_PLUGINS
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.ui.base.BaseScreen
@@ -110,7 +110,7 @@ fun RendererSettingsScreen(
                         .fillMaxWidth()
                         .animated(ctx)
                 ) {
-                    val currentRendererId = AllSettings.renderer.state
+                    val currentRendererId = RendererSettings.renderer.state
                     val currentRenderer = remember(currentRendererId) {
                         Renderers.getRenderers()
                             .find { it.getUniqueIdentifier() == currentRendererId }
@@ -124,7 +124,7 @@ fun RendererSettingsScreen(
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
-                        unit = AllSettings.renderer,
+                        unit = RendererSettings.renderer,
                         items = Renderers.getRenderers(),
                         title = stringResource(R.string.settings_renderer_global_renderer_title),
                         summary = stringResource(R.string.settings_renderer_global_renderer_summary),
@@ -175,7 +175,7 @@ fun RendererSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.sfpewPluginLayer,
+                        unit = RendererSettings.sfpewPluginLayer,
                         enabled = currentRenderer is Plugin,
                         title = stringResource(R.string.settings_renderer_sfpew_plugin_layer_title),
                         summary = stringResource(R.string.settings_renderer_sfpew_plugin_layer_summary)
@@ -184,11 +184,11 @@ fun RendererSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.sfpewRelaxedContext,
+                        unit = RendererSettings.sfpewRelaxedContext,
                         enabled = currentRenderer?.let { renderer ->
                             renderer.supportsSfpewByDefault() ||
                             // 如果是插件，需要看是否给插件启用了这个玩意
-                            (renderer is Plugin && AllSettings.sfpewPluginLayer.state)
+                            (renderer is Plugin && RendererSettings.sfpewPluginLayer.state)
                         } == true,
                         title = stringResource(R.string.renderer_config_sfpew_relaxed_context_title),
                         summary = stringResource(R.string.renderer_config_sfpew_relaxed_context_desc)
@@ -197,7 +197,7 @@ fun RendererSettingsScreen(
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.vulkanDriver,
+                        unit = RendererSettings.vulkanDriver,
                         items = DriverPluginManager.getDriverList(),
                         title = stringResource(R.string.settings_renderer_global_vulkan_driver_title),
                         getItemText = { it.name },
@@ -230,7 +230,7 @@ fun RendererSettingsScreen(
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.graphicsApi,
+                        unit = RendererSettings.graphicsApi,
                         items = GraphicsApi.entries,
                         title = stringResource(R.string.settings_game_graphics_api_title),
                         summary = stringResource(R.string.settings_game_graphics_api_summary),
@@ -257,11 +257,11 @@ fun RendererSettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         // 分辨率规则
-                        val resolutionRule = AllSettings.resolutionRule.state
+                        val resolutionRule = RendererSettings.resolutionRule.state
                         ListSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Top,
-                            unit = AllSettings.resolutionRule,
+                            unit = RendererSettings.resolutionRule,
                             items = ResolutionRule.entries,
                             title = stringResource(R.string.settings_renderer_resolution_rule_title),
                             summary = stringResource(R.string.settings_renderer_resolution_rule_summary),
@@ -287,10 +287,10 @@ fun RendererSettingsScreen(
                                     .fillMaxWidth()
                                     .padding(top = 2.dp),
                                 position = CardPosition.Middle,
-                                unit = AllSettings.resolutionRatio,
+                                unit = RendererSettings.resolutionRatio,
                                 title = stringResource(R.string.settings_renderer_resolution_scale_title),
                                 summary = stringResource(R.string.settings_renderer_resolution_scale_summary),
-                                valueRange = AllSettings.resolutionRatio.floatRange,
+                                valueRange = RendererSettings.resolutionRatio.floatRange,
                                 suffix = "%",
                                 fineTuningControl = true
                             )
@@ -316,7 +316,7 @@ fun RendererSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.gameFullScreen,
+                        unit = RendererSettings.gameFullScreen,
                         title = stringResource(R.string.settings_renderer_full_screen_title),
                         summary = stringResource(R.string.settings_renderer_full_screen_summary)
                     )
@@ -332,7 +332,7 @@ fun RendererSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
-                        unit = AllSettings.sustainedPerformance,
+                        unit = RendererSettings.sustainedPerformance,
                         title = stringResource(R.string.settings_renderer_sustained_performance_title),
                         summary = stringResource(R.string.settings_renderer_sustained_performance_summary)
                     )
@@ -340,7 +340,7 @@ fun RendererSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.requestMaxRefreshRate,
+                        unit = RendererSettings.requestMaxRefreshRate,
                         title = stringResource(R.string.settings_renderer_max_refresh_rate_title),
                         summary = stringResource(R.string.settings_renderer_max_refresh_rate_summary)
                     )
@@ -351,7 +351,7 @@ fun RendererSettingsScreen(
                         SwitchSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Middle,
-                            unit = AllSettings.zinkPreferSystemDriver,
+                            unit = RendererSettings.zinkPreferSystemDriver,
                             title = stringResource(R.string.settings_renderer_vulkan_driver_system_title),
                             summary = stringResource(R.string.settings_renderer_vulkan_driver_system_summary),
                             onCheckedChange = { checked ->
@@ -364,11 +364,11 @@ fun RendererSettingsScreen(
                                 title = stringResource(R.string.generic_warning),
                                 text = stringResource(R.string.settings_renderer_zink_driver_adreno),
                                 onConfirm = {
-                                    AllSettings.zinkPreferSystemDriver.save(true)
+                                    RendererSettings.zinkPreferSystemDriver.save(true)
                                     adrenoGPUAlert = false
                                 },
                                 onDismiss = {
-                                    AllSettings.zinkPreferSystemDriver.save(false)
+                                    RendererSettings.zinkPreferSystemDriver.save(false)
                                     adrenoGPUAlert = false
                                 }
                             )
@@ -378,7 +378,7 @@ fun RendererSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.vsyncInZink,
+                        unit = RendererSettings.vsyncInZink,
                         title = stringResource(R.string.settings_renderer_vsync_in_zink_title),
                         summary = stringResource(R.string.settings_renderer_vsync_in_zink_summary)
                     )
@@ -386,7 +386,7 @@ fun RendererSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.dumpShaders,
+                        unit = RendererSettings.dumpShaders,
                         title = stringResource(R.string.settings_renderer_shader_dump_title),
                         summary = stringResource(R.string.settings_renderer_shader_dump_summary)
                     )
@@ -470,17 +470,17 @@ private fun CustomResolutionSettingsCard(
             ) {
                 IntInputField(
                     modifier = Modifier.weight(1f),
-                    value = AllSettings.customResolutionWidth.state,
+                    value = RendererSettings.customResolutionWidth.state,
                     permitted = customResolutionRange(screenSize.width),
                     label = stringResource(R.string.settings_renderer_resolution_custom_width),
-                    onValueChange = { AllSettings.customResolutionWidth.save(it) }
+                    onValueChange = { RendererSettings.customResolutionWidth.save(it) }
                 )
                 IntInputField(
                     modifier = Modifier.weight(1f),
-                    value = AllSettings.customResolutionHeight.state,
+                    value = RendererSettings.customResolutionHeight.state,
                     permitted = customResolutionRange(screenSize.height),
                     label = stringResource(R.string.settings_renderer_resolution_custom_height),
-                    onValueChange = { AllSettings.customResolutionHeight.save(it) }
+                    onValueChange = { RendererSettings.customResolutionHeight.save(it) }
                 )
             }
         }

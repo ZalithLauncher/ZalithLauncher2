@@ -28,7 +28,7 @@ private const val LWJGL_LIB_NAME_ARG = "-Dorg.lwjgl.opengl.libname="
 
 /**
  * 初始化处理所有设置项
- * @param reloadAll 是否重新加载全部设置项
+ * @param reloadAll 是否仅刷新已物化设置项，而不执行一次性初始化
  */
 fun loadAllSettings(context: Context, reloadAll: Boolean = false) {
     if (reloadAll) {
@@ -38,6 +38,7 @@ fun loadAllSettings(context: Context, reloadAll: Boolean = false) {
         LauncherSettings.reloadAll()
         GameUiSettings.reloadAll()
         MiscSettings.reloadAll()
+        return
     }
 
     if (GameSettings.ramAllocation.getValue() == null) {

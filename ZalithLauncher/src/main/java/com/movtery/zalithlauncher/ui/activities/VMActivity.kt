@@ -117,7 +117,10 @@ import com.movtery.zalithlauncher.game.plugin.PluginLoader
 import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.version.installed.Version
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
+import com.movtery.zalithlauncher.setting.GameUiSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import com.movtery.zalithlauncher.terracotta.TerracottaVPNService
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
@@ -229,9 +232,9 @@ class VMViewModel : ViewModel() {
                     config = config,
                     onExit = { code, isSignal ->
                         if (code == 0) {
-                            val finishedCount = AllSettings.finishedGame.getValue()
+                            val finishedCount = MiscSettings.finishedGame.getValue()
                             if (finishedCount < Int.MAX_VALUE)  {
-                                AllSettings.finishedGame.save(finishedCount + 1)
+                                MiscSettings.finishedGame.save(finishedCount + 1)
                             }
                         }
                         exitListener(code, isSignal)
@@ -389,7 +392,7 @@ class VMViewModel : ViewModel() {
 }
 
 class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
-    override fun isIgnoreNotch(): Boolean = AllSettings.gameFullScreen.getValue()
+    override fun isIgnoreNotch(): Boolean = RendererSettings.gameFullScreen.getValue()
 
     private val errorViewModel: ErrorViewModel by viewModels()
 
@@ -483,7 +486,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
 
         window?.apply {
             setBackgroundDrawable(NativeColor.BLACK.toDrawable())
-            if (AllSettings.sustainedPerformance.getValue()) {
+            if (RendererSettings.sustainedPerformance.getValue()) {
                 setSustainedPerformanceMode(true)
             }
             addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) // 防止系统息屏
@@ -548,7 +551,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         })
 
         //关闭菜单之后，每次启动游戏都提醒，防止部分人误触了不知道怎么解决 >:(
-        if (!AllSettings.showMenuBall.getValue()) {
+        if (!GameUiSettings.showMenuBall.getValue()) {
             Toast.makeText(
                 this@VMActivity,
                 getString(R.string.game_menu_option_show_menu_hided),
@@ -558,9 +561,9 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
 
         setContent {
             ZalithLauncherTheme {
-                ObserveFullScreenSetting(AllSettings.gameFullScreen.state)
+                ObserveFullScreenSetting(RendererSettings.gameFullScreen.state)
                 //游戏内菜单切换“请求最高刷新率”后自动重应用策略
-                LaunchedEffect(AllSettings.requestMaxRefreshRate.state) {
+                LaunchedEffect(RendererSettings.requestMaxRefreshRate.state) {
                     applyMaxRefreshRatePolicy()
                 }
                 Screen {
@@ -741,7 +744,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
 
         val isPressed = event.action == KeyEvent.ACTION_DOWN
 
-        val code = AllSettings.physicalKeyImeCode.state
+        val code = ControlSettings.physicalKeyImeCode.state
         if (isPressed && code != null && event.keyCode == code) {
             //用户按下了绑定呼出输入法的按键
             //开启或关闭输入法
@@ -840,7 +843,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
      */
     fun applyMaxRefreshRatePolicy() {
         val display = currentDisplay() ?: return
-        if (!AllSettings.requestMaxRefreshRate.getValue()) {
+        if (!RendererSettings.requestMaxRefreshRate.getValue()) {
             requestedRefreshRate = 0f
             setPreferredDisplayModeId(0)
             clearSurfaceFrameRate()
@@ -981,7 +984,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
 
             //游戏模式下使用自定义分辨率时，游戏画面等比缩放居中显示（黑边）
             val letterboxed = withHandler { type } == HandlerType.GAME &&
-                    AllSettings.resolutionRule.state == ResolutionRule.CUSTOM
+                    RendererSettings.resolutionRule.state == ResolutionRule.CUSTOM
             val renderSize = rememberGameRenderSize(screenSize)
             val displaySize = if (letterboxed) computeGameDisplayLayout(screenSize, renderSize).displaySize else screenSize
 
@@ -1090,18 +1093,18 @@ private fun InputMagnifierContent(
                                 )
                                 Checkbox(
                                     modifier = Modifier.focusProperties { canFocus = false },
-                                    checked = AllSettings.imeMagnifierAutoShow.state,
+                                    checked = ControlSettings.imeMagnifierAutoShow.state,
                                     onCheckedChange = {
-                                        AllSettings.imeMagnifierAutoShow.save(
-                                            !AllSettings.imeMagnifierAutoShow.state
+                                        ControlSettings.imeMagnifierAutoShow.save(
+                                            !ControlSettings.imeMagnifierAutoShow.state
                                         )
                                     }
                                 )
                             }
                         },
                         onClick = {
-                            AllSettings.imeMagnifierAutoShow.save(
-                                !AllSettings.imeMagnifierAutoShow.state
+                            ControlSettings.imeMagnifierAutoShow.save(
+                                !ControlSettings.imeMagnifierAutoShow.state
                             )
                         }
                     )

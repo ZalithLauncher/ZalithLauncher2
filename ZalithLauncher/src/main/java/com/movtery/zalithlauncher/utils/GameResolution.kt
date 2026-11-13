@@ -24,7 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 import com.movtery.zalithlauncher.setting.enums.ResolutionRule
 import kotlin.math.roundToInt
 
@@ -102,10 +102,10 @@ fun computeGameRenderSize(
  */
 fun computeGameRenderSize(screenSize: IntSize): IntSize = computeGameRenderSize(
     screenSize = screenSize,
-    rule = AllSettings.resolutionRule.getValue(),
-    percentage = AllSettings.resolutionRatio.getValue(),
-    customWidth = AllSettings.customResolutionWidth.getValue(),
-    customHeight = AllSettings.customResolutionHeight.getValue()
+    rule = RendererSettings.resolutionRule.state,
+    percentage = RendererSettings.resolutionRatio.state,
+    customWidth = RendererSettings.customResolutionWidth.state,
+    customHeight = RendererSettings.customResolutionHeight.state,
 )
 
 /**
@@ -113,31 +113,54 @@ fun computeGameRenderSize(screenSize: IntSize): IntSize = computeGameRenderSize(
  */
 @Composable
 fun rememberGameRenderSize(screenSize: IntSize): IntSize {
-    val rule = AllSettings.resolutionRule.state
-    val percentage = AllSettings.resolutionRatio.state
-    val customWidth = AllSettings.customResolutionWidth.state
-    val customHeight = AllSettings.customResolutionHeight.state
+    val rule = RendererSettings.resolutionRule.state
+    val percentage = RendererSettings.resolutionRatio.state
+    val customWidth = RendererSettings.customResolutionWidth.state
+    val customHeight = RendererSettings.customResolutionHeight.state
     return remember(screenSize, rule, percentage, customWidth, customHeight) {
         computeGameRenderSize(screenSize, rule, percentage, customWidth, customHeight)
     }
 }
 
-/**
- * 依据当前设置计算游戏画面的显示布局
- * 百分比规则铺满全屏
- * 自定义规则等比缩放至屏幕可容纳的最大尺寸并居中
- */
-fun currentGameDisplayLayout(screenSize: IntSize): GameDisplayLayout {
-    val renderSize = computeGameRenderSize(screenSize)
-    return if (AllSettings.resolutionRule.state == ResolutionRule.CUSTOM) {
-        computeGameDisplayLayout(screenSize, renderSize)
-    } else {
-        GameDisplayLayout(
-            renderSize = renderSize,
-            displaySize = screenSize,
-            offset = IntOffset.Zero
-        )
+class GameDisplayLayoutState(initialLayout: GameDisplayLayout) {
+    var current: GameDisplayLayout = initialLayout
+        private set
+
+    fun update(layout: GameDisplayLayout) {
+        current = layout
     }
+}
+
+/**
+ * 在屏幕尺寸不变时保持缓存对象稳定，仅在相关设置变化时重算显示布局
+ */
+@Composable
+fun rememberGameDisplayLayoutState(screenSize: IntSize): GameDisplayLayoutState {
+    val rule = RendererSettings.resolutionRule.state
+    val percentage = RendererSettings.resolutionRatio.state
+    val customWidth = RendererSettings.customResolutionWidth.state
+    val customHeight = RendererSettings.customResolutionHeight.state
+    val layout = remember(screenSize, rule, percentage, customWidth, customHeight) {
+        val renderSize = computeGameRenderSize(
+            screenSize = screenSize,
+            rule = rule,
+            percentage = percentage,
+            customWidth = customWidth,
+            customHeight = customHeight
+        )
+        if (rule == ResolutionRule.CUSTOM) {
+            computeGameDisplayLayout(screenSize, renderSize)
+        } else {
+            GameDisplayLayout(
+                renderSize = renderSize,
+                displaySize = screenSize,
+                offset = IntOffset.Zero
+            )
+        }
+    }
+    return remember(screenSize) {
+        GameDisplayLayoutState(layout)
+    }.apply { update(layout) }
 }
 
 /**
@@ -174,11 +197,11 @@ fun getRealScreenSize(context: Context): IntSize {
  * 自定义分辨率尚未初始化时，以设备屏幕真实宽高填充
  */
 fun ensureCustomResolutionInitialized(context: Context) {
-    if (AllSettings.customResolutionWidth.getValue() > 0 &&
-        AllSettings.customResolutionHeight.getValue() > 0
+    if (RendererSettings.customResolutionWidth.getValue() > 0 &&
+        RendererSettings.customResolutionHeight.getValue() > 0
     ) return
 
     val screenSize = getRealScreenSize(context)
-    AllSettings.customResolutionWidth.save(screenSize.width)
-    AllSettings.customResolutionHeight.save(screenSize.height)
+    RendererSettings.customResolutionWidth.save(screenSize.width)
+    RendererSettings.customResolutionHeight.save(screenSize.height)
 }

@@ -25,9 +25,8 @@ class LongSettingUnit(
     defaultValue: Long,
     val valueRange: LongRange
 ) : AbstractSettingUnit<Long>(key, defaultValue) {
-    override fun getValue(): Long {
+    override fun readValue(): Long {
         return launcherMMKV().getLong(key, defaultValue)
-            .also { state = it }
     }
 
     override fun saveValue(v: Long): Long {
@@ -37,6 +36,6 @@ class LongSettingUnit(
     }
 
     override fun updateState(value: Long) {
-        this.state = value.coerceIn(valueRange)
+        super.updateState(value.coerceIn(valueRange))
     }
 }

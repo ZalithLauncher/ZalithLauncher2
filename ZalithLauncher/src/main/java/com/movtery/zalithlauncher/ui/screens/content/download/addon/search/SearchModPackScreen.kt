@@ -52,7 +52,7 @@ import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthFeatures
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthModpackCategory
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.modrinthModLoaderFilters
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -94,7 +94,7 @@ fun SearchModPackScreen(
     swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
 ) {
     val initialPlatform = remember {
-        AllSettings.searchModpackPlatform.getValue()
+        MiscSettings.searchModpackPlatform.getValue()
     }
 
     val context = LocalContext.current
@@ -135,7 +135,7 @@ fun SearchModPackScreen(
         platformClasses = PlatformClasses.MOD_PACK,
         initialPlatform = initialPlatform,
         onPlatformChange = {
-            AllSettings.searchModpackPlatform.save(it)
+            MiscSettings.searchModpackPlatform.save(it)
         },
         getCategories = { platform ->
             when (platform) {

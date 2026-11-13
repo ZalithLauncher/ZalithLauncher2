@@ -18,7 +18,7 @@
 
 package com.movtery.zalithlauncher.game.addons.mirror
 
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.utils.isChinaMainland
 
 private const val ROOT = "https://bmclapi2.bangbang93.com"
@@ -65,7 +65,7 @@ fun String.mapBMCLMirrorUrls(): List<String> {
     return mapBMCLMirrorUrls(
         mainland = mainland,
         priority = resolveMirrorPriority(
-            source = AllSettings.gameDownloadSource.getValue(),
+            source = LauncherSettings.gameDownloadSource.getValue(),
             mainland = mainland
         )
     )

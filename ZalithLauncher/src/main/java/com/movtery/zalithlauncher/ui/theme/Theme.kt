@@ -38,7 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamicColorScheme
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.ui.theme.components.activeMaskView
 import com.movtery.zalithlauncher.utils.festival.Festival
@@ -610,10 +610,10 @@ fun ZalithLauncherTheme(
     festivals: List<Festival> = emptyList(),
     content: @Composable () -> Unit
 ) {
-    val colorTheme = AllSettings.launcherColorTheme.state
-    val customColorInt = AllSettings.launcherCustomColor.state
+    val colorTheme = LauncherSettings.launcherColorTheme.state
+    val customColorInt = LauncherSettings.launcherCustomColor.state
     val customColor = Color(customColorInt)
-    val customPaletteStyle = AllSettings.launcherCustomPaletteStyle.state
+    val customPaletteStyle = LauncherSettings.launcherCustomPaletteStyle.state
 
     val context = LocalContext.current
 

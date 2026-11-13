@@ -25,7 +25,7 @@ import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeResourcePackCategory
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthFeatures
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthResourcePackCategory
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 
@@ -38,7 +38,7 @@ fun SearchResourcePackScreen(
     swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
 ) {
     val initialPlatform = remember {
-        AllSettings.searchResourcePackPlatform.getValue()
+        MiscSettings.searchResourcePackPlatform.getValue()
     }
     SearchAddonScreen(
         mainScreenKey = mainScreenKey,
@@ -49,7 +49,7 @@ fun SearchResourcePackScreen(
         platformClasses = PlatformClasses.RESOURCE_PACK,
         initialPlatform = initialPlatform,
         onPlatformChange = {
-            AllSettings.searchResourcePackPlatform.save(it)
+            MiscSettings.searchResourcePackPlatform.save(it)
         },
         getCategories = { platform ->
             when (platform) {

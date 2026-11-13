@@ -38,7 +38,7 @@ import com.movtery.layer_controller.event.ClickEvent
 import com.movtery.zalithlauncher.game.keycodes.mapToControlEvent
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.sdl.handleGamepadMotionEvent
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.ui.control.event.LAUNCHER_EVENT_SCROLL_DOWN_SINGLE
 import com.movtery.zalithlauncher.ui.control.event.LAUNCHER_EVENT_SCROLL_UP_SINGLE
@@ -109,7 +109,7 @@ fun SimpleGamepadCapture(
 
     DisposableEffect(view, gamepadViewModel) {
         val motionListener = View.OnGenericMotionListener { motionView, event ->
-            if (event.isGamepadEvent() && AllSettings.gamepadControl.state && gamepadViewModel.checkModePrompt()) {
+            if (event.isGamepadEvent() && ControlSettings.gamepadControl.state && gamepadViewModel.checkModePrompt()) {
                 //模式选择询问优先级最高
                 true
             } else if (isBinding()) {
@@ -118,7 +118,7 @@ fun SimpleGamepadCapture(
                 )
                 true
             } else if (event.isGamepadEvent() && event.action == MotionEvent.ACTION_MOVE) {
-                if (AllSettings.gamepadControl.state && AllSettings.gamepadInputMode.state == GamepadInputMode.SdlDirect) {
+                if (ControlSettings.gamepadControl.state && ControlSettings.gamepadInputMode.state == GamepadInputMode.SdlDirect) {
                     if (SdlBridge.sdlEnabled) {
                         gamepadViewModel.notifyActivity()
                         handleGamepadMotionEvent(event)
@@ -312,7 +312,7 @@ fun GamepadStickCameraListener(
     onOffsetEvent: (Offset) -> Unit
 ) {
     val currentIsGrabbing by rememberUpdatedState(isGrabbing)
-    val joystickControlMode by rememberUpdatedState(AllSettings.joystickControlMode.state)
+    val joystickControlMode by rememberUpdatedState(ControlSettings.joystickControlMode.state)
     val onOffsetEvent1 by rememberUpdatedState(onOffsetEvent)
 
     GamepadEventListener(
@@ -347,7 +347,7 @@ fun GamepadStickMovementListener(
     onKeyEvent: (event: ClickEvent, pressed: Boolean) -> Unit
 ) {
     val currentIsGrabbing by rememberUpdatedState(isGrabbing)
-    val joystickControlMode by rememberUpdatedState(AllSettings.joystickControlMode.state)
+    val joystickControlMode by rememberUpdatedState(ControlSettings.joystickControlMode.state)
     val currentOnKeyEvent by rememberUpdatedState(onKeyEvent)
 
     //缓存已按下的事件，目的是当游戏进入菜单后，能够清除状态

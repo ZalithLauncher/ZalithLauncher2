@@ -25,10 +25,9 @@ class IntSettingUnit(
     defaultValue: Int,
     val valueRange: IntRange,
 ) : AbstractSettingUnit<Int>(key, defaultValue) {
-    override fun getValue(): Int {
+    override fun readValue(): Int {
         return launcherMMKV().getInt(key, defaultValue)
             .coerceIn(valueRange)
-            .also { state = it }
     }
 
     override fun saveValue(v: Int): Int {
@@ -38,6 +37,6 @@ class IntSettingUnit(
     }
 
     override fun updateState(value: Int) {
-        this.state = value.coerceIn(valueRange)
+        super.updateState(value.coerceIn(valueRange))
     }
 }

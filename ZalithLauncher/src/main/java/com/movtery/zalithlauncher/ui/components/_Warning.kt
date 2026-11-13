@@ -40,7 +40,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPosition
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.rememberSettingsCardShape
 
@@ -67,7 +67,7 @@ fun WarningCard(
     outerShapeSize: Dp = 12.dp,
     innerShapeSize: Dp = 4.dp,
     influencedByBackground: Boolean = true,
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
     containerColor: Color = influencedByBackgroundColor(
         color = MaterialTheme.colorScheme.secondaryContainer,
         enabled = influencedByBackground

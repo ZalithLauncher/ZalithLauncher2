@@ -74,12 +74,12 @@ import com.movtery.zalithlauncher.launcherName
 import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
 import com.movtery.zalithlauncher.path.GLOBAL_JSON
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.sponsor.LastMonthSponsors
 import com.movtery.zalithlauncher.sponsor.MonthlySponsors
 import com.movtery.zalithlauncher.sponsor.Sponsor
 import com.movtery.zalithlauncher.sponsor.SponsorPlan
 import com.movtery.zalithlauncher.sponsor.SponsorPlanEffect
+import com.movtery.zalithlauncher.sponsor.SponsorPrefs
 import com.movtery.zalithlauncher.sponsor.SponsorUser
 import com.movtery.zalithlauncher.ui.components.SponsorEffectBox
 import com.movtery.zalithlauncher.ui.components.SponsorEffectClock
@@ -223,16 +223,16 @@ class SponsorsViewModel : ViewModel() {
      * 关闭上月赞助者结算报告对话框，并写入已结算月份标记
      */
     fun closeLastMonthDialog(settledMonth: String) {
-        AllSettings.lastSponsorReportMonth.save(settledMonth)
+        SponsorPrefs.lastReportMonth = settledMonth
         _ui.update { SponsorsOperation.None }
     }
 
     private fun checkLastMonthReport(operation: DataOperation) {
         val lastMonth = operation.dataOrNull()?.lastMonth ?: return
-        if (lastMonth.month == AllSettings.lastSponsorReportMonth.getValue()) return
+        if (lastMonth.month == SponsorPrefs.lastReportMonth) return
 
         if (lastMonth.list.isEmpty()) {
-            AllSettings.lastSponsorReportMonth.save(lastMonth.month)
+            SponsorPrefs.lastReportMonth = lastMonth.month
         } else {
             _ui.update { SponsorsOperation.LastMonth }
         }

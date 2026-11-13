@@ -97,7 +97,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.control.ControlData
 import com.movtery.zalithlauncher.game.control.ControlManager
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.ui.activities.startEditorActivity
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
@@ -491,7 +491,7 @@ private fun ControlLayoutList(
                                 .padding(vertical = 6.dp),
                             data = data,
                             locale = locale,
-                            selected = data.file.name == AllSettings.controlLayout.state,
+                            selected = data.file.name == ControlSettings.controlLayout.state,
                             onSelected = { ControlManager.selectControl(data) },
                             onCopy = { onCopy(data) },
                             onDelete = { onDelete(data) }

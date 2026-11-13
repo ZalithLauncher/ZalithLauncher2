@@ -56,7 +56,8 @@ import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.notification.NotificationManager
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.path.URL_SUPPORT
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
@@ -86,6 +87,7 @@ import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.ui.vulkan_checker.VCOperation
 import com.movtery.zalithlauncher.ui.vulkan_checker.VulkanChecker
 import com.movtery.zalithlauncher.upgrade.TooFrequentOperationException
+import com.movtery.zalithlauncher.upgrade.UpgradePrefs
 import com.movtery.zalithlauncher.utils.compareLangTag
 import com.movtery.zalithlauncher.utils.copyText
 import com.movtery.zalithlauncher.utils.festival.getTodayFestivals
@@ -124,7 +126,7 @@ private const val TAG = "MainActivity"
 
 @AndroidEntryPoint
 class MainActivity : BaseAppCompatActivity() {
-    override fun isIgnoreNotch(): Boolean = AllSettings.launcherFullScreen.getValue()
+    override fun isIgnoreNotch(): Boolean = LauncherSettings.launcherFullScreen.getValue()
 
     override fun dispatchTouchEvent(event: MotionEvent): Boolean {
         FestivalTapObserver.observe(event)
@@ -324,8 +326,8 @@ class MainActivity : BaseAppCompatActivity() {
             }
         }
 
-        val finishedGame = AllSettings.finishedGame
-        val showSponsorship = AllSettings.showSponsorship
+        val finishedGame = MiscSettings.finishedGame
+        val showSponsorship = MiscSettings.showSponsorship
 
         val festivals = getTodayFestivals(
             containsChinese = isChinese(this@MainActivity)
@@ -336,7 +338,7 @@ class MainActivity : BaseAppCompatActivity() {
                 backgroundViewModel = backgroundViewModel,
                 festivals = festivals
             ) {
-                ObserveFullScreenSetting(AllSettings.launcherFullScreen.state)
+                ObserveFullScreenSetting(LauncherSettings.launcherFullScreen.state)
 
                 val guides = rememberAppGuides(eventViewModel)
                 GuideHost(
@@ -509,7 +511,7 @@ class MainActivity : BaseAppCompatActivity() {
                     operation = launcherUpgradeViewModel.operation,
                     onChanged = { launcherUpgradeViewModel.operation = it },
                     onIgnoredClick = { ver ->
-                        AllSettings.lastIgnoredVersion.save(ver)
+                        UpgradePrefs.lastIgnoredVersion = ver
                     },
                     onLinkClick = { eventViewModel.sendEvent(EventViewModel.Event.OpenLink(it)) }
                 )

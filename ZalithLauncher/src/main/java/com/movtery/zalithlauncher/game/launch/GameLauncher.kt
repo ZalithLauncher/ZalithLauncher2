@@ -53,7 +53,7 @@ import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
 import com.movtery.zalithlauncher.utils.GSON
 import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.file.child
@@ -141,7 +141,7 @@ class GameLauncher(
 
         CallbackBridge.nativeSetUseInputStackQueue(gameManifest.arguments != null)
 
-        val customArgs = version.getJvmArgs().takeIf { it.isNotBlank() } ?: AllSettings.jvmArgs.getValue()
+        val customArgs = version.getJvmArgs().takeIf { it.isNotBlank() } ?: GameSettings.jvmArgs.getValue()
         val javaRuntime = getRuntime()
 
         printLauncherInfo(
@@ -331,10 +331,10 @@ class GameLauncher(
         val versionRuntime = version.getJavaRuntime().takeIf { it.isNotEmpty() } ?: ""
         if (versionRuntime.isNotEmpty()) return versionRuntime
 
-        val runtime = AllSettings.javaRuntime.getValue()
+        val runtime = GameSettings.javaRuntime.getValue()
         val pickedRuntime = RuntimesManager.loadRuntime(runtime)
 
-        if (AllSettings.autoPickJavaRuntime.getValue()) {
+        if (GameSettings.autoPickJavaRuntime.getValue()) {
             val loaderInfo = version.getVersionInfo()?.primaryLoader
             //开启了自动选择，根据游戏需求的版本做选择
             val targetJavaVersion = when (loaderInfo?.loader) {

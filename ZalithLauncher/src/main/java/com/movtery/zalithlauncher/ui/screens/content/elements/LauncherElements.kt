@@ -83,7 +83,7 @@ import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.hasVulkanBackend
 import com.movtery.zalithlauncher.game.version.installed.utils.isBiggerVer
 import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
@@ -576,9 +576,9 @@ fun Background(
     modifier: Modifier = Modifier,
     allowVideo: Boolean = true
 ) {
-    val blur = AllSettings.backgroundBlur.state
-    val opacity = AllSettings.launcherBackgroundOpacity.state
-    val backgroundMode = AllSettings.backgroundBlurType.state == BackgroundBlur.Background
+    val blur = LauncherSettings.backgroundBlur.state
+    val opacity = LauncherSettings.launcherBackgroundOpacity.state
+    val backgroundMode = LauncherSettings.backgroundBlurType.state == BackgroundBlur.Background
     val backgroundBlurEnabled = backgroundMode && blur > 0 && opacity < 100
     val layerCapture = !backgroundMode && blur > 0 && opacity < 100 && viewModel.isValid
     val density = LocalDensity.current
@@ -606,7 +606,7 @@ fun Background(
                         videoUri = Uri.fromFile(viewModel.backgroundFile),
                         modifier = Modifier.fillMaxSize(),
                         refreshTrigger = viewModel.refreshTrigger,
-                        volume = AllSettings.videoBackgroundVolume.state / 100f
+                        volume = LauncherSettings.videoBackgroundVolume.state / 100f
                     )
                 }
                 viewModel.isImage -> {

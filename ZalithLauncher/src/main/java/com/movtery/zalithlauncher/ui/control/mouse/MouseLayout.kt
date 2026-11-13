@@ -47,7 +47,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CursorShape
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
 import com.movtery.zalithlauncher.utils.device.PhysicalMouseChecker
 import com.movtery.zalithlauncher.utils.file.child
@@ -119,11 +119,11 @@ val notAllowedPointerFile: File = PathManager.DIR_MOUSE_POINTER.child("not_allow
 @Composable
 fun VirtualPointerLayout(
     modifier: Modifier = Modifier,
-    controlMode: MouseControlMode = AllSettings.mouseControlMode.state,
-    enableMouseClick: Boolean = AllSettings.enableMouseClick.state,
-    longPressTimeoutMillis: Long = AllSettings.mouseLongPressDelay.state.toLong(),
-    requestPointerCapture: Boolean = !AllSettings.physicalMouseMode.state,
-    hideMouseInClickMode: Boolean = AllSettings.hideMouse.state,
+    controlMode: MouseControlMode = ControlSettings.mouseControlMode.state,
+    enableMouseClick: Boolean = ControlSettings.enableMouseClick.state,
+    longPressTimeoutMillis: Long = ControlSettings.mouseLongPressDelay.state.toLong(),
+    requestPointerCapture: Boolean = !ControlSettings.physicalMouseMode.state,
+    hideMouseInClickMode: Boolean = ControlSettings.hideMouse.state,
     lastMousePosition: Offset? = null,
     onTap: (Offset) -> Unit = {},
     onLongPress: () -> Unit = {},
@@ -134,8 +134,8 @@ fun VirtualPointerLayout(
     isMoveOnlyPointer: (PointerId) -> Boolean = { false },
     onOccupiedPointer: (PointerId) -> Unit = {},
     onReleasePointer: (PointerId) -> Unit = {},
-    mouseSize: Dp = AllSettings.mouseSize.state.dp,
-    cursorSensitivity: Int = AllSettings.cursorSensitivity.state,
+    mouseSize: Dp = ControlSettings.mouseSize.state.dp,
+    cursorSensitivity: Int = ControlSettings.cursorSensitivity.state,
     requestFocusKey: Any? = null
 ) {
     val speedFactor = cursorSensitivity / 100f
@@ -267,14 +267,14 @@ fun Modifier.mouseFixedPosition(
         cursorShape
     ) {
         when (cursorShape) {
-            CursorShape.Arrow -> AllSettings.arrowMouseHotspot
-            CursorShape.IBeam -> AllSettings.iBeamMouseHotspot
-            CursorShape.Hand -> AllSettings.linkMouseHotspot
-            CursorShape.CrossHair -> AllSettings.crossHairMouseHotspot
-            CursorShape.ResizeNS -> AllSettings.resizeNSMouseHotspot
-            CursorShape.ResizeEW -> AllSettings.resizeEWMouseHotspot
-            CursorShape.ResizeAll -> AllSettings.resizeAllMouseHotspot
-            CursorShape.NotAllowed -> AllSettings.notAllowedMouseHotspot
+            CursorShape.Arrow -> ControlSettings.arrowMouseHotspot
+            CursorShape.IBeam -> ControlSettings.iBeamMouseHotspot
+            CursorShape.Hand -> ControlSettings.linkMouseHotspot
+            CursorShape.CrossHair -> ControlSettings.crossHairMouseHotspot
+            CursorShape.ResizeNS -> ControlSettings.resizeNSMouseHotspot
+            CursorShape.ResizeEW -> ControlSettings.resizeEWMouseHotspot
+            CursorShape.ResizeAll -> ControlSettings.resizeAllMouseHotspot
+            CursorShape.NotAllowed -> ControlSettings.notAllowedMouseHotspot
         }
     }
     val hotspot = hotspotUnit.state
@@ -314,7 +314,7 @@ fun getMouseFile(
 @Composable
 fun MousePointer(
     modifier: Modifier = Modifier,
-    mouseSize: Dp = AllSettings.mouseSize.state.dp,
+    mouseSize: Dp = ControlSettings.mouseSize.state.dp,
     cursorShape: CursorShape = CursorShape.Arrow,
     mouseFile: File?,
     centerIcon: Boolean = false,

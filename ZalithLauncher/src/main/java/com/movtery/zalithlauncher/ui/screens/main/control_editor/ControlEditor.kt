@@ -58,7 +58,7 @@ import com.movtery.layer_controller.data.createAdaptiveButtonSize
 import com.movtery.layer_controller.data.createWidgetWithUUID
 import com.movtery.layer_controller.data.lang.createTranslatable
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameUiSettings
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.ui.components.MenuState
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
@@ -151,9 +151,9 @@ fun BoxWithConstraintsScope.ControlEditor(
                         }
                     )
                 },
-                enableSnap = AllSettings.editorEnableWidgetSnap.state,
-                snapInAllLayers = AllSettings.editorSnapInAllLayers.state,
-                snapMode = AllSettings.editorWidgetSnapMode.state,
+                enableSnap = GameUiSettings.editorEnableWidgetSnap.state,
+                snapInAllLayers = GameUiSettings.editorSnapInAllLayers.state,
+                snapMode = GameUiSettings.editorWidgetSnapMode.state,
                 focusedLayer = viewModel.selectedLayer?.takeIf { viewModel.isLayerFocus },
                 isDark = isLauncherInDarkTheme()
             )

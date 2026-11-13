@@ -35,7 +35,7 @@ import com.google.android.material.color.utilities.DynamicScheme
 import com.google.android.material.color.utilities.Hct
 import com.google.android.material.color.utilities.Variant
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.DarkMode
 
 data class NativeColorScheme(
@@ -79,7 +79,7 @@ data class NativeColorScheme(
  * 判断当前是否为暗色主题
  */
 fun isDarkTheme(context: Context): Boolean {
-    return when (AllSettings.launcherDarkMode.state) {
+    return when (LauncherSettings.launcherDarkMode.state) {
         DarkMode.Enable -> true
         DarkMode.Disable -> false
         DarkMode.FollowSystem -> {
@@ -180,7 +180,7 @@ private fun buildColorScheme(seedColor: Int, darkTheme: Boolean): NativeColorSch
 }
 
 private fun getSeedColor(context: Context, darkTheme: Boolean): Int {
-    return when (AllSettings.launcherColorTheme.state) {
+    return when (LauncherSettings.launcherColorTheme.state) {
         ColorThemeType.DYNAMIC -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -196,8 +196,8 @@ private fun getSeedColor(context: Context, darkTheme: Boolean): Int {
                 getPredefinedSeedColor(ColorThemeType.EMBERMIRE, darkTheme)
             }
         }
-        ColorThemeType.CUSTOM -> AllSettings.launcherCustomColor.state
-        else -> getPredefinedSeedColor(AllSettings.launcherColorTheme.state, darkTheme)
+        ColorThemeType.CUSTOM -> LauncherSettings.launcherCustomColor.state
+        else -> getPredefinedSeedColor(LauncherSettings.launcherColorTheme.state, darkTheme)
     }
 }
 

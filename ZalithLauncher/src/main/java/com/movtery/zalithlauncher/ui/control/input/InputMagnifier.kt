@@ -68,7 +68,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
 import kotlin.math.roundToInt
 
@@ -124,7 +124,7 @@ fun InputMagnifier(
     LaunchedEffect(inputOccludesGame) {
         if (!inputOccludesGame) {
             state.isVisible = false
-        } else if (!state.dismissedForInput && AllSettings.imeMagnifierAutoShow.state) {
+        } else if (!state.dismissedForInput && ControlSettings.imeMagnifierAutoShow.state) {
             state.isVisible = true
         }
     }

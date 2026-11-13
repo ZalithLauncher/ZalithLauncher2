@@ -709,6 +709,7 @@ fun NevLauncherTheme(
                 ColorThemeType.URBAN_ASH -> urbanAshDark
                 ColorThemeType.VERDANT_DAWN -> verdantDawnDark
                 ColorThemeType.NEV_LAVA -> nevLavaDark
+                ColorThemeType.CRYOGENIC -> cryogenicDark
                 ColorThemeType.CUSTOM -> customDark(
                     color = customColor,
                     style = customPaletteStyle
@@ -725,6 +726,7 @@ fun NevLauncherTheme(
                 ColorThemeType.URBAN_ASH -> urbanAshLight
                 ColorThemeType.VERDANT_DAWN -> verdantDawnLight
                 ColorThemeType.NEV_LAVA -> nevLavaLight
+                ColorThemeType.CRYOGENIC -> cryogenicLight
                 ColorThemeType.CUSTOM -> customLight(
                     color = customColor,
                     style = customPaletteStyle

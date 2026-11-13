@@ -120,6 +120,12 @@
     <string name="download_game_addon_not_installable">Tidak dapat dipasang secara otomatis</string>
     <string name="theme_color_verdant_dawn">Hutan Fajar yang Hening</string>
     <string name="theme_color_nev_lava">Nev Lava</string>
+    <string name="theme_color_cryogenic">Cryogenic</string>
+    <string name="settings_tab_display">Tampilan</string>
+    <string name="settings_display_design_theme_title">Tema Desain</string>
+    <string name="settings_display_design_theme_summary">Pilih gaya tampilan launcher secara keseluruhan.</string>
+    <string name="settings_display_theme_nev_lava_desc">Merah dan oranye, nuansa gaming yang tegas.</string>
+    <string name="settings_display_theme_cryogenic_desc">Biru es dan cyan, panel gelap futuristik.</string>
     <string name="download_game_install_title">Menginstal Game</string>
     <string name="download_task_flow_label">ALUR UNDUHAN UTAMA</string>
     <string name="download_game_install_vanilla">Mengunduh Vanila %s</string>

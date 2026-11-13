@@ -41,5 +41,6 @@ enum class ColorThemeType {
     URBAN_ASH,
     VERDANT_DAWN,
     NEV_LAVA,
+    CRYOGENIC,
     CUSTOM
 }

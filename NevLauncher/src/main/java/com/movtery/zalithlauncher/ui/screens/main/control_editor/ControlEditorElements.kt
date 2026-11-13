@@ -68,7 +68,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.CURSOR_ENABLED
 import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.ui.components.DualMenuSubscreen
+import com.movtery.zalithlauncher.ui.components.CenterMenuSubscreen
 import com.movtery.zalithlauncher.ui.components.FloatingBall
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.MenuListLayout
@@ -78,6 +78,18 @@ import com.movtery.zalithlauncher.ui.components.MenuTextButton
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.lazyScrollWithBar
 import com.movtery.zalithlauncher.ui.guide.GuideKeys
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import com.movtery.zalithlauncher.ui.screens.game.elements.BallBackground
+import com.movtery.zalithlauncher.ui.screens.game.elements.BallShape
+import com.movtery.zalithlauncher.ui.theme.NevRed
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
@@ -131,30 +143,43 @@ fun MenuBox(
     opened: Boolean,
     onClick: () -> Unit
 ) {
+    //gaya sama dengan bola menu di dalam game: latar gelap, sudut 16dp, garis tepi aksen
+    val accent = MaterialTheme.colorScheme.primary
+    val borderColor by animateColorAsState(
+        targetValue = if (opened) accent else accent.copy(alpha = 0.45f),
+        label = "editorBallBorder"
+    )
+
     FloatingBall(
         modifier = modifier,
         position = position,
         onPositionChanged = onPositionChanged,
-        onClick = onClick
+        onClick = onClick,
+        color = BallBackground,
+        shape = BallShape
     ) {
         Box(
             modifier = Modifier
-                .padding(all = 2.dp)
-                .size(28.dp),
-            contentAlignment = Alignment.Center
+                .border(width = 1.dp, color = borderColor, shape = BallShape)
+                .padding(horizontal = 8.dp, vertical = 2.dp)
         ) {
-            Crossfade(opened) { state ->
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(
-                        if (state) {
-                            R.drawable.ic_menu_open
-                        } else {
-                            R.drawable.ic_menu
-                        }
-                    ),
-                    contentDescription = null
-                )
+            Box(
+                modifier = Modifier.size(28.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Crossfade(opened) { state ->
+                    Icon(
+                        modifier = Modifier.size(24.dp),
+                        painter = painterResource(
+                            if (state) {
+                                R.drawable.ic_menu_open
+                            } else {
+                                R.drawable.ic_menu
+                            }
+                        ),
+                        contentDescription = null
+                    )
+                }
             }
         }
     }
@@ -189,79 +214,173 @@ fun EditorMenu(
     saveAndExit: () -> Unit,
     onExit: () -> Unit
 ) {
-    DualMenuSubscreen(
+    CenterMenuSubscreen(
         state = state,
         closeScreen = closeScreen,
-        leftMenuTitle = {
+        widthFraction = 0.92f,
+        maxWidth = 960.dp
+    ) {
+        //Header: logo N + judul, sama seperti menu dalam game
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(NevRed.PanelBrush)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Image(
+                modifier = Modifier
+                    .size(30.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(1.dp, NevRed.OutlineBright, RoundedCornerShape(8.dp)),
+                painter = painterResource(R.drawable.img_nev_logo),
+                contentDescription = null,
+                contentScale = ContentScale.Fit
+            )
             Text(
-                modifier = Modifier.padding(all = 8.dp),
-                text = stringResource(R.string.control_editor_menu_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-        },
-        leftMenuContent = {
-            EditorMenuContent(
-                modifier = Modifier.weight(1f),
-                closeScreen = closeScreen,
-                addNewButton = addNewButton,
-                addNewText = addNewText,
-                addNewJoystick = addNewJoystick,
-                openStyleList = openStyleList,
-                openJoystickStyleList = openJoystickStyleList,
-                openStyleCabinet = openStyleCabinet,
-                isPreviewMode = isPreviewMode,
-                onPreviewChanged = onPreviewChanged,
-                previewScenario = previewScenario,
-                onPreviewScenarioChanged = onPreviewScenarioChanged,
-                previewHideLayerWhen = previewHideLayerWhen,
-                onPreviewHideLayerChanged = onPreviewHideLayerChanged,
-                onSave = onSave,
-                saveAndExit = saveAndExit,
-                onExit = onExit
-            )
-        },
-        rightMenuTitle = {
-            Text(
-                modifier = Modifier.padding(all = 8.dp),
-                text = stringResource(R.string.control_editor_layers_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-            //切换控件层聚焦
-            IconButton(
-                modifier = Modifier.align(Alignment.CenterEnd),
-                onClick = {
-                    onLayerFocusChanged(isLayerFocus.not())
-                },
-                enabled = isPreviewMode.not() && selectedLayer != null
-            ) {
-                Crossfade(
-                    targetState = isLayerFocus
-                ) { isFocus ->
-                    Icon(
-                        painter = painterResource(
-                            if (isFocus) {
-                                R.drawable.ic_center_focus_strong_filled
-                            } else {
-                                R.drawable.ic_center_focus_strong_outlined
-                            }
-                        ),
-                        contentDescription = null
-                    )
-                }
-            }
-        },
-        rightMenuContent = {
-            ControlLayerMenu(
-                layers = layers,
-                onReorder = onReorder,
-                selectedLayer = selectedLayer,
-                onLayerSelected = onLayerSelected,
-                createLayer = createLayer,
-                onAttribute = onAttribute,
-                onHideSwitch = onHideSwitch,
-                enabled = isPreviewMode.not()
+                text = "NEV CONTROL EDITOR",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = NevRed.OnPanel,
+                maxLines = 1
             )
         }
+
+        //Dua bagian dalam satu panel: menu editor di kiri, lapisan kontrol di kanan
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            ) {
+                EditorSectionTitle(
+                    iconRes = R.drawable.ic_edit_filled,
+                    text = stringResource(R.string.control_editor_menu_title)
+                )
+                EditorMenuContent(
+                    modifier = Modifier.weight(1f),
+                    closeScreen = closeScreen,
+                    addNewButton = addNewButton,
+                    addNewText = addNewText,
+                    addNewJoystick = addNewJoystick,
+                    openStyleList = openStyleList,
+                    openJoystickStyleList = openJoystickStyleList,
+                    openStyleCabinet = openStyleCabinet,
+                    isPreviewMode = isPreviewMode,
+                    onPreviewChanged = onPreviewChanged,
+                    previewScenario = previewScenario,
+                    onPreviewScenarioChanged = onPreviewScenarioChanged,
+                    previewHideLayerWhen = previewHideLayerWhen,
+                    onPreviewHideLayerChanged = onPreviewHideLayerChanged,
+                    onSave = onSave,
+                    saveAndExit = saveAndExit,
+                    onExit = onExit
+                )
+            }
+
+            //garis pemisah bergradasi antara dua bagian
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(1.dp)
+                    .background(
+                        Brush.verticalGradient(
+                            listOf(Color.Transparent, NevRed.Outline, Color.Transparent)
+                        )
+                    )
+            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+            ) {
+                EditorSectionTitle(
+                    iconRes = R.drawable.ic_dashboard_filled,
+                    text = stringResource(R.string.control_editor_layers_title)
+                ) {
+                    //切换控件层聚焦
+                    IconButton(
+                        onClick = {
+                            onLayerFocusChanged(isLayerFocus.not())
+                        },
+                        enabled = isPreviewMode.not() && selectedLayer != null
+                    ) {
+                        Crossfade(
+                            targetState = isLayerFocus
+                        ) { isFocus ->
+                            Icon(
+                                painter = painterResource(
+                                    if (isFocus) {
+                                        R.drawable.ic_center_focus_strong_filled
+                                    } else {
+                                        R.drawable.ic_center_focus_strong_outlined
+                                    }
+                                ),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                }
+                ControlLayerMenu(
+                    layers = layers,
+                    onReorder = onReorder,
+                    selectedLayer = selectedLayer,
+                    onLayerSelected = onLayerSelected,
+                    createLayer = createLayer,
+                    onAttribute = onAttribute,
+                    onHideSwitch = onHideSwitch,
+                    enabled = isPreviewMode.not()
+                )
+            }
+        }
+    }
+}
+
+/** Judul satu bagian di dalam panel editor: ikon + teks, dan slot opsional di ujung kanan. */
+@Composable
+private fun EditorSectionTitle(
+    iconRes: Int,
+    text: String,
+    trailing: @Composable RowScope.() -> Unit = {}
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(44.dp)
+            .background(NevRed.PanelDeep)
+            .padding(start = 14.dp, end = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            modifier = Modifier.size(18.dp),
+            painter = painterResource(iconRes),
+            contentDescription = null,
+            tint = NevRed.Muted
+        )
+        Text(
+            modifier = Modifier.weight(1f),
+            text = text,
+            style = MaterialTheme.typography.titleSmall,
+            fontWeight = FontWeight.Bold,
+            color = NevRed.OnPanel,
+            maxLines = 1
+        )
+        trailing()
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(1.dp)
+            .background(
+                Brush.horizontalGradient(listOf(Color.Transparent, NevRed.Outline, Color.Transparent))
+            )
     )
 }
 

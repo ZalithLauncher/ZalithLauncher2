@@ -66,8 +66,8 @@ import com.movtery.zalithlauncher.setting.enums.FpsDisplayMode
 import com.movtery.zalithlauncher.ui.components.FloatingBall
 import com.movtery.zalithlauncher.ui.screens.content.elements.MemoryPreview
 
-private val BallBackground = Color(0xCC140808)
-private val BallShape = RoundedCornerShape(16.dp)
+internal val BallBackground = Color(0xCC140808)
+internal val BallShape = RoundedCornerShape(16.dp)
 private val FpsGood = Color(0xFF4CAF50)
 private val FpsOk = Color(0xFFFFB300)
 private val FpsBad = Color(0xFFFF4D4F)

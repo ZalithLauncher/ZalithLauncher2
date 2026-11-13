@@ -23,9 +23,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxColors
 import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
 
 @Composable
 fun ContentCheckBox(
@@ -49,6 +52,11 @@ fun ContentCheckBox(
             interactionSource = interactionSource
         )
 
-        content()
+        val contentColor = LocalContentColor.current
+        CompositionLocalProvider(
+            LocalContentColor provides if (enabled) contentColor else contentColor.copy(alpha = DisabledAlpha)
+        ) {
+            content()
+        }
     }
 }

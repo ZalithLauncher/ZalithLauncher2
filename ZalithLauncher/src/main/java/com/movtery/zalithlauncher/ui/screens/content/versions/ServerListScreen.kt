@@ -63,7 +63,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.nonInteractiveScrollbar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -115,6 +114,7 @@ import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.ImePanContainer
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.ShimmerBox
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
@@ -539,45 +539,36 @@ fun ServerListScreen(
                 .animated(ctx),
             paddingValues = PaddingValues()
         ) {
-            PullToRefreshBox(
-                modifier = Modifier.fillMaxSize(),
-                isRefreshing = false,
-                enabled = viewModel.operation !is ServerListOperation.Loading,
-                onRefresh = viewModel::loadServer,
-            ) {
-                when (viewModel.operation) {
-                    is ServerListOperation.Loading -> {
-                        Box(
-                            Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            LoadingIndicator()
-                        }
-                    }
-                    is ServerListOperation.LoadedData -> {
-                        val servers by viewModel.servers.collectAsStateWithLifecycle()
+            Column (modifier = Modifier.fillMaxSize()) {
+                ServerListHeader(
+                    searchName = viewModel.searchName,
+                    onSearchNameChange = {
+                        viewModel.searchName = it
+                        viewModel.filterServers()
+                    },
+                    onAddServer = {
+                        viewModel.dataOperation = ServerDataOperation.AddServer
+                    },
+                    refreshServers = {
+                        viewModel.loadServer()
+                    },
+                    enabled = viewModel.operation is ServerListOperation.LoadedData,
+                )
 
-                        Column(
-                            modifier = Modifier.fillMaxSize()
-                        ) {
-                            ServerListHeader(
-                                searchName = viewModel.searchName,
-                                onSearchNameChange = {
-                                    viewModel.searchName = it
-                                    viewModel.filterServers()
-                                },
-                                onAddServer = {
-                                    viewModel.dataOperation = ServerDataOperation.AddServer
-                                },
-                                refreshServers = {
-                                    viewModel.loadServer()
-                                }
-                            )
+                PullToRefreshLayout(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    isRefreshing = false,
+                    enabled = viewModel.operation !is ServerListOperation.Loading,
+                    onRefresh = viewModel::loadServer,
+                ) {
+                    when (viewModel.operation) {
+                        is ServerListOperation.LoadedData -> {
+                            val servers by viewModel.servers.collectAsStateWithLifecycle()
 
                             ServerListBody(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
+                                modifier = Modifier.fillMaxSize(),
                                 servers = servers,
                                 isSavingServer = viewModel.saving,
                                 onLoad = { viewModel.loadServer(it) },
@@ -601,6 +592,14 @@ fun ServerListScreen(
                                 }
                             )
                         }
+                        is ServerListOperation.Loading -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                LoadingIndicator()
+                            }
+                        }
                     }
                 }
             }
@@ -616,7 +615,8 @@ private fun ServerListHeader(
     refreshServers: () -> Unit,
     modifier: Modifier = Modifier,
     inputFieldColor: Color = itemColor(),
-    inputFieldContentColor: Color = onItemColor()
+    inputFieldContentColor: Color = onItemColor(),
+    enabled: Boolean = true,
 ) {
     CardTitleLayout(modifier = modifier) {
         BoxWithConstraints(
@@ -640,7 +640,8 @@ private fun ServerListHeader(
                     },
                     color = inputFieldColor,
                     contentColor = inputFieldContentColor,
-                    singleLine = true
+                    singleLine = true,
+                    enabled = enabled,
                 )
 
                 val scrollState = rememberScrollState()
@@ -664,11 +665,13 @@ private fun ServerListHeader(
                     IconTextButton(
                         onClick = onAddServer,
                         painter = painterResource(R.drawable.ic_add),
-                        text = stringResource(R.string.servers_list_add_server)
+                        text = stringResource(R.string.servers_list_add_server),
+                        enabled = enabled,
                     )
 
                     IconButton(
-                        onClick = refreshServers
+                        onClick = refreshServers,
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_refresh),

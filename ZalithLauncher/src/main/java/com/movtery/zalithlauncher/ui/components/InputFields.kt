@@ -66,6 +66,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.movtery.zalithlauncher.setting.LauncherSettings
+import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -87,11 +88,12 @@ fun SimpleTextInputField(
     cursorBrush: Brush = SolidColor(LocalTextSelectionColors.current.handleColor),
     singleLine: Boolean = false,
     imePanEnabled: Boolean = true,
+    enabled: Boolean = true,
 ) {
     Surface(
         modifier = if (imePanEnabled) modifier.imePanAnchor() else modifier,
         color = color,
-        contentColor = contentColor,
+        contentColor = if (enabled) contentColor else contentColor.copy(alpha = DisabledAlpha),
         shape = shape
     ) {
         val focusManager = LocalFocusManager.current
@@ -127,7 +129,8 @@ fun SimpleTextInputField(
                     }
                     innerTextField()
                 }
-            }
+            },
+            enabled = enabled,
         )
     }
 }

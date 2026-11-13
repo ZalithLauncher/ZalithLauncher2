@@ -54,7 +54,6 @@ import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.nonInteractiveScrollbar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -100,6 +99,7 @@ import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.ProgressDialog
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleTextInputField
@@ -336,7 +336,47 @@ fun SavesManagerScreen(
     ) { isVisible ->
         val viewModel = rememberSavesManageViewModel(minecraftVersion, savesDir, version)
 
+        val context = LocalContext.current
         val ctx = rememberAnimatedContext(isVisible = isVisible)
+        val operationScope = rememberCoroutineScope()
+
+        var savesOperation by remember { mutableStateOf<SavesOperation>(SavesOperation.None) }
+        fun runProgress(task: () -> Unit) {
+            operationScope.launch(Dispatchers.IO) {
+                savesOperation = SavesOperation.Progress
+                task()
+                savesOperation = SavesOperation.None
+                viewModel.refresh()
+            }
+        }
+        SaveOperation(
+            savesOperation = savesOperation,
+            savesDir = savesDir,
+            updateOperation = { savesOperation = it },
+            quickPlay = { saveName ->
+                onQuickPlay(version, saveName)
+            },
+            renameSave = { saveData, newName ->
+                runProgress {
+                    saveData.saveFile.renameTo(File(savesDir, newName))
+                }
+            },
+            backupSave = { saveData, name ->
+                runProgress {
+                    FileUtils.copyDirectory(saveData.saveFile, File(savesDir, name))
+                }
+            },
+            deleteSave = { saveData ->
+                runProgress {
+                    FileUtils.deleteQuietly(saveData.saveFile)
+                }
+            }
+        )
+
+        SaveCompressOperation(
+            operation = viewModel.compressOperation,
+            updateOperation = viewModel::updateCompressOperation
+        )
 
         VersionChunkBackground(
             modifier = Modifier
@@ -345,75 +385,35 @@ fun SavesManagerScreen(
                 .animated(ctx),
             paddingValues = PaddingValues()
         ) {
-            val operationScope = rememberCoroutineScope()
+            Column(modifier = Modifier.fillMaxSize()) {
+                SavesActionsHeader(
+                    modifier = Modifier.fillMaxWidth(),
+                    savesFilter = viewModel.savesFilter,
+                    onSavesFilterChange = { viewModel.updateFilter(it) },
+                    supportedSortByEnums = viewModel.supportedSortByEnums,
+                    sortByEnum = viewModel.sortByEnum,
+                    onSortByChanged = { viewModel.updateSortBy(it) },
+                    isAscending = viewModel.isAscending,
+                    onToggleSortOrder = { viewModel.updateSortOrder() },
+                    savesDir = savesDir,
+                    swapToDownload = swapToDownload,
+                    refreshSaves = { viewModel.refresh() },
+                    submitError = submitError,
+                    enabled = viewModel.savesState is LoadingState.None,
+                )
 
-            PullToRefreshBox(
-                modifier = Modifier.fillMaxSize(),
-                isRefreshing = false,
-                enabled = viewModel.savesState !is LoadingState.Loading,
-                onRefresh = viewModel::refresh,
-            ) {
-                when (viewModel.savesState) {
-                    is LoadingState.None -> {
-                        val context = LocalContext.current
-                        var savesOperation by remember { mutableStateOf<SavesOperation>(SavesOperation.None) }
-                        fun runProgress(task: () -> Unit) {
-                            operationScope.launch(Dispatchers.IO) {
-                                savesOperation = SavesOperation.Progress
-                                task()
-                                savesOperation = SavesOperation.None
-                                viewModel.refresh()
-                            }
-                        }
-                        SaveOperation(
-                            savesOperation = savesOperation,
-                            savesDir = savesDir,
-                            updateOperation = { savesOperation = it },
-                            quickPlay = { saveName ->
-                                onQuickPlay(version, saveName)
-                            },
-                            renameSave = { saveData, newName ->
-                                runProgress {
-                                    saveData.saveFile.renameTo(File(savesDir, newName))
-                                }
-                            },
-                            backupSave = { saveData, name ->
-                                runProgress {
-                                    FileUtils.copyDirectory(saveData.saveFile, File(savesDir, name))
-                                }
-                            },
-                            deleteSave = { saveData ->
-                                runProgress {
-                                    FileUtils.deleteQuietly(saveData.saveFile)
-                                }
-                            }
-                        )
-
-                        SaveCompressOperation(
-                            operation = viewModel.compressOperation,
-                            updateOperation = viewModel::updateCompressOperation
-                        )
-
-                        Column {
-                            SavesActionsHeader(
-                                modifier = Modifier.fillMaxWidth(),
-                                savesFilter = viewModel.savesFilter,
-                                onSavesFilterChange = { viewModel.updateFilter(it) },
-                                supportedSortByEnums = viewModel.supportedSortByEnums,
-                                sortByEnum = viewModel.sortByEnum,
-                                onSortByChanged = { viewModel.updateSortBy(it) },
-                                isAscending = viewModel.isAscending,
-                                onToggleSortOrder = { viewModel.updateSortOrder() },
-                                savesDir = savesDir,
-                                swapToDownload = swapToDownload,
-                                refreshSaves = { viewModel.refresh() },
-                                submitError = submitError
-                            )
-
+                PullToRefreshLayout(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    isRefreshing = false,
+                    enabled = viewModel.savesState !is LoadingState.Loading,
+                    onRefresh = viewModel::refresh,
+                ) {
+                    when (viewModel.savesState) {
+                        is LoadingState.None -> {
                             SavesList(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
+                                modifier = Modifier.fillMaxSize(),
                                 savesList = viewModel.filteredSaves,
                                 quickPlay = quickPlay,
                                 minecraftVersion = minecraftVersion,
@@ -423,13 +423,13 @@ fun SavesManagerScreen(
                                 }
                             )
                         }
-                    }
-                    is LoadingState.Loading -> {
-                        Box(
-                            Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            LoadingIndicator()
+                        is LoadingState.Loading -> {
+                            Box(
+                                Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                LoadingIndicator()
+                            }
                         }
                     }
                 }
@@ -453,7 +453,8 @@ private fun SavesActionsHeader(
     refreshSaves: () -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
     inputFieldColor: Color = itemColor(),
-    inputFieldContentColor: Color = onItemColor()
+    inputFieldContentColor: Color = onItemColor(),
+    enabled: Boolean = true,
 ) {
     CardTitleLayout(modifier = modifier) {
         BoxWithConstraints(
@@ -466,7 +467,8 @@ private fun SavesActionsHeader(
                 Box {
                     var expanded by remember { mutableStateOf(false) }
                     IconButton(
-                        onClick = { expanded = !expanded }
+                        onClick = { expanded = !expanded },
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_sort),
@@ -480,7 +482,8 @@ private fun SavesActionsHeader(
                         currentEnum = sortByEnum,
                         onEnumChanged = onSortByChanged,
                         isAscending = isAscending,
-                        onToggleSortOrder = onToggleSortOrder
+                        onToggleSortOrder = onToggleSortOrder,
+                        enabled = enabled,
                     )
                 }
 
@@ -498,7 +501,8 @@ private fun SavesActionsHeader(
                     },
                     color = inputFieldColor,
                     contentColor = inputFieldContentColor,
-                    singleLine = true
+                    singleLine = true,
+                    enabled = enabled,
                 )
 
                 val scrollState = rememberScrollState()
@@ -518,7 +522,8 @@ private fun SavesActionsHeader(
                 ) {
                     ContentCheckBox(
                         checked = savesFilter.onlyShowCompatible,
-                        onCheckedChange = { onSavesFilterChange(savesFilter.copy(onlyShowCompatible = it)) }
+                        onCheckedChange = { onSavesFilterChange(savesFilter.copy(onlyShowCompatible = it)) },
+                        enabled = enabled,
                     ) {
                         Text(
                             text = stringResource(R.string.manage_only_show_valid),
@@ -549,17 +554,20 @@ private fun SavesActionsHeader(
                             TaskSystem.submitTask(
                                 taskBuilder(uris)
                             )
-                        }
+                        },
+                        enabled = enabled,
                     )
 
                     IconTextButton(
                         onClick = swapToDownload,
                         painter = painterResource(R.drawable.ic_download_2_filled),
-                        text = stringResource(R.string.generic_download)
+                        text = stringResource(R.string.generic_download),
+                        enabled = enabled,
                     )
 
                     IconButton(
-                        onClick = refreshSaves
+                        onClick = refreshSaves,
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_refresh),

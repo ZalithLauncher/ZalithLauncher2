@@ -60,7 +60,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.nonInteractiveScrollbar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -96,6 +95,7 @@ import com.movtery.zalithlauncher.ui.components.ContentCheckBox
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.ProgressDialog
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleTextInputField
@@ -316,6 +316,35 @@ fun ResourcePackManageScreen(
         )
 
         val ctx = rememberAnimatedContext(isVisible = isVisible)
+        val operationScope = rememberCoroutineScope()
+
+        var resourcePackOperation by remember { mutableStateOf<ResourcePackOperation>(ResourcePackOperation.None) }
+        fun runProgress(task: () -> Unit) {
+            operationScope.launch(Dispatchers.IO) {
+                resourcePackOperation = ResourcePackOperation.Progress
+                task()
+                resourcePackOperation = ResourcePackOperation.None
+                viewModel.refresh()
+            }
+        }
+        ResourcePackOperation(
+            resourcePackDir = resourcePackDir,
+            resourcePackOperation = resourcePackOperation,
+            updateOperation = { resourcePackOperation = it },
+            onRename = { newName, packInfo ->
+                runProgress {
+                    val extension = if (packInfo.file.isFile) {
+                        ".${packInfo.file.extension}"
+                    } else ""
+                    packInfo.file.renameTo(File(resourcePackDir, "$newName$extension"))
+                }
+            },
+            onDelete = { packInfo ->
+                runProgress {
+                    FileUtils.deleteQuietly(packInfo.file)
+                }
+            }
+        )
 
         VersionChunkBackground(
             modifier = Modifier
@@ -324,82 +353,53 @@ fun ResourcePackManageScreen(
                 .animated(ctx),
             paddingValues = PaddingValues()
         ) {
-            val operationScope = rememberCoroutineScope()
-
-            PullToRefreshBox(
-                modifier = Modifier.fillMaxSize(),
-                isRefreshing = false,
-                enabled = viewModel.packState !is LoadingState.Loading,
-                onRefresh = viewModel::refresh,
-            ) {
-                when (viewModel.packState) {
-                    is LoadingState.None -> {
-                        var resourcePackOperation by remember { mutableStateOf<ResourcePackOperation>(ResourcePackOperation.None) }
-                        fun runProgress(task: () -> Unit) {
-                            operationScope.launch(Dispatchers.IO) {
-                                resourcePackOperation = ResourcePackOperation.Progress
-                                task()
-                                resourcePackOperation = ResourcePackOperation.None
-                                viewModel.refresh()
-                            }
-                        }
-                        ResourcePackOperation(
-                            resourcePackDir = resourcePackDir,
-                            resourcePackOperation = resourcePackOperation,
-                            updateOperation = { resourcePackOperation = it },
-                            onRename = { newName, packInfo ->
-                                runProgress {
-                                    val extension = if (packInfo.file.isFile) {
-                                        ".${packInfo.file.extension}"
-                                    } else ""
-                                    packInfo.file.renameTo(File(resourcePackDir, "$newName$extension"))
+            Column(modifier = Modifier.fillMaxSize()) {
+                ResourcePackHeader(
+                    modifier = Modifier.fillMaxWidth(),
+                    packFilter = viewModel.packFilter,
+                    changePackFilter = { viewModel.updateFilter(it) },
+                    supportedSortByEnums = viewModel.supportedSortByEnums,
+                    sortByEnum = viewModel.sortByEnum,
+                    onSortByChanged = { viewModel.updateSortBy(it) },
+                    isAscending = viewModel.isAscending,
+                    onToggleSortOrder = { viewModel.updateSortOrder() },
+                    resourcePackDir = resourcePackDir,
+                    onDeleteAll = {
+                        val selected = viewModel.selectedPacks
+                        if (
+                            viewModel.deleteAllOperation == DeleteAllOperation.None &&
+                            selected.isNotEmpty()
+                        ) {
+                            viewModel.deleteAllOperation = DeleteAllOperation.Warning(
+                                files = selected.map { pack ->
+                                    pack.file
                                 }
-                            },
-                            onDelete = { packInfo ->
-                                runProgress {
-                                    FileUtils.deleteQuietly(packInfo.file)
-                                }
-                            }
-                        )
-
-                        Column {
-                            ResourcePackHeader(
-                                modifier = Modifier.fillMaxWidth(),
-                                packFilter = viewModel.packFilter,
-                                changePackFilter = { viewModel.updateFilter(it) },
-                                supportedSortByEnums = viewModel.supportedSortByEnums,
-                                sortByEnum = viewModel.sortByEnum,
-                                onSortByChanged = { viewModel.updateSortBy(it) },
-                                isAscending = viewModel.isAscending,
-                                onToggleSortOrder = { viewModel.updateSortOrder() },
-                                resourcePackDir = resourcePackDir,
-                                onDeleteAll = {
-                                    val selected = viewModel.selectedPacks
-                                    if (
-                                        viewModel.deleteAllOperation == DeleteAllOperation.None &&
-                                        selected.isNotEmpty()
-                                    ) {
-                                        viewModel.deleteAllOperation = DeleteAllOperation.Warning(
-                                            files = selected.map { pack ->
-                                                pack.file
-                                            }
-                                        )
-                                    }
-                                },
-                                isFilesSelected = viewModel.selectedPacks.isNotEmpty(),
-                                onSelectAll = { viewModel.selectAllFiles() },
-                                onClearFilesSelected = { viewModel.clearSelected() },
-                                swapToDownload = swapToDownload,
-                                onRefresh = {
-                                    viewModel.refresh()
-                                },
-                                submitError = submitError,
                             )
+                        }
+                    },
+                    isFilesSelected = viewModel.selectedPacks.isNotEmpty(),
+                    onSelectAll = { viewModel.selectAllFiles() },
+                    onClearFilesSelected = { viewModel.clearSelected() },
+                    swapToDownload = swapToDownload,
+                    onRefresh = {
+                        viewModel.refresh()
+                    },
+                    submitError = submitError,
+                    enabled = viewModel.packState is LoadingState.None,
+                )
 
+                PullToRefreshLayout(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    isRefreshing = false,
+                    enabled = viewModel.packState !is LoadingState.Loading,
+                    onRefresh = viewModel::refresh,
+                ) {
+                    when (viewModel.packState) {
+                        is LoadingState.None -> {
                             ResourcePackList(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .weight(1f),
+                                modifier = Modifier.fillMaxSize(),
                                 packList = viewModel.filteredPacks,
                                 selectedPacks = viewModel.selectedPacks,
                                 removeFromSelected = { viewModel.selectedPacks.remove(it) },
@@ -407,13 +407,13 @@ fun ResourcePackManageScreen(
                                 updateOperation = { resourcePackOperation = it }
                             )
                         }
-                    }
-                    is LoadingState.Loading -> {
-                        Box(
-                            Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            LoadingIndicator()
+                        is LoadingState.Loading -> {
+                            Box(
+                                Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                LoadingIndicator()
+                            }
                         }
                     }
                 }
@@ -441,7 +441,8 @@ private fun ResourcePackHeader(
     onRefresh: () -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
     inputFieldColor: Color = itemColor(),
-    inputFieldContentColor: Color = onItemColor()
+    inputFieldContentColor: Color = onItemColor(),
+    enabled: Boolean = true,
 ) {
     CardTitleLayout(modifier = modifier) {
         BoxWithConstraints(
@@ -454,7 +455,8 @@ private fun ResourcePackHeader(
                 Box {
                     var expanded by remember { mutableStateOf(false) }
                     IconButton(
-                        onClick = { expanded = !expanded }
+                        onClick = { expanded = !expanded },
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_sort),
@@ -468,7 +470,8 @@ private fun ResourcePackHeader(
                         currentEnum = sortByEnum,
                         onEnumChanged = onSortByChanged,
                         isAscending = isAscending,
-                        onToggleSortOrder = onToggleSortOrder
+                        onToggleSortOrder = onToggleSortOrder,
+                        enabled = enabled,
                     )
                 }
 
@@ -486,7 +489,8 @@ private fun ResourcePackHeader(
                     },
                     color = inputFieldColor,
                     contentColor = inputFieldContentColor,
-                    singleLine = true
+                    singleLine = true,
+                    enabled = enabled,
                 )
 
                 AnimatedVisibility(
@@ -495,7 +499,8 @@ private fun ResourcePackHeader(
                 ) {
                     Row {
                         IconButton(
-                            onClick = onDeleteAll
+                            onClick = onDeleteAll,
+                            enabled = enabled,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_delete_outlined),
@@ -504,7 +509,8 @@ private fun ResourcePackHeader(
                         }
 
                         IconButton(
-                            onClick = onSelectAll
+                            onClick = onSelectAll,
+                            enabled = enabled,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_select_all),
@@ -513,6 +519,7 @@ private fun ResourcePackHeader(
                         }
 
                         IconButton(
+                            enabled = enabled,
                             onClick = {
                                 if (isFilesSelected) onClearFilesSelected()
                             }
@@ -553,6 +560,7 @@ private fun ResourcePackHeader(
                 ) {
                     ContentCheckBox(
                         checked = packFilter.onlyShowValid,
+                        enabled = enabled,
                         onCheckedChange = { changePackFilter(packFilter.copy(onlyShowValid = it)) }
                     ) {
                         Text(
@@ -572,6 +580,7 @@ private fun ResourcePackHeader(
                     )
                     ImportMultipleFileButton(
                         extension = "zip",
+                        enabled = enabled,
                         progressUris = { uris ->
                             TaskSystem.submitTask(
                                 taskBuilder(uris)
@@ -582,11 +591,13 @@ private fun ResourcePackHeader(
                     IconTextButton(
                         onClick = swapToDownload,
                         painter = painterResource(R.drawable.ic_download_2_filled),
-                        text = stringResource(R.string.generic_download)
+                        text = stringResource(R.string.generic_download),
+                        enabled = enabled,
                     )
 
                     IconButton(
-                        onClick = onRefresh
+                        onClick = onRefresh,
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_refresh),

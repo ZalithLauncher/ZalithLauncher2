@@ -30,12 +30,14 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -59,11 +61,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import com.movtery.zalithlauncher.ui.theme.LocalNevStyle
+import com.movtery.zalithlauncher.ui.theme.nevShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -238,6 +247,8 @@ fun AddonVersionItemLayout(
     onItemClicked: (PlatformVersion) -> Unit = {}
 ) {
     var expanded by remember(infoMap) { mutableStateOf(defaultExpanded) }
+    //Gaya Cryogenic: daftar file dua kolom di layar lebar
+    val twoColumns = LocalNevStyle.current.cutCorners && LocalConfiguration.current.screenWidthDp >= 600
 
     Surface(
         modifier = modifier.nevGlow(shape, 6.dp, 0.4f),
@@ -275,17 +286,35 @@ fun AddonVersionItemLayout(
                                 .padding(vertical = 4.dp),
                             contentPadding = PaddingValues(horizontal = 4.dp)
                         ) {
-                            items(infoMap.versions) { version ->
-                                AddonVersionListItem(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(all = 4.dp),
-                                    version = version,
-                                    installed = installedChecker?.invoke(version),
-                                    onClick = {
-                                        onItemClicked(version)
+                            if (twoColumns) {
+                                items(infoMap.versions.chunked(2)) { pair ->
+                                    Row(modifier = Modifier.fillMaxWidth()) {
+                                        pair.forEach { version ->
+                                            AddonVersionListItem(
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(all = 4.dp),
+                                                version = version,
+                                                installed = installedChecker?.invoke(version),
+                                                onClick = { onItemClicked(version) }
+                                            )
+                                        }
+                                        if (pair.size == 1) Spacer(modifier = Modifier.weight(1f))
                                     }
-                                )
+                                }
+                            } else {
+                                items(infoMap.versions) { version ->
+                                    AddonVersionListItem(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(all = 4.dp),
+                                        version = version,
+                                        installed = installedChecker?.invoke(version),
+                                        onClick = {
+                                            onItemClicked(version)
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
@@ -304,6 +333,17 @@ private fun AddonVersionHeadLayout(
     expanded: Boolean,
     onClick: () -> Unit = {}
 ) {
+    if (LocalNevStyle.current.cutCorners) {
+        CryoAddonVersionHead(
+            modifier = modifier,
+            infoMap = infoMap,
+            isAdapt = isAdapt,
+            hasInstalled = hasInstalled,
+            expanded = expanded,
+            onClick = onClick
+        )
+        return
+    }
     Row(
         modifier = modifier
             .clickable(onClick = onClick)
@@ -372,6 +412,15 @@ private fun AddonVersionListItem(
     installed: InstalledMod? = null,
     onClick: () -> Unit = {}
 ) {
+    if (LocalNevStyle.current.cutCorners) {
+        CryoAddonVersionListItem(
+            modifier = modifier,
+            version = version,
+            installed = installed,
+            onClick = onClick
+        )
+        return
+    }
     Row(
         modifier = modifier
             .clip(shape = MaterialTheme.shapes.medium)
@@ -471,6 +520,250 @@ private fun AddonVersionListItem(
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
+            }
+        }
+    }
+}
+
+/** Kepala grup versi gaya Cryogenic: ubin ikon, versi monospace, pil loader, jumlah file, tombol panah bulat. */
+@Composable
+private fun CryoAddonVersionHead(
+    modifier: Modifier,
+    infoMap: VersionInfoMap,
+    isAdapt: Boolean,
+    hasInstalled: Boolean,
+    expanded: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = modifier
+            .clickable(onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(52.dp)
+                .background(NevRed.PanelDeep, RoundedCornerShape(16.dp))
+                .border(1.dp, NevRed.OutlineBright.copy(alpha = 0.8f), RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                modifier = Modifier.size(26.dp),
+                painter = painterResource(R.drawable.ic_package_2_outlined),
+                contentDescription = null,
+                tint = NevRed.GradientEnd
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = infoMap.gameVersion,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontFamily = FontFamily.Monospace,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1
+                )
+                infoMap.loader?.let { loader ->
+                    Text(
+                        modifier = Modifier
+                            .background(NevRed.GradientEnd.copy(alpha = 0.12f), RoundedCornerShape(50))
+                            .border(1.dp, NevRed.OutlineBright.copy(alpha = 0.8f), RoundedCornerShape(50))
+                            .padding(horizontal = 10.dp, vertical = 2.dp),
+                        text = loader.getDisplayName(),
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = NevRed.GradientEnd,
+                        maxLines = 1
+                    )
+                }
+            }
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    modifier = Modifier.alpha(0.7f),
+                    text = stringResource(R.string.download_addon_files_count, infoMap.versions.size),
+                    style = MaterialTheme.typography.bodySmall,
+                    fontFamily = FontFamily.Monospace
+                )
+                if (isAdapt) {
+                    val gold = Color(0xFFFFC53D)
+                    Row(
+                        modifier = Modifier
+                            .background(gold.copy(alpha = 0.12f), RoundedCornerShape(50))
+                            .border(1.dp, gold.copy(alpha = 0.7f), RoundedCornerShape(50))
+                            .padding(horizontal = 8.dp, vertical = 2.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(14.dp),
+                            painter = painterResource(R.drawable.ic_star_filled),
+                            contentDescription = null,
+                            tint = gold
+                        )
+                        Text(
+                            text = stringResource(R.string.download_addon_compatible_badge),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = gold,
+                            maxLines = 1
+                        )
+                    }
+                }
+                if (hasInstalled) {
+                    InstalledModBadge(size = 16.dp)
+                }
+            }
+        }
+        if (infoMap.versions.isNotEmpty()) {
+            val rotation by animateFloatAsState(
+                targetValue = if (expanded) -180f else 0f,
+                animationSpec = getAnimateTween()
+            )
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .border(1.dp, NevRed.Outline, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .rotate(rotation),
+                    painter = painterResource(R.drawable.ic_arrow_drop_down_rounded),
+                    tint = NevRed.GradientEnd,
+                    contentDescription = stringResource(if (expanded) R.string.generic_expand else R.string.generic_collapse)
+                )
+            }
+        }
+    }
+}
+
+/** Kartu file gaya Cryogenic: lencana huruf, nama, statistik, tipe rilis, dan tombol unduh bulat. */
+@Composable
+private fun CryoAddonVersionListItem(
+    modifier: Modifier,
+    version: PlatformVersion,
+    installed: InstalledMod?,
+    onClick: () -> Unit
+) {
+    val releaseType = remember { version.platformReleaseType() }
+    val displayName = remember { version.platformDisplayName() }
+    val downloadCount = remember { version.platformDownloadCount() }
+    val date = remember { version.platformDatePublished() }
+    val context = LocalContext.current
+
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        shape = nevShape(18.dp),
+        color = Color.Transparent,
+        contentColor = NevRed.OnPanel,
+        border = BorderStroke(
+            1.dp,
+            if (installed != null) NevRed.OutlineBright else NevRed.Outline.copy(alpha = 0.75f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .background(
+                    Brush.horizontalGradient(
+                        listOf(NevRed.Panel.copy(alpha = 0.8f), NevRed.PanelDeep.copy(alpha = 0.9f))
+                    )
+                )
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(releaseType.color.copy(alpha = 0.18f), RoundedCornerShape(14.dp))
+                    .border(1.dp, releaseType.color.copy(alpha = 0.7f), RoundedCornerShape(14.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = releaseType.name.take(1),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = releaseType.color
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                Text(
+                    text = displayName,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Row(
+                    modifier = Modifier.alpha(0.75f),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(16.dp),
+                            painter = painterResource(R.drawable.ic_download_2_outlined),
+                            contentDescription = null
+                        )
+                        Text(
+                            text = formatNumberByLocale(context, downloadCount),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(16.dp),
+                            painter = painterResource(R.drawable.ic_autorenew),
+                            contentDescription = null
+                        )
+                        Text(
+                            text = getTimeAgo(context = context, pastInstant = date),
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1
+                        )
+                    }
+                }
+                Text(
+                    text = stringResource(releaseType.textRes),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = releaseType.color
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .background(NevRed.GradientDiagonal, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(R.drawable.ic_download_2_filled),
+                    contentDescription = null,
+                    tint = NevRed.OnGradient
+                )
             }
         }
     }

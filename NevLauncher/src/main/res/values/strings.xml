@@ -354,6 +354,8 @@
     <!-- Status label in the mod loader list; %s is the list of incompatible game versions -->
     <string name="download_game_addon_incompatible_with">Incompatible with %s</string>
     <!-- Status label for OptiFine versions; %s is the compatible Forge version -->
+    <string name="download_addon_files_count">%1$d files</string>
+    <string name="download_addon_compatible_badge">Compatible</string>
     <string name="download_game_addon_compatible_with">Compatible with %s</string>
     <!-- Message asking the user to pick a version first; %s is the mod loader name -->
     <string name="download_game_addon_request_addon">Please select the %s version first</string>

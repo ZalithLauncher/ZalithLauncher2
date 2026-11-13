@@ -110,6 +110,8 @@
     <string name="download_game_addon_available">Tersedia</string>
     <string name="download_game_addon_unavailable">Tidak Tersedia</string>
     <string name="download_game_addon_incompatible_with">Tidak kompatibel dengan %s</string>
+    <string name="download_addon_files_count">%1$d file</string>
+    <string name="download_addon_compatible_badge">Kompatibel</string>
     <string name="download_game_addon_compatible_with">Kompatibel dengan %s</string>
     <string name="download_game_addon_request_addon">Silahkan pilih versi %s terlebih dahulu</string>
     <string name="download_game_addon_release">Rilis</string>

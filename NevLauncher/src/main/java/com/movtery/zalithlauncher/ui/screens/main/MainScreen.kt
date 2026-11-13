@@ -92,6 +92,12 @@ import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.theme.NevRed
+import com.movtery.zalithlauncher.ui.theme.nevShape
+import com.movtery.zalithlauncher.ui.theme.NavRailSide
+import com.movtery.zalithlauncher.ui.theme.LocalNevStyle
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
@@ -181,57 +187,64 @@ fun MainScreen(
         backgroundColor().copy(alpha = launcherBackgroundOpacity)
     } else backgroundColor()
 
+    val railSide = AllSettings.launcherNavRailSide.state
+    val floatingRail = LocalNevStyle.current.floatingRail
+    val rail: @Composable () -> Unit = {
+    SideRail(
+        modifier = Modifier
+            .fillMaxHeight()
+            .width(if (floatingRail) 92.dp else 84.dp),
+        floating = floatingRail,
+        contentColor = onBackgroundColor(),
+        inServerHubScreen = mainScreenKey is NormalNavKey.ServerHub,
+        inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer,
+        inDonateScreen = mainScreenKey is NormalNavKey.Donate,
+        inDownloadScreen = mainScreenKey is NestedNavKey.Download,
+        inSettingsScreen = mainScreenKey is NestedNavKey.Settings,
+        toSettingsScreen = {
+            screenBackStackModel.mainScreen.removeAndNavigateTo(
+                removes = screenBackStackModel.clearBeforeNavKeys,
+                screenKey = screenBackStackModel.settingsScreen
+            )
+        },
+        toDownloadScreen = {
+            screenBackStackModel.navigateToDownload()
+        },
+        toServerHubScreen = {
+            screenBackStackModel.mainScreen.removeAndNavigateTo(
+                removes = screenBackStackModel.clearBeforeNavKeys,
+                screenKey = NormalNavKey.ServerHub
+            )
+        },
+        toMultiplayerScreen = {
+            screenBackStackModel.mainScreen.removeAndNavigateTo(
+                removes = screenBackStackModel.clearBeforeNavKeys,
+                screenKey = NormalNavKey.Multiplayer
+            )
+        },
+        toDonateScreen = {
+            screenBackStackModel.mainScreen.removeAndNavigateTo(
+                removes = screenBackStackModel.clearBeforeNavKeys,
+                screenKey = NormalNavKey.Donate
+            )
+        },
+        openFileManager = {
+            eventViewModel.sendEvent(
+                EventViewModel.Event.OpenFileManager(
+                    rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath
+                )
+            )
+        }
+    )
+    }
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = backgroundColor,
         contentColor = onBackgroundColor()
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
-        SideRail(
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(84.dp),
-            contentColor = onBackgroundColor(),
-            inServerHubScreen = mainScreenKey is NormalNavKey.ServerHub,
-            inMultiplayerScreen = mainScreenKey is NormalNavKey.Multiplayer,
-            inDonateScreen = mainScreenKey is NormalNavKey.Donate,
-            inDownloadScreen = mainScreenKey is NestedNavKey.Download,
-            inSettingsScreen = mainScreenKey is NestedNavKey.Settings,
-            toSettingsScreen = {
-                screenBackStackModel.mainScreen.removeAndNavigateTo(
-                    removes = screenBackStackModel.clearBeforeNavKeys,
-                    screenKey = screenBackStackModel.settingsScreen
-                )
-            },
-            toDownloadScreen = {
-                screenBackStackModel.navigateToDownload()
-            },
-            toServerHubScreen = {
-                screenBackStackModel.mainScreen.removeAndNavigateTo(
-                    removes = screenBackStackModel.clearBeforeNavKeys,
-                    screenKey = NormalNavKey.ServerHub
-                )
-            },
-            toMultiplayerScreen = {
-                screenBackStackModel.mainScreen.removeAndNavigateTo(
-                    removes = screenBackStackModel.clearBeforeNavKeys,
-                    screenKey = NormalNavKey.Multiplayer
-                )
-            },
-            toDonateScreen = {
-                screenBackStackModel.mainScreen.removeAndNavigateTo(
-                    removes = screenBackStackModel.clearBeforeNavKeys,
-                    screenKey = NormalNavKey.Donate
-                )
-            },
-            openFileManager = {
-                eventViewModel.sendEvent(
-                    EventViewModel.Event.OpenFileManager(
-                        rootPath = PathManager.DIR_FILES_EXTERNAL.absolutePath
-                    )
-                )
-            }
-        )
+        if (railSide == NavRailSide.START) rail()
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -284,6 +297,7 @@ fun MainScreen(
                 }
             }
         }
+        if (railSide == NavRailSide.END) rail()
         }
     }
 }
@@ -484,15 +498,9 @@ private fun SideRail(
     toMultiplayerScreen: () -> Unit,
     toDonateScreen: () -> Unit,
     openFileManager: () -> Unit,
+    floating: Boolean = false,
 ) {
-    CompositionLocalProvider(LocalContentColor provides contentColor) {
-        Column(
-            modifier = modifier
-                .padding(top = 52.dp, bottom = 12.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+    val railItems: @Composable ColumnScope.() -> Unit = {
             SideRailItem(
                 selected = false,
                 painter = painterResource(R.drawable.ic_folder_filled),
@@ -529,6 +537,44 @@ private fun SideRail(
                 text = stringResource(R.string.generic_setting),
                 onClick = { if (!inSettingsScreen) toSettingsScreen() }
             )
+    }
+
+    CompositionLocalProvider(LocalContentColor provides contentColor) {
+        if (floating) {
+            //kapsul kaca melayang di tengah; label menu tetap tampil
+            val capsule = nevShape(26.dp)
+            Box(
+                modifier = modifier.padding(start = 4.dp, end = 4.dp, top = 44.dp, bottom = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    modifier = Modifier
+                        .border(
+                            BorderStroke(
+                                1.dp,
+                                Brush.verticalGradient(
+                                    listOf(NevRed.OutlineBright.copy(alpha = 0.85f), NevRed.Outline)
+                                )
+                            ),
+                            capsule
+                        )
+                        .background(NevRed.Panel.copy(alpha = 0.72f), capsule)
+                        .padding(all = 6.dp)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    content = railItems
+                )
+            }
+        } else {
+            Column(
+                modifier = modifier
+                    .padding(top = 52.dp, bottom = 12.dp)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                content = railItems
+            )
         }
     }
 }
@@ -542,12 +588,13 @@ private fun SideRailItem(
 ) {
     val tint = if (selected) NevRed.OnGradient else LocalContentColor.current
     val selectedBrush = NevRed.GradientDiagonal
+    val itemShape = nevShape(18.dp)
     //ikon di atas, label di bawah; item terpilih berlatar pil bergradasi
     Column(
         modifier = Modifier
             .width(72.dp)
-            .then(if (selected) Modifier.nevGlow(RoundedCornerShape(18.dp), 10.dp, 0.9f) else Modifier)
-            .clip(RoundedCornerShape(18.dp))
+            .then(if (selected) Modifier.nevGlow(itemShape, 10.dp, 0.9f) else Modifier)
+            .clip(itemShape)
             .then(if (selected) Modifier.background(selectedBrush) else Modifier)
             .clickable(onClick = onClick)
             .padding(vertical = 8.dp, horizontal = 2.dp),

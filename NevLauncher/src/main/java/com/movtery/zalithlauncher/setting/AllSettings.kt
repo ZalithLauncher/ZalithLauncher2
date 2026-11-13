@@ -47,6 +47,7 @@ import com.movtery.zalithlauncher.ui.control.mouse.CursorHotspot
 import com.movtery.zalithlauncher.ui.control.mouse.LEFT_TOP_HOTSPOT
 import com.movtery.zalithlauncher.ui.theme.ColorThemeType
 import com.movtery.zalithlauncher.ui.theme.DesignStyleType
+import com.movtery.zalithlauncher.ui.theme.NavRailSide
 
 
 object AllSettings : SettingsRegistry() {
@@ -405,6 +406,14 @@ object AllSettings : SettingsRegistry() {
     val launcherDesignStyle = enumSetting(
         "launcherDesignStyle",
         DesignStyleType.NEV
+    )
+
+    /**
+     * Sisi tempat menu navigasi utama (rail) diletakkan
+     */
+    val launcherNavRailSide = enumSetting(
+        "launcherNavRailSide",
+        NavRailSide.START
     )
 
     /**

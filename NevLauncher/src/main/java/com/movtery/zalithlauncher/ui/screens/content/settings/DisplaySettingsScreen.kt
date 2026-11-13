@@ -57,6 +57,7 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCa
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCardColumn
 import com.movtery.zalithlauncher.ui.theme.ColorThemeType
 import com.movtery.zalithlauncher.ui.theme.DesignStyleType
+import com.movtery.zalithlauncher.ui.theme.NavRailSide
 
 /**
  * Tema desain yang bisa dipilih di tab Tampilan.
@@ -153,6 +154,22 @@ fun DisplaySettingsScreen(
                             when (type) {
                                 DesignStyleType.NEV -> stringResource(R.string.settings_display_style_nev)
                                 DesignStyleType.CRYOGENIC -> stringResource(R.string.settings_display_style_cryogenic)
+                            }
+                        }
+                    )
+
+                    EnumSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = AllSettings.launcherNavRailSide,
+                        title = stringResource(R.string.settings_display_nav_side_title),
+                        summary = stringResource(R.string.settings_display_nav_side_summary),
+                        entries = NavRailSide.entries,
+                        getRadioEnable = { true },
+                        getRadioText = { side ->
+                            when (side) {
+                                NavRailSide.START -> stringResource(R.string.settings_display_nav_side_start)
+                                NavRailSide.END -> stringResource(R.string.settings_display_nav_side_end)
                             }
                         }
                     )

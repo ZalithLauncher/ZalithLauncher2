@@ -38,6 +38,12 @@ enum class DesignStyleType {
     CRYOGENIC
 }
 
+/** Sisi layar tempat menu navigasi utama diletakkan. */
+enum class NavRailSide {
+    START,
+    END
+}
+
 /** Token gaya yang dibaca komponen bersama lewat [LocalNevStyle]. */
 @Immutable
 data class NevStyle(
@@ -51,7 +57,9 @@ data class NevStyle(
     /** Pengali opasitas latar kartu (1 = solid). */
     val cardAlpha: Float,
     /** true: tab, tombol, dan panel memakai sudut terpotong, bukan bulat. */
-    val cutCorners: Boolean
+    val cutCorners: Boolean,
+    /** true: menu navigasi utama berupa kapsul kaca melayang di tengah, bukan kolom penuh. */
+    val floatingRail: Boolean
 )
 
 val NevClassicStyle = NevStyle(
@@ -61,7 +69,8 @@ val NevClassicStyle = NevStyle(
     glowRadiusScale = 1f,
     glowIntensityScale = 1f,
     cardAlpha = 1f,
-    cutCorners = false
+    cutCorners = false,
+    floatingRail = false
 )
 
 val NevCryogenicStyle = NevStyle(
@@ -71,7 +80,8 @@ val NevCryogenicStyle = NevStyle(
     glowRadiusScale = 1.4f,
     glowIntensityScale = 1.2f,
     cardAlpha = 0.8f,
-    cutCorners = true
+    cutCorners = true,
+    floatingRail = true
 )
 
 fun nevStyleFor(type: DesignStyleType): NevStyle = when (type) {

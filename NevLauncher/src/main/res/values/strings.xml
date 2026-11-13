@@ -153,6 +153,10 @@
     <string name="settings_display_style_summary">Changes the shape and feel of panels, tabs and buttons, independent of color.</string>
     <string name="settings_display_style_nev">Classic (rounded)</string>
     <string name="settings_display_style_cryogenic">Cryogenic (glass, cut corners)</string>
+    <string name="settings_display_nav_side_title">Menu Position</string>
+    <string name="settings_display_nav_side_summary">Where the main navigation menu (File, Server, Download, Settings...) sits.</string>
+    <string name="settings_display_nav_side_start">Left</string>
+    <string name="settings_display_nav_side_end">Right</string>
     <!-- Title of the color picker dialog -->
     <string name="theme_color_picker_title">Color Picker</string>
     <!-- Button in the color picker dialog to edit the color as a hex code -->

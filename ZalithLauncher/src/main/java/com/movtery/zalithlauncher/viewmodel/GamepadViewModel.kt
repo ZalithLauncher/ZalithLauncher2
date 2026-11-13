@@ -128,13 +128,18 @@ class GamepadViewModel : ViewModel() {
     var modePromptVisible by mutableStateOf(false)
         private set
 
+    private var modePromptCompleted = false
+
     /**
      * 手柄活动上报：尚未完成选择询问时弹出对话框
      * @return true 表示询问未完成，调用方应吞掉本次手柄输入，
      * 保证选择确认前映射、SDL 直通、绑定向导均不响应手柄
      */
     fun checkModePrompt(): Boolean {
-        if (GamepadPrefs.inputModePrompted) return false
+        if (modePromptCompleted || GamepadPrefs.inputModePrompted) {
+            modePromptCompleted = true
+            return false
+        }
         modePromptVisible = true
         return true
     }
@@ -145,6 +150,7 @@ class GamepadViewModel : ViewModel() {
     fun confirmModePrompt(selected: GamepadInputMode) {
         ControlSettings.gamepadInputMode.save(selected)
         GamepadPrefs.inputModePrompted = true
+        modePromptCompleted = true
         modePromptVisible = false
     }
 

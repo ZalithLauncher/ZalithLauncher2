@@ -41,7 +41,7 @@ import com.movtery.zalithlauncher.components.jre.UnpackJreTask
 import com.movtery.zalithlauncher.context.readAssetFile
 import com.movtery.zalithlauncher.legal.AvailableAgreement
 import com.movtery.zalithlauncher.path.GLOBAL_JSON
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
 import com.movtery.zalithlauncher.setting.launcherMMKV
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.screens.navigateOnce
@@ -305,7 +305,7 @@ class SplashActivity : BaseAppCompatActivity() {
                 }
             jobs.joinAll()
             if (areAllTasksFinished()) {
-                AllSettings.javaRuntime.apply {
+                GameSettings.javaRuntime.apply {
                     //检查并设置默认的Java环境
                     if (getValue().isEmpty()) save(Jre.JRE_8.jreName)
                 }

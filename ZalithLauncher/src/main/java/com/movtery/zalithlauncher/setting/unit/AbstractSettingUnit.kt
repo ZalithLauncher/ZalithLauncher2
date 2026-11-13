@@ -18,18 +18,34 @@
 
 package com.movtery.zalithlauncher.setting.unit
 
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 
 abstract class AbstractSettingUnit<V>(
     val key: String,
     val defaultValue: V
 ) {
+    private val _state: Lazy<MutableState<V>> = lazy { mutableStateOf(readValue()) }
+
     /**
-     * @return 获取当前的设置值
+     * 状态是否已从存储中实际读取过
      */
-    abstract fun getValue(): V
+    val isMaterialized: Boolean
+        get() = _state.isInitialized()
+
+    /**
+     * 可观察的状态
+     */
+    var state: V
+        get() = _state.value.value
+        protected set(value) {
+            _state.value.value = value
+        }
+
+    /**
+     * @return 从存储中读取当前的设置值
+     */
+    protected abstract fun readValue(): V
 
     /**
      * 保存设置值
@@ -37,20 +53,29 @@ abstract class AbstractSettingUnit<V>(
     protected abstract fun saveValue(v: V): V
 
     /**
-     * 可观察的状态
+     * 刷新处理：从存储中重新读取实际值同步到状态
      */
-    var state by mutableStateOf(defaultValue)
-        protected set
-
     fun init() {
         getValue()
+    }
+
+    /**
+     * @return 每次都从存储中直读当前的设置值，并同步到状态
+     */
+    fun getValue(): V {
+        if (!_state.isInitialized()) {
+            return _state.value.value
+        }
+        val state = _state.value
+        state.value = readValue()
+        return state.value
     }
 
     /**
      * 保存当前状态值
      */
     fun save() {
-        saveValue(this.state)
+        saveValue(_state.value.value)
     }
 
     /**

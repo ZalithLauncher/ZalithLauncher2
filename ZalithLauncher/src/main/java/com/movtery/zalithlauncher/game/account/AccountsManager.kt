@@ -25,7 +25,7 @@ import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.database.AppDatabase
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServerDao
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.isNetworkAvailable
@@ -104,7 +104,7 @@ object AccountsManager {
         ))
         _accountsFlow.value = _accounts.toList()
 
-        if (_accounts.isNotEmpty() && !isAccountExists(AllSettings.currentAccount.getValue())) {
+        if (_accounts.isNotEmpty() && !isAccountExists(MiscSettings.currentAccount.getValue())) {
             setCurrentAccountInternal(_accounts[0])
         }
 
@@ -211,7 +211,7 @@ object AccountsManager {
      */
     private fun getCurrentAccount(): Account? {
         return _accounts.find {
-            it.uniqueUUID == AllSettings.currentAccount.getValue()
+            it.uniqueUUID == MiscSettings.currentAccount.getValue()
         } ?: _accounts.firstOrNull()
     }
 
@@ -224,7 +224,7 @@ object AccountsManager {
     }
 
     private fun setCurrentAccountInternal(account: Account) {
-        AllSettings.currentAccount.save(account.uniqueUUID)
+        MiscSettings.currentAccount.save(account.uniqueUUID)
     }
 
     /**

@@ -38,7 +38,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.movtery.zalithlauncher.context.copyLocalFile
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.utils.image.isImageFile
 import com.movtery.zalithlauncher.utils.video.isVideoFile
@@ -145,9 +145,9 @@ class BackgroundViewModel: ViewModel() {
         viewModelScope.launch {
             snapshotFlow {
                 BlurConfig(
-                    blur = AllSettings.backgroundBlur.state,
-                    blurType = AllSettings.backgroundBlurType.state,
-                    opacity = AllSettings.launcherBackgroundOpacity.state,
+                    blur = LauncherSettings.backgroundBlur.state,
+                    blurType = LauncherSettings.backgroundBlurType.state,
+                    opacity = LauncherSettings.launcherBackgroundOpacity.state,
                     valid = isValid,
                     isImage = isImage,
                     generation = refreshTrigger
@@ -224,5 +224,5 @@ fun <E> influencedByBackground(
 
 @Composable
 fun backgroundVisible(): Boolean {
-    return LocalBackgroundViewModel.current?.isValid == true && AllSettings.launcherBackgroundOpacity.state < 100
+    return LocalBackgroundViewModel.current?.isValid == true && LauncherSettings.launcherBackgroundOpacity.state < 100
 }

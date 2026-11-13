@@ -32,7 +32,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.core.graphics.createBitmap
 import com.movtery.zalithlauncher.context.GlobalContext
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -175,7 +175,7 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
     }
 
     private fun frameRadius(scale: Float): Float =
-        (AllSettings.backgroundBlur.state * GlobalContext.resources.displayMetrics.density * scale)
+        (LauncherSettings.backgroundBlur.state * GlobalContext.resources.displayMetrics.density * scale)
             .coerceIn(0.5f, 25f)
 
     private fun downscaleFactor(radiusPx: Float, maxDim: Float): Float {

@@ -31,14 +31,22 @@ private const val LWJGL_LIB_NAME_ARG = "-Dorg.lwjgl.opengl.libname="
  * @param reloadAll 是否重新加载全部设置项
  */
 fun loadAllSettings(context: Context, reloadAll: Boolean = false) {
-    if (reloadAll) AllSettings.reloadAll()
-    if (AllSettings.ramAllocation.getValue() == null) {
-        val ram = findBestRAMAllocation(context)
-        AllSettings.ramAllocation.save(ram)
+    if (reloadAll) {
+        RendererSettings.reloadAll()
+        GameSettings.reloadAll()
+        ControlSettings.reloadAll()
+        LauncherSettings.reloadAll()
+        GameUiSettings.reloadAll()
+        MiscSettings.reloadAll()
     }
-    val jvmArgs = AllSettings.jvmArgs.getValue()
+
+    if (GameSettings.ramAllocation.getValue() == null) {
+        val ram = findBestRAMAllocation(context)
+        GameSettings.ramAllocation.save(ram)
+    }
+    val jvmArgs = GameSettings.jvmArgs.getValue()
     jvmArgs.splitPreservingQuotes().find { it.startsWith(LWJGL_LIB_NAME_ARG) }?.let { arg ->
-        AllSettings.jvmArgs.save(jvmArgs.replace(arg, ""))
+        GameSettings.jvmArgs.save(jvmArgs.replace(arg, ""))
     }
 }
 

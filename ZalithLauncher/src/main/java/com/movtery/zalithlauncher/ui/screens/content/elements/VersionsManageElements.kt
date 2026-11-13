@@ -82,7 +82,7 @@ import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.version.installed.cleanup.CleanFailedException
 import com.movtery.zalithlauncher.game.version.installed.cleanup.GameAssetCleaner
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -685,7 +685,7 @@ fun VersionItemLayout(
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
     onSelected: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onRenameClick: () -> Unit = {},

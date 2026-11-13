@@ -46,7 +46,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.ui.androidText
@@ -170,8 +170,8 @@ BaseScreen(
         Triple(NormalNavKey.Settings.Gamepad, settingsScreenKey, false)
     ) { isVisible ->
         //重映射相关设置仅在映射模式下可用
-        val remapEnabled = AllSettings.gamepadControl.state &&
-            AllSettings.gamepadInputMode.state == GamepadInputMode.Mapped
+        val remapEnabled = ControlSettings.gamepadControl.state &&
+                ControlSettings.gamepadInputMode.state == GamepadInputMode.Mapped
 
         AnimatedLazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -187,7 +187,7 @@ BaseScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
-                        unit = AllSettings.gamepadControl,
+                        unit = ControlSettings.gamepadControl,
                         title = stringResource(R.string.settings_gamepad_title),
                         summary = stringResource(R.string.settings_gamepad_summary)
                     )
@@ -195,7 +195,7 @@ BaseScreen(
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.gamepadInputMode,
+                        unit = ControlSettings.gamepadInputMode,
                         items = GamepadInputMode.entries,
                         title = stringResource(R.string.settings_gamepad_input_mode_title),
                         getItemText = { mode ->
@@ -208,7 +208,7 @@ BaseScreen(
                                 style = MaterialTheme.typography.labelSmall
                             )
                         },
-                        enabled = AllSettings.gamepadControl.state
+                        enabled = ControlSettings.gamepadControl.state
                     )
                 }
             }
@@ -241,10 +241,10 @@ BaseScreen(
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.gamepadDeadZoneScale,
+                        unit = ControlSettings.gamepadDeadZoneScale,
                         title = stringResource(R.string.settings_gamepad_deadzone_title),
                         summary = stringResource(R.string.settings_gamepad_deadzone_summary),
-                        valueRange = AllSettings.gamepadDeadZoneScale.floatRange,
+                        valueRange = ControlSettings.gamepadDeadZoneScale.floatRange,
                         suffix = "%",
                         enabled = remapEnabled,
                         fineTuningControl = true
@@ -253,10 +253,10 @@ BaseScreen(
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.gamepadCursorSensitivity,
+                        unit = ControlSettings.gamepadCursorSensitivity,
                         title = stringResource(R.string.settings_gamepad_cursor_sensitivity_title),
                         summary = stringResource(R.string.settings_gamepad_cursor_sensitivity_summary),
-                        valueRange = AllSettings.gamepadCursorSensitivity.floatRange,
+                        valueRange = ControlSettings.gamepadCursorSensitivity.floatRange,
                         suffix = "%",
                         enabled = remapEnabled,
                         fineTuningControl = true
@@ -265,10 +265,10 @@ BaseScreen(
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.gamepadCameraSensitivity,
+                        unit = ControlSettings.gamepadCameraSensitivity,
                         title = stringResource(R.string.settings_gamepad_camera_sensitivity_title),
                         summary = stringResource(R.string.settings_gamepad_camera_sensitivity_summary),
-                        valueRange = AllSettings.gamepadCameraSensitivity.floatRange,
+                        valueRange = ControlSettings.gamepadCameraSensitivity.floatRange,
                         suffix = "%",
                         enabled = remapEnabled,
                         fineTuningControl = true
@@ -277,7 +277,7 @@ BaseScreen(
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.joystickControlMode,
+                        unit = ControlSettings.joystickControlMode,
                         items = JoystickMode.entries,
                         title = stringResource(R.string.settings_gamepad_joystick_mode_title),
                         summary = stringResource(R.string.settings_gamepad_joystick_mode_summary),
@@ -313,7 +313,7 @@ BaseScreen(
                         ListSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Top,
-                            unit = AllSettings.gamepadMappingConfig,
+                            unit = ControlSettings.gamepadMappingConfig,
                             items = list,
                             getItemText = { it },
                             getItemId = { it },

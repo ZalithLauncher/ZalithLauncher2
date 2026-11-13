@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.util.lerp
 import androidx.core.graphics.withSave
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.viewmodel.BackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
@@ -73,10 +73,10 @@ fun Modifier.backgroundGlass(
     color: Color,
     enabled: Boolean = true,
 ): Modifier {
-    if (AllSettings.backgroundBlurType.state == BackgroundBlur.Background) return this
+    if (LauncherSettings.backgroundBlurType.state == BackgroundBlur.Background) return this
     if (!enabled) return this
     val background = LocalBackgroundViewModel.current?.takeIf { it.isValid } ?: return this
-    if (blur <= 0 || AllSettings.launcherBackgroundOpacity.state >= 100) return this
+    if (blur <= 0 || LauncherSettings.launcherBackgroundOpacity.state >= 100) return this
     return this then GlassElement(blur, color, background)
 }
 
@@ -158,7 +158,7 @@ private class GlassNode(
     }
 
     private fun DrawScope.drawGlass() {
-        if (blur <= 0 || AllSettings.launcherBackgroundOpacity.state >= 100) return
+        if (blur <= 0 || LauncherSettings.launcherBackgroundOpacity.state >= 100) return
         val bounds = store.backgroundBounds
         if (bounds.isEmpty || !hasOrigin) return
 
@@ -315,8 +315,8 @@ private class BackgroundCaptureNode(
             captureJob = coroutineScope.launch {
                 snapshotFlow {
                     store.isValid && store.captureLayer != null &&
-                        AllSettings.backgroundBlur.state > 0 &&
-                        AllSettings.launcherBackgroundOpacity.state < 100
+                        LauncherSettings.backgroundBlur.state > 0 &&
+                        LauncherSettings.launcherBackgroundOpacity.state < 100
                 }.collectLatest { active ->
                     if (!active) return@collectLatest
                     while (currentCoroutineContext().isActive) {

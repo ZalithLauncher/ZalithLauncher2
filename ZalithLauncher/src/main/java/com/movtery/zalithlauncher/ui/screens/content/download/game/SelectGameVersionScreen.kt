@@ -74,7 +74,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersions
 import com.movtery.zalithlauncher.game.versioninfo.models.isType
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
@@ -506,7 +506,7 @@ private fun VersionItemLayout(
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
 ) {
     val scale = remember { Animatable(initialValue = 0.95f) }
     LaunchedEffect(Unit) {

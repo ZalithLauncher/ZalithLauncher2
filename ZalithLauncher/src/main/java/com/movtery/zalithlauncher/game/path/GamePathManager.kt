@@ -22,7 +22,7 @@ import android.content.Context
 import com.movtery.zalithlauncher.database.AppDatabase
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings.currentGamePathId
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.utils.canHandlePermission
 import com.movtery.zalithlauncher.utils.hasStoragePermission
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -185,13 +185,13 @@ object GamePathManager {
     }
 
     private fun saveCurrentPathUncheck(id: String, reloadVersions: Boolean) {
-        if (currentGamePathId.getValue() == id) return
-        currentGamePathId.save(id)
+        if (MiscSettings.currentGamePathId.getValue() == id) return
+        MiscSettings.currentGamePathId.save(id)
         refreshCurrentPath(reloadVersions)
     }
 
     private fun refreshCurrentPath(reloadVersions: Boolean) {
-        val id = currentGamePathId.getValue()
+        val id = MiscSettings.currentGamePathId.getValue()
         _gamePathData.value.find { it.id == id }?.let { item ->
             if (_currentPath.value == item.path) return //避免重复刷新
             val path = item.path

@@ -23,7 +23,7 @@ import android.content.pm.ApplicationInfo
 import com.movtery.zalithlauncher.game.plugin.ApkPlugin
 import com.movtery.zalithlauncher.game.plugin.ApkPluginManager
 import com.movtery.zalithlauncher.game.plugin.cacheAppIcon
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
 import java.nio.file.Path
 import java.nio.file.Paths
 
@@ -31,7 +31,7 @@ object NativePluginManager: ApkPluginManager() {
     private val nativePlugins = mutableListOf<NativePlugin>()
 
     private val disabledPlugins: List<String>
-        get() = AllSettings.disableNativeLibPlugins.getValue()
+        get() = GameSettings.disableNativeLibPlugins.getValue()
 
     /**
      * 获取全部已加载的原生库插件

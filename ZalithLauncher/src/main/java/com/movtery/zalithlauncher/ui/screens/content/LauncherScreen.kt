@@ -65,7 +65,6 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
@@ -84,7 +83,7 @@ import com.movtery.zalithlauncher.game.account.getAccountTypeName
 import com.movtery.zalithlauncher.game.account.wardrobe.toArmModel
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.ActionMenuSide
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedDirection
@@ -142,9 +141,9 @@ fun LauncherScreen(
         currentKey = backStackViewModel.mainScreen.currentKey
     ) { isVisible ->
         val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-        val dockedSide = AllSettings.launcherActionMenuSide.state
+        val dockedSide = LauncherSettings.launcherActionMenuSide.state
         val dragState = rememberActionMenuDragState(
-            onCommit = { side -> AllSettings.launcherActionMenuSide.save(side) }
+            onCommit = { side -> LauncherSettings.launcherActionMenuSide.save(side) }
         )
         dragState.dockedSide = dockedSide
         dragState.isRtl = isRtl

@@ -28,7 +28,7 @@ import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.M
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthModCategory
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.modrinthModLoaderFilters
 import com.movtery.zalithlauncher.game.version.mod.InstalledMod
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 
@@ -43,7 +43,7 @@ fun SearchModScreen(
     swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
 ) {
     val initialPlatform = remember {
-        AllSettings.searchModPlatform.getValue()
+        MiscSettings.searchModPlatform.getValue()
     }
     SearchAddonScreen(
         mainScreenKey = mainScreenKey,
@@ -54,7 +54,7 @@ fun SearchModScreen(
         platformClasses = PlatformClasses.MOD,
         initialPlatform = initialPlatform,
         onPlatformChange = {
-            AllSettings.searchModPlatform.save(it)
+            MiscSettings.searchModPlatform.save(it)
             onPlatformChange(it)
         },
         getCategories = { platform ->

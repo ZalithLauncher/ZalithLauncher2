@@ -29,7 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.scene.Scene
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.utils.animation.SwapClock
 import com.movtery.zalithlauncher.utils.animation.SwapTimeline
 import kotlin.reflect.KClass
@@ -111,7 +111,7 @@ fun <E: TitledNavKey> NavBackStack<E>.addIfEmpty(navKey: E) {
 
 @Composable
 fun rememberSwapTween(): FiniteAnimationSpec<Float> {
-    val level = AllSettings.launcherAnimateSpeedLevel.state
+    val level = LauncherSettings.launcherAnimateSpeedLevel.state
     return remember(level) {
         tween(durationMillis = SwapTimeline.time(SwapTimeline.CONTENT_BASE))
     }
@@ -122,7 +122,7 @@ fun rememberSwapTween(): FiniteAnimationSpec<Float> {
  */
 @Composable
 fun <T : Any> rememberTransitionSpec(): AnimatedContentTransitionScope<Scene<T>>.() -> ContentTransform {
-    val level = AllSettings.launcherAnimateSpeedLevel.state
+    val level = LauncherSettings.launcherAnimateSpeedLevel.state
     return remember(level) {
         val transform: AnimatedContentTransitionScope<Scene<T>>.() -> ContentTransform = {
             val window = SwapClock.record(initialState, targetState)

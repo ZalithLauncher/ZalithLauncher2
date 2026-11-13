@@ -18,7 +18,7 @@
 
 package com.movtery.zalithlauncher.utils.animation
 
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 
 /**
  * 页面切换的串行时间轴
@@ -60,13 +60,13 @@ object SwapTimeline {
     /**
      * @return 页面切换动画是否关闭
      */
-    fun isSwapClosed(): Boolean = !AllSettings.launcherSwapAnimEnabled.state
+    fun isSwapClosed(): Boolean = !LauncherSettings.launcherSwapAnimEnabled.state
 
     /**
      * @return 速度倍率
      */
     fun speedScale(): Float {
-        return (AllSettings.launcherAnimateSpeedLevel.state / 10f).coerceIn(0.1f, 3f)
+        return (LauncherSettings.launcherAnimateSpeedLevel.state / 10f).coerceIn(0.1f, 3f)
     }
 
     /**

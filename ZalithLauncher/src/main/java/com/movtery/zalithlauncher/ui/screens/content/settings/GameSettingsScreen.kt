@@ -43,7 +43,7 @@ import com.movtery.zalithlauncher.game.plugin.natives.NativePlugin
 import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
 import com.movtery.zalithlauncher.path.URL_CLOUD_NATIVE_LIB_PLUGINS
 import com.movtery.zalithlauncher.path.URL_GITHUB_NATIVE_LIB_PLUGINS
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.setting.unit.min
 import com.movtery.zalithlauncher.ui.base.BaseScreen
@@ -93,7 +93,7 @@ fun GameSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
-                        unit = AllSettings.versionIsolation,
+                        unit = GameSettings.versionIsolation,
                         title = stringResource(R.string.settings_game_version_isolation_title),
                         summary = stringResource(R.string.settings_game_version_isolation_summary)
                     )
@@ -101,7 +101,7 @@ fun GameSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.skipGameIntegrityCheck,
+                        unit = GameSettings.skipGameIntegrityCheck,
                         title = stringResource(R.string.settings_game_skip_game_integrity_check_title),
                         summary = stringResource(R.string.settings_game_skip_game_integrity_check_summary)
                     )
@@ -109,7 +109,7 @@ fun GameSettingsScreen(
                     TextInputSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.versionCustomInfo,
+                        unit = GameSettings.versionCustomInfo,
                         title = stringResource(R.string.settings_game_version_custom_info_title),
                         summary = stringResource(R.string.settings_game_version_custom_info_summary)
                     )
@@ -128,7 +128,7 @@ fun GameSettingsScreen(
                         ListSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Top,
-                            unit = AllSettings.javaRuntime,
+                            unit = GameSettings.javaRuntime,
                             items = RuntimesManager.getRuntimes().filter { it.isCompatible() },
                             title = stringResource(R.string.settings_game_java_runtime_title),
                             summary = stringResource(R.string.settings_game_java_runtime_summary),
@@ -140,7 +140,7 @@ fun GameSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = if (runtimes.isNotEmpty()) CardPosition.Middle else CardPosition.Top,
-                        unit = AllSettings.autoPickJavaRuntime,
+                        unit = GameSettings.autoPickJavaRuntime,
                         title = stringResource(R.string.settings_game_auto_pick_java_runtime_title),
                         summary = stringResource(R.string.settings_game_auto_pick_java_runtime_summary)
                     )
@@ -174,7 +174,7 @@ fun GameSettingsScreen(
                         StringListSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Middle,
-                            unit = AllSettings.disableNativeLibPlugins,
+                            unit = GameSettings.disableNativeLibPlugins,
                             items = nativePlugins,
                             onItemsChange = { value, item ->
                                 if (value) {
@@ -211,10 +211,10 @@ fun GameSettingsScreen(
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.ramAllocation,
+                        unit = GameSettings.ramAllocation,
                         title = stringResource(R.string.settings_game_java_memory_title),
                         summary = stringResource(R.string.settings_game_java_memory_summary),
-                        valueRange = AllSettings.ramAllocation.floatRange.start..getMaxMemoryForSettings(LocalContext.current).toFloat(),
+                        valueRange = GameSettings.ramAllocation.floatRange.start..getMaxMemoryForSettings(LocalContext.current).toFloat(),
                         suffix = "MB",
                         fineTuningControl = true,
                         previewContent = {
@@ -222,7 +222,7 @@ fun GameSettingsScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(start = 2.dp),
-                                preview = (AllSettings.ramAllocation.state ?: AllSettings.ramAllocation.min).toDouble(),
+                                preview = (GameSettings.ramAllocation.state ?: GameSettings.ramAllocation.min).toDouble(),
                                 usedText = { usedMemory, totalMemory ->
                                     stringResource(R.string.settings_game_java_memory_used_text, usedMemory.toInt(), totalMemory.toInt())
                                 },
@@ -236,7 +236,7 @@ fun GameSettingsScreen(
                     TextInputSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.jvmArgs,
+                        unit = GameSettings.jvmArgs,
                         title = stringResource(R.string.settings_game_jvm_args_title),
                         summary = stringResource(R.string.settings_game_jvm_args_summary)
                     )
@@ -252,7 +252,7 @@ fun GameSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
-                        unit = AllSettings.showLogAutomatic,
+                        unit = GameSettings.showLogAutomatic,
                         title = stringResource(R.string.settings_game_show_log_automatic_title),
                         summary = stringResource(R.string.settings_game_show_log_automatic_summary)
                     )
@@ -260,10 +260,10 @@ fun GameSettingsScreen(
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.logTextSize,
+                        unit = GameSettings.logTextSize,
                         title = stringResource(R.string.settings_game_log_text_size_title),
                         summary = stringResource(R.string.settings_game_log_text_size_summary),
-                        valueRange = AllSettings.logTextSize.floatRange,
+                        valueRange = GameSettings.logTextSize.floatRange,
                         suffix = "Sp",
                         fineTuningControl = true
                     )
@@ -271,10 +271,10 @@ fun GameSettingsScreen(
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.logBufferFlushInterval,
+                        unit = GameSettings.logBufferFlushInterval,
                         title = stringResource(R.string.settings_game_log_buffer_flush_interval_title),
                         summary = stringResource(R.string.settings_game_log_buffer_flush_interval_summary),
-                        valueRange = AllSettings.logBufferFlushInterval.floatRange,
+                        valueRange = GameSettings.logBufferFlushInterval.floatRange,
                         suffix = "ms",
                         fineTuningControl = true
                     )
@@ -304,14 +304,23 @@ private fun NativePluginSummaryLayout(plugin: NativePlugin) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                Text(text = stringResource(R.string.renderer_version_support), style = MaterialTheme.typography.labelSmall)
+                Text(
+                    text = stringResource(R.string.renderer_version_support),
+                    style = MaterialTheme.typography.labelSmall
+                )
 
                 minVer?.let {
-                    Text(text = ">= $it", style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        text = ">= $it",
+                        style = MaterialTheme.typography.labelSmall
+                    )
                 }
 
                 maxVer?.let {
-                    Text(text = "<= $it", style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        text = "<= $it",
+                        style = MaterialTheme.typography.labelSmall
+                    )
                 }
             }
         }

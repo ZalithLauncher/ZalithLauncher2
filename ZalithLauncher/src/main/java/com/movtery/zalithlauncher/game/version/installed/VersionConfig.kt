@@ -24,7 +24,8 @@ import androidx.annotation.Keep
 import com.google.gson.annotations.SerializedName
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.support.touch_controller.VibrationHandler
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 import com.movtery.zalithlauncher.utils.GSON
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.getStringNotNull
@@ -224,13 +225,13 @@ class VersionConfig(
         this.versionPath = versionPath
     }
 
-    fun isIsolation(): Boolean = isolationType.toBoolean(AllSettings.versionIsolation.getValue())
+    fun isIsolation(): Boolean = isolationType.toBoolean(GameSettings.versionIsolation.getValue())
 
-    fun skipGameIntegrityCheck(): Boolean = skipGameIntegrityCheck.toBoolean(AllSettings.skipGameIntegrityCheck.getValue())
+    fun skipGameIntegrityCheck(): Boolean = skipGameIntegrityCheck.toBoolean(GameSettings.skipGameIntegrityCheck.getValue())
 
-    fun isSfpewPluginLayerEnabled(): Boolean = sfpewPluginLayer.toBoolean(AllSettings.sfpewPluginLayer.getValue())
+    fun isSfpewPluginLayerEnabled(): Boolean = sfpewPluginLayer.toBoolean(RendererSettings.sfpewPluginLayer.getValue())
 
-    fun isSfpewRelaxedContextEnabled(): Boolean = sfpewRelaxedContext.toBoolean(AllSettings.sfpewRelaxedContext.getValue())
+    fun isSfpewRelaxedContextEnabled(): Boolean = sfpewRelaxedContext.toBoolean(RendererSettings.sfpewRelaxedContext.getValue())
 
     private fun SettingState.toBoolean(global: Boolean) = when(getSettingStateNotNull(this)) {
         SettingState.FOLLOW_GLOBAL -> global

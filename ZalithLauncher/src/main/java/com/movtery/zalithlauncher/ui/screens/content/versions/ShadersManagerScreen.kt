@@ -84,6 +84,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
@@ -134,10 +135,6 @@ private class ShadersManageViewModel(
     var allShaders by mutableStateOf<List<ShaderPackInfo>>(emptyList())
         private set
     var filteredShaders by mutableStateOf<List<ShaderPackInfo>?>(null)
-        private set
-    var sortByEnum by mutableStateOf(SortByEnum.FileName)
-        private set
-    var isAscending by mutableStateOf(true)
         private set
 
     var shadersState by mutableStateOf<LoadingState>(LoadingState.None)
@@ -224,12 +221,13 @@ private class ShadersManageViewModel(
     }
 
     fun updateSortBy(sortByEnum: SortByEnum) {
-        this.sortByEnum = sortByEnum
+        MiscSettings.shadersSortBy.save(sortByEnum)
         filterShaders()
     }
 
     fun updateSortOrder() {
-        this.isAscending = !this.isAscending
+        val ascending = MiscSettings.shadersSortAscending
+        ascending.save(!ascending.state)
         filterShaders()
     }
 
@@ -242,6 +240,8 @@ private class ShadersManageViewModel(
     private fun filterShaders() {
         filterJob?.cancel()
         filterJob = viewModelScope.launch(Dispatchers.Default) {
+            val sortByEnum = MiscSettings.shadersSortBy.state
+            val isAscending = MiscSettings.shadersSortAscending.state
             val result = allShaders
                 .takeIf { it.isNotEmpty() }
                 ?.filterShaders(nameFilter)
@@ -355,9 +355,9 @@ fun ShadersManagerScreen(
                     nameFilter = viewModel.nameFilter,
                     onNameFilterChange = { viewModel.updateFilter(it) },
                     supportedSortByEnums = viewModel.supportedSortByEnums,
-                    sortByEnum = viewModel.sortByEnum,
+                    sortByEnum = MiscSettings.shadersSortBy.state,
                     onSortByChanged = { viewModel.updateSortBy(it) },
-                    isAscending = viewModel.isAscending,
+                    isAscending = MiscSettings.shadersSortAscending.state,
                     onToggleSortOrder = { viewModel.updateSortOrder() },
                     shadersDir = shadersDir,
                     onDeleteAll = {

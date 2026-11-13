@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.setting
 
 import com.movtery.zalithlauncher.game.download.addon.platform.Platform
 import com.movtery.zalithlauncher.game.path.GamePathManager
+import com.movtery.zalithlauncher.ui.screens.content.elements.SortByEnum
 
 object MiscSettings : SettingsRegistry() {
     /**
@@ -76,4 +77,54 @@ object MiscSettings : SettingsRegistry() {
      * 搜索光影的初始搜索平台
      */
     val searchShadersPlatform = enumSetting("searchShadersPlatform", Platform.CURSEFORGE)
+
+    /**
+     * 模组管理屏幕的排序方式
+     */
+    val modsSortBy = enumSetting("modsSortBy", SortByEnum.FileName)
+
+    /**
+     * 模组管理屏幕是否升序排列
+     */
+    val modsSortAscending = boolSetting("modsSortAscending", true)
+
+    /**
+     * 存档管理屏幕的排序方式
+     */
+    val savesSortBy = enumSetting("savesSortBy", SortByEnum.Name)
+
+    /**
+     * 存档管理屏幕是否升序排列
+     */
+    val savesSortAscending = boolSetting("savesSortAscending", true)
+
+    /**
+     * 资源包管理屏幕的排序方式
+     */
+    val resourcePackSortBy = enumSetting("resourcePackSortBy", SortByEnum.Name)
+
+    /**
+     * 资源包管理屏幕是否升序排列
+     */
+    val resourcePackSortAscending = boolSetting("resourcePackSortAscending", true)
+
+    /**
+     * 光影包管理屏幕的排序方式
+     */
+    val shadersSortBy = enumSetting("shadersSortBy", SortByEnum.FileName)
+
+    /**
+     * 光影包管理屏幕是否升序排列
+     */
+    val shadersSortAscending = boolSetting("shadersSortAscending", true)
+
+    /**
+     * 截图管理屏幕的排序方式
+     */
+    val screenshotsSortBy = enumSetting("screenshotsSortBy", SortByEnum.Name)
+
+    /**
+     * 截图管理屏幕是否升序排列
+     */
+    val screenshotsSortAscending = boolSetting("screenshotsSortAscending", false)
 }

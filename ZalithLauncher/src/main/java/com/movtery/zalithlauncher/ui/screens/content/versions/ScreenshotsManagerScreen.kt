@@ -93,6 +93,7 @@ import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
@@ -166,10 +167,6 @@ class ScreenshotsManageViewModel @Inject constructor(
     var allScreenshots by mutableStateOf<List<ScreenshotInfo>>(emptyList())
         private set
     var filteredScreenshots by mutableStateOf<List<ScreenshotInfo>?>(null)
-        private set
-    var sortByEnum by mutableStateOf(SortByEnum.Name)
-        private set
-    var isAscending by mutableStateOf(false)
         private set
     var listState by mutableStateOf<LoadingState>(LoadingState.None)
         private set
@@ -369,12 +366,13 @@ class ScreenshotsManageViewModel @Inject constructor(
     }
 
     fun updateSortBy(sortByEnum: SortByEnum) {
-        this.sortByEnum = sortByEnum
+        MiscSettings.screenshotsSortBy.save(sortByEnum)
         applyFilterAndSort()
     }
 
     fun updateSortOrder() {
-        this.isAscending = !this.isAscending
+        val ascending = MiscSettings.screenshotsSortAscending
+        ascending.save(!ascending.state)
         applyFilterAndSort()
     }
 
@@ -387,6 +385,8 @@ class ScreenshotsManageViewModel @Inject constructor(
     private fun applyFilterAndSort() {
         filterJob?.cancel()
         filterJob = viewModelScope.launch(Dispatchers.Default) {
+            val sortByEnum = MiscSettings.screenshotsSortBy.state
+            val isAscending = MiscSettings.screenshotsSortAscending.state
             val result = allScreenshots
                 .takeIf { it.isNotEmpty() }
                 ?.filter { info ->
@@ -493,9 +493,9 @@ fun ScreenshotsManagerScreen(
                         filter = viewModel.filter,
                         changeFilter = { viewModel.updateFilter(it) },
                         supportedSortByEnums = viewModel.supportedSortByEnums,
-                        sortByEnum = viewModel.sortByEnum,
+                        sortByEnum = MiscSettings.screenshotsSortBy.state,
                         onSortByChanged = { viewModel.updateSortBy(it) },
-                        isAscending = viewModel.isAscending,
+                        isAscending = MiscSettings.screenshotsSortAscending.state,
                         onToggleSortOrder = { viewModel.updateSortOrder() },
                         onDeleteAll = { viewModel.requestDeleteSelected() },
                         isFilesSelected = viewModel.selectedShots.isNotEmpty(),

@@ -113,6 +113,7 @@ import com.movtery.zalithlauncher.game.version.mod.update.ModManifest
 import com.movtery.zalithlauncher.game.version.mod.update.ModUpdater
 import com.movtery.zalithlauncher.game.version.mod.update.SelectableModManifest
 import com.movtery.zalithlauncher.game.version.mod.update.toSelectableList
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
@@ -184,10 +185,6 @@ private class ModsManageViewModel(
     var nameFilter by mutableStateOf("")
         private set
     var stateFilter by mutableStateOf(ModStateFilter.All)
-        private set
-    var sortByEnum by mutableStateOf(SortByEnum.FileName)
-        private set
-    var isAscending by mutableStateOf(true)
         private set
 
     var allMods by mutableStateOf<List<RemoteMod>>(emptyList())
@@ -303,12 +300,13 @@ private class ModsManageViewModel(
     }
 
     fun updateSortBy(sortByEnum: SortByEnum, context: Context? = null) {
-        this.sortByEnum = sortByEnum
+        MiscSettings.modsSortBy.save(sortByEnum)
         filterMods(context)
     }
 
     fun updateSortOrder(context: Context? = null) {
-        this.isAscending = !this.isAscending
+        val ascending = MiscSettings.modsSortAscending
+        ascending.save(!ascending.state)
         filterMods(context)
     }
 
@@ -336,7 +334,7 @@ private class ModsManageViewModel(
                         )
                     }
                     entries
-                        .sortedWith(compareBy(modsComparator(sortByEnum, isAscending)) { it.second })
+                        .sortedWith(compareBy(modsComparator(MiscSettings.modsSortBy.state, MiscSettings.modsSortAscending.state)) { it.second })
                         .map { (mod, _) -> mod }
                 }
             if (!isActive) return@launch
@@ -711,9 +709,9 @@ fun ModsManagerScreen(
                     enabledModsCount = viewModel.enabledCount.takeIf { it >= 0 },
                     disabledModsCount = viewModel.disabledCount.takeIf { it >= 0 },
                     supportedSortByEnums = viewModel.supportedSortByEnums,
-                    sortByEnum = viewModel.sortByEnum,
+                    sortByEnum = MiscSettings.modsSortBy.state,
                     onSortByChanged = { viewModel.updateSortBy(it, context) },
-                    isAscending = viewModel.isAscending,
+                    isAscending = MiscSettings.modsSortAscending.state,
                     onToggleSortOrder = { viewModel.updateSortOrder(context) },
                     hasModLoader = hasModLoader,
                     onUpdateMods = {

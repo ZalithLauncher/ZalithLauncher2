@@ -98,6 +98,12 @@
     <string name="splash_screen_unpack_desc">Il launcher deve installare questi file per garantire il corretto funzionamento di Minecraft. Sono inclusi nell\'app e devono essere estratti prima. Clicca sul pulsante qui sotto per avviare l\'estrazione e l\'aggiornamento.</string>
     <string name="splash_screen_installing">Il launcher sta estraendo questi file. Quando finito, si avvierà automaticamente la schermata principale. Si prega di attendere pazientemente.</string>
     <string name="splash_screen_agree">Installa</string>
+    <string name="splash_arch_mismatch_title">Sembra che tu abbia installato la versione sbagliata!</string>
+    <string name="splash_arch_mismatch_package_arch">Architettura di build del launcher installato: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Architettura del tuo dispositivo: %s</string>
+    <string name="splash_arch_mismatch_desc1">I runtime inclusi nell\'APK non corrispondono al tuo dispositivo e non possono essere usati per avviare il gioco.</string>
+    <string name="splash_arch_mismatch_desc2">Scarica l\'APK per dispositivi %s dal canale ufficiale e installalo sopra quello esistente.</string>
+    <string name="splash_arch_mismatch_footer">Le informazioni sull\'architettura provengono dalla configurazione di build dell\'APK e dal sistema, sono solo un riferimento.</string>
     <string name="notification_title">Controlla Permesso di Notifiche</string>
     <string name="notification_request">Richiedi Permesso</string>
     <string name="notification_data_jvm_service_message">Per garantire un\'installazione fluida, il launcher deve eseguire il programma di installazione in primo piano. Cercheremo di avviare un servizio in primo piano per mantenere la stabilità, ma questo richiede autorizzazioni di notifica. Potresti abilitare le autorizzazioni di notifica? Questo aiuterà a prevenire interruzioni dell\'installazione!</string>

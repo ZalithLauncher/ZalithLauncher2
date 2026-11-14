@@ -148,4 +148,10 @@
     <string name="guide_joystick_events_events_text1">قوزغىتىلىدىغان ھادىسىلەر ئادەتتىكى توپچىلار بىلەن ئوخشاش، ئەركىنلىكى يۇقىرى</string>
     <string name="guide_joystick_events_events_text2">پەقەت ئويۇننى كونترول قىلماقچى بولسىڭىز، «كۇنۇپكا» بۆلىكىدىكى ئەمەلىي كۇنۇپكا باغلىنىشىنى تەھرىرلىسىڭىزلا بولىدۇ</string>
     <string name="about_acknowledgements_modrinth_text">%s Modrinthدىن ئويۇنچى مودېلى ھەرىكەت ئۈلگىلىرىنى كۆچۈرۈپ ئىشلەتكەن</string>
+    <string name="splash_arch_mismatch_title">خاتا نەشرىنى قاچىلىغاندەك قىلىسىز!</string>
+    <string name="splash_arch_mismatch_package_arch">قاچىلانغان قوزغاتقۇچنىڭ بىنا قىلىش ئارخىتېكتورىسى: %s</string>
+    <string name="splash_arch_mismatch_device_arch">ئۈسكۈنىڭىزنىڭ ئارخىتېكتورىسى: %s</string>
+    <string name="splash_arch_mismatch_desc1">APK ئىچىدىكى ئىجرا مۇھىتلىرى ئۈسكۈنىڭىزگە ماس كەلمەيدۇ، ئويۇننى قوزغىتىشقا ئىشلەتكىلى بولمايدۇ.</string>
+    <string name="splash_arch_mismatch_desc2">رەسمىي يولدىن %s ئۈسكۈنىسى ئۈچۈن APK چۈشۈرۈپ، ئەسلىدىكىنىڭ ئۈستىگە قاچىلاڭ.</string>
+    <string name="splash_arch_mismatch_footer">ئارخىتېكتورا ئۇچۇرى APK بىنا قىلىش سەپلىمىسى ۋە سىستېما نەتىجىسىدىن كېلىدۇ، پەقەت پايدىلىنىشقا.</string>
 </resources>

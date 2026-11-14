@@ -34,6 +34,12 @@
     <string name="crash_restart">Reiniciar</string>
     <string name="crash_exit">Sair</string>
     <string name="splash_screen_agree">Instalar</string>
+    <string name="splash_arch_mismatch_title">Parece que instalou a versão errada!</string>
+    <string name="splash_arch_mismatch_package_arch">Arquitetura de compilação do launcher instalado: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Arquitetura do seu dispositivo: %s</string>
+    <string name="splash_arch_mismatch_desc1">Os runtimes incluídos no APK não correspondem ao seu dispositivo e não podem ser usados para iniciar o jogo.</string>
+    <string name="splash_arch_mismatch_desc2">Transfira o APK para dispositivos %s no canal oficial e instale-o sobre o existente.</string>
+    <string name="splash_arch_mismatch_footer">As informações de arquitetura vêm da configuração de compilação do APK e do sistema, apenas para referência.</string>
     <string name="main_launch_game">Iniciar</string>
     <string name="download_category_game">Jogo</string>
     <string name="download_category_modpack">Modpack</string>

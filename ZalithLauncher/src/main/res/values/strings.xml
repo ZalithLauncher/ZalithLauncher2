@@ -248,6 +248,18 @@
     <string name="splash_screen_installing">The launcher is extracting these files. Once done, it will automatically enter the main screen. Please wait patiently.</string>
     <!-- Button on the first run screen to start extracting and installing -->
     <string name="splash_screen_agree">Install</string>
+    <!-- Title on the architecture mismatch screen shown when the APK arch does not match the device -->
+    <string name="splash_arch_mismatch_title">It seems you have installed the wrong version!</string>
+    <!-- Text on the architecture mismatch screen showing the build architecture of the installed APK -->
+    <string name="splash_arch_mismatch_package_arch">The installed launcher is built for: %s</string>
+    <!-- Text on the architecture mismatch screen showing the device architecture -->
+    <string name="splash_arch_mismatch_device_arch">Your device architecture: %s</string>
+    <!-- Text on the architecture mismatch screen: bundled runtimes cannot launch the game -->
+    <string name="splash_arch_mismatch_desc1">The runtimes bundled in the APK do not match your device and cannot be used to launch the game.</string>
+    <!-- Text on the architecture mismatch screen telling users to download the matching APK -->
+    <string name="splash_arch_mismatch_desc2">Please download the APK for %s devices from the official channel and install it over the existing one.</string>
+    <!-- Footer note on the architecture mismatch screen about the source of the arch info -->
+    <string name="splash_arch_mismatch_footer">Architecture info comes from the APK build configuration and the system result, for reference only.</string>
     <!-- Title of the dialog asking the user to grant notification permission -->
     <string name="notification_title">Check Notification Permission</string>
     <!-- Confirm button in the notification permission dialog -->

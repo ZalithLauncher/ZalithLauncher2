@@ -74,6 +74,12 @@
     <string name="splash_screen_unpack_desc">Лаунчеру необходимо установить эти файлы для корректной работы Minecraft. Они включены в приложение и должны быть распакованы перед использованием. Нажмите кнопку ниже, чтобы начать распаковку и обновление.</string>
     <string name="splash_screen_installing">Лаунчер распаковывает файлы. После завершения вы автоматически перейдёте на главный экран. Пожалуйста, подождите.</string>
     <string name="splash_screen_agree">Установить</string>
+    <string name="splash_arch_mismatch_title">Похоже, вы установили неправильную версию!</string>
+    <string name="splash_arch_mismatch_package_arch">Архитектура сборки установленного лаунчера: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Архитектура вашего устройства: %s</string>
+    <string name="splash_arch_mismatch_desc1">Среды выполнения в APK не соответствуют вашему устройству и не могут быть использованы для запуска игры.</string>
+    <string name="splash_arch_mismatch_desc2">Скачайте APK для устройств %s из официального источника и установите его поверх существующего.</string>
+    <string name="splash_arch_mismatch_footer">Информация об архитектуре получена из конфигурации сборки APK и от системы, носит справочный характер.</string>
     <!-- Notification -->
     <string name="notification_title">Проверка разрешений на уведомления</string>
     <string name="notification_request">Запросить разрешение</string>

@@ -217,6 +217,12 @@
     <string name="splash_screen_unpack_desc">รันเชอร์ต้องการติดตั้งไฟล์เหล่านีัเพื่อให้มันใจว่าminecraftทำงานได้ปกติ. ไฟล์เหล่านั้น</string>
     <string name="splash_screen_installing">ตัวรันเซอร์จำเป็นต้องติดตั้งไฟล์เหล่านี้เพื่อให้แน่ใจว่า Minecraft จะทำงานได้อย่างถูกต้อง ไฟล์เหล่านี้ถูกรวมอยู่ในแอปแล้วและต้องทำการแตกไฟล์ก่อน คลิกที่ปุ่มด้านล่างเพื่อเริ่มการแตกไฟล์และอัปเดต</string>
     <string name="splash_screen_agree">ติดตั้ง</string>
+    <string name="splash_arch_mismatch_title">ดูเหมือนว่าคุณติดตั้งเวอร์ชันที่ผิด!</string>
+    <string name="splash_arch_mismatch_package_arch">สถาปัตยกรรมบิลด์ของตัวรันเซอร์ที่ติดตั้ง: %s</string>
+    <string name="splash_arch_mismatch_device_arch">สถาปัตยกรรมของอุปกรณ์ของคุณ: %s</string>
+    <string name="splash_arch_mismatch_desc1">รันไทม์ใน APK ไม่ตรงกับอุปกรณ์ของคุณและไม่สามารถใช้เปิดเกมได้</string>
+    <string name="splash_arch_mismatch_desc2">โปรดดาวน์โหลด APK สำหรับอุปกรณ์ %s จากช่องทางทางการแล้วติดตั้งทับเวอร์ชันเดิม</string>
+    <string name="splash_arch_mismatch_footer">ข้อมูลสถาปัตยกรรมมาจากการกำหนดค่าบิลด์ของ APK และผลลัพธ์จากระบบ ใช้เพื่ออ้างอิงเท่านั้น</string>
     <string name="notification_title">ตรวจสอบการอนุญาตแจ้งเตือน</string>
     <string name="notification_request">เรียกร้องคำขอ</string>
     <string name="notification_data_jvm_service_message">เพื่อให้การติดตั้งเป็นไปอย่างราบรื่น ตัวเรียกเกมจำเป็นต้องทำงานในเบื้องหน้า เราจะพยายามเปิดใช้บริการเบื้องหน้าเพื่อความเสถียร แต่จำเป็นต้องขออนุญาตการแจ้งเตือนจากคุณ โปรดช่วยเปิดการอนุญาตการแจ้งเตือนเพื่อป้องกันไม่ให้การติดตั้งหยุดชะงักครับ</string>

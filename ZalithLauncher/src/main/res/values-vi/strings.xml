@@ -80,6 +80,12 @@
     <string name="splash_screen_unpack_desc">Trình khởi chạy cần giải nén mấy thứ này thì Minecraft mới chạy được. Chúng đã có sẵn trong ứng dụng, cần giải phóng ra. Bấm nút bên dưới để tiến hành và cập nhật.</string>
     <string name="splash_screen_installing">Trình khởi chạy đang giải nén, xong sẽ tự vào màn hình chính. Chờ tí nhé.</string>
     <string name="splash_screen_agree">Cài đặt</string>
+    <string name="splash_arch_mismatch_title">Có vẻ bạn đã cài đặt sai phiên bản!</string>
+    <string name="splash_arch_mismatch_package_arch">Kiến trúc bản dựng của trình khởi chạy đã cài đặt: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Kiến trúc thiết bị của bạn: %s</string>
+    <string name="splash_arch_mismatch_desc1">Các runtime đi kèm trong APK không khớp với thiết bị của bạn và không thể dùng để khởi chạy trò chơi.</string>
+    <string name="splash_arch_mismatch_desc2">Vui lòng tải APK cho thiết bị %s từ kênh chính thức và cài đặt đè lên bản hiện có.</string>
+    <string name="splash_arch_mismatch_footer">Thông tin kiến trúc đến từ cấu hình bản dựng của APK và kết quả từ hệ thống, chỉ mang tính tham khảo.</string>
     <string name="notification_title">Kiểm tra quyền gửi thông báo</string>
     <string name="notification_request">Yêu cầu cấp quyền</string>
     <string name="notification_data_jvm_service_message">Để cài đặt mượt, launcher cần chạy ngầm. Bọn mình sẽ thử chạy dịch vụ nền để ổn định, nhưng cần quyền thông báo. Giúp tí nha, kẻo cài bị gián đoạn!</string>

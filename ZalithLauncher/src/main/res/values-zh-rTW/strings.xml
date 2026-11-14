@@ -813,7 +813,6 @@
     <string name="minecraft_download_failed_notfound">部分依賴檔案無法下載，如果多次嘗試仍失敗，可能是遊戲缺少必要的函式庫檔案，建議重新安裝遊戲。</string>
     <!--  設定  -->
     <string name="settings_title_blur">模糊效果</string>
-    <string name="settings_element_selected">目前選擇：%s</string>
     <string name="settings_label_ignore_if_blank">留白則忽略此設定</string>
     <string name="settings_tab_renderer">渲染設定</string>
     <string name="settings_tab_game">遊戲設定</string>

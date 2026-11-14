@@ -76,6 +76,7 @@ import com.movtery.zalithlauncher.game.addons.modloader.optifine.OptiFineVersion
 import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.influencedByBackgroundColor
 import com.movtery.zalithlauncher.ui.components.rememberMaxHeight
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
@@ -325,20 +326,33 @@ private fun <E> AddonListHeader(
         when(state) {
             is AddonState.None -> {
                 Column(modifier = Modifier.weight(1f)) {
-                    val summary: String = when {
-                        error != null -> error
-                        incompatibleSet.isNotEmpty() -> {
-                            stringResource(R.string.download_game_addon_incompatible_with, incompatibleSet.joinToString(", ") { it.displayName })
+                    if (error == null && incompatibleSet.isEmpty() && !items.isNullOrEmpty() && selectedItem != null) {
+                        //已经选择了对应的 Addon 版本
+                        AddonTextLayout(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = title,
+                            summary = {
+                                LittleTextLabel(
+                                    text = getItemText(selectedItem),
+                                    textStyle = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                        )
+                    } else {
+                        val summary: String = when {
+                            error != null -> error
+                            incompatibleSet.isNotEmpty() -> {
+                                stringResource(R.string.download_game_addon_incompatible_with, incompatibleSet.joinToString(", ") { it.displayName })
+                            }
+                            items.isNullOrEmpty() -> stringResource(R.string.download_game_addon_unavailable)
+                            else -> stringResource(R.string.download_game_addon_available)
                         }
-                        items.isNullOrEmpty() -> stringResource(R.string.download_game_addon_unavailable)
-                        selectedItem == null -> stringResource(R.string.download_game_addon_available)
-                        else -> stringResource(R.string.settings_element_selected, getItemText(selectedItem))
+                        AddonTextLayout(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = title,
+                            summary = summary,
+                        )
                     }
-                    AddonTextLayout(
-                        modifier = Modifier.fillMaxWidth(),
-                        title = title,
-                        summary = summary,
-                    )
                 }
                 if (!items.isNullOrEmpty() && incompatibleSet.isEmpty() && error == null) {
                     val rotation by animateFloatAsState(

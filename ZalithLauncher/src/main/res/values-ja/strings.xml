@@ -369,7 +369,6 @@
     <string name="settings_renderer_global_renderer_summary">グローバルデフォルトレンダラーはモバイルでも快適に動作するために動的ライブラリ変換レイヤーを利用しています</string>
     <string name="settings_renderer_global_vulkan_driver_title">Vulkan ドライバー</string>
     <string name="settings_renderer_from_plugins">%s プラグインから</string>
-    <string name="settings_element_selected">現在の選択: %s</string>
     <string name="minecraft_download_downloading_game_files">ファイルをダウンロード \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_verifying_and_repairing_files">ファイルを検証 \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="resource_pack_manage_formats">フォーマットのバージョン: %s</string>

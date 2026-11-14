@@ -36,7 +36,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,6 +56,7 @@ import com.movtery.zalithlauncher.setting.unit.EnumSettingUnit
 import com.movtery.zalithlauncher.setting.unit.StringListSettingUnit
 import com.movtery.zalithlauncher.setting.unit.StringSettingUnit
 import com.movtery.zalithlauncher.ui.components.IDItem
+import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.SimpleListItem
 import com.movtery.zalithlauncher.ui.components.TitleAndSummary
 import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
@@ -228,10 +228,9 @@ fun <E> ListSettingsCard(
         innerShape = innerShape,
         summary = summary,
         middleLayout = {
-            Text(
-                modifier = Modifier.alpha(0.7f),
-                text = stringResource(R.string.settings_element_selected, getItemText(selectedItem)),
-                style = MaterialTheme.typography.labelSmall
+            LittleTextLabel(
+                text = getItemText(selectedItem),
+                textStyle = MaterialTheme.typography.labelSmall,
             )
         },
         trailingIcon = trailingIcon,

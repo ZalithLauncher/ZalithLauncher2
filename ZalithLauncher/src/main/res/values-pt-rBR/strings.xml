@@ -705,7 +705,6 @@
     <string name="minecraft_download_verifying_and_repairing_files">Verificando arquivos.\n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">Ocorreu um erro ao baixar o Minecraft</string>
     <string name="minecraft_download_failed_notfound">Alguns arquivos de dependência não puderam ser baixados. Se o problema persistir após várias tentativas, o jogo pode estar sem as bibliotecas necessárias. Recomendamos reinstalar o jogo.</string>
-    <string name="settings_element_selected">Selecionado: %s</string>
     <string name="settings_label_ignore_if_blank">Deixe em branco para ignorar</string>
     <string name="settings_tab_renderer">Renderizador</string>
     <string name="settings_tab_game">Jogo</string>

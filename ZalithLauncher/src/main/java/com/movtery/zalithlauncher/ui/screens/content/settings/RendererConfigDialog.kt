@@ -82,6 +82,7 @@ import com.movtery.zalithlauncher.game.renderer.config.TextEntry
 import com.movtery.zalithlauncher.game.renderer.config.VersionRendererConfigStore
 import com.movtery.zalithlauncher.ui.components.DefaultSwitch
 import com.movtery.zalithlauncher.ui.components.ImePanContainer
+import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
@@ -346,13 +347,10 @@ private fun ChoiceConfigItem(state: ConfigEntryState, position: CardPosition) {
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 EntryHeader(state)
-                Text(
-                    modifier = Modifier.alpha(if (enabled) 0.7f else 0.38f),
-                    text = stringResource(
-                        R.string.settings_element_selected,
-                        selected?.label?.resolve() ?: state.value.asString()
-                    ),
-                    style = MaterialTheme.typography.labelSmall
+                LittleTextLabel(
+                    modifier = Modifier.alpha(if (enabled) 1f else 0.38f),
+                    text = selected?.label?.resolve() ?: state.value.asString(),
+                    textStyle = MaterialTheme.typography.labelSmall,
                 )
             }
 

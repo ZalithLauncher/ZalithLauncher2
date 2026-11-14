@@ -492,7 +492,10 @@ private fun ActionMenuCardContent(
     ConstraintLayout(
         modifier = Modifier
             .actionMenuDragAnchor()
-            .guideNode(GuideKeys.Main.Step.CardDrag)
+            .guideNode(
+                key = GuideKeys.Main.Step.CardDrag,
+                holeShape = MaterialTheme.shapes.extraLarge,
+            )
             .then(modifier)
     ) {
         val (versionLayout, petModel) = createRefs()
@@ -519,14 +522,16 @@ private fun ActionMenuCardContent(
                 },
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
+            val accShape = rememberSettingsCardShape(CardPosition.Top)
             BackgroundCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .guideNode(
                         key = GuideKeys.Main.Step.Account,
+                        holeShape = accShape,
                         preferSide = GuideSide.Below
                     ),
-                shape = rememberSettingsCardShape(CardPosition.Top),
+                shape = accShape,
                 onClick = toAccountManageScreen,
             ) {
                 AccountAvatarRow(
@@ -585,7 +590,7 @@ private fun ActionMenuTallerContent(
             .actionMenuDragAnchor()
             .guideNode(
                 key = GuideKeys.Main.Step.CardDrag,
-                holeShape = RectangleShape,
+                holeShape = MaterialTheme.shapes.extraLarge,
             )
             .then(modifier),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -715,6 +720,7 @@ private fun VersionManagerLayout(
             )
             .guideNode(
                 key = GuideKeys.Main.Step.VersionList,
+                holeShape = MaterialTheme.shapes.large,
                 preferSide = GuideSide.Above,
             )
             .padding(PaddingValues(all = 8.dp))

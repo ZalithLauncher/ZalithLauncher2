@@ -20,32 +20,6 @@ package com.movtery.zalithlauncher.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-/**
- * Material 3 color roles for the DEXOR sky palette. Values here are shared by
- * Compose and NativeThemeUtils so Android dialogs follow the selected palette.
- */
-data class ColorTheme(
-    val embermire: Color,
-    val velvetRose: Color,
-    val mistwave: Color,
-    val glacier: Color,
-    val verdantField: Color,
-    val urbanAsh: Color,
-    val verdantDawn: Color
-)
-
-enum class ColorThemeType {
-    DYNAMIC,
-    EMBERMIRE,
-    VELVET_ROSE,
-    MISTWAVE,
-    GLACIER,
-    VERDANTFIELD,
-    URBAN_ASH,
-    VERDANT_DAWN,
-    CUSTOM
-}
-
 val primaryLight = ColorTheme(Color(0xFFA63A17), Color(0xFF723D57), Color(0xFF426469), Color(0xFF245BFF), Color(0xFF676014), Color(0xFF5E5E5F), Color(0xFF004814))
 val onPrimaryLight = ColorTheme(Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0xFFFFFFFF))
 val primaryContainerLight = ColorTheme(Color(0xFFFE7A52), Color(0xFF9B607C), Color(0xFFB1D5DB), Color(0xFFDCE7FF), Color(0xFFEFE58B), Color(0xFFAEAEAE), Color(0xFF276E31))

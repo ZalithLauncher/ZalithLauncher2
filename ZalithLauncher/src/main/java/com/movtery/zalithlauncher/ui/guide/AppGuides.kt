@@ -115,7 +115,7 @@ fun rememberAppGuides(
 }
 
 @Composable
-private fun rememberMainGuides() = rememberGuide(holeRadius = 28.dp) {
+private fun rememberMainGuides() = rememberGuide(holeShape = MaterialTheme.shapes.extraLarge) {
     intro {
         GuideCard {
             Text(stringResource(R.string.guide_main_welcome_title, BuildKeys.LAUNCHER_NAME))

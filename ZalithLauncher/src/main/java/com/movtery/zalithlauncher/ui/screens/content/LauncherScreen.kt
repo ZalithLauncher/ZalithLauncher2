@@ -52,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInParent
@@ -211,7 +212,7 @@ fun LauncherScreen(
                     modifier = Modifier
                         .guideNode(
                             key = GuideKeys.Main.Step.CardTip,
-                            holeRadius = 0.dp
+                            holeShape = RectangleShape
                         )
                         .weight(ContentWeight)
                         .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
@@ -584,7 +585,7 @@ private fun ActionMenuTallerContent(
             .actionMenuDragAnchor()
             .guideNode(
                 key = GuideKeys.Main.Step.CardDrag,
-                holeRadius = 0.dp,
+                holeShape = RectangleShape,
             )
             .then(modifier),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -602,7 +603,7 @@ private fun ActionMenuTallerContent(
                 .guideNode(
                     key = GuideKeys.Main.Step.Account,
                     preferSide = GuideSide.Above,
-                    holeRadius = 28.dp
+                    holeShape = MaterialTheme.shapes.extraLarge
                 )
                 .fillMaxWidth(),
             shape = MaterialTheme.shapes.extraLarge,

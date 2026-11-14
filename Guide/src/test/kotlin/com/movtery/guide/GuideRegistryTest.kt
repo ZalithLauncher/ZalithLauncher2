@@ -1,5 +1,6 @@
 package com.movtery.guide
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import org.junit.Assert.assertEquals
@@ -16,14 +17,14 @@ class GuideRegistryTest {
         registry.attach(node)
         val before = registry.version
 
-        registry.updateStyle(node, 12.dp, 2.dp, Color.Red, null)
-        assertEquals(12.dp, node.holeRadius)
+        registry.updateStyle(node, RoundedCornerShape(12.dp), 2.dp, Color.Red, null)
+        assertEquals(RoundedCornerShape(12.dp), node.holeShape)
         assertEquals(2.dp, node.holeBorderWidth)
         assertEquals(Color.Red, node.holeBorderColor)
         assertTrue(registry.version > before)
 
         val stable = registry.version
-        registry.updateStyle(node, 12.dp, 2.dp, Color.Red, null)
+        registry.updateStyle(node, RoundedCornerShape(12.dp), 2.dp, Color.Red, null)
         assertEquals(stable, registry.version)
     }
 

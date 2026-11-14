@@ -36,14 +36,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -121,7 +123,7 @@ internal fun GuideOverlay(
         HoleTarget(
             rect = node.bounds,
             style = HoleStyle(
-                radiusPx = with(density) { (node.holeRadius ?: controller.holeRadius).toPx() },
+                shape = node.holeShape ?: controller.holeShape,
                 borderWidthPx = with(density) { (node.holeBorderWidth ?: controller.holeBorderWidth).toPx() },
                 borderColor = node.holeBorderColor ?: GuideDefaults.holeBorder
             )
@@ -259,7 +261,7 @@ private fun Scrim(
                     style = animateHoleStyle(target.style, holeSpec, colorSpec)
                 )
             } else {
-                HoleFrame(Rect.Zero, HoleStyle(0f, 0f, Color.Transparent))
+                HoleFrame(Rect.Zero, HoleStyle(RectangleShape, 0f, Color.Transparent))
             }
         }
     }
@@ -275,22 +277,20 @@ private fun Scrim(
                 if (currentReady) {
                     currentAnimatedHoles.forEach { hole ->
                         val style = hole.style
-                        drawRoundRect(
-                            color = Color.Black,
-                            topLeft = hole.rect.topLeft,
-                            size = hole.rect.size,
-                            cornerRadius = CornerRadius(style.radiusPx),
-                            blendMode = BlendMode.Clear
-                        )
-                        if (style.borderWidthPx > 0f) {
-                            // 描边整体落在镂空外侧，不侵入被引导组件
-                            val border = hole.rect.inflate(style.borderWidthPx / 2f)
-                            drawRoundRect(
-                                color = style.borderColor,
-                                topLeft = border.topLeft,
-                                size = border.size,
-                                cornerRadius = CornerRadius(style.radiusPx + style.borderWidthPx / 2f),
-                                style = Stroke(width = style.borderWidthPx)
+                        val outline = style.shape.createOutline(hole.rect.size, layoutDirection, this)
+                        translate(hole.rect.left, hole.rect.top) {
+                            if (style.borderWidthPx > 0f) {
+                                // 描边整体落在镂空外侧，不侵入被引导组件
+                                drawOutline(
+                                    outline = outline,
+                                    color = style.borderColor,
+                                    style = Stroke(width = style.borderWidthPx)
+                                )
+                            }
+                            drawOutline(
+                                outline = outline,
+                                color = Color.Black,
+                                blendMode = BlendMode.Clear
                             )
                         }
                     }
@@ -361,17 +361,16 @@ private fun animateHoleStyle(
     spec: FiniteAnimationSpec<Float>,
     colorSpec: FiniteAnimationSpec<Color>
 ): HoleStyle {
-    val radiusPx by animateFloatAsState(target.radiusPx, spec, label = "holeRadius")
     val borderWidthPx by animateFloatAsState(target.borderWidthPx, spec, label = "holeBorderWidth")
     val borderColor by animateColorAsState(target.borderColor, colorSpec, label = "holeBorderColor")
-    return HoleStyle(radiusPx, borderWidthPx, borderColor)
+    return HoleStyle(target.shape, borderWidthPx, borderColor)
 }
 
 /**
- * 单个镂空的绘制样式，像素已解析
+ * 单个镂空的绘制样式
  */
 private data class HoleStyle(
-    val radiusPx: Float,
+    val shape: Shape,
     val borderWidthPx: Float,
     val borderColor: Color
 )

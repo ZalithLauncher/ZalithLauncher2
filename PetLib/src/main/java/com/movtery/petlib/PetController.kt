@@ -66,6 +66,7 @@ private fun wrapPi(angle: Float): Float {
  * @param arm 手臂模型，null 自动检测
  * @param defaultYaw 默认偏航角（弧度），回正回到该角度
  * @throws IllegalArgumentException 皮肤非法或解析失败
+ * @see create 皮肤非法或原生库不可用时返回 null 的容错版本
  */
 class PetController(
     skin: ByteArray,
@@ -486,4 +487,31 @@ class PetController(
 
     /** 帧缓冲：原生侧渲染结果直接落入位图像素 */
     private class FrameBuffer(val bitmap: Bitmap)
+
+    companion object {
+        /**
+         * 创建控制器的容错版本
+         * @return 原生库不可用、初始化失败或皮肤非法时返回 null 而不是抛出
+         */
+        fun create(
+            skin: ByteArray,
+            arm: ArmModel?,
+            defaultYaw: Float = 0f
+        ): PetController? {
+            if (!PetLibNative.isAvailable()) {
+                Log.w(TAG, "Native library unavailable, pet preview disabled", PetLibNative.loadError())
+                return null
+            }
+            return try {
+                PetController(skin, arm, defaultYaw)
+            } catch (e: LinkageError) {
+                // loadLibrary 成功但首次调用解析 JNI 符号失败等边界情况
+                Log.w(TAG, "Native initialization failed, pet preview disabled", e)
+                null
+            } catch (e: IllegalArgumentException) {
+                Log.w(TAG, "Skin rejected on creation, pet preview disabled", e)
+                null
+            }
+        }
+    }
 }

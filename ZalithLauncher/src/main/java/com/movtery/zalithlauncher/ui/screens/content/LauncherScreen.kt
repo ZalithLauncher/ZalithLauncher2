@@ -203,21 +203,21 @@ fun LauncherScreen(
                         }
                     }
                 ) {
-                ContentMenu(
-                    modifier = Modifier
-                        .guideNode(
-                            key = GuideKeys.Main.Step.CardTip,
-                            holeRadius = 0.dp
-                        )
-                        .weight(ContentWeight)
-                        .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
-                    isVisible = isVisible,
-                    onLaunchGame = { version ->
-                        onLaunchGame(version)
-                    },
-                    onQuickPlayServer = onQuickPlayServer,
-                    onOpenVersionSettings = navigateToVersions
-                )
+                    ContentMenu(
+                        modifier = Modifier
+                            .guideNode(
+                                key = GuideKeys.Main.Step.CardTip,
+                                holeRadius = 0.dp
+                            )
+                            .weight(ContentWeight)
+                            .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
+                        isVisible = isVisible,
+                        onLaunchGame = { version ->
+                            onLaunchGame(version)
+                        },
+                        onQuickPlayServer = onQuickPlayServer,
+                        onOpenVersionSettings = navigateToVersions
+                    )
                 }
 
                 // ActionMenu 对接到了 End，留出空位
@@ -525,7 +525,8 @@ private fun ActionMenuCardContent(
                         bottom.linkTo(versionManagerLayout.top)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
-                    }.guideNode(
+                    }
+                    .guideNode(
                         key = GuideKeys.Main.Step.Account,
                         preferSide = GuideSide.Below
                     ),
@@ -652,11 +653,13 @@ private fun ActionMenu(
 
     val account by AccountsManager.currentAccountFlow.collectAsStateWithLifecycle()
 
-    val contentModifier = modifier.graphicsLayer {
-        val scale = pickUpScale()
-        scaleX = scale
-        scaleY = scale
-    }.animated(ctx, from = swapDirection)
+    val contentModifier = modifier
+        .graphicsLayer {
+            val scale = pickUpScale()
+            scaleX = scale
+            scaleY = scale
+        }
+        .animated(ctx, from = swapDirection)
 
     if (isTaller) {
         ActionMenuTallerContent(
@@ -699,10 +702,12 @@ private fun VersionManagerLayout(
                 onLongClick = {
                     if (version != null) openListMenu()
                 }
-            ).guideNode(
+            )
+            .guideNode(
                 key = GuideKeys.Main.Step.VersionList,
                 preferSide = GuideSide.Above,
-            ).padding(PaddingValues(all = 8.dp))
+            )
+            .padding(PaddingValues(all = 8.dp))
     ) {
         if (isRefreshing) {
             Box(modifier = Modifier.fillMaxWidth()) {

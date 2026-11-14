@@ -9,8 +9,8 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.txt>.
@@ -75,9 +75,7 @@ data class NativeColorScheme(
     val surfaceContainerHighest: Color,
 )
 
-/**
- * 判断当前是否为暗色主题
- */
+/** 判断当前是否为暗色主题 */
 fun isDarkTheme(context: Context): Boolean {
     return when (LauncherSettings.launcherDarkMode.state) {
         DarkMode.Enable -> true
@@ -89,29 +87,59 @@ fun isDarkTheme(context: Context): Boolean {
     }
 }
 
-/**
- * 从当前主题设置生成原生主题配色调色板
- */
+/** 从当前主题设置生成原生主题配色调色板 */
 fun getColorScheme(context: Context): NativeColorScheme {
     val darkTheme = isDarkTheme(context)
+    if (LauncherSettings.launcherColorTheme.state == ColorThemeType.GLACIER) {
+        return buildDexorColorScheme(darkTheme)
+    }
     val seedColor = getSeedColor(context, darkTheme)
     return buildColorScheme(seedColor, darkTheme)
 }
 
+private fun buildDexorColorScheme(darkTheme: Boolean) = NativeColorScheme(
+    primary = (if (darkTheme) primaryDark else primaryLight).glacier,
+    onPrimary = (if (darkTheme) onPrimaryDark else onPrimaryLight).glacier,
+    primaryContainer = (if (darkTheme) primaryContainerDark else primaryContainerLight).glacier,
+    onPrimaryContainer = (if (darkTheme) onPrimaryContainerDark else onPrimaryContainerLight).glacier,
+    secondary = (if (darkTheme) secondaryDark else secondaryLight).glacier,
+    onSecondary = (if (darkTheme) onSecondaryDark else onSecondaryLight).glacier,
+    secondaryContainer = (if (darkTheme) secondaryContainerDark else secondaryContainerLight).glacier,
+    onSecondaryContainer = (if (darkTheme) onSecondaryContainerDark else onSecondaryContainerLight).glacier,
+    tertiary = (if (darkTheme) tertiaryDark else tertiaryLight).glacier,
+    onTertiary = (if (darkTheme) onTertiaryDark else onTertiaryLight).glacier,
+    tertiaryContainer = (if (darkTheme) tertiaryContainerDark else tertiaryContainerLight).glacier,
+    onTertiaryContainer = (if (darkTheme) onTertiaryContainerDark else onTertiaryContainerLight).glacier,
+    error = (if (darkTheme) errorDark else errorLight).glacier,
+    onError = (if (darkTheme) onErrorDark else onErrorLight).glacier,
+    errorContainer = (if (darkTheme) errorContainerDark else errorContainerLight).glacier,
+    onErrorContainer = (if (darkTheme) onErrorContainerDark else onErrorContainerLight).glacier,
+    background = (if (darkTheme) backgroundDark else backgroundLight).glacier,
+    onBackground = (if (darkTheme) onBackgroundDark else onBackgroundLight).glacier,
+    surface = (if (darkTheme) surfaceDark else surfaceLight).glacier,
+    onSurface = (if (darkTheme) onSurfaceDark else onSurfaceLight).glacier,
+    surfaceVariant = (if (darkTheme) surfaceVariantDark else surfaceVariantLight).glacier,
+    onSurfaceVariant = (if (darkTheme) onSurfaceVariantDark else onSurfaceVariantLight).glacier,
+    outline = (if (darkTheme) outlineDark else outlineLight).glacier,
+    outlineVariant = (if (darkTheme) outlineVariantDark else outlineVariantLight).glacier,
+    inverseSurface = (if (darkTheme) inverseSurfaceDark else inverseSurfaceLight).glacier,
+    inverseOnSurface = (if (darkTheme) inverseOnSurfaceDark else inverseOnSurfaceLight).glacier,
+    inversePrimary = (if (darkTheme) inversePrimaryDark else inversePrimaryLight).glacier,
+    surfaceDim = (if (darkTheme) surfaceDimDark else surfaceDimLight).glacier,
+    surfaceBright = (if (darkTheme) surfaceBrightDark else surfaceBrightLight).glacier,
+    surfaceContainerLowest = (if (darkTheme) surfaceContainerLowestDark else surfaceContainerLowestLight).glacier,
+    surfaceContainerLow = (if (darkTheme) surfaceContainerLowDark else surfaceContainerLowLight).glacier,
+    surfaceContainer = (if (darkTheme) surfaceContainerDark else surfaceContainerLight).glacier,
+    surfaceContainerHigh = (if (darkTheme) surfaceContainerHighDark else surfaceContainerHighLight).glacier,
+    surfaceContainerHighest = (if (darkTheme) surfaceContainerHighestDark else surfaceContainerHighestLight).glacier,
+)
+
 @SuppressLint("RestrictedApi")
 private fun buildColorScheme(seedColor: Int, darkTheme: Boolean): NativeColorScheme {
     val palettes = CorePalette.of(seedColor)
-
     val scheme = DynamicScheme(
-        Hct.fromInt(seedColor),
-        Variant.TONAL_SPOT,
-        darkTheme,
-        0.0,
-        palettes.a1,
-        palettes.a2,
-        palettes.a3,
-        palettes.n1,
-        palettes.n2
+        Hct.fromInt(seedColor), Variant.TONAL_SPOT, darkTheme, 0.0,
+        palettes.a1, palettes.a2, palettes.a3, palettes.n1, palettes.n2
     )
 
     val hctNeutral = Hct.fromInt(scheme.surface)
@@ -142,40 +170,23 @@ private fun buildColorScheme(seedColor: Int, darkTheme: Boolean): NativeColorSch
     }
 
     return NativeColorScheme(
-        primary = Color(scheme.primary),
-        onPrimary = Color(scheme.onPrimary),
-        primaryContainer = Color(scheme.primaryContainer),
-        onPrimaryContainer = Color(scheme.onPrimaryContainer),
-        secondary = Color(scheme.secondary),
-        onSecondary = Color(scheme.onSecondary),
-        secondaryContainer = Color(scheme.secondaryContainer),
-        onSecondaryContainer = Color(scheme.onSecondaryContainer),
-        tertiary = Color(scheme.tertiary),
-        onTertiary = Color(scheme.onTertiary),
-        tertiaryContainer = Color(scheme.tertiaryContainer),
-        onTertiaryContainer = Color(scheme.onTertiaryContainer),
-        error = Color(scheme.error),
-        onError = Color(scheme.onError),
-        errorContainer = Color(scheme.errorContainer),
-        onErrorContainer = Color(scheme.onErrorContainer),
-        background = Color(scheme.background),
-        onBackground = Color(scheme.onBackground),
-        surface = Color(scheme.surface),
-        onSurface = Color(scheme.onSurface),
-        surfaceVariant = Color(scheme.surfaceVariant),
-        onSurfaceVariant = Color(scheme.onSurfaceVariant),
-        outline = Color(scheme.outline),
-        outlineVariant = Color(scheme.outlineVariant),
-        inverseSurface = Color(scheme.inverseSurface),
-        inverseOnSurface = Color(scheme.inverseOnSurface),
-        inversePrimary = Color(scheme.inversePrimary),
-        surfaceDim = Color(surfaceDim),
-        surfaceBright = Color(surfaceBright),
-        surfaceContainerLowest = Color(surfaceContainerLowest),
-        surfaceContainerLow = Color(surfaceContainerLow),
-        surfaceContainer = Color(surfaceContainer),
-        surfaceContainerHigh = Color(surfaceContainerHigh),
-        surfaceContainerHighest = Color(surfaceContainerHighest),
+        primary = Color(scheme.primary), onPrimary = Color(scheme.onPrimary),
+        primaryContainer = Color(scheme.primaryContainer), onPrimaryContainer = Color(scheme.onPrimaryContainer),
+        secondary = Color(scheme.secondary), onSecondary = Color(scheme.onSecondary),
+        secondaryContainer = Color(scheme.secondaryContainer), onSecondaryContainer = Color(scheme.onSecondaryContainer),
+        tertiary = Color(scheme.tertiary), onTertiary = Color(scheme.onTertiary),
+        tertiaryContainer = Color(scheme.tertiaryContainer), onTertiaryContainer = Color(scheme.onTertiaryContainer),
+        error = Color(scheme.error), onError = Color(scheme.onError),
+        errorContainer = Color(scheme.errorContainer), onErrorContainer = Color(scheme.onErrorContainer),
+        background = Color(scheme.background), onBackground = Color(scheme.onBackground),
+        surface = Color(scheme.surface), onSurface = Color(scheme.onSurface),
+        surfaceVariant = Color(scheme.surfaceVariant), onSurfaceVariant = Color(scheme.onSurfaceVariant),
+        outline = Color(scheme.outline), outlineVariant = Color(scheme.outlineVariant),
+        inverseSurface = Color(scheme.inverseSurface), inverseOnSurface = Color(scheme.inverseOnSurface),
+        inversePrimary = Color(scheme.inversePrimary), surfaceDim = Color(surfaceDim),
+        surfaceBright = Color(surfaceBright), surfaceContainerLowest = Color(surfaceContainerLowest),
+        surfaceContainerLow = Color(surfaceContainerLow), surfaceContainer = Color(surfaceContainer),
+        surfaceContainerHigh = Color(surfaceContainerHigh), surfaceContainerHighest = Color(surfaceContainerHighest),
     )
 }
 
@@ -184,17 +195,10 @@ private fun getSeedColor(context: Context, darkTheme: Boolean): Int {
         ColorThemeType.DYNAMIC -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                    if (darkTheme) {
-                        context.resources.getColor(android.R.color.system_primary_dark, context.theme)
-                    } else {
-                        context.resources.getColor(android.R.color.system_primary_light, context.theme)
-                    }
-                } else {
-                    context.resources.getColor(android.R.color.system_accent1_200, context.theme)
-                }
-            } else {
-                getPredefinedSeedColor(ColorThemeType.EMBERMIRE, darkTheme)
-            }
+                    if (darkTheme) context.resources.getColor(android.R.color.system_primary_dark, context.theme)
+                    else context.resources.getColor(android.R.color.system_primary_light, context.theme)
+                } else context.resources.getColor(android.R.color.system_accent1_200, context.theme)
+            } else getPredefinedSeedColor(ColorThemeType.EMBERMIRE, darkTheme)
         }
         ColorThemeType.CUSTOM -> LauncherSettings.launcherCustomColor.state
         else -> getPredefinedSeedColor(LauncherSettings.launcherColorTheme.state, darkTheme)
@@ -206,7 +210,7 @@ private fun getPredefinedSeedColor(theme: ColorThemeType, darkTheme: Boolean): I
         ColorThemeType.EMBERMIRE -> if (darkTheme) 0xFFFFB598.toInt() else 0xFFA63A17.toInt()
         ColorThemeType.VELVET_ROSE -> if (darkTheme) 0xFFF9B2D2.toInt() else 0xFF723D57.toInt()
         ColorThemeType.MISTWAVE -> if (darkTheme) 0xFFCEF3F9.toInt() else 0xFF426469.toInt()
-        ColorThemeType.GLACIER -> if (darkTheme) 0xFF73D2FB.toInt() else 0xFF006684.toInt()
+        ColorThemeType.GLACIER -> if (darkTheme) 0xFF91ADFF.toInt() else 0xFF245BFF.toInt()
         ColorThemeType.VERDANTFIELD -> if (darkTheme) 0xFFD2C972.toInt() else 0xFF676014.toInt()
         ColorThemeType.URBAN_ASH -> if (darkTheme) 0xFFC7C6C6.toInt() else 0xFF5E5E5F.toInt()
         ColorThemeType.VERDANT_DAWN -> if (darkTheme) 0xFF8ED88E.toInt() else 0xFF004814.toInt()
@@ -218,12 +222,9 @@ fun MaterialAlertDialogBuilder.createThemed(): AlertDialog {
     val colors = getColorScheme(context)
     background?.setTint(colors.surfaceContainerHigh.toArgb())
 
-    fun Button.applyThemeColors(
-        colors: NativeColorScheme,
-    ) {
+    fun Button.applyThemeColors(colors: NativeColorScheme) {
         val contentColor = colors.primary.toArgb()
         val rippleColor = colors.secondaryContainer.copy(alpha = 0.5f).toArgb()
-
         this@applyThemeColors.setTextColor(contentColor)
         if (this is MaterialButton) {
             this@applyThemeColors.rippleColor = ColorStateList.valueOf(rippleColor)

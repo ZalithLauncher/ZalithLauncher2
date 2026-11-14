@@ -9,8 +9,8 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.txt>.
@@ -26,53 +26,47 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.ui.components.influencedByBackgroundColor
 
-/** 应用整体背景的颜色 */
+/** App-wide background surface. */
 @Composable
 fun backgroundColor(): Color = MaterialTheme.colorScheme.surfaceContainer
+
 @Composable
 fun onBackgroundColor(): Color = MaterialTheme.colorScheme.onSurfaceVariant
 
 /**
- * 卡片背景颜色
- * [androidx.compose.material3.Card]
- * [com.movtery.zalithlauncher.ui.components.BackgroundCard]
- * [androidx.compose.ui.window.Dialog]
- * @param influencedByBackground 是否受背景内容影响，更改自身不透明度
+ * Card background for Material cards, BackgroundCard and dialogs.
+ * @param influencedByBackground whether custom launcher backgrounds affect opacity
  */
 @Composable
 fun cardColor(
     influencedByBackground: Boolean = true
 ): Color = influencedByBackgroundColor(
-    color = MaterialTheme.colorScheme.surfaceBright,
+    color = MaterialTheme.colorScheme.surfaceContainerLow,
     enabled = influencedByBackground
 )
+
 @Composable
 fun onCardColor(): Color = MaterialTheme.colorScheme.onSurface
-/**
- * 卡片顶部Title的背景颜色，半透明的surface
- */
+
+/** Semi-transparent surface used for card title areas. */
 @Composable
 fun cardTitleColor(
     alpha: Float = 0.5f
 ): Color = MaterialTheme.colorScheme.surface.copy(alpha = alpha)
 
-/**
- * 卡片上的Item的背景颜色
- * @param influencedByBackground 是否受背景内容影响，更改自身不透明度
- */
+/** Background color for items placed inside cards. */
 @Composable
 fun itemColor(
     influencedByBackground: Boolean = true,
     isDark: Boolean = isLauncherInDarkTheme()
 ): Color {
-    return influencedByBackgroundColor(
-        color = if (isDark) {
-            MaterialTheme.colorScheme.surfaceVariant
-        } else {
-            MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
-        },
-        enabled = influencedByBackground
-    )
+    val color = if (isDark) {
+        MaterialTheme.colorScheme.surfaceVariant
+    } else {
+        MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp)
+    }
+    return influencedByBackgroundColor(color = color, enabled = influencedByBackground)
 }
+
 @Composable
-fun onItemColor() = MaterialTheme.colorScheme.onSurface
+fun onItemColor(): Color = MaterialTheme.colorScheme.onSurface

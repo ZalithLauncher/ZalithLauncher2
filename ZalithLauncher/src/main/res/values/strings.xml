@@ -1717,8 +1717,6 @@
     <string name="minecraft_download_failed_notfound">Some dependency files could not be downloaded. If the issue persists after multiple attempts, the game may be missing required libraries. We recommend reinstalling the game.</string>
     <!-- Slider title in the Launcher settings tab for the background blur radius -->
     <string name="settings_title_blur">Blur Effect</string>
-    <!-- Text under list-type settings items showing the current choice; %s is the selected item name -->
-    <string name="settings_element_selected">Selected: %s</string>
     <!-- Default label of optional text fields in settings; an empty value is simply ignored -->
     <string name="settings_label_ignore_if_blank">Leave blank to ignore</string>
     <!-- Name of the Renderer category on the settings screen and the title of its page -->

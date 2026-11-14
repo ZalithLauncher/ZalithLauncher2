@@ -907,7 +907,6 @@
     <string name="minecraft_download_failed_notfound">某些依赖文件无法下载，如果多次尝试仍失败，可能是游戏缺少必要的库文件，建议重新安装游戏。</string>
     <!--  设置  -->
     <string name="settings_title_blur">模糊效果</string>
-    <string name="settings_element_selected">当前选择项：%s</string>
     <string name="settings_label_ignore_if_blank">留白则忽略此设置</string>
     <string name="settings_tab_renderer">渲染设置</string>
     <string name="settings_tab_game">游戏设置</string>

@@ -338,7 +338,6 @@
     <string name="minecraft_download_failed">Произошла ошибка при загрузке Minecraft</string>
     <string name="minecraft_download_failed_notfound">Некоторые зависимые файлы не удалось скачать. Если проблема сохраняется после нескольких попыток, возможно, в игре отсутствуют необходимые файлы библиотек. Попробуйте переустановить игру.</string>
     <!-- Settings -->
-    <string name="settings_element_selected">Выбрано: %s</string>
     <string name="settings_label_ignore_if_blank">Оставьте пустым чтобы пропустить</string>
     <string name="settings_tab_renderer">Рендер</string>
     <string name="settings_tab_game">Игра</string>

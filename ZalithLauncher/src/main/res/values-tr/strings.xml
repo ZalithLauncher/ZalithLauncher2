@@ -471,7 +471,6 @@
     <string name="minecraft_download_verifying_and_repairing_files">Dosyalar doğrulanıyor \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">Minecraft indirilirken bir hata oluştu</string>
     <string name="minecraft_download_failed_notfound">Bazı bağımlılık dosyaları indirilemedi. Birden fazla denemeden sonra sorun devam ederse, oyun gerekli kütüphanelerden yoksun olabilir. Oyunu yeniden yüklemenizi öneririz.</string>
-    <string name="settings_element_selected">Seçili: %s</string>
     <string name="settings_label_ignore_if_blank">Boş bırakılırsa görmezden gelinir</string>
     <string name="settings_tab_renderer">İşleyici</string>
     <string name="settings_tab_game">Oyun</string>

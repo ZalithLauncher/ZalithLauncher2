@@ -502,7 +502,6 @@
     <string name="minecraft_download_verifying_and_repairing_files">Đang kiểm tra\n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">Lỗi khi tải Minecraft</string>
     <string name="minecraft_download_failed_notfound">Vài file phụ thuộc tải không được, thử lại mãi vẫn lỗi, nên cài lại game.</string>
-    <string name="settings_element_selected">Đã chọn: %s</string>
     <string name="settings_label_ignore_if_blank">Để trống thì bỏ qua</string>
     <string name="settings_tab_renderer">Renderer</string>
     <string name="settings_tab_game">Game</string>

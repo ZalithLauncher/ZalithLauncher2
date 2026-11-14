@@ -793,7 +793,6 @@
     <string name="minecraft_download_failed">Minecraft를 다운로드하는 중에 오류가 발생했습니다</string>
     <string name="minecraft_download_failed_notfound">몇몇 필수 파일을 다운로드할 수 없습니다. 문제가 계속되는 경우, 게임에 필요한 라이브러리가 누락되었을 수 있습니다. 게임을 재설치해 보세요.</string>
     <string name="settings_title_blur">블러 효과</string>
-    <string name="settings_element_selected">현재 선택: %s</string>
     <string name="settings_label_ignore_if_blank">빈칸으로 두면 설정은 무시됩니다</string>
     <string name="settings_tab_renderer">렌더러</string>
     <string name="settings_tab_game">게임</string>

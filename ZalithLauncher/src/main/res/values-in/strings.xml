@@ -578,7 +578,6 @@
     <string name="minecraft_download_stat_download_task">Bersiap mengunduh</string>
     <string name="minecraft_download_stat_verify_task">Mempersiapkan verifikasi</string>
     <string name="minecraft_download_verifying_and_repairing_files">Memverifikasi file\n(%1$d/%2$d, %3$s/%4$s)</string>
-    <string name="settings_element_selected">Dipilih: %s</string>
     <string name="settings_label_ignore_if_blank">Biarkan kosong untuk mengabaikan</string>
     <string name="settings_tab_renderer">Perender</string>
     <string name="settings_tab_game">Game</string>

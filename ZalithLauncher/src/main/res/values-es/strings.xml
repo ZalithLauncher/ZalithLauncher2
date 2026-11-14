@@ -93,6 +93,12 @@
     <string name="generic_got_it">Entendido</string>
     <string name="generic_input_failed_to_number">El valor no es un número</string>
     <string name="splash_screen_agree">Instalar</string>
+    <string name="splash_arch_mismatch_title">¡Parece que has instalado la versión incorrecta!</string>
+    <string name="splash_arch_mismatch_package_arch">Arquitectura de compilación del launcher instalado: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Arquitectura de tu dispositivo: %s</string>
+    <string name="splash_arch_mismatch_desc1">Los runtimes incluidos en el APK no coinciden con tu dispositivo y no se pueden usar para iniciar el juego.</string>
+    <string name="splash_arch_mismatch_desc2">Descarga el APK para dispositivos %s desde el canal oficial e instálalo sobre el existente.</string>
+    <string name="splash_arch_mismatch_footer">La información de arquitectura proviene de la configuración de compilación del APK y del sistema, y es solo de referencia.</string>
     <string name="notification_title">Verificar permiso de notificación</string>
     <string name="notification_request">Solicitar permiso</string>
     <string name="notification_data_jvm_service_message">Para asegurar una instalación fluida, el launcher necesita ejecutar el instalador en primer plano. Intentaremos iniciar un servicio en primer plano para mantener la estabilidad, pero esto requiere permisos de notificación. ¿Podrías activar los permisos de notificación? Esto ayudará a evitar que la instalación se interrumpa.</string>

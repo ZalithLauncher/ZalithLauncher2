@@ -90,6 +90,12 @@
     <string name="splash_screen_unpack_desc">يحتاج المشغل إلى تثبيت بعض الملفات الأساسية لتشغيل لعبة ماين كرافت بنجاح وبدون أي مشاكل. هذه الملفات موجودة ومحفوظة داخل التطبيق نفسه، لكنها تحتاج إلى فك الضغط عنها أولاً لنتمكن من تشغيل اللعبة. يرجى الضغط على الزر الموجود في الأسفل لبدء فك ضغط الملفات وتحديثها.</string>
     <string name="splash_screen_installing">يقوم المشغل (اللانشر) الآن بفك ضغط الملفات، وبمجرد الانتهاء سيتم الانتقال تلقائياً إلى القائمة الرئيسية. يرجى الانتظار قليلاً.</string>
     <string name="splash_screen_agree">تثبيت</string>
+    <string name="splash_arch_mismatch_title">يبدو أنك قمت بتثبيت الإصدار الخطأ!</string>
+    <string name="splash_arch_mismatch_package_arch">معمارية بناء المشغل المثبت: %s</string>
+    <string name="splash_arch_mismatch_device_arch">معمارية جهازك: %s</string>
+    <string name="splash_arch_mismatch_desc1">بيئات التشغيل المضمّنة في حزمة APK لا تطابق جهازك ولا يمكن استخدامها لتشغيل اللعبة.</string>
+    <string name="splash_arch_mismatch_desc2">يرجى تنزيل حزمة APK لأجهزة %s من القناة الرسمية وتثبيتها فوق الحزمة الحالية.</string>
+    <string name="splash_arch_mismatch_footer">معلومات المعمارية مأخوذة من إعداد بناء APK ومن النظام، وهي للرجوع إليها فقط.</string>
     <string name="notification_title">التحقق من إذن الإشعار</string>
     <string name="notification_request">طلب الإذن</string>
     <string name="notification_data_jvm_service_message">لضمان تثبيت سلس، يجب على مُشغِّل النظام تشغيل المُثبِّت في الخلفية. سنحاول تشغيل خدمة في الخلفية للحفاظ على الاستقرار، ولكن هذا يتطلب أذونات الإشعارات. هل يُمكنكم مساعدتنا في تفعيل أذونات الإشعارات؟ سيساعد هذا في منع انقطاعات التثبيت!</string>

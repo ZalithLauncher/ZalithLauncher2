@@ -79,6 +79,12 @@
     <string name="splash_screen_unpack_desc">Launcher perlu menginstal file ini untuk memastikan Minecraft berjalan dengan benar. Mereka termasuk dalam aplikasi dan harus diekstrak terlebih dahulu. Klik tombol di bawah ini untuk memulai ekstraksi dan pembaruan.</string>
     <string name="splash_screen_installing">Launcher sedang mengekstrak file ini. Setelah selesai, Anda akan secara otomatis memasuki layar utama. Silahkan tunggu dengan sabar.</string>
     <string name="splash_screen_agree">Pasang</string>
+    <string name="splash_arch_mismatch_title">Sepertinya kamu menginstal versi yang salah!</string>
+    <string name="splash_arch_mismatch_package_arch">Arsitektur build launcher yang terinstal: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Arsitektur perangkatmu: %s</string>
+    <string name="splash_arch_mismatch_desc1">Runtime yang disertakan dalam APK tidak cocok dengan perangkatmu dan tidak dapat digunakan untuk meluncurkan gim.</string>
+    <string name="splash_arch_mismatch_desc2">Silakan unduh APK untuk perangkat %s dari saluran resmi dan instal untuk menimpa yang sudah ada.</string>
+    <string name="splash_arch_mismatch_footer">Info arsitektur berasal dari konfigurasi build APK dan hasil sistem, hanya sebagai referensi.</string>
     <string name="notification_title">Cek Izin Pemberitahuan</string>
     <string name="notification_request">Minta Perizinan</string>
     <string name="notification_data_jvm_service_message">Agar instalasi berjalan lancar, launcher perlu menjalankan penginstal di latar depan. Kami akan mencoba memulai layanan latar depan untuk menjaga stabilitas, tetapi hal ini memerlukan izin notifikasi. Bisa bantu mengaktifkan izin notifikasi? Ini akan membantu mencegah gangguan saat instalasi!</string>

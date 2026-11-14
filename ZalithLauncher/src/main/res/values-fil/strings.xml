@@ -110,6 +110,12 @@
     <string name="splash_screen_unpack_desc">Kailangang i-install ng launcher ang mga file na ito para matiyak na gumagana nang maayos ang Minecraft. Kasama ang mga ito sa app at dapat na i-extract muna. Pindutin ang pindutan sa ibaba upang simulan ang pag-extract at pag-update.</string>
     <string name="splash_screen_installing">Ini-extract ng launcher ang mga file na ito. Kapag tapos na, awtomatiko itong papasok sa pangunahing screen. Mangyaring maghintay.</string>
     <string name="splash_screen_agree">I-install</string>
+    <string name="splash_arch_mismatch_title">Mukhang maling bersyon ang na-install mo!</string>
+    <string name="splash_arch_mismatch_package_arch">Build architecture ng naka-install na launcher: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Architecture ng iyong device: %s</string>
+    <string name="splash_arch_mismatch_desc1">Hindi tugma sa iyong device ang mga runtime na kasama sa APK at hindi ito magagamit para pagsimulan ang laro.</string>
+    <string name="splash_arch_mismatch_desc2">Mag-download ng APK para sa mga %s device mula sa opisyal na channel at i-install ito nang napapalitan ang dati.</string>
+    <string name="splash_arch_mismatch_footer">Ang impormasyon ng architecture ay nagmumula sa build configuration ng APK at sa sistema, para sanggunian lamang.</string>
     <string name="notification_title">Tingnan ang Pahintulot sa Abiso</string>
     <string name="notification_request">Humiling ng Pahintulot</string>
     <string name="notification_data_jvm_service_message">Upang matiyak ang maayos na pag-install, kailangang patakbuhin ng launcher ang installer sa foreground. Susubukan naming magsimula ng serbisyo sa foreground upang mapanatili ang katatagan, ngunit nangangailangan ito ng mga pahintulot sa abiso. Matutulungan mo ba kaming paganahin ang mga pahintulot sa abiso? Makakatulong ito na maiwasan ang mga pagkaantala sa pag-install!</string>

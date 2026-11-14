@@ -93,6 +93,12 @@
     <string name="splash_screen_unpack_desc">Başlatıcı, Minecraft\'ın düzgün çalışmasını sağlamak için bu dosyaları yüklemelidir. Dosyalar uygulamaya dahil edilmiştir ve önce çıkarılmaları gerekir. Çıkarmayı ve güncellemeyi başlatmak için aşağıdaki düğmeye tıklayın.</string>
     <string name="splash_screen_installing">Başlatıcı bu içerikleri çıkarıyor; çıkarma tamamlandıktan sonra otomatik olarak ana ekrana geçilecektir. Lütfen sabırlı olun.</string>
     <string name="splash_screen_agree">Kur</string>
+    <string name="splash_arch_mismatch_title">Yanlış sürümü kurmuş olabilirsiniz!</string>
+    <string name="splash_arch_mismatch_package_arch">Kurulu başlatıcının derleme mimarisi: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Cihazınızın mimarisi: %s</string>
+    <string name="splash_arch_mismatch_desc1">APK\'daki çalışma zamanları cihazınızla uyuşmuyor ve oyunu başlatmak için kullanılamaz.</string>
+    <string name="splash_arch_mismatch_desc2">Lütfen resmî kanaldan %s cihazları için APK\'yı indirin ve mevcut olanın üzerine kurun.</string>
+    <string name="splash_arch_mismatch_footer">Mimari bilgisi APK derleme yapılandırmasından ve sistemden gelir, yalnızca referans içindir.</string>
     <string name="notification_title">Bildirim İzni Kontrolü</string>
     <string name="notification_request">İzin İste</string>
     <string name="notification_data_jvm_service_message">Sorunsuz bir kurulum sağlamak için başlatıcının yükleyiciyi ön planda çalıştırması gerekir. Kararlılığı sağlamak için ön planda bir hizmet başlatmayı deneyeceğiz, ancak bunun için bildirim izinlerine ihtiyacımız var. Bildirim izinlerini etkinleştirmemize yardımcı olabilir misiniz? Bu, kurulum kesintilerini önlemeye yardımcı olacaktır!</string>

@@ -138,6 +138,12 @@
     <string name="splash_screen_unpack_desc">啟動器需要安裝這些內容，才能確保 Minecraft 能夠正常啟動。這些內容已包含在應用程式中，需要解壓縮後才能正常使用，點擊下方按鈕，開始解壓縮並更新這些內容。</string>
     <string name="splash_screen_installing">啟動器正在解壓縮這些內容，解壓縮完成後將自動進入主介面，請耐心等候。</string>
     <string name="splash_screen_agree">同意並安裝</string>
+    <string name="splash_arch_mismatch_title">你似乎安裝了錯誤的版本！</string>
+    <string name="splash_arch_mismatch_package_arch">目前安裝的啟動器的建置架構為：%s</string>
+    <string name="splash_arch_mismatch_device_arch">你的裝置的架構為：%s</string>
+    <string name="splash_arch_mismatch_desc1">安裝包內的執行環境與你的裝置不符，無法用於啟動遊戲</string>
+    <string name="splash_arch_mismatch_desc2">請前往官方管道下載適用於 %s 裝置的安裝包，覆蓋安裝即可</string>
+    <string name="splash_arch_mismatch_footer">架構資訊來自安裝包建置設定與系統回傳結果，僅供參考</string>
     <!--  通知  -->
     <string name="notification_title">檢查通知權限</string>
     <string name="notification_request">請求權限</string>

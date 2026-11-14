@@ -118,6 +118,12 @@
     <string name="splash_screen_unpack_desc">런처가 Minecraft를 정상적으로 실행하기 위해 필요한 파일들을 설치해야 합니다. 이 파일들은 앱에 포함되어 있으며, 먼저 압축을 해제해야 합니다. 아래 버튼을 눌러 압축 해제 및 업데이트를 시작하세요.</string>
     <string name="splash_screen_installing">런처가 파일을 추출하고 있습니다. 추출이 완료되면 자동으로 메인 화면으로 이동합니다. 잠시만 기다려 주세요.</string>
     <string name="splash_screen_agree">동의 및 설치</string>
+    <string name="splash_arch_mismatch_title">잘못된 버전을 설치한 것 같습니다!</string>
+    <string name="splash_arch_mismatch_package_arch">설치된 런처의 빌드 아키텍처: %s</string>
+    <string name="splash_arch_mismatch_device_arch">기기의 아키텍처: %s</string>
+    <string name="splash_arch_mismatch_desc1">APK에 포함된 런타임이 기기와 일치하지 않아 게임을 실행할 수 없습니다.</string>
+    <string name="splash_arch_mismatch_desc2">공식 채널에서 %s 기기용 APK를 다운로드하여 기존 앱 위에 설치해 주세요.</string>
+    <string name="splash_arch_mismatch_footer">아키텍처 정보는 APK 빌드 구성과 시스템 결과를 기반으로 하며 참고용입니다.</string>
     <string name="notification_title">알림 권한 확인</string>
     <string name="notification_request">권한 요청</string>
     <string name="notification_data_jvm_service_message">원활한 설치를 위해 런처를 백그라운드에서 실행해야 합니다. 설치 안정성을 유지하기 위해 백그라운드 서비스를 시작하려 하며, 이 과정에서 알림 권한이 필요합니다. 설치가 중단되지 않도록 알림 권한을 허용해 주시겠어요? 이것은 안정적인 설치를 위해 꼭 필요한 과정입니다!</string>

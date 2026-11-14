@@ -153,6 +153,12 @@
     <string name="splash_screen_unpack_desc">启动器需要安装这些内容，才能够确保 Minecraft 能够正常启动。这些内容已经包含在应用中，需要解压之后才能正常使用，点击下方按钮，开始解压并更新这些内容。</string>
     <string name="splash_screen_installing">启动器正在解压这些内容，解压完成后将自动进入主界面，请耐心等待。</string>
     <string name="splash_screen_agree">同意并安装</string>
+    <string name="splash_arch_mismatch_title">你似乎安装了错误的版本！</string>
+    <string name="splash_arch_mismatch_package_arch">当前安装的启动器的构建架构为：%s</string>
+    <string name="splash_arch_mismatch_device_arch">你的设备的架构为：%s</string>
+    <string name="splash_arch_mismatch_desc1">安装包内的运行环境与你的设备不匹配，无法用于启动游戏</string>
+    <string name="splash_arch_mismatch_desc2">请前往官方渠道下载适用于 %s 设备的安装包，覆盖安装即可</string>
+    <string name="splash_arch_mismatch_footer">架构信息来自安装包构建配置与系统返还结果，仅供参考</string>
     <!--  通知  -->
     <string name="notification_title">检查通知权限</string>
     <string name="notification_request">申请权限</string>

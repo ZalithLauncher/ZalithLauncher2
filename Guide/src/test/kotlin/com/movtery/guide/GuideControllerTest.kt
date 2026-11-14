@@ -1,5 +1,6 @@
 package com.movtery.guide
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
@@ -32,7 +33,7 @@ class GuideControllerTest {
                 )
             },
             colors = GuideColors(),
-            holeRadius = 8.dp,
+            holeShape = RoundedCornerShape(8.dp),
             holeBorderWidth = 0.dp,
             shape = GuideDefaults.contentShape,
             backBehavior = GuideBack.Block
@@ -163,7 +164,7 @@ class GuideControllerTest {
                 )
             ),
             colors = GuideColors(),
-            holeRadius = 8.dp,
+            holeShape = RoundedCornerShape(8.dp),
             holeBorderWidth = 0.dp,
             shape = GuideDefaults.contentShape,
             backBehavior = GuideBack.Block

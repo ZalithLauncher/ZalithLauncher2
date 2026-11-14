@@ -17,9 +17,9 @@ object GuideDefaults {
      */
     val colors = GuideColors()
     /**
-     * 镂空圆角半径
+     * 镂空形状
      */
-    val holeRadius: Dp = 8.dp
+    val holeShape: Shape = RoundedCornerShape(8.dp)
     /**
      * 镂空描边默认颜色
      */

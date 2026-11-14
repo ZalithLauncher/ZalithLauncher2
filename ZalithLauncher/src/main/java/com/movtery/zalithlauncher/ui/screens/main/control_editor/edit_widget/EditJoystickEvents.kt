@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.MaterialTheme
@@ -116,7 +117,7 @@ fun EditJoystickEvents(
                         modifier = Modifier.guideNode(
                             key = GuideKeys.JoystickEvents.Step.Lock,
                             preferSide = GuideSide.Below,
-                            holeRadius = 18.dp,
+                            holeShape = RoundedCornerShape(18.dp),
                             holeBorderWidth = 4.dp,
                         ),
                         text = stringResource(R.string.control_editor_edit_joystick_lock_events),
@@ -134,7 +135,7 @@ fun EditJoystickEvents(
                         .padding(horizontal = 8.dp)
                         .guideNode(
                             key = GuideKeys.JoystickEvents.Step.Direction,
-                            holeRadius = 28.dp,
+                            holeShape = RoundedCornerShape(28.dp),
                         ),
                     selectedArea = selectedArea,
                     onAreaSelected = { area ->
@@ -173,7 +174,7 @@ fun EditJoystickEvents(
                             .fillMaxWidth()
                             .guideNode(
                                 key = GuideKeys.JoystickEvents.Step.Events,
-                                holeRadius = 16.dp,
+                                holeShape = MaterialTheme.shapes.large,
                             ),
                         title = stringResource(R.string.control_editor_edit_event_launcher),
                         onClick = { dialogState = JoystickEventDialogState.LauncherEvent(selectedArea!!) }
@@ -184,7 +185,7 @@ fun EditJoystickEvents(
                             .fillMaxWidth()
                             .guideNode(
                                 key = GuideKeys.JoystickEvents.Step.Events,
-                                holeRadius = 16.dp,
+                                holeShape = MaterialTheme.shapes.large,
                             ),
                         title = stringResource(R.string.control_editor_edit_event_key),
                         onClick = { dialogState = JoystickEventDialogState.KeyEvent(selectedArea!!) }

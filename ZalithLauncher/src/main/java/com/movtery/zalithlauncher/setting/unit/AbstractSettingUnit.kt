@@ -25,7 +25,9 @@ abstract class AbstractSettingUnit<V>(
     val key: String,
     val defaultValue: V
 ) {
-    private val _state: Lazy<MutableState<V>> = lazy { mutableStateOf(readValue()) }
+    private val _state: Lazy<MutableState<V>> = lazy {
+        mutableStateOf(runCatching { readValue() }.getOrDefault(defaultValue))
+    }
 
     /**
      * 状态是否已从存储中实际读取过

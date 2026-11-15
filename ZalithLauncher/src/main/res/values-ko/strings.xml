@@ -803,7 +803,6 @@
     <string name="settings_renderer_from_plugins">플러그인 \'%s\'에서</string>
     <string name="settings_renderer_resolution_scale_title">해상도</string>
     <string name="settings_renderer_resolution_scale_summary">낮을수록 성능이, 높을수록 그래픽 품질이 향상됩니다. 필요에 따라 조정해 주세요</string>
-
     <string name="settings_renderer_resolution_rule_title">해상도 규칙</string>
     <string name="settings_renderer_resolution_rule_summary">게임 창 해상도의 계산 방식을 선택하세요</string>
     <string name="settings_renderer_resolution_rule_percentage">백분율</string>
@@ -981,7 +980,6 @@
     <string name="about_acknowledgements_pojav_text">%s은(는) PojavLauncher의 실행 백엔드를 사용합니다</string>
     <string name="about_acknowledgements_modrinth_text">%s은(는) Modrinth의 플레이어 모델 애니메이션 프리셋을 이식합니다</string>
     <string name="vibrate_kind_one_shot">상수</string>
-
     <string name="guide_main_welcome_title">%s에 오신 것을 환영합니다!</string>
     <string name="guide_main_welcome_text">메인 화면의 기능을 간단히 살펴볼게요.</string>
     <string name="guide_main_account">여기를 눌러 계정 관리 화면을 여세요. Minecraft 계정을 추가하거나 관리할 수 있습니다</string>
@@ -1017,7 +1015,6 @@
     <string name="control_editor_style_cabinet_conflict_overwrite">기존 항목 덮어쓰기</string>
     <string name="control_editor_style_cabinet_conflict_independent">별도 사본으로 컬렉션</string>
     <string name="control_editor_style_cabinet_delete">컬렉션된 스타일 %s을(를) 삭제하시겠습니까?</string>
-
     <string name="guide_editor_style_cabinet_title">마음에 드는 스타일을 공용 컬렉션에 추가할 수도 있어요!</string>
     <string name="guide_editor_style_cabinet_text">스타일 컬렉션은 전역으로 적용되어, 어떤 컨트롤 레이아웃을 편집할 때도 이 안의 스타일을 볼 수 있어요~</string>
     <string name="guide_editor_style_cabinet_note">여기서 컬렉션된 스타일을 현재 컨트롤 레이아웃에 추가해 사용할 수 있어요~</string>
@@ -1035,4 +1032,5 @@
     <string name="guide_joystick_events_lock_text4">버튼을 탭하여 트리거 이벤트를 편집하세요</string>
     <string name="guide_joystick_events_events_text1">트리거할 수 있는 이벤트는 일반 버튼과 동일하며 자유도가 매우 높습니다</string>
     <string name="guide_joystick_events_events_text2">게임 조작만 하려는 경우라면 “키” 섹션에서 실제 키 바인딩만 편집하면 됩니다</string>
+    <string name="generic_retry">재시도</string>
 </resources>

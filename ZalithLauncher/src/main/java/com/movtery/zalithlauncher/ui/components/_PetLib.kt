@@ -79,6 +79,15 @@ private const val PET_HEIGHT_RESERVE = 1.05f
 /** 最小相对距离 0.8，即最多放大到原始取景的 1.25 倍。 */
 private const val PET_MIN_CAMERA_DISTANCE = 0.8f
 
+/** 光照的方位角（度） */
+const val PET_DEFAULT_LIGHT_AZIMUTH = 20f
+/** 光照的仰角（度） */
+const val PET_DEFAULT_LIGHT_ELEVATION = 35f
+/** 光照的亮度 */
+const val PET_DEFAULT_LIGHT_BRIGHTNESS = 100f
+/** 光照的柔和度 */
+const val PET_DEFAULT_LIGHT_SOFTNESS = 50f
+
 /**
  * 按 Compose 实际可用尺寸计算相对摄像机距离。
  * 安全区从四周扣除；宽或高任一方向受限都会拉远相机，空间充足时允许适度拉近。
@@ -109,6 +118,10 @@ internal fun calculatePetCameraDistance(width: Int, height: Int, safeAreaPx: Flo
  * @param cape 披风数据，null 时无披风
  * @param arm 手臂模型类别，null 按皮肤自动检测
  * @param yaw 整体偏航角（弧度），参数变化时模型转向该角度
+ * @param lightAzimuth 光照的方位角（度）
+ * @param lightElevation 光照的仰角（度）
+ * @param lightBrightness 光照的亮度
+ * @param lightSoftness 光照的柔和度
  * @param animation 循环动画，null 不播放
  * @param animationSpeed 动画播放速度倍率
  * @param tapReaction 点按模型命中时的反馈形式
@@ -124,6 +137,10 @@ fun PetModelView(
     cape: ByteArray? = null,
     arm: ArmModel? = null,
     yaw: Float = 0f,
+    lightAzimuth: Float = PET_DEFAULT_LIGHT_AZIMUTH,
+    lightElevation: Float = PET_DEFAULT_LIGHT_ELEVATION,
+    lightBrightness: Float = PET_DEFAULT_LIGHT_BRIGHTNESS,
+    lightSoftness: Float = PET_DEFAULT_LIGHT_SOFTNESS,
     animation: PetAnimation? = PetAnimation.Idle,
     animationSpeed: Float = 1f,
     tapReaction: PetTapReaction = PetTapReaction.Squash,
@@ -156,6 +173,9 @@ fun PetModelView(
     }
     LaunchedEffect(petController, yaw) {
         petController.setModelYaw(yaw)
+    }
+    LaunchedEffect(petController, lightAzimuth, lightElevation, lightBrightness, lightSoftness, lightSoftness) {
+        petController.setLighting(lightAzimuth, lightElevation, lightBrightness, lightSoftness,)
     }
 
     var previewBounds by remember { mutableStateOf<Rect?>(null) }

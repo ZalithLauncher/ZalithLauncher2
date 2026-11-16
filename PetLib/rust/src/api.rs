@@ -8,7 +8,7 @@ use crate::animation::AnimationId;
 use crate::clip::clip_duration;
 use crate::lighting::Lighting;
 use crate::model::{self, ModelData};
-use crate::pose::Skeleton;
+use crate::pose::{GazeRig, Skeleton};
 use crate::render::{self, Frame};
 use crate::skin::{self, ArmModel, Skin, Texture};
 
@@ -44,6 +44,8 @@ pub struct PetModel {
     frame: Frame,
     outer_layer: bool,
     super_sample: f32,
+    /// 旧固定机位的相对距离；1 为原始取景
+    camera_distance: f32,
 }
 
 impl PetModel {
@@ -70,6 +72,7 @@ impl PetModel {
             frame: Frame::new(1, 1),
             outer_layer: true,
             super_sample: 2.,
+            camera_distance: 1.,
         })
     }
 
@@ -116,6 +119,11 @@ impl PetModel {
     /// 超采样系数（0.5..=2.0，默认 2.0）。1.0 以下为最近邻放大，无抗锯齿。
     pub fn set_super_sample(&mut self, value: f32) {
         self.super_sample = value.clamp(0.5, 2.);
+    }
+
+    /// 旧固定机位的相对距离：1 为原始取景，值越大模型越小。
+    pub fn set_camera_distance(&mut self, value: f32) {
+        self.camera_distance = value.max(1e-3);
     }
 
     pub fn set_outer_layer(&mut self, enabled: bool) {
@@ -187,7 +195,7 @@ impl PetModel {
         &mut self,
         width: usize,
         height: usize,
-        now: f32,
+        _now: f32,
         dt: f32,
         out: &mut [u8],
     ) -> Result<(), String> {
@@ -200,8 +208,11 @@ impl PetModel {
         if width == 0 || height == 0 {
             return Ok(());
         }
-        self.skeleton
-            .update(Vec2::new(width as f32, height as f32), now, dt);
+        let view = Vec2::new(width as f32, height as f32);
+        self.skeleton.update_with_rig(
+            &GazeRig::legacy_with_distance(view, self.camera_distance),
+            dt,
+        );
         self.lighting.prepare(&self.lighting_params);
         let fw = ((width as f32 * self.super_sample).round() as usize).max(1);
         let fh = ((height as f32 * self.super_sample).round() as usize).max(1);
@@ -217,6 +228,7 @@ impl PetModel {
                 outer_layer: self.outer_layer,
             },
             &self.lighting,
+            self.camera_distance,
         );
         self.frame.present_into(out, width, height);
         Ok(())
@@ -898,6 +910,30 @@ mod tests {
         let alpha = a.iter().skip(3).step_by(4).filter(|&&v| v > 0).count();
         assert!(alpha > 1000, "first frame is nearly empty");
         assert_eq!(a, b, "identical frame streams must be byte-identical");
+    }
+
+    #[test]
+    fn camera_distance_scales_render_and_preserves_default() {
+        let (w, h) = (225usize, 262usize);
+        let render = |distance: Option<f32>| {
+            let mut model = test_model();
+            if let Some(distance) = distance {
+                model.set_camera_distance(distance);
+            }
+            let mut out = vec![0u8; w * h * 4];
+            model.render(w, h, 0., 1. / 60., &mut out).unwrap();
+            out
+        };
+        let baseline = render(None);
+        assert_eq!(baseline, render(Some(1.)), "distance 1 must be a no-op");
+        let distant = render(Some(2.));
+        let opaque = |buf: &[u8]| buf.iter().skip(3).step_by(4).filter(|&&v| v > 0).count();
+        let base_count = opaque(&baseline);
+        let distant_count = opaque(&distant);
+        assert!(
+            distant_count * 3 < base_count,
+            "distance 2 should shrink the model: {base_count} -> {distant_count}"
+        );
     }
 
     #[test]

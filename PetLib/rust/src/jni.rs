@@ -329,6 +329,21 @@ pub extern "system" fn Java_com_movtery_petlib_PetLibNative_nativeSetSuperSample
 }
 
 #[no_mangle]
+pub extern "system" fn Java_com_movtery_petlib_PetLibNative_nativeSetCameraDistance(
+    _env: JNIEnv,
+    _class: JClass,
+    ptr: jlong,
+    value: jfloat,
+) {
+    guard(|| {
+        // SAFETY: 句柄由宿主渲染线程独占使用。
+        if let Some(model) = unsafe { model_from(ptr) } {
+            model.set_camera_distance(value);
+        }
+    })
+}
+
+#[no_mangle]
 pub extern "system" fn Java_com_movtery_petlib_PetLibNative_nativeSetOuterLayer(
     _env: JNIEnv,
     _class: JClass,

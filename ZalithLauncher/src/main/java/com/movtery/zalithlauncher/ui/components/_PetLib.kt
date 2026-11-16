@@ -32,6 +32,10 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import com.movtery.petlib.ArmModel
 import com.movtery.petlib.PetAnimation
 import com.movtery.petlib.PetController
@@ -61,6 +65,28 @@ private fun Context.loadDefaultSkin(arm: ArmModel?): ByteArray = if (arm == ArmM
     assets.open("skin/steve.png")
 }.use { it.readBytes() }
 
+/** 原生默认取景的保守参考框（模型像素） */
+private const val PET_MODEL_FRAME_SIZE = 44f
+
+/**
+ * 按 Compose 实际可用尺寸计算相对摄像机距离。
+ * 宽或高任一方向受限都会拉远相机。
+ */
+internal fun calculatePetCameraDistance(width: Int, height: Int, safeAreaPx: Float): Float {
+    if (width <= 0 || height <= 0) return 1f
+    val marginLimit = minOf(width, height) / 2f
+    val margin = if (safeAreaPx.isFinite()) {
+        safeAreaPx.coerceIn(0f, marginLimit)
+    } else {
+        0f
+    }
+    val availableWidth = (width - 2f * margin).coerceAtLeast(1f)
+    val availableHeight = (height - 2f * margin).coerceAtLeast(1f)
+    val originalScale = width / PET_MODEL_FRAME_SIZE
+    val safeScale = minOf(availableWidth, availableHeight) / PET_MODEL_FRAME_SIZE
+    return originalScale / minOf(originalScale, safeScale)
+}
+
 /**
  * 玩家模型预览的中介组件：内部组装控制器生命周期、皮肤与披风加载、
  * 全局鼠标视线跟随与手势交互，调用端只需提供渲染数据。
@@ -75,6 +101,7 @@ private fun Context.loadDefaultSkin(arm: ArmModel?): ByteArray = if (arm == ArmM
  * @param dragYaw 是否响应拖拽旋转偏航
  * @param gazeEnabled 是否跟随 Activity 全局鼠标位置（窗口坐标）；
  * 独立窗口中的预览与事件泵不同坐标系，应传 false
+ * @param safeArea 人物四周预留的安全距离
  */
 @Composable
 fun PetModelView(
@@ -88,6 +115,7 @@ fun PetModelView(
     tapReaction: PetTapReaction = PetTapReaction.Squash,
     dragYaw: Boolean = true,
     gazeEnabled: Boolean = true,
+    safeArea: Dp = 8.dp,
 ) {
     val context = LocalContext.current
     val petController = remember {
@@ -117,6 +145,13 @@ fun PetModelView(
     }
 
     var previewBounds by remember { mutableStateOf<Rect?>(null) }
+    var previewSize by remember { mutableStateOf(IntSize.Zero) }
+    val safeAreaPx = with(LocalDensity.current) { safeArea.toPx() }
+    LaunchedEffect(petController, previewSize, safeAreaPx) {
+        petController.setCameraDistance(
+            calculatePetCameraDistance(previewSize.width, previewSize.height, safeAreaPx)
+        )
+    }
     DisposableEffect(petController, gazeEnabled) {
         if (!gazeEnabled) {
             onDispose { }
@@ -138,7 +173,10 @@ fun PetModelView(
 
     PetPreview(
         controller = petController,
-        modifier = modifier.onGloballyPositioned { previewBounds = it.boundsInWindow() },
+        modifier = modifier.onGloballyPositioned {
+            previewBounds = it.boundsInWindow()
+            previewSize = it.size
+        },
         tapReaction = tapReaction,
         dragYaw = dragYaw
     )

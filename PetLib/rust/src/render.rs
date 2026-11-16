@@ -158,6 +158,14 @@ pub(crate) fn legacy_basis(view: Vec2) -> ViewBasis {
     )
 }
 
+/// 旧固定机位的相对距离缩放：1 保持原取景，值越大模型越小。
+/// 正交投影不改变视角，仅按距离比例调整取景系数。
+pub(crate) fn legacy_basis_with_distance(view: Vec2, distance: f32) -> ViewBasis {
+    let mut basis = legacy_basis(view);
+    basis.scale /= distance.max(1e-3);
+    basis
+}
+
 /// 无纹理槽位哨兵：该材质本帧不绘制。
 const NO_TEXTURE: u32 = u32::MAX;
 
@@ -256,11 +264,15 @@ pub(crate) fn collect_tris(
     light: &Lighting,
     width: usize,
     height: usize,
+    camera_distance: f32,
     scratch: &mut CollectScratch,
     table: &mut Vec<Arc<Texture>>,
     out: &mut Vec<Tri>,
 ) {
-    let view = legacy_basis(Vec2::new(width as f32, height as f32));
+    let view = legacy_basis_with_distance(
+        Vec2::new(width as f32, height as f32),
+        camera_distance,
+    );
     collect_tris_view(
         skeleton,
         scene,
@@ -569,6 +581,7 @@ impl Frame {
         skeleton: &Skeleton,
         scene: &SceneParams,
         light: &Lighting,
+        camera_distance: f32,
     ) {
         let mut tris = std::mem::take(&mut self.tris);
         let mut scratch = std::mem::take(&mut self.scratch);
@@ -581,6 +594,7 @@ impl Frame {
             light,
             self.width,
             self.height,
+            camera_distance,
             &mut scratch,
             &mut table,
             &mut tris,

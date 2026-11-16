@@ -171,6 +171,14 @@ class PetController(
     }
 
     /**
+     * 旧固定机位的相对摄像机距离
+     * @param distance 1 为原始取景，值越大模型越小
+     */
+    fun setCameraDistance(@FloatRange(from = 0.001) distance: Float) {
+        post { PetLibNative.nativeSetCameraDistance(ptr, distance) }
+    }
+
+    /**
      * 是否开启双层皮肤
      */
     fun setOuterLayer(enabled: Boolean) {

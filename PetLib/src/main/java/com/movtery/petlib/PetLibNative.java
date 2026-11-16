@@ -67,6 +67,8 @@ final class PetLibNative {
 
     static native void nativeSetSuperSample(long ptr, float value);
 
+    static native void nativeSetCameraDistance(long ptr, float value);
+
     static native void nativeSetOuterLayer(long ptr, boolean enabled);
 
     static native void nativeSetTau(long ptr, float gaze, float yaw, float anim, float recenter);

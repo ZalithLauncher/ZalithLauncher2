@@ -183,6 +183,16 @@ impl GazeRig {
         }
     }
 
+    /// 旧固定机位的相对距离版本，注视换算与渲染共用同一缩放。
+    pub(crate) fn legacy_with_distance(view: Vec2, distance: f32) -> Self {
+        let distance = distance.max(1e-3);
+        Self {
+            basis: crate::render::legacy_basis_with_distance(view, distance),
+            distance_px: LEGACY_VIEW_DISTANCE * distance,
+            yaw_offset: 0.,
+        }
+    }
+
     /// 使用已经计算好的场景视图基构造注视上下文。
     pub(crate) fn from_view(
         camera: &crate::scene::Camera,

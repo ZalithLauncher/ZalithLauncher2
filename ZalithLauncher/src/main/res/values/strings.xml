@@ -80,6 +80,7 @@
     <string name="generic_follow_system">Follow System</string>
     <string name="generic_edit">Edit</string>
     <string name="generic_view">View</string>
+    <string name="generic_plugin">Plugin</string>
     <!-- Title of the version list page -->
     <string name="page_title_version_list">Version List</string>
     <!-- Title of the manage versions page -->
@@ -778,6 +779,8 @@
     <string name="game_loading_version_name">Game Version: %s</string>
     <!-- Line on the game launching overlay; %s is extra info about the version being started -->
     <string name="game_loading_version_info">Game Info: %s</string>
+    <!-- Line on the game launching overlay; %s is the name of the renderer being used -->
+    <string name="game_loading_renderer">Renderer: %s</string>
     <!-- Title of the in-game menu overlay -->
     <string name="game_menu_title">Game Menu</string>
     <!-- Warning message in the dialog confirming force close from the in-game menu -->

@@ -77,6 +77,8 @@ import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
 import com.movtery.zalithlauncher.game.input.LWJGLCharSender
 import com.movtery.zalithlauncher.game.keycodes.mapToKeycode
 import com.movtery.zalithlauncher.game.launch.handler.GameHandler
+import com.movtery.zalithlauncher.game.plugin.Plugin
+import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.sdl.SdlTextSender
 import com.movtery.zalithlauncher.game.support.touch_controller.touchControllerInputModifier
@@ -89,6 +91,7 @@ import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.setting.enums.toAction
 import com.movtery.zalithlauncher.terracotta.Terracotta
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
+import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MenuState
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
 import com.movtery.zalithlauncher.ui.control.MinecraftHotbar
@@ -117,8 +120,8 @@ import com.movtery.zalithlauncher.ui.screens.game.multiplayer.TerracottaOperatio
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.rememberTerracottaViewModel
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
 import com.movtery.zalithlauncher.utils.GameDisplayLayoutState
-import com.movtery.zalithlauncher.utils.rememberGameDisplayLayoutState
 import com.movtery.zalithlauncher.utils.logging.Logger
+import com.movtery.zalithlauncher.utils.rememberGameDisplayLayoutState
 import com.movtery.zalithlauncher.viewmodel.EditorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
@@ -743,12 +746,19 @@ fun GameScreen(
             )
         }
 
+        val currentRenderer = remember {
+            // UI 初始化前渲染器已经完成初始化，此处调用是安全的
+            runCatching { Renderers.getCurrentRenderer() }.getOrNull()
+        }
+
         GameInfoBox(
             modifier = Modifier
                 .align(Alignment.Center)
                 .padding(all = 16.dp),
             versionName = version.getVersionName(),
             versionInfo = version.getVersionInfo()?.getInfoString(),
+            rendererName = currentRenderer?.getRendererName(),
+            rendererFromPlugin = currentRenderer is Plugin,
             visible = showGameInfo,
             onClose = onInfoBoxClose
         )
@@ -896,6 +906,8 @@ fun GameScreen(
 private fun GameInfoBox(
     versionName: String,
     versionInfo: String?,
+    rendererName: String?,
+    rendererFromPlugin: Boolean,
     visible: Boolean,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -942,6 +954,22 @@ private fun GameInfoBox(
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
+                        rendererName?.let { renderer ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.game_loading_renderer, renderer),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                                if (rendererFromPlugin) {
+                                    LittleTextLabel(
+                                        modifier = Modifier.padding(start = 6.dp),
+                                        text = stringResource(R.string.generic_plugin)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -967,6 +995,8 @@ private fun PreviewGameInfoBox() {
         GameInfoBox(
             versionName = "1.21.11",
             versionInfo = "1.21.11",
+            rendererName = "Mobile Glues",
+            rendererFromPlugin = true,
             visible = true,
             onClose = {}
         )

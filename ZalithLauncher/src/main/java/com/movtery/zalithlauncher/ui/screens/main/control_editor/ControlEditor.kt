@@ -266,7 +266,7 @@ fun BoxWithConstraintsScope.ControlEditor(
         MenuBox(
             modifier = Modifier.guideNode(
                 key = GuideKeys.Editor.Step.MenuBall,
-                holeRadius = 12.dp,
+                holeShape = MaterialTheme.shapes.medium,
                 holeBorderWidth = 4.dp,
             ),
             position = viewModel.editorBallPosition,

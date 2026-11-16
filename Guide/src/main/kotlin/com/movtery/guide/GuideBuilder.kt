@@ -59,19 +59,19 @@ class GuideBuilder internal constructor() {
  * 构建并记住一条引导流
  *
  * @param colors 引导层配色：遮罩、内容默认色
- * @param holeRadius 锚点未声明镂空圆角时的全局默认值
+ * @param holeShape 锚点未声明镂空形状时的全局默认值
  * @param holeBorderWidth 锚点未声明镂空描边时的全局默认值，0 表示无边框
  * @param shape 锚点未声明内容裁剪形状时的全局默认值
  */
 @Composable
 fun rememberGuide(
     colors: GuideColors = GuideDefaults.colors,
-    holeRadius: Dp = GuideDefaults.holeRadius,
+    holeShape: Shape = GuideDefaults.holeShape,
     holeBorderWidth: Dp = 0.dp,
     shape: Shape = GuideDefaults.contentShape,
     backBehavior: GuideBack = GuideBack.Block,
     builder: GuideBuilder.() -> Unit
-): GuideController = remember(colors, holeRadius, holeBorderWidth, shape, backBehavior) {
+): GuideController = remember(colors, holeShape, holeBorderWidth, shape, backBehavior) {
     val result = GuideBuilder().apply(builder)
-    GuideController(result.entries.toList(), colors, holeRadius, holeBorderWidth, shape, backBehavior)
+    GuideController(result.entries.toList(), colors, holeShape, holeBorderWidth, shape, backBehavior)
 }

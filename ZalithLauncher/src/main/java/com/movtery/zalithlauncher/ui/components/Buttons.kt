@@ -115,6 +115,44 @@ fun ScalingActionButton(
 }
 
 @Composable
+fun ScalingIconButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    size: Dp = 40.dp,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
+    border: BorderStroke? = null,
+    content: @Composable () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale = animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "ButtonScale"
+    )
+
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .size(size)
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            },
+        enabled = enabled,
+        shape = CircleShape,
+        colors = colors,
+        elevation = elevation,
+        border = border,
+        contentPadding = PaddingValues(0.dp),
+        interactionSource = interactionSource,
+        content = { content() }
+    )
+}
+
+@Composable
 fun MarqueeText(
     modifier: Modifier = Modifier,
     text: String,

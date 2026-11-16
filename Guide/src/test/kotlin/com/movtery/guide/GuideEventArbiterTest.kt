@@ -1,5 +1,6 @@
 package com.movtery.guide
 
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.unit.dp
@@ -43,7 +44,7 @@ class GuideEventArbiterTest {
     private fun controller(vararg entries: GuideEntry): GuideController = GuideController(
         entries = entries.toList(),
         colors = GuideColors(),
-        holeRadius = 8.dp,
+        holeShape = RoundedCornerShape(8.dp),
         holeBorderWidth = 0.dp,
         shape = GuideDefaults.contentShape,
         backBehavior = GuideBack.Block

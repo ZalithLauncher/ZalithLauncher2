@@ -63,9 +63,9 @@ internal class GuideRegistry {
     /**
      * 更新锚点的镂空样式与内容裁剪形状声明
      */
-    fun updateStyle(node: GuideNode, radius: Dp?, borderWidth: Dp?, borderColor: Color?, shape: Shape?) {
-        if (node.holeRadius != radius || node.holeBorderWidth != borderWidth || node.holeBorderColor != borderColor || node.shape != shape) {
-            node.holeRadius = radius
+    fun updateStyle(node: GuideNode, holeShape: Shape?, borderWidth: Dp?, borderColor: Color?, shape: Shape?) {
+        if (node.holeShape != holeShape || node.holeBorderWidth != borderWidth || node.holeBorderColor != borderColor || node.shape != shape) {
+            node.holeShape = holeShape
             node.holeBorderWidth = borderWidth
             node.holeBorderColor = borderColor
             node.shape = shape
@@ -134,7 +134,7 @@ internal typealias GuideScrollHandler = suspend (GuideKey) -> Boolean
 internal class GuideNode internal constructor(internal val key: GuideKey) {
     internal var bounds: Rect = Rect.Zero
     internal var preferSide: GuideSide? = null
-    internal var holeRadius: Dp? = null
+    internal var holeShape: Shape? = null
     internal var holeBorderWidth: Dp? = null
     internal var holeBorderColor: Color? = null
     internal var shape: Shape? = null
@@ -149,7 +149,7 @@ internal val LocalGuideRegistry = compositionLocalOf<GuideRegistry?> { null }
 /**
  * 将组件标记为引导锚点；多个组件标记同一个 [key] 时，作为同一步骤的一组锚点
  * @param preferSide 方向推荐：引导内容优先展示在组件该侧；多锚点或该侧装不下时回落自动求解
- * @param holeRadius 镂空圆角半径，null 时回落引导流的全局配置
+ * @param holeShape 镂空形状，null 时回落引导流的全局配置
  * @param holeBorderWidth 镂空描边宽度，null 时回落引导流的全局配置
  * @param holeBorderColor 镂空描边颜色，null 时使用库默认颜色
  * @param shape 引导内容裁剪形状，null 时回落引导流的全局配置；多锚点时取首个声明
@@ -157,7 +157,7 @@ internal val LocalGuideRegistry = compositionLocalOf<GuideRegistry?> { null }
 fun Modifier.guideNode(
     key: GuideKey,
     preferSide: GuideSide? = null,
-    holeRadius: Dp? = null,
+    holeShape: Shape? = null,
     holeBorderWidth: Dp? = null,
     holeBorderColor: Color? = null,
     shape: Shape? = null
@@ -170,7 +170,7 @@ fun Modifier.guideNode(
     }
     SideEffect {
         registry.updatePreferSide(node, preferSide)
-        registry.updateStyle(node, holeRadius, holeBorderWidth, holeBorderColor, shape)
+        registry.updateStyle(node, holeShape, holeBorderWidth, holeBorderColor, shape)
     }
     this
         .bringIntoViewRequester(node.bringIntoViewRequester)

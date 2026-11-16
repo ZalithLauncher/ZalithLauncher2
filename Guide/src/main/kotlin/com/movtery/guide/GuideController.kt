@@ -37,7 +37,7 @@ internal object GuideHub {
 class GuideController internal constructor(
     internal val entries: List<GuideEntry>,
     internal val colors: GuideColors,
-    internal val holeRadius: Dp,
+    internal val holeShape: Shape,
     internal val holeBorderWidth: Dp,
     internal val shape: Shape,
     internal val backBehavior: GuideBack

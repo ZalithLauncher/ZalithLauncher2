@@ -1,9 +1,13 @@
 //! PetLib 接口
 
-use glam::Vec2;
+use std::sync::Arc;
+
+use glam::{Vec2, Vec3};
 
 use crate::animation::AnimationId;
+use crate::clip::clip_duration;
 use crate::lighting::Lighting;
+use crate::model::{self, ModelData};
 use crate::pose::Skeleton;
 use crate::render::{self, Frame};
 use crate::skin::{self, ArmModel, Skin, Texture};
@@ -30,7 +34,10 @@ impl Default for LightingParams {
 
 pub struct PetModel {
     skin: Skin,
-    cape: Option<Texture>,
+    skin_texture: Arc<Texture>,
+    cape: Option<Arc<Texture>>,
+    /// 材质索引对应的纹理；仅在皮肤、披风或臂型变化时重建。
+    textures: Vec<Option<Arc<Texture>>>,
     lighting: Lighting,
     lighting_params: LightingParams,
     skeleton: Skeleton,
@@ -42,12 +49,24 @@ pub struct PetModel {
 impl PetModel {
     /// 创建模型。
     pub fn new(skin_bytes: &[u8], arm: Option<ArmModel>) -> Result<Self, String> {
+        let skin = Skin::load(skin_bytes, arm)?;
+        // legacy 皮肤按原版约定使用经典臂型
+        let model_arm = if skin.legacy {
+            ArmModel::Classic
+        } else {
+            skin.arm
+        };
+        let data = model::builtin_data(model_arm)?;
+        let skin_texture = Arc::new(skin.texture.clone());
+        let textures = player_textures(&data, &skin_texture, None);
         Ok(Self {
-            skin: Skin::load(skin_bytes, arm)?,
+            skeleton: Skeleton::new(Arc::clone(&data)),
+            skin,
+            skin_texture,
             cape: None,
+            textures,
             lighting: Lighting::new(&LightingParams::default()),
             lighting_params: LightingParams::default(),
-            skeleton: Skeleton::new(),
             frame: Frame::new(1, 1),
             outer_layer: true,
             super_sample: 2.,
@@ -57,6 +76,15 @@ impl PetModel {
     /// 替换皮肤。`arm` 为 None 时按纹理自动检测臂型。
     pub fn set_skin(&mut self, bytes: &[u8], arm: Option<ArmModel>) -> Result<(), String> {
         self.skin = Skin::load(bytes, arm)?;
+        self.skin_texture = Arc::new(self.skin.texture.clone());
+        let model_arm = if self.skin.legacy {
+            ArmModel::Classic
+        } else {
+            self.skin.arm
+        };
+        self.skeleton.model = model::builtin_data(model_arm)?;
+        self.textures =
+            player_textures(&self.skeleton.model, &self.skin_texture, self.cape.as_ref());
         Ok(())
     }
 
@@ -64,9 +92,16 @@ impl PetModel {
         self.skin.arm
     }
 
+    /// 以固定种子重置待机调度，供确定性回放。
+    pub fn seed_idle(&mut self, seed: u64) {
+        self.skeleton.seed_idle(seed);
+    }
+
     /// 替换披风，None 移除。
     pub fn set_cape(&mut self, bytes: Option<&[u8]>) -> Result<(), String> {
-        self.cape = bytes.map(skin::load_cape).transpose()?;
+        self.cape = bytes.map(skin::load_cape).transpose()?.map(Arc::new);
+        self.textures =
+            player_textures(&self.skeleton.model, &self.skin_texture, self.cape.as_ref());
         Ok(())
     }
 
@@ -87,6 +122,7 @@ impl PetModel {
         self.outer_layer = enabled;
     }
 
+    /// 姿态平滑时间常数（秒）：注视 / 偏航 / 动画切换 / 回正。
     pub fn set_tau(&mut self, gaze: f32, yaw: f32, anim: f32, recenter: f32) {
         let s = &mut self.skeleton;
         s.tau_gaze = gaze.max(0.001);
@@ -120,6 +156,8 @@ impl PetModel {
         self.skeleton.model_yaw()
     }
 
+    /// 播放循环动画
+    /// `head_follow` 控制播放期间头部是否追随注视。
     pub fn play_animation(&mut self, id: AnimationId, speed: f32, head_follow: bool) {
         self.skeleton.play_animation(id, speed, head_follow);
     }
@@ -170,11 +208,12 @@ impl PetModel {
         if self.frame.width != fw || self.frame.height != fh {
             self.frame = Frame::new(fw, fh);
         }
+        let skeleton = &self.skeleton;
         self.frame.draw_scene(
-            &self.skeleton,
+            skeleton,
             &render::SceneParams {
-                skin: &self.skin,
-                cape: self.cape.as_ref(),
+                data: skeleton.model.as_ref(),
+                textures: &self.textures,
                 outer_layer: self.outer_layer,
             },
             &self.lighting,
@@ -195,27 +234,255 @@ impl PetModel {
 
     /// 调试：当前帧各部件的种类（"skin"/"cape"）、尺寸与列主序变换矩阵。
     pub fn debug_part_transforms(&self) -> Vec<PartTransform> {
-        let parts = render::parts(
-            &self.skeleton,
-            &render::SceneParams {
-                skin: &self.skin,
-                cape: self.cape.as_ref(),
-                outer_layer: self.outer_layer,
-            },
-        );
-        parts
-            .iter()
+        let scene = render::SceneParams {
+            data: self.skeleton.model.as_ref(),
+            textures: &self.textures,
+            outer_layer: self.outer_layer,
+        };
+        render::part_transforms(&self.skeleton, &scene)
+            .into_iter()
             .map(|p| PartTransform {
-                kind: match p.tex {
-                    render::Tex::Skin => "skin",
-                    render::Tex::Cape => "cape",
-                }
-                .to_string(),
-                size: p.size.to_array(),
-                matrix: p.transform.to_cols_array(),
+                kind: p.kind.to_string(),
+                size: p.size,
+                matrix: p.matrix,
             })
             .collect()
     }
+
+    /// 测试探针：当前帧三角形数量（累积检测）。
+    #[cfg(test)]
+    pub(crate) fn debug_tri_count(&self) -> usize {
+        self.frame.tri_count()
+    }
+}
+
+/// 可加入场景、独立变换并播放 GLB 剪辑的模型实例。
+pub struct Model {
+    pub(crate) data: Arc<ModelData>,
+    /// 姿态状态
+    #[allow(dead_code)]
+    pub(crate) skeleton: Skeleton,
+    /// 材质索引 → 纹理
+    /// 玩家语义下由皮肤/披风映射，道具语义下为内嵌纹理
+    pub(crate) textures: Vec<Option<Arc<Texture>>>,
+    /// 玩家皮肤纹理；None 表示使用模型内嵌纹理的道具。
+    pub(crate) skin_texture: Option<Arc<Texture>>,
+    cape: Option<Arc<Texture>>,
+    /// 位置
+    pub(crate) position: Vec3,
+    /// 欧拉旋转（弧度）
+    pub(crate) rotation: Vec3,
+    /// 均匀缩放
+    pub(crate) scale: f32,
+    /// 玩家模型是否启用双层皮肤
+    pub(crate) outer_layer: bool,
+}
+
+impl Model {
+    /// 加载自定义 GLB（道具模式：材质须携带可解析的内嵌纹理）。
+    pub fn from_glb(bytes: &[u8]) -> Result<Self, String> {
+        Self::build(model::cached(bytes)?, None)
+    }
+
+    /// 加载自定义 GLB 并绑定玩家皮肤（材质名映射皮肤/披风）。
+    pub fn from_glb_with_skin(
+        bytes: &[u8],
+        skin_bytes: &[u8],
+        arm: Option<ArmModel>,
+    ) -> Result<Self, String> {
+        let skin = Skin::load(skin_bytes, arm)?;
+        Self::build(model::cached(bytes)?, Some(skin))
+    }
+
+    /// 内置 classic/slim 玩家模型 + 皮肤（GLB 经 include_bytes 内嵌，
+    /// 与 PetModel 共享同一份解析缓存）。
+    pub fn builtin_player(skin_bytes: &[u8], arm: Option<ArmModel>) -> Result<Self, String> {
+        let skin = Skin::load(skin_bytes, arm)?;
+        // 与 PetModel::new 相同约定：legacy 皮肤按经典臂型
+        let model_arm = if skin.legacy {
+            ArmModel::Classic
+        } else {
+            skin.arm
+        };
+        Self::build(model::builtin_data(model_arm)?, Some(skin))
+    }
+
+    fn build(data: Arc<ModelData>, skin: Option<Skin>) -> Result<Self, String> {
+        let skin_texture = skin.map(|skin| Arc::new(skin.texture));
+        let textures = match &skin_texture {
+            Some(skin) => Ok(player_textures(&data, skin, None)),
+            None => data
+                .materials
+                .iter()
+                .map(|m| {
+                    m.embedded.clone().map(Some).ok_or_else(|| {
+                        format!(
+                            "material {:?} lacks a decodable embedded texture \
+                             (external image references are unsupported)",
+                            m.name.as_deref().unwrap_or("?")
+                        )
+                    })
+                })
+                .collect(),
+        }?;
+        Ok(Self {
+            skeleton: Skeleton::new(Arc::clone(&data)),
+            data,
+            textures,
+            skin_texture,
+            cape: None,
+            position: Vec3::ZERO,
+            rotation: Vec3::ZERO,
+            scale: 1.,
+            outer_layer: true,
+        })
+    }
+
+    /// 按材质名覆盖纹理（PNG）。
+    pub fn set_texture(&mut self, material: &str, bytes: &[u8]) -> Result<(), String> {
+        let index = self
+            .data
+            .materials
+            .iter()
+            .position(|m| m.name.as_deref() == Some(material))
+            .ok_or_else(|| format!("material {material:?} not found"))?;
+        self.textures[index] = Some(Arc::new(Texture::decode(bytes)?));
+        Ok(())
+    }
+
+    /// 绑定玩家皮肤（道具模型由此切换为玩家语义，材质名映射皮肤/披风）。
+    pub fn set_skin(&mut self, bytes: &[u8], arm: Option<ArmModel>) -> Result<(), String> {
+        let skin = Skin::load(bytes, arm)?;
+        let texture = Arc::new(skin.texture);
+        self.textures = player_textures(&self.data, &texture, self.cape.as_ref());
+        self.skin_texture = Some(texture);
+        Ok(())
+    }
+
+    /// 替换披风，None 移除。
+    pub fn set_cape(&mut self, bytes: Option<&[u8]>) -> Result<(), String> {
+        self.cape = bytes.map(skin::load_cape).transpose()?.map(Arc::new);
+        if let Some(skin) = &self.skin_texture {
+            self.textures = player_textures(&self.data, skin, self.cape.as_ref());
+        }
+        Ok(())
+    }
+
+    /// 位置（场景单位，1 单位 = 1 方块；模型根原点落到该位置）。
+    pub fn set_position(&mut self, x: f32, y: f32, z: f32) {
+        self.position = Vec3::new(x, y, z);
+    }
+
+    /// 注视目标：屏幕像素（随活相机逐帧反投影，看光标语义）。
+    pub fn set_gaze_screen(&mut self, target: Option<(f32, f32)>) {
+        self.skeleton
+            .set_gaze_target(target.map(|(x, y)| Vec2::new(x, y)));
+    }
+
+    /// 注视目标：场景空间固定点（模型互看）。
+    pub fn set_gaze_scene(&mut self, target: Option<[f32; 3]>) {
+        self.skeleton.set_gaze_scene(target.map(Vec3::from));
+    }
+
+    /// 欧拉旋转（度，pitch/yaw/roll）。
+    pub fn set_rotation_degrees(&mut self, pitch: f32, yaw: f32, roll: f32) {
+        self.rotation = Vec3::new(pitch, yaw, roll).map(f32::to_radians);
+    }
+
+    /// 均匀缩放。
+    pub fn set_scale(&mut self, scale: f32) {
+        self.scale = scale.max(0.001);
+    }
+
+    /// 外层（半透明帽层）显隐。
+    pub fn set_outer_layer(&mut self, enabled: bool) {
+        self.outer_layer = enabled;
+    }
+
+    /// 剪辑名列表（文档序）。
+    pub fn clip_names(&self) -> Vec<&str> {
+        self.data.clips.iter().map(|c| c.name.as_str()).collect()
+    }
+
+    /// 取出动画对象（剪辑不存在时返回 None）。
+    pub fn animation(&mut self, name: &str) -> Option<Animation<'_>> {
+        let clip = self.data.clip_index_of(name)?;
+        let index = self.skeleton.manual_slot(clip);
+        Some(Animation {
+            skeleton: &mut self.skeleton,
+            index,
+        })
+    }
+}
+
+/// 动画对象：模型内置剪辑的播放控制，并行权重混合的独立层。
+/// 常规名（idle/idle_sub_*/interact）的自动调度仍在底层运行。
+pub struct Animation<'a> {
+    skeleton: &'a mut Skeleton,
+    index: usize,
+}
+
+impl Animation<'_> {
+    /// 播放（暂停中则继续，已播完则从头）。一次性剪辑播完自动淡出。
+    pub fn play(&mut self, speed: f32) {
+        let clip = self.skeleton.manual(self.index).clip;
+        let dur = clip_duration(&self.skeleton.model.clips[clip]).max(1e-6);
+        let st = self.skeleton.manual_mut(self.index);
+        if !st.playing && st.time >= dur {
+            st.time = 0.;
+        }
+        st.playing = true;
+        st.speed = speed.max(0.);
+        st.target_weight = 1.;
+    }
+
+    /// 暂停（保留时间与权重）。
+    pub fn pause(&mut self) {
+        self.skeleton.manual_mut(self.index).playing = false;
+    }
+
+    /// 停止（时间归零，权重淡出）。
+    pub fn stop(&mut self) {
+        let st = self.skeleton.manual_mut(self.index);
+        st.playing = false;
+        st.time = 0.;
+        st.target_weight = 0.;
+    }
+
+    pub fn set_speed(&mut self, speed: f32) {
+        self.skeleton.manual_mut(self.index).speed = speed.max(0.);
+    }
+
+    pub fn set_loop(&mut self, loop_: bool) {
+        self.skeleton.manual_mut(self.index).loop_ = loop_;
+    }
+
+    /// 混合权重（0..=1，默认 1）。
+    pub fn set_weight(&mut self, weight: f32) {
+        self.skeleton.manual_mut(self.index).target_weight = weight.clamp(0., 1.);
+    }
+
+    pub fn is_playing(&self) -> bool {
+        self.skeleton.manual(self.index).playing
+    }
+}
+
+/// 玩家语义材质表：cape 名材质 → 披风（无则不绘），其余 → 皮肤。
+fn player_textures(
+    data: &ModelData,
+    skin: &Arc<Texture>,
+    cape: Option<&Arc<Texture>>,
+) -> Vec<Option<Arc<Texture>>> {
+    data.materials
+        .iter()
+        .map(|m| {
+            if model::material_is_cape(m.name.as_deref()) {
+                cape.cloned()
+            } else {
+                Some(Arc::clone(skin))
+            }
+        })
+        .collect()
 }
 
 /// 调试用部件变换快照。
@@ -228,6 +495,7 @@ pub struct PartTransform {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::gltf::test_fixture;
     use std::io::Cursor;
 
     /// 合成一张纯色 64×64 PNG 皮肤。
@@ -244,6 +512,259 @@ mod tests {
 
     fn test_model() -> PetModel {
         PetModel::new(&skin_png(), None).unwrap()
+    }
+
+    #[test]
+    fn arm_switch_rebinds_geometry_both_ways() {
+        // 回归：纤细起步后切经典曾永远落在初始纤细几何上
+        // （骨架数据在 new 时绑定一次，set_skin 只换纹理）。
+        // 几何签名：全部部件包围盒尺寸（细/经典只有臂宽不同，足以区分）。
+        let sizes = |m: &PetModel| {
+            m.debug_part_transforms()
+                .into_iter()
+                .map(|p| p.size)
+                .collect::<Vec<_>>()
+        };
+        let mut m = PetModel::new(&skin_png(), Some(ArmModel::Slim)).unwrap();
+        assert!(Arc::ptr_eq(
+            &m.skeleton.model,
+            &model::builtin_data(ArmModel::Slim).unwrap()
+        ));
+        let slim_sizes = sizes(&m);
+
+        m.set_skin(&skin_png(), Some(ArmModel::Classic)).unwrap();
+        assert!(Arc::ptr_eq(
+            &m.skeleton.model,
+            &model::builtin_data(ArmModel::Classic).unwrap()
+        ));
+        // 几何必须跟随皮肤：与新经典模型逐部件一致，且不再是最初的纤细几何。
+        let fresh = PetModel::new(&skin_png(), Some(ArmModel::Classic)).unwrap();
+        assert_eq!(sizes(&m), sizes(&fresh));
+        assert_ne!(sizes(&m), slim_sizes, "arm geometry must follow the skin");
+
+        // 双向往返 + 经典起步的原有路径
+        m.set_skin(&skin_png(), Some(ArmModel::Slim)).unwrap();
+        assert!(Arc::ptr_eq(
+            &m.skeleton.model,
+            &model::builtin_data(ArmModel::Slim).unwrap()
+        ));
+        let mut c = PetModel::new(&skin_png(), Some(ArmModel::Classic)).unwrap();
+        c.set_skin(&skin_png(), Some(ArmModel::Slim)).unwrap();
+        assert!(Arc::ptr_eq(
+            &c.skeleton.model,
+            &model::builtin_data(ArmModel::Slim).unwrap()
+        ));
+    }
+
+    #[test]
+    fn prop_model_requires_embedded_textures() {
+        // 道具 GLB（内嵌纹理）加载成功
+        let model = Model::from_glb(&test_fixture::prop_glb()).unwrap();
+        assert_eq!(model.textures.len(), 1);
+        assert!(model.textures[0].is_some());
+        // 玩家 GLB（外部图片引用）无皮肤绑定时报错
+        let bytes = std::fs::read(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/assets/classic-player.glb"
+        ))
+        .unwrap();
+        assert!(Model::from_glb(&bytes).is_err());
+        // 绑定皮肤后按材质名映射成功
+        assert!(Model::from_glb_with_skin(&bytes, &skin_png(), None).is_ok());
+    }
+
+    #[test]
+    fn prop_texture_override_by_material_name() {
+        let mut model = Model::from_glb(&test_fixture::prop_glb()).unwrap();
+        let before = Arc::clone(model.textures[0].as_ref().unwrap());
+        model
+            .set_texture("prop_mat", &test_fixture::tiny_png(10, 200, 30))
+            .unwrap();
+        let after = model.textures[0].as_ref().unwrap();
+        assert!(
+            !Arc::ptr_eq(&before, after),
+            "override should replace the texture instance"
+        );
+        assert_eq!((after.width, after.height), (2, 2));
+        assert!(model
+            .set_texture("nope", &test_fixture::tiny_png(0, 0, 0))
+            .is_err());
+    }
+
+    #[test]
+    fn model_transform_defaults_and_setters() {
+        let mut model = Model::from_glb(&test_fixture::prop_glb()).unwrap();
+        assert_eq!(model.position, Vec3::ZERO);
+        assert_eq!(model.scale, 1.);
+        model.set_position(1., 2., 3.);
+        model.set_rotation_degrees(90., 0., -45.);
+        model.set_scale(2.);
+        assert!(model.position.abs_diff_eq(Vec3::new(1., 2., 3.), 1e-6));
+        assert!((model.rotation.x - std::f32::consts::FRAC_PI_2).abs() < 1e-6);
+        assert!((model.rotation.z + std::f32::consts::FRAC_PI_4).abs() < 1e-6);
+        assert_eq!(model.scale, 2.);
+    }
+
+    /// 内置玩家构造器与 PetModel 共享同一份模型数据缓存（Arc 级共享）。
+    #[test]
+    fn builtin_player_shares_data_with_petmodel() {
+        let model = Model::builtin_player(&skin_png(), None).unwrap();
+        assert!(model.skin_texture.is_some());
+        let pet = PetModel::new(&skin_png(), None).unwrap();
+        assert!(
+            Arc::ptr_eq(&model.data, &pet.skeleton.model),
+            "builtin_player must reuse the PetModel parse cache"
+        );
+    }
+
+    fn player_model() -> Model {
+        let bytes = std::fs::read(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/assets/classic-player.glb"
+        ))
+        .unwrap();
+        Model::from_glb_with_skin(&bytes, &skin_png(), None).unwrap()
+    }
+
+    /// 手动动画对象必须把剪辑混合进姿态。
+    #[test]
+    fn manual_animation_blends_over_base() {
+        let mut model = player_model();
+        assert!(model.clip_names().contains(&"interact"));
+        let head = model.data.joint("Head").unwrap();
+        // 基线推进 1 秒后记录头部姿态
+        for _ in 0..60 {
+            model.skeleton.update(Vec2::splat(100.), 0., 1. / 60.);
+        }
+        let before = model.skeleton.rotations[head];
+        let mut anim = model.animation("interact").unwrap();
+        anim.play(1.);
+        drop(anim);
+        for _ in 0..15 {
+            model.skeleton.update(Vec2::splat(100.), 0., 1. / 60.);
+        }
+        let after = model.skeleton.rotations[head];
+        assert!(
+            !before.abs_diff_eq(after, 0.001),
+            "manual animation must change the pose"
+        );
+    }
+
+    /// 循环、倍速与停止（权重淡出）语义。
+    #[test]
+    fn manual_animation_loop_speed_and_stop() {
+        let mut model = player_model();
+        let idle_index = model.data.clip_index_of("idle").unwrap();
+        let dur = clip_duration(&model.data.clips[idle_index]);
+        let mut anim = model.animation("idle").unwrap();
+        anim.set_loop(true);
+        anim.play(2.);
+        drop(anim);
+        for _ in 0..60 {
+            model.skeleton.update(Vec2::splat(100.), 0., 1. / 60.);
+        }
+        let slot = model.skeleton.manual_slot(idle_index);
+        let st = model.skeleton.manual(slot);
+        assert!(st.playing);
+        assert!(
+            st.time > 1.,
+            "speed=2 should advance ~2s in 1s (got {})",
+            st.time
+        );
+        assert!(st.time < dur, "loop time should wrap");
+        // 停止 → 权重淡出到 0
+        let mut anim = model.animation("idle").unwrap();
+        anim.stop();
+        drop(anim);
+        for _ in 0..30 {
+            model.skeleton.update(Vec2::splat(100.), 0., 1. / 60.);
+        }
+        let st = model.skeleton.manual(slot);
+        assert_eq!(st.weight, 0.);
+        assert!(!st.playing);
+    }
+
+    /// 两个手动动画对象并行混合（不同剪辑同时生效）。
+    #[test]
+    fn manual_animations_blend_in_parallel() {
+        let mut model = player_model();
+        let head = model.data.joint("Head").unwrap();
+        let arm = model.data.joint("Right_Arm").unwrap();
+        for _ in 0..60 {
+            model.skeleton.update(Vec2::splat(100.), 0., 1. / 60.);
+        }
+        let head_before = model.skeleton.rotations[head];
+        let arm_before = model.skeleton.rotations[arm];
+        // interact 同时驱动头部与右臂：单开/双开时两个关节都应偏离基线
+        let mut anim = model.animation("interact").unwrap();
+        anim.set_loop(true);
+        anim.play(1.);
+        drop(anim);
+        for _ in 0..30 {
+            model.skeleton.update(Vec2::splat(100.), 0., 1. / 60.);
+        }
+        assert!(!model.skeleton.rotations[head].abs_diff_eq(head_before, 0.001));
+        assert!(!model.skeleton.rotations[arm].abs_diff_eq(arm_before, 0.001));
+        // 权重 0 时不影响姿态
+        let mut anim = model.animation("interact").unwrap();
+        anim.set_weight(0.);
+        drop(anim);
+        for _ in 0..40 {
+            model.skeleton.update(Vec2::splat(100.), 0., 1. / 60.);
+        }
+        assert!(
+            model.skeleton.rotations[head].abs_diff_eq(head_before, 0.02),
+            "weight 0 should fade back to the baseline"
+        );
+    }
+
+    /// 手动层不影响 PetModel 现有路径（空手动表 = 逐位原路径）。
+    #[test]
+    fn petmodel_stream_unchanged_by_manual_layer() {
+        let (w, h) = (64usize, 64usize);
+        let mut model = test_model();
+        let mut buf = vec![0u8; w * h * 4];
+        model.play_animation(AnimationId::Idle, 1., true);
+        model.seed_idle(7);
+        for i in 0..30 {
+            model
+                .render(w, h, i as f32 / 60., 1. / 60., &mut buf)
+                .unwrap();
+        }
+        // 与全新实例重放必须逐字节一致（手动层零参与的确定性守门）
+        let mut model2 = test_model();
+        let mut buf2 = vec![0u8; w * h * 4];
+        model2.play_animation(AnimationId::Idle, 1., true);
+        model2.seed_idle(7);
+        for i in 0..30 {
+            model2
+                .render(w, h, i as f32 / 60., 1. / 60., &mut buf2)
+                .unwrap();
+        }
+        assert_eq!(buf, buf2);
+    }
+
+    /// 三角形缓冲跨帧复用不得累积：累积会让旧帧三角形全部重画，
+    /// 表现为画面叠加与帧时间线性增长。
+    #[test]
+    fn frame_reuse_does_not_accumulate_triangles() {
+        let (w, h) = (96usize, 96usize);
+        let mut model = test_model();
+        let mut out = vec![0u8; w * h * 4];
+        model.render(w, h, 0., 1. / 60., &mut out).unwrap();
+        let first = model.debug_tri_count();
+        assert!(first > 0);
+        // 连续渲染 8 帧（待机动画推进姿态），缓冲反复复用
+        for i in 1..9 {
+            model
+                .render(w, h, i as f32 / 60., 1. / 60., &mut out)
+                .unwrap();
+        }
+        assert_eq!(
+            model.debug_tri_count(),
+            first,
+            "triangle count growing across frames = buffer accumulation"
+        );
     }
 
     #[test]
@@ -326,11 +847,10 @@ mod tests {
                 .render(w, h, i as f32 / 60., 1. / 60., &mut out)
                 .unwrap();
         }
+        let head = with_gaze.skeleton.model.joint("Head").unwrap();
         assert!(
-            !with_gaze
-                .skeleton
-                .head
-                .abs_diff_eq(without.skeleton.head, 0.001),
+            !with_gaze.skeleton.rotations[head]
+                .abs_diff_eq(without.skeleton.rotations[head], 0.001),
             "gaze target must move the head"
         );
     }
@@ -347,10 +867,14 @@ mod tests {
     #[test]
     fn zero_yaw_faces_the_camera() {
         let model = test_model();
-        // 躯干局部旋转在静止姿态下为恒等，其世界 Z 轴即身体朝向。
+        // 躯干局部旋转在静止姿态下为恒等。节点树含 180°Y 根（blockbench_export），
+        // 调试矩阵的 z 轴指向角色背面，正面朝向取其负向。
         let body = &model.debug_part_transforms()[0];
-        let (sin_f, cos_f) = (crate::pose::front_yaw().sin(), crate::pose::front_yaw().cos());
-        let (dx, dz) = (body.matrix[8], body.matrix[10]);
+        let (sin_f, cos_f) = (
+            crate::pose::front_yaw().sin(),
+            crate::pose::front_yaw().cos(),
+        );
+        let (dx, dz) = (-body.matrix[8], -body.matrix[10]);
         assert!((dx - sin_f).abs() < 1e-4, "dx={dx}");
         assert!((dz - cos_f).abs() < 1e-4, "dz={dz}");
     }
@@ -371,7 +895,10 @@ mod tests {
             })
             .collect();
         // 原版盒心经全局 front_yaw 偏航旋转后的期望位置
-        let (s, c) = (crate::pose::front_yaw().sin(), crate::pose::front_yaw().cos());
+        let (s, c) = (
+            crate::pose::front_yaw().sin(),
+            crate::pose::front_yaw().cos(),
+        );
         let world = |x: f32, y: f32, z: f32| {
             (
                 ((x * c + z * s) * 10.).round() as i32,
@@ -380,12 +907,12 @@ mod tests {
             )
         };
         for (x, y, z) in [
-            (0., 18., 0.),   // 躯干
-            (0., 28., 0.),   // 头
-            (6., 18., 0.),   // 左臂
-            (-6., 18., 0.),  // 右臂
-            (1.9, 6., 0.),   // 左腿
-            (-1.9, 6., 0.),  // 右腿
+            (0., 18., 0.),  // 躯干
+            (0., 28., 0.),  // 头
+            (6., 18., 0.),  // 左臂
+            (-6., 18., 0.), // 右臂
+            (1.9, 6., 0.),  // 左腿
+            (-1.9, 6., 0.), // 右腿
         ] {
             let want = world(x, y, z);
             assert!(

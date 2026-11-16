@@ -73,4 +73,80 @@ final class PetLibNative {
     static native void nativeRender(long ptr, int width, int height, float now, float dt, Bitmap bitmap);
 
     static native boolean nativeHitTest(long ptr, float x, float y);
+
+    static native long nativeSceneCreate();
+
+    static native void nativeSceneDestroy(long scene);
+
+    static native long nativeModelCreatePlayer(byte[] skin, int arm);
+
+    static native long nativeModelCreateProp(byte[] glb);
+
+    static native long nativeModelCreatePropWithSkin(byte[] glb, byte[] skin, int arm);
+
+    /** 销毁未加入场景的模型句柄 */
+    static native void nativeModelDestroy(long model);
+
+    /** 消费模型句柄，返回实例句柄；失败返回 -1 */
+    static native int nativeSceneAddModel(long scene, long model);
+
+    static native void nativeSceneRemoveModel(long scene, int id);
+
+    /** 相机模式：0 正交（zoomOrFov = 屏宽覆盖世界单位数），1 透视（zoomOrFov = 垂直 FOV 度数） */
+    static native void nativeSceneSetCamera(long scene, float tx, float ty, float tz, float azimuth, float elevation, float distance, int mode, float zoomOrFov);
+
+    static native void nativeSceneSetLighting(long scene, float azimuth, float elevation, float brightness, float softness);
+
+    static native void nativeSceneSetSuperSample(long scene, float value);
+
+    /** 返回错误消息，null 表示成功 */
+    static native String nativeSceneSetSkin(long scene, int id, byte[] skin, int arm);
+
+    /** 返回错误消息，null 表示成功 */
+    static native String nativeSceneSetCape(long scene, int id, byte[] cape);
+
+    /** 返回错误消息，null 表示成功 */
+    static native String nativeSceneSetTexture(long scene, int id, String material, byte[] texture);
+
+    static native void nativeSceneSetPosition(long scene, int id, float x, float y, float z);
+
+    /** 欧拉旋转，单位为度 */
+    static native void nativeSceneSetRotation(long scene, int id, float pitch, float yaw, float roll);
+
+    static native void nativeSceneSetScale(long scene, int id, float scale);
+
+    static native void nativeSceneSetOuterLayer(long scene, int id, boolean enabled);
+
+    static native void nativeSceneSetGazeScreen(long scene, int id, float x, float y, boolean hasTarget);
+
+    static native void nativeSceneSetGazeScene(long scene, int id, float x, float y, float z, boolean hasTarget);
+
+    /** 返回错误消息，null 表示成功 */
+    static native String nativeSceneClipPlay(long scene, int id, String name, float speed);
+
+    /** 返回错误消息，null 表示成功 */
+    static native String nativeSceneClipPause(long scene, int id, String name);
+
+    /** 返回错误消息，null 表示成功 */
+    static native String nativeSceneClipStop(long scene, int id, String name);
+
+    /** 返回错误消息，null 表示成功 */
+    static native String nativeSceneClipSetSpeed(long scene, int id, String name, float speed);
+
+    /** 返回错误消息，null 表示成功 */
+    static native String nativeSceneClipSetLoop(long scene, int id, String name, boolean loop);
+
+    /** 返回错误消息，null 表示成功 */
+    static native String nativeSceneClipSetWeight(long scene, int id, String name, float weight);
+
+    static native boolean nativeSceneClipIsPlaying(long scene, int id, String name);
+
+    static native void nativeSceneSquashTap(long scene, int id, float now);
+
+    static native void nativeScenePlayInteract(long scene, int id);
+
+    static native void nativeSceneRender(long scene, int width, int height, float dt, Bitmap bitmap);
+
+    /** 返回命中实例句柄，未命中返回 -1 */
+    static native int nativeSceneHitTest(long scene, float x, float y);
 }

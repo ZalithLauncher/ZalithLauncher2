@@ -248,7 +248,7 @@ class PetController(
         }
     }
 
-    /** 查询当前偏航角，结果异步回到调用方的回调 */
+    /** 查询当前偏航角 */
     fun getModelYaw(onResult: (Float) -> Unit) {
         post { onResult(PetLibNative.nativeGetYaw(ptr)) }
     }

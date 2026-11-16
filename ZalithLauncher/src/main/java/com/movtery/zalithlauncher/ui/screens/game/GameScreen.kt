@@ -77,8 +77,7 @@ import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
 import com.movtery.zalithlauncher.game.input.LWJGLCharSender
 import com.movtery.zalithlauncher.game.keycodes.mapToKeycode
 import com.movtery.zalithlauncher.game.launch.handler.GameHandler
-import com.movtery.zalithlauncher.game.plugin.Plugin
-import com.movtery.zalithlauncher.game.renderer.Renderers
+import com.movtery.zalithlauncher.game.renderer.SimpleRendererInfo
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.sdl.SdlTextSender
 import com.movtery.zalithlauncher.game.support.touch_controller.touchControllerInputModifier
@@ -746,19 +745,13 @@ fun GameScreen(
             )
         }
 
-        val currentRenderer = remember {
-            // UI 初始化前渲染器已经完成初始化，此处调用是安全的
-            runCatching { Renderers.getCurrentRenderer() }.getOrNull()
-        }
-
         GameInfoBox(
             modifier = Modifier
                 .align(Alignment.Center)
                 .padding(all = 16.dp),
             versionName = version.getVersionName(),
             versionInfo = version.getVersionInfo()?.getInfoString(),
-            rendererName = currentRenderer?.getRendererName(),
-            rendererFromPlugin = currentRenderer is Plugin,
+            renderer = version.rendererInfo,
             visible = showGameInfo,
             onClose = onInfoBoxClose
         )
@@ -906,8 +899,7 @@ fun GameScreen(
 private fun GameInfoBox(
     versionName: String,
     versionInfo: String?,
-    rendererName: String?,
-    rendererFromPlugin: Boolean,
+    renderer: SimpleRendererInfo?,
     visible: Boolean,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -954,15 +946,15 @@ private fun GameInfoBox(
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
-                        rendererName?.let { renderer ->
+                        renderer?.let {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = stringResource(R.string.game_loading_renderer, renderer),
+                                    text = stringResource(R.string.game_loading_renderer, it.name),
                                     style = MaterialTheme.typography.labelLarge
                                 )
-                                if (rendererFromPlugin) {
+                                if (it.isPlugin) {
                                     LittleTextLabel(
                                         modifier = Modifier.padding(start = 6.dp),
                                         text = stringResource(R.string.generic_plugin)
@@ -995,8 +987,10 @@ private fun PreviewGameInfoBox() {
         GameInfoBox(
             versionName = "1.21.11",
             versionInfo = "1.21.11",
-            rendererName = "Mobile Glues",
-            rendererFromPlugin = true,
+            renderer = SimpleRendererInfo(
+                name = "Mobile Glues",
+                isPlugin = true,
+            ),
             visible = true,
             onClose = {}
         )

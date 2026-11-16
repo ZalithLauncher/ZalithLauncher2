@@ -99,14 +99,18 @@ class GameLauncher(
         config.account
     }
 
+    init {
+        if (!Renderers.isCurrentRendererValid()) {
+            val renderer = Renderers.setCurrentRenderer(version.getRenderer())
+            version.setRendererInfo(renderer.getRendererName(), renderer is Plugin)
+        }
+    }
+
     override fun exit() {
         offlineServer.stop()
     }
 
     override suspend fun launch(screenSize: IntSize): Int {
-        if (!Renderers.isCurrentRendererValid()) {
-            Renderers.setCurrentRenderer(version.getRenderer())
-        }
         configuredRenderer = withContext(Dispatchers.IO) {
             (Renderers.getCurrentRenderer() as? ConfigurableRenderer)?.let { renderer ->
                 prepareRendererLaunchConfig(renderer, version)

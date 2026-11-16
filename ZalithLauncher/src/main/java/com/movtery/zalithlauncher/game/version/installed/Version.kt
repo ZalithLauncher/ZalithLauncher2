@@ -30,6 +30,7 @@ import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.game.launch.LogName
 import com.movtery.zalithlauncher.game.path.getVersionsHome
+import com.movtery.zalithlauncher.game.renderer.SimpleRendererInfo
 import com.movtery.zalithlauncher.game.support.touch_controller.VibrationHandler
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.ControlSettings
@@ -98,6 +99,10 @@ class Version(
     var pinnedState by mutableStateOf(versionConfig.pinned)
         private set
 
+    @IgnoredOnParcel
+    var rendererInfo by mutableStateOf<SimpleRendererInfo?>(null)
+        private set
+
     /**
      * 设置版本的置顶状态并保存
      */
@@ -106,6 +111,15 @@ class Version(
             this.pinnedState = state
         }
     }
+
+    /**
+     * 启动游戏前设置的渲染器信息
+     */
+    fun setRendererInfo(name: String, isPlugin: Boolean) {
+        this.rendererInfo = SimpleRendererInfo(name, isPlugin)
+    }
+
+
 
     /**
      * @return 版本所在的游戏目录（.minecraft）

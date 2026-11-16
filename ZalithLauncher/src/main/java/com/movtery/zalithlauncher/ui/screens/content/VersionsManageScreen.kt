@@ -279,7 +279,8 @@ fun VersionsManageScreen(
                     backScreenViewModel.mainScreen.backStack.navigateToFileSelector(
                         startPath = path,
                         selectFile = false,
-                        saveKey = NormalNavKey.VersionsManager
+                        saveKey = NormalNavKey.VersionsManager,
+                        canSelect = { !GamePathManager.isForbiddenGamePath(it) }
                     ) { path ->
                         viewModel.gamePathOperation = GamePathOperation.AddNewPath(path)
                     }

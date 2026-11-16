@@ -208,21 +208,21 @@ fun LauncherScreen(
                         }
                     }
                 ) {
-                ContentMenu(
-                    modifier = Modifier
-                        .guideNode(
-                            key = GuideKeys.Main.Step.CardTip,
-                            holeShape = RectangleShape
-                        )
-                        .weight(ContentWeight)
-                        .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
-                    isVisible = isVisible,
-                    onLaunchGame = { version ->
-                        onLaunchGame(version)
-                    },
-                    onQuickPlayServer = onQuickPlayServer,
-                    onOpenVersionSettings = navigateToVersions
-                )
+                    ContentMenu(
+                        modifier = Modifier
+                            .guideNode(
+                                key = GuideKeys.Main.Step.CardTip,
+                                holeShape = RectangleShape
+                            )
+                            .weight(ContentWeight)
+                            .offset { IntOffset(x = dragState.previewShift.value.roundToInt(), y = 0) },
+                        isVisible = isVisible,
+                        onLaunchGame = { version ->
+                            onLaunchGame(version)
+                        },
+                        onQuickPlayServer = onQuickPlayServer,
+                        onOpenVersionSettings = navigateToVersions
+                    )
                 }
 
                 // ActionMenu 对接到了 End，留出空位

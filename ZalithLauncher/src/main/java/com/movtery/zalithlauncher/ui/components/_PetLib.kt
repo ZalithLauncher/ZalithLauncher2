@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.components
 
 import android.content.Context
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -90,7 +91,11 @@ fun PetModelView(
 ) {
     val context = LocalContext.current
     val petController = remember {
-        PetController(skin ?: context.loadDefaultSkin(arm), arm)
+        PetController.create(skin ?: context.loadDefaultSkin(arm), arm)
+    }
+    if (petController == null) {
+        Box(modifier)
+        return
     }
     DisposableEffect(petController) {
         onDispose { petController.close() }

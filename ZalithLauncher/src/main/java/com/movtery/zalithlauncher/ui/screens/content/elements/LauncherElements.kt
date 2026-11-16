@@ -301,8 +301,7 @@ fun LaunchGameOperation(
                     return@LaunchedEffect
                 }
 
-                Renderers.setCurrentRenderer(version.getRenderer())
-                val currentRenderer = Renderers.getCurrentRenderer()
+                val currentRenderer = Renderers.setCurrentRenderer(version.getRenderer())
 
                 val mcVer = version.getVersionInfo()!!.minecraftVersion
 

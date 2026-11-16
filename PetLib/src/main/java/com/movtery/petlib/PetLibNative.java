@@ -22,13 +22,37 @@ import android.graphics.Bitmap;
 
 /**
  * PetLib 原生接口，静态方法与 libpetlib 的 JNI 符号一一对应。
+ *
+ * <p>加载失败不向外抛出（Compose 预览、缺 ABI 的 so 等环境必现失败）：
+ * 可用性经 {@link #isAvailable()} 查询，失败原因经 {@link #loadError()} 获取。
+ * 失败属进程级不可恢复状态，加载只尝试一次。
  */
 final class PetLibNative {
+    private static final boolean available;
+    private static final Throwable loadError;
+
     static {
-        System.loadLibrary("petlib");
+        Throwable error = null;
+        try {
+            System.loadLibrary("petlib");
+        } catch (Throwable t) {
+            error = t;
+        }
+        loadError = error;
+        available = error == null;
     }
 
     private PetLibNative() {
+    }
+
+    /** 原生库是否加载成功；false 时所有 native 方法均不可调用 */
+    static boolean isAvailable() {
+        return available;
+    }
+
+    /** 加载失败的原因，仅当 {@link #isAvailable()} 为 false 时非 null */
+    static Throwable loadError() {
+        return loadError;
     }
 
     static native long nativeCreate(byte[] skin, int arm);

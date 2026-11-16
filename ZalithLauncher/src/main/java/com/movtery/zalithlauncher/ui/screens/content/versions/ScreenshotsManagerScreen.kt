@@ -372,7 +372,7 @@ class ScreenshotsManageViewModel @Inject constructor(
 
     fun updateSortOrder() {
         val ascending = MiscSettings.screenshotsSortAscending
-        ascending.save(!ascending.state)
+        ascending.save(!ascending.flow.value)
         applyFilterAndSort()
     }
 
@@ -385,8 +385,8 @@ class ScreenshotsManageViewModel @Inject constructor(
     private fun applyFilterAndSort() {
         filterJob?.cancel()
         filterJob = viewModelScope.launch(Dispatchers.Default) {
-            val sortByEnum = MiscSettings.screenshotsSortBy.state
-            val isAscending = MiscSettings.screenshotsSortAscending.state
+            val sortByEnum = MiscSettings.screenshotsSortBy.flow.value
+            val isAscending = MiscSettings.screenshotsSortAscending.flow.value
             val result = allScreenshots
                 .takeIf { it.isNotEmpty() }
                 ?.filter { info ->

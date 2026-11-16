@@ -233,7 +233,7 @@ private class ResourcePackManageViewModel(
 
     fun updateSortOrder() {
         val ascending = MiscSettings.resourcePackSortAscending
-        ascending.save(!ascending.state)
+        ascending.save(!ascending.flow.value)
         filterPacks()
     }
 
@@ -242,8 +242,8 @@ private class ResourcePackManageViewModel(
     )
 
     private fun filterPacks() {
-        val sortByEnum = MiscSettings.resourcePackSortBy.state
-        val isAscending = MiscSettings.resourcePackSortAscending.state
+        val sortByEnum = MiscSettings.resourcePackSortBy.flow.value
+        val isAscending = MiscSettings.resourcePackSortAscending.flow.value
         filteredPacks = allPacks
             .takeIf { it.isNotEmpty() }
             ?.filterPacks(packFilter)

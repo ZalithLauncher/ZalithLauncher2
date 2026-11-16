@@ -251,7 +251,7 @@ private class SavesManageViewModel(
 
     fun updateSortOrder() {
         val ascending = MiscSettings.savesSortAscending
-        ascending.save(!ascending.state)
+        ascending.save(!ascending.flow.value)
         filterSaves()
     }
 
@@ -260,8 +260,8 @@ private class SavesManageViewModel(
     )
 
     private fun filterSaves() {
-        val sortByEnum = MiscSettings.savesSortBy.state
-        val isAscending = MiscSettings.savesSortAscending.state
+        val sortByEnum = MiscSettings.savesSortBy.flow.value
+        val isAscending = MiscSettings.savesSortAscending.flow.value
         filteredSaves = allSaves
             .takeIf { it.isNotEmpty() }
             ?.filterSaves(minecraftVersion, savesFilter)

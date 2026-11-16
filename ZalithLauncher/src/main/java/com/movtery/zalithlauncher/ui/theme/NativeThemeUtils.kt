@@ -79,7 +79,7 @@ data class NativeColorScheme(
  * 判断当前是否为暗色主题
  */
 fun isDarkTheme(context: Context): Boolean {
-    return when (LauncherSettings.launcherDarkMode.state) {
+    return when (LauncherSettings.launcherDarkMode.flow.value) {
         DarkMode.Enable -> true
         DarkMode.Disable -> false
         DarkMode.FollowSystem -> {
@@ -180,7 +180,7 @@ private fun buildColorScheme(seedColor: Int, darkTheme: Boolean): NativeColorSch
 }
 
 private fun getSeedColor(context: Context, darkTheme: Boolean): Int {
-    return when (LauncherSettings.launcherColorTheme.state) {
+    return when (LauncherSettings.launcherColorTheme.flow.value) {
         ColorThemeType.DYNAMIC -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -196,8 +196,8 @@ private fun getSeedColor(context: Context, darkTheme: Boolean): Int {
                 getPredefinedSeedColor(ColorThemeType.EMBERMIRE, darkTheme)
             }
         }
-        ColorThemeType.CUSTOM -> LauncherSettings.launcherCustomColor.state
-        else -> getPredefinedSeedColor(LauncherSettings.launcherColorTheme.state, darkTheme)
+        ColorThemeType.CUSTOM -> LauncherSettings.launcherCustomColor.flow.value
+        else -> getPredefinedSeedColor(LauncherSettings.launcherColorTheme.flow.value, darkTheme)
     }
 }
 

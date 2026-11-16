@@ -142,7 +142,7 @@ fun <E: Enum<E>> EnumSettingsCard(
     summaryStyle = summaryStyle,
     onRadioClick = { enum ->
         onRadioClick(enum)
-        if (unit.state == enum) return@EnumSettingsCard
+        if (unit.flow.value == enum) return@EnumSettingsCard
         unit.save(enum)
         onValueChange(enum)
     },

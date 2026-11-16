@@ -34,6 +34,7 @@ import androidx.core.graphics.createBitmap
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.utils.logging.Logger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -81,7 +82,10 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
         //层尚未完成首次录制时尺寸为零，跳过本帧
         if (layer.size.width < 1 || layer.size.height < 1) return
         val snapshot = runCatching { layer.toImageBitmap() }
-            .onFailure { logSampleFailure(it) }
+            .onFailure {
+                if (it is CancellationException) throw it
+                logSampleFailure(it)
+            }
             .getOrNull() ?: return
         blurredBackground = withContext(Dispatchers.Default) {
             runCatching { downscaleAndBlurSnapshot(snapshot) }
@@ -100,7 +104,9 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
 
     suspend fun refreshStaticDisplayBitmap(blur: Int) {
         blurredBackground = withContext(Dispatchers.IO) {
-            runCatching { regenerateStaticBitmap(blur) }.getOrNull()
+            runCatching { regenerateStaticBitmap(blur) }
+                .onFailure { if (it is CancellationException) throw it }
+                .getOrNull()
         }
     }
 
@@ -175,7 +181,7 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
     }
 
     private fun frameRadius(scale: Float): Float =
-        (LauncherSettings.backgroundBlur.state * GlobalContext.resources.displayMetrics.density * scale)
+        (LauncherSettings.backgroundBlur.flow.value * GlobalContext.resources.displayMetrics.density * scale)
             .coerceIn(0.5f, 25f)
 
     private fun downscaleFactor(radiusPx: Float, maxDim: Float): Float {

@@ -65,7 +65,7 @@ fun GamepadModePromptDialog(
 ) {
     if (!visible) return
     var selected by remember {
-        mutableStateOf(ControlSettings.gamepadInputMode.state)
+        mutableStateOf(ControlSettings.gamepadInputMode.flow.value)
     }
 
     Dialog(

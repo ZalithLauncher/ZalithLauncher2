@@ -227,7 +227,7 @@ private class ShadersManageViewModel(
 
     fun updateSortOrder() {
         val ascending = MiscSettings.shadersSortAscending
-        ascending.save(!ascending.state)
+        ascending.save(!ascending.flow.value)
         filterShaders()
     }
 
@@ -240,8 +240,8 @@ private class ShadersManageViewModel(
     private fun filterShaders() {
         filterJob?.cancel()
         filterJob = viewModelScope.launch(Dispatchers.Default) {
-            val sortByEnum = MiscSettings.shadersSortBy.state
-            val isAscending = MiscSettings.shadersSortAscending.state
+            val sortByEnum = MiscSettings.shadersSortBy.flow.value
+            val isAscending = MiscSettings.shadersSortAscending.flow.value
             val result = allShaders
                 .takeIf { it.isNotEmpty() }
                 ?.filterShaders(nameFilter)

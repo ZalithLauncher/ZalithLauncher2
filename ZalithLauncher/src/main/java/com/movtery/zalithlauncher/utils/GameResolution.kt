@@ -102,10 +102,10 @@ fun computeGameRenderSize(
  */
 fun computeGameRenderSize(screenSize: IntSize): IntSize = computeGameRenderSize(
     screenSize = screenSize,
-    rule = RendererSettings.resolutionRule.state,
-    percentage = RendererSettings.resolutionRatio.state,
-    customWidth = RendererSettings.customResolutionWidth.state,
-    customHeight = RendererSettings.customResolutionHeight.state,
+    rule = RendererSettings.resolutionRule.flow.value,
+    percentage = RendererSettings.resolutionRatio.flow.value,
+    customWidth = RendererSettings.customResolutionWidth.flow.value,
+    customHeight = RendererSettings.customResolutionHeight.flow.value,
 )
 
 /**

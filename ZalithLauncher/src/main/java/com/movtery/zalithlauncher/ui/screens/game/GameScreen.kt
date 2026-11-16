@@ -123,6 +123,7 @@ import com.movtery.zalithlauncher.viewmodel.EditorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import com.movtery.zalithlauncher.viewmodel.sendToast
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -449,6 +450,8 @@ private class MouseScrollEvent(
                     ensureActive()
                     CallbackBridge.sendScroll(0.0, offset)
                     delay(50L.milliseconds)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (_: Exception) {
                     break
                 }
@@ -676,7 +679,7 @@ fun GameScreen(
                 observedLayout = viewModel.observableLayout,
                 eventHandler = viewModel.eventHandler,
                 checkOccupiedPointers = { viewModel.occupiedPointers.contains(it) },
-                opacity = { (GameUiSettings.controlsOpacity.state.toFloat() / 100f).coerceIn(0f, 1f) },
+                opacity = { (GameUiSettings.controlsOpacity.flow.value.toFloat() / 100f).coerceIn(0f, 1f) },
                 markPointerAsMoveOnly = { viewModel.moveOnlyPointers.add(it) },
                 onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) },
@@ -728,10 +731,10 @@ fun GameScreen(
         if (isGrabbing && isGyroscopeAvailable && ControlSettings.gyroscopeControl.state) {
             GyroscopeReader(
                 xEvent = { delta ->
-                    CallbackBridge.sendCursorDelta(if (ControlSettings.gyroscopeInvertX.state) -delta else delta, 0f)
+                    CallbackBridge.sendCursorDelta(if (ControlSettings.gyroscopeInvertX.flow.value) -delta else delta, 0f)
                 },
                 yEvent = { delta ->
-                    CallbackBridge.sendCursorDelta(0f, if (ControlSettings.gyroscopeInvertY.state) delta else -delta)
+                    CallbackBridge.sendCursorDelta(0f, if (ControlSettings.gyroscopeInvertY.flow.value) delta else -delta)
                 },
                 sampleRate = ControlSettings.gyroscopeSampleRate.state,
                 smoothing = ControlSettings.gyroscopeSmoothing.state,
@@ -1029,7 +1032,7 @@ private fun MouseControlLayout(
                 CallbackBridge.putMouseEventWithCoords(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), gamePosition.x, gamePosition.y)
             },
             onCapturedTap = {
-                if (ControlSettings.gestureControl.state) {
+                if (ControlSettings.gestureControl.flow.value) {
                     CallbackBridge.putMouseEvent(capturedTapMouseAction)
                 }
             },
@@ -1040,12 +1043,12 @@ private fun MouseControlLayout(
                 CallbackBridge.putMouseEvent(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), false)
             },
             onCapturedLongPress = {
-                if (ControlSettings.gestureControl.state) {
+                if (ControlSettings.gestureControl.flow.value) {
                     CallbackBridge.putMouseEvent(capturedLongPressMouseAction, true)
                 }
             },
             onCapturedLongPressEnd = {
-                if (ControlSettings.gestureControl.state) {
+                if (ControlSettings.gestureControl.flow.value) {
                     CallbackBridge.putMouseEvent(capturedLongPressMouseAction, false)
                 }
             },

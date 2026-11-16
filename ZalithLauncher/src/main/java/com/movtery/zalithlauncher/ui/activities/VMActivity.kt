@@ -744,7 +744,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
 
         val isPressed = event.action == KeyEvent.ACTION_DOWN
 
-        val code = ControlSettings.physicalKeyImeCode.state
+        val code = ControlSettings.physicalKeyImeCode.flow.value
         if (isPressed && code != null && event.keyCode == code) {
             //用户按下了绑定呼出输入法的按键
             //开启或关闭输入法
@@ -1096,7 +1096,7 @@ private fun InputMagnifierContent(
                                     checked = ControlSettings.imeMagnifierAutoShow.state,
                                     onCheckedChange = {
                                         ControlSettings.imeMagnifierAutoShow.save(
-                                            !ControlSettings.imeMagnifierAutoShow.state
+                                            !ControlSettings.imeMagnifierAutoShow.flow.value
                                         )
                                     }
                                 )
@@ -1104,7 +1104,7 @@ private fun InputMagnifierContent(
                         },
                         onClick = {
                             ControlSettings.imeMagnifierAutoShow.save(
-                                !ControlSettings.imeMagnifierAutoShow.state
+                                !ControlSettings.imeMagnifierAutoShow.flow.value
                             )
                         }
                     )

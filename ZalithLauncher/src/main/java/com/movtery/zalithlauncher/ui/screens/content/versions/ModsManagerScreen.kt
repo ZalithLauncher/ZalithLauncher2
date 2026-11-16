@@ -306,7 +306,7 @@ private class ModsManageViewModel(
 
     fun updateSortOrder(context: Context? = null) {
         val ascending = MiscSettings.modsSortAscending
-        ascending.save(!ascending.state)
+        ascending.save(!ascending.flow.value)
         filterMods(context)
     }
 
@@ -334,7 +334,7 @@ private class ModsManageViewModel(
                         )
                     }
                     entries
-                        .sortedWith(compareBy(modsComparator(MiscSettings.modsSortBy.state, MiscSettings.modsSortAscending.state)) { it.second })
+                        .sortedWith(compareBy(modsComparator(MiscSettings.modsSortBy.flow.value, MiscSettings.modsSortAscending.flow.value)) { it.second })
                         .map { (mod, _) -> mod }
                 }
             if (!isActive) return@launch

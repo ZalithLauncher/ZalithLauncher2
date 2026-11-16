@@ -158,7 +158,7 @@ private class GlassNode(
     }
 
     private fun DrawScope.drawGlass() {
-        if (blur <= 0 || LauncherSettings.launcherBackgroundOpacity.state >= 100) return
+        if (blur <= 0 || LauncherSettings.launcherBackgroundOpacity.flow.value >= 100) return
         val bounds = store.backgroundBounds
         if (bounds.isEmpty || !hasOrigin) return
 
@@ -315,8 +315,8 @@ private class BackgroundCaptureNode(
             captureJob = coroutineScope.launch {
                 snapshotFlow {
                     store.isValid && store.captureLayer != null &&
-                        LauncherSettings.backgroundBlur.state > 0 &&
-                        LauncherSettings.launcherBackgroundOpacity.state < 100
+                        LauncherSettings.backgroundBlur.flow.value > 0 &&
+                        LauncherSettings.launcherBackgroundOpacity.flow.value < 100
                 }.collectLatest { active ->
                     if (!active) return@collectLatest
                     while (currentCoroutineContext().isActive) {

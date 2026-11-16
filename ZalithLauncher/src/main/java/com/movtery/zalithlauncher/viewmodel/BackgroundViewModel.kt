@@ -145,9 +145,9 @@ class BackgroundViewModel: ViewModel() {
         viewModelScope.launch {
             snapshotFlow {
                 BlurConfig(
-                    blur = LauncherSettings.backgroundBlur.state,
-                    blurType = LauncherSettings.backgroundBlurType.state,
-                    opacity = LauncherSettings.launcherBackgroundOpacity.state,
+                    blur = LauncherSettings.backgroundBlur.flow.value,
+                    blurType = LauncherSettings.backgroundBlurType.flow.value,
+                    opacity = LauncherSettings.launcherBackgroundOpacity.flow.value,
                     valid = isValid,
                     isImage = isImage,
                     generation = refreshTrigger

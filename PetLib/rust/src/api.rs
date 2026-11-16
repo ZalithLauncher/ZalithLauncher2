@@ -605,6 +605,112 @@ mod tests {
         assert_eq!(model.scale, 2.);
     }
 
+    /// 骨架工具的重导出 GLB 必须通过加载器并驱动姿态（工具链守门）。
+    #[test]
+    fn rig_tool_export_loads_and_animates() {
+        let bytes = std::fs::read(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../tools/rig/out/rig-export.glb"
+        ))
+        .unwrap();
+        let mut model = Model::from_glb_with_skin(&bytes, &skin_png(), None).unwrap();
+        assert!(model.clip_names().contains(&"idle"));
+        let head = model.data.joint("Head").unwrap();
+        for _ in 0..30 {
+            model.skeleton.update(Vec2::splat(100.), 0., 1. / 60.);
+        }
+        let before = model.skeleton.rotations[head];
+        let mut anim = model.animation("interact").unwrap();
+        anim.play(1.);
+        drop(anim);
+        for _ in 0..15 {
+            model.skeleton.update(Vec2::splat(100.), 0., 1. / 60.);
+        }
+        assert!(
+            !model.skeleton.rotations[head].abs_diff_eq(before, 0.001),
+            "rig export clips must drive the pose"
+        );
+        // 渲染冒烟：非零像素
+        let (w, h) = (96usize, 96usize);
+        let mut out = vec![0u8; w * h * 4];
+        let mut scene = crate::scene::Scene::new();
+        scene.add(model);
+        scene.set_super_sample(1.);
+        scene.render(w, h, 1. / 60., &mut out).unwrap();
+        let opaque = out.iter().skip(3).step_by(4).filter(|&&v| v > 0).count();
+        assert!(
+            opaque > 100,
+            "rig export should render visible pixels: {opaque}"
+        );
+    }
+
+    /// rig 导出与内置模型同姿态渲染须一致（防骨架翻转/枢轴漂移回归）。
+    #[test]
+    fn rig_tool_export_renders_like_builtin() {
+        let rig_bytes = std::fs::read(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../tools/rig/out/rig-export.glb"
+        ))
+        .unwrap();
+        let classic_bytes = std::fs::read(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/src/assets/classic-player.glb"
+        ))
+        .unwrap();
+        let a = Model::from_glb_with_skin(&classic_bytes, &skin_png(), None).unwrap();
+        let b = Model::from_glb_with_skin(&rig_bytes, &skin_png(), None).unwrap();
+        assert!(
+            b.data.joint("CTL_Body").is_none(),
+            "controllers must be stripped on export"
+        );
+
+        // 同一 idle 时间轴各推进 30 帧（测试种子固定，双方调度一致）
+        let (w, h) = (96usize, 96usize);
+        let render_frames = |model: Model| {
+            let mut buf = vec![0u8; w * h * 4];
+            let mut scene = crate::scene::Scene::new();
+            scene.add(model);
+            scene.set_super_sample(1.);
+            for _ in 0..30 {
+                scene.render(w, h, 1. / 60., &mut buf).unwrap();
+            }
+            buf
+        };
+        let fa = render_frames(a);
+        let fb = render_frames(b);
+
+        // 并集内容包围盒内比较像素：重采样/浮点重序只允许微小差异，
+        // 翻转/轴心错位会让差异占比数量级上升
+        let mut bounds = (w, h, 0usize, 0usize);
+        for buf in [&fa, &fb] {
+            for i in 0..w * h {
+                if buf[i * 4 + 3] > 0 {
+                    let (x, y) = (i % w, i / w);
+                    bounds.0 = bounds.0.min(x);
+                    bounds.1 = bounds.1.min(y);
+                    bounds.2 = bounds.2.max(x);
+                    bounds.3 = bounds.3.max(y);
+                }
+            }
+        }
+        let mut diff = 0usize;
+        let mut total = 0usize;
+        for y in bounds.1..=bounds.3 {
+            for x in bounds.0..=bounds.2 {
+                let i = (y * w + x) * 4;
+                total += 1;
+                if fa[i..i + 4] != fb[i..i + 4] {
+                    diff += 1;
+                }
+            }
+        }
+        let frac = diff as f32 / total as f32;
+        assert!(
+            frac <= 0.02,
+            "rig export diverges from builtin render: {frac:.4} ({diff}/{total})"
+        );
+    }
+
     /// 内置玩家构造器与 PetModel 共享同一份模型数据缓存（Arc 级共享）。
     #[test]
     fn builtin_player_shares_data_with_petmodel() {

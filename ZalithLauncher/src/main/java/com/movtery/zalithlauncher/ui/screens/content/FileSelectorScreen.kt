@@ -103,16 +103,15 @@ private sealed interface SelectorOperation {
 private fun SelectorOperation(
     operation: SelectorOperation,
     onChange: (SelectorOperation) -> Unit,
-    currentPath: String,
-    onCreatePath: (File) -> Unit,
+    onCreatePath: (name: String) -> Unit,
 ) {
     when (operation) {
         SelectorOperation.None -> {}
         SelectorOperation.CreateDir -> {
             CreateNewDirDialog(
                 onDismissRequest = { onChange(SelectorOperation.None) },
-                createDir = {
-                    onCreatePath(File(currentPath, it))
+                createDir = { name ->
+                    onCreatePath(name)
                 }
             )
         }
@@ -149,6 +148,7 @@ fun FileSelectorScreen(
     val scope = rememberCoroutineScope()
     val createDir = { dirName: String ->
         scope.launch(Dispatchers.IO) {
+            operation = SelectorOperation.None
             val newDir = File(currentPath, dirName)
             if (newDir.mkdirs()) {
                 withContext(Dispatchers.Main) {
@@ -161,9 +161,8 @@ fun FileSelectorScreen(
     SelectorOperation(
         operation = operation,
         onChange = { operation = it },
-        currentPath = currentPath,
-        onCreatePath = { newDir ->
-            createDir(newDir.name)
+        onCreatePath = { name ->
+            createDir(name)
         }
     )
 

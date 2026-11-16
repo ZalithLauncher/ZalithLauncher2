@@ -65,12 +65,23 @@ private fun Context.loadDefaultSkin(arm: ArmModel?): ByteArray = if (arm == ArmM
     assets.open("skin/steve.png")
 }.use { it.readBytes() }
 
-/** 原生默认取景的保守参考框（模型像素） */
-private const val PET_MODEL_FRAME_SIZE = 44f
+/** 原生默认取景的参考框（模型像素），用于换算相对摄像机距离。 */
+private const val PET_LEGACY_FRAME_SIZE = 44f
+
+/** 人物动态包络的参考宽高，覆盖四肢动作与披风。 */
+private const val PET_MODEL_FRAME_WIDTH = 32f
+private const val PET_MODEL_FRAME_HEIGHT = 40f
+
+/** 横向旋转与四肢展开更敏感，因此保留比纵向更高的包络冗余。 */
+private const val PET_WIDTH_RESERVE = 1.20f
+private const val PET_HEIGHT_RESERVE = 1.05f
+
+/** 最小相对距离 0.8，即最多放大到原始取景的 1.25 倍。 */
+private const val PET_MIN_CAMERA_DISTANCE = 0.8f
 
 /**
  * 按 Compose 实际可用尺寸计算相对摄像机距离。
- * 宽或高任一方向受限都会拉远相机。
+ * 安全区从四周扣除；宽或高任一方向受限都会拉远相机，空间充足时允许适度拉近。
  */
 internal fun calculatePetCameraDistance(width: Int, height: Int, safeAreaPx: Float): Float {
     if (width <= 0 || height <= 0) return 1f
@@ -82,9 +93,12 @@ internal fun calculatePetCameraDistance(width: Int, height: Int, safeAreaPx: Flo
     }
     val availableWidth = (width - 2f * margin).coerceAtLeast(1f)
     val availableHeight = (height - 2f * margin).coerceAtLeast(1f)
-    val originalScale = width / PET_MODEL_FRAME_SIZE
-    val safeScale = minOf(availableWidth, availableHeight) / PET_MODEL_FRAME_SIZE
-    return originalScale / minOf(originalScale, safeScale)
+    val legacyScale = width / PET_LEGACY_FRAME_SIZE
+    val targetScale = minOf(
+        availableWidth / (PET_MODEL_FRAME_WIDTH * PET_WIDTH_RESERVE),
+        availableHeight / (PET_MODEL_FRAME_HEIGHT * PET_HEIGHT_RESERVE)
+    )
+    return (legacyScale / targetScale).coerceAtLeast(PET_MIN_CAMERA_DISTANCE)
 }
 
 /**

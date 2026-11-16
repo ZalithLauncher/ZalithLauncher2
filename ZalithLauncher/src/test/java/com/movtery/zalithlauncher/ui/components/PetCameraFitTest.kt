@@ -24,19 +24,19 @@ import org.junit.Test
 
 class PetCameraFitTest {
     @Test
-    fun `default framing keeps legacy distance`() {
-        assertEquals(1f, calculatePetCameraDistance(440, 440, 0f), 1e-6f)
-        assertEquals(1f, calculatePetCameraDistance(200, 1000, 0f), 1e-6f)
+    fun `roomy viewports move camera closer within zoom limit`() {
+        assertEquals(42f / 44f, calculatePetCameraDistance(440, 440, 0f), 1e-6f)
+        assertEquals(38.4f / 44f, calculatePetCameraDistance(200, 1000, 0f), 1e-6f)
     }
 
     @Test
     fun `short viewport pulls camera back to fit height`() {
-        assertEquals(5f, calculatePetCameraDistance(1000, 200, 0f), 1e-6f)
+        assertEquals(4.7727275f, calculatePetCameraDistance(1000, 200, 0f), 1e-6f)
     }
 
     @Test
     fun `safe area reserves every edge`() {
-        assertEquals(1.1f, calculatePetCameraDistance(440, 440, 20f), 1e-6f)
+        assertEquals(1.05f, calculatePetCameraDistance(440, 440, 20f), 1e-6f)
     }
 
     @Test
@@ -44,6 +44,6 @@ class PetCameraFitTest {
         assertEquals(1f, calculatePetCameraDistance(0, 100, 8f), 1e-6f)
         assertTrue(calculatePetCameraDistance(100, 80, Float.NaN).isFinite())
         assertTrue(calculatePetCameraDistance(100, 80, 1000f).isFinite())
-        assertEquals(1f, calculatePetCameraDistance(440, 440, -1f), 1e-6f)
+        assertEquals(42f / 44f, calculatePetCameraDistance(440, 440, -1f), 1e-6f)
     }
 }

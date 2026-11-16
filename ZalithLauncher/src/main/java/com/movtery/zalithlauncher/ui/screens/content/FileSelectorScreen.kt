@@ -40,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -82,12 +83,14 @@ fun NavBackStack<TitledNavKey>.navigateToFileSelector(
     startPath: String,
     selectFile: Boolean,
     saveKey: TitledNavKey,
+    canSelect: ((path: String) -> Boolean)? = null,
     onSelected: (path: String) -> Unit
 ) = this.navigateTo(
     screenKey = NormalNavKey.FileSelector(
         startPath = startPath,
         selectFile = selectFile,
         saveKey = saveKey,
+        canSelect = canSelect,
         onSelected = onSelected
     ),
     useClassEquality = true
@@ -158,6 +161,10 @@ fun FileSelectorScreen(
         }
     }
 
+    val selectEnabled by produceState(initialValue = false, currentPath) {
+        value = key.canSelect?.invoke(currentPath) ?: true
+    }
+
     SelectorOperation(
         operation = operation,
         onChange = { operation = it },
@@ -179,6 +186,7 @@ fun FileSelectorScreen(
             LeftActionMenu(
                 isVisible = isVisible,
                 backEnabled = currentPath != key.startPath,
+                selectEnabled = selectEnabled,
                 backToParent = {
                     File(currentPath).parentFile?.let {
                         currentPath = it.absolutePath
@@ -216,6 +224,7 @@ fun FileSelectorScreen(
 private fun LeftActionMenu(
     isVisible: Boolean,
     backEnabled: Boolean,
+    selectEnabled: Boolean,
     backToParent: () -> Unit,
     selectDir: () -> Unit,
     createDir: () -> Unit,
@@ -241,6 +250,7 @@ private fun LeftActionMenu(
             MarqueeText(text = stringResource(R.string.files_create_dir))
         }
         ScalingActionButton(
+            enabled = selectEnabled,
             modifier = Modifier.fillMaxWidth(),
             onClick = selectDir
         ) {

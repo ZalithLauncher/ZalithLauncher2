@@ -54,7 +54,8 @@ sealed interface NormalNavKey : TitledNavKey {
         val startPath: String,
         val selectFile: Boolean,
         val saveKey: TitledNavKey,
-        val onSelected: (path: String) -> Unit
+        val onSelected: (path: String) -> Unit,
+        val canSelect: ((path: String) -> Boolean)? = null
     ) : NormalNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.page_title_select_files)
     }

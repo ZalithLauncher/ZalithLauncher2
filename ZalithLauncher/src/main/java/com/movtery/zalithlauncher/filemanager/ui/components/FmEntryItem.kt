@@ -23,7 +23,6 @@ import androidx.annotation.StringRes
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -55,6 +54,7 @@ import com.movtery.zalithlauncher.filemanager.ui.theme.fmCardColor
 import com.movtery.zalithlauncher.filemanager.ui.theme.fmOnCardColor
 import com.movtery.zalithlauncher.filemanager.ui.theme.fmSecondaryTextColor
 import com.movtery.zalithlauncher.filemanager.ui.theme.fmSelectionColor
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.utils.file.formatFileSize
 import com.movtery.zalithlauncher.utils.formatDate
 
@@ -206,7 +206,7 @@ private fun EntrySubtitle(
     }
 
     Row(
-        modifier = modifier.basicMarquee(Int.MAX_VALUE),
+        modifier = modifier.marquee(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {

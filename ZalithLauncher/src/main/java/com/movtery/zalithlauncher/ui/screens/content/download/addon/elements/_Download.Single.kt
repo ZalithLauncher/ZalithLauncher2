@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.ui.screens.content.download.addon.elements
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -86,6 +85,7 @@ import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.screens.content.elements.CommonVersionInfoLayout
 import com.movtery.zalithlauncher.ui.theme.cardColor
@@ -803,7 +803,7 @@ private fun AddonDependencyTags(
     Row(
         modifier = modifier
             .alpha(0.7f)
-            .basicMarquee(iterations = Int.MAX_VALUE),
+            .marquee(),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         modLoaders?.forEach { modLoader ->

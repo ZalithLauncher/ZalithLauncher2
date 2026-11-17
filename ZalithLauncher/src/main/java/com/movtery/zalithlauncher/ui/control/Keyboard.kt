@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.ui.control
 
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -68,6 +67,7 @@ import com.movtery.inputmap.keycodes.ControlEventKeycode
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.components.AutoSizeText
 import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.control.gamepad.SPECIAL_KEY_MOUSE_SCROLL_DOWN
 import com.movtery.zalithlauncher.ui.control.gamepad.SPECIAL_KEY_MOUSE_SCROLL_UP
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutTextItem
@@ -659,7 +659,7 @@ private fun KeyButton(
             contentAlignment = Alignment.Center
         ) {
             AutoSizeText(
-                modifier = Modifier.basicMarquee(Int.MAX_VALUE),
+                modifier = Modifier.marquee(),
                 text = name,
                 style = style,
                 maxLines = 1,

@@ -25,7 +25,6 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -92,6 +91,7 @@ import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SmallOutlinedEditField
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -569,7 +569,7 @@ fun ResultProjectLayout(
                     Row(
                         modifier = Modifier
                             .weight(1f)
-                            .basicMarquee(Int.MAX_VALUE)
+                            .marquee()
                             .alpha(0.7f),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -626,9 +626,7 @@ fun ProjectTitleHead(
     ) {
         //标题栏
         MarqueeText(
-            modifier = Modifier
-                .weight(1f)
-                .basicMarquee(iterations = Int.MAX_VALUE),
+            modifier = Modifier.weight(1f),
             text = title,
             style = MaterialTheme.typography.titleSmall,
         )

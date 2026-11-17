@@ -25,7 +25,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
@@ -121,12 +120,14 @@ import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
+import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SimpleTextInputField
 import com.movtery.zalithlauncher.ui.components.TooltipIconButton
 import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -171,8 +172,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
-import java.util.LinkedList
-import java.util.Locale
+import java.util.*
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.milliseconds
@@ -1253,15 +1253,12 @@ private fun ModItemLayout(
                     when {
                         isUnknown -> {
                             //非模组，只展示文件名称
-                            Text(
-                                modifier = Modifier
-                                    .alpha(titleAlpha)
-                                    .basicMarquee(iterations = Int.MAX_VALUE),
+                            MarqueeText(
+                                modifier = Modifier.alpha(titleAlpha),
                                 text = localMod.file.name,
                                 style = MaterialTheme.typography.titleSmall,
                                 textDecoration = titleDecoration,
                                 fontStyle = titleStyle,
-                                maxLines = 1
                             )
 
                             if (localMod.loader != ModLoader.UNKNOWN) {
@@ -1282,23 +1279,21 @@ private fun ModItemLayout(
                                 } else {
                                     localMod.name
                                 }
-                                Text(
+                                MarqueeText(
                                     modifier = Modifier
                                         .alpha(titleAlpha)
                                         .weight(1f, fill = false)
-                                        .basicMarquee(iterations = Int.MAX_VALUE)
                                         .animateContentSize(),
                                     text = displayTitle,
                                     style = MaterialTheme.typography.titleSmall,
                                     textDecoration = titleDecoration,
                                     fontStyle = titleStyle,
-                                    maxLines = 1
                                 )
 
                                 Row(
                                     modifier = Modifier
                                         .padding(start = 8.dp)
-                                        .basicMarquee(iterations = Int.MAX_VALUE)
+                                        .marquee()
                                         .animateContentSize(),
                                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
@@ -1319,13 +1314,10 @@ private fun ModItemLayout(
                                 }
                             }
 
-                            Text(
-                                modifier = Modifier
-                                    .alpha(0.7f)
-                                    .basicMarquee(iterations = Int.MAX_VALUE),
+                            MarqueeText(
+                                modifier = Modifier.alpha(0.7f),
                                 text = stringResource(R.string.generic_file_name, localMod.file.name),
                                 style = MaterialTheme.typography.bodySmall,
-                                maxLines = 1
                             )
                         }
                     }

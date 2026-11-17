@@ -18,7 +18,6 @@
 
 package com.movtery.zalithlauncher.ui.upgrade
 
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -41,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleListDialog
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
 import com.movtery.zalithlauncher.upgrade.RemoteData
 import com.movtery.zalithlauncher.utils.device.Architecture
@@ -140,7 +140,7 @@ private fun UpgradeFileLayout(
                     )
                 }
                 Row(
-                    modifier = Modifier.basicMarquee(Int.MAX_VALUE),
+                    modifier = Modifier.marquee(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {

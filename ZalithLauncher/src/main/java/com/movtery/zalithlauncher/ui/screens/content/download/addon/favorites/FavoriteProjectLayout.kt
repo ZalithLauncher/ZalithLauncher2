@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.ui.screens.content.download.addon.favorites
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -55,6 +54,7 @@ import com.movtery.zalithlauncher.game.download.addon.favorites.FavoriteEntry
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformFilterCode
 import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.AddonIcon
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.ClassesIdentifier
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.FavoriteToggleLabel
@@ -233,7 +233,7 @@ fun FavoriteProjectLayout(
                     Row(
                         modifier = Modifier
                             .weight(1f)
-                            .basicMarquee(Int.MAX_VALUE)
+                            .marquee()
                             .alpha(0.7f),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {

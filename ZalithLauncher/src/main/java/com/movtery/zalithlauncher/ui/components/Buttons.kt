@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -61,7 +60,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
@@ -71,7 +69,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
@@ -149,24 +146,6 @@ fun ScalingIconButton(
         contentPadding = PaddingValues(0.dp),
         interactionSource = interactionSource,
         content = { content() }
-    )
-}
-
-@Composable
-fun MarqueeText(
-    modifier: Modifier = Modifier,
-    text: String,
-    color: Color = Color.Unspecified,
-    style: TextStyle = LocalTextStyle.current,
-    textAlign: TextAlign? = null
-) {
-    Text(
-        modifier = modifier.basicMarquee(Int.MAX_VALUE),
-        text = text,
-        color = color,
-        style = style,
-        maxLines = 1,
-        textAlign = textAlign
     )
 }
 

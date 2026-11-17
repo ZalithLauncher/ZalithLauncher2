@@ -31,7 +31,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
@@ -104,6 +103,7 @@ import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleTextInputField
 import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -859,7 +859,7 @@ private fun ScreenshotItemLayout(
                     .padding(horizontal = 8.dp, vertical = 6.dp)
             ) {
                 MinecraftColorTextNormal(
-                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                    modifier = Modifier.marquee(),
                     inputText = info.name,
                     style = MaterialTheme.typography.labelMedium.copy(color = Color.White),
                     maxLines = 1

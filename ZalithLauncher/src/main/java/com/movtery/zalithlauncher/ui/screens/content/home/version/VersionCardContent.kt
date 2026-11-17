@@ -18,7 +18,6 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.home.version
 
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
@@ -65,6 +64,8 @@ import com.movtery.cardgrid.model.CardState
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
+import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.content.home.CardIconShape
 
@@ -290,7 +291,7 @@ private fun InfoRow(version: Version) {
     Row(
         modifier = Modifier
             .alpha(0.7f)
-            .basicMarquee(iterations = Int.MAX_VALUE),
+            .marquee(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
@@ -318,11 +319,8 @@ private fun CardNameText(
     version: Version?
 ) {
     card?.record?.versionName?.let { name ->
-        Text(
-            modifier = modifier
-                .basicMarquee(iterations = Int.MAX_VALUE)
-                .then(if (version == null) Modifier.alpha(0.55f) else Modifier),
-            maxLines = 1,
+        MarqueeText(
+            modifier = modifier.let { if (version == null) it.alpha(0.55f) else it },
             text = name,
             style = MaterialTheme.typography.labelLarge
         )

@@ -100,6 +100,49 @@ fun AutoSizeText(
     )
 }
 
+/**
+ * 单行跑马灯文本
+ * @see Text
+ */
+@Composable
+fun MarqueeText(
+    text: String,
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
+    autoSize: TextAutoSize? = null,
+    fontSize: TextUnit = TextUnit.Unspecified,
+    fontStyle: FontStyle? = null,
+    fontWeight: FontWeight? = null,
+    fontFamily: FontFamily? = null,
+    letterSpacing: TextUnit = TextUnit.Unspecified,
+    textDecoration: TextDecoration? = null,
+    textAlign: TextAlign? = null,
+    lineHeight: TextUnit = TextUnit.Unspecified,
+    overflow: TextOverflow = TextOverflow.Clip,
+    onTextLayout: ((TextLayoutResult) -> Unit)? = null,
+    style: TextStyle = LocalTextStyle.current,
+) {
+    Text(
+        modifier = modifier.marquee(),
+        text = text,
+        color = color,
+        autoSize = autoSize,
+        fontSize = fontSize,
+        fontStyle = fontStyle,
+        fontWeight = fontWeight,
+        fontFamily = fontFamily,
+        letterSpacing = letterSpacing,
+        textDecoration = textDecoration,
+        textAlign = textAlign,
+        lineHeight = lineHeight,
+        overflow = overflow,
+        softWrap = false,
+        maxLines = 1,
+        onTextLayout = onTextLayout,
+        style = style,
+    )
+}
+
 
 @Composable
 fun SingleLineTextCheck(

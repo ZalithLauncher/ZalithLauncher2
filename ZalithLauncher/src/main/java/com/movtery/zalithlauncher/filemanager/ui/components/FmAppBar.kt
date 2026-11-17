@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.filemanager.ui.components
 
 import android.content.res.Configuration
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -54,6 +53,7 @@ import com.movtery.zalithlauncher.filemanager.config.FmConfig
 import com.movtery.zalithlauncher.filemanager.ui.theme.fmSecondaryTextColor
 import com.movtery.zalithlauncher.filemanager.ui.theme.fmTopbarColors
 import com.movtery.zalithlauncher.filemanager.viewmodel.SortConfig
+import com.movtery.zalithlauncher.ui.components.marquee
 
 /** 文件管理器顶部应用栏 */
 @Composable
@@ -299,7 +299,7 @@ fun AppBarSubTexts(
     modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = modifier.basicMarquee(Int.MAX_VALUE),
+        modifier = modifier.marquee(),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp)
     ) {

@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.ui.components
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -160,10 +159,7 @@ fun LittleTextLabel(
     ) {
         Text(
             modifier = Modifier
-                .then(
-                    if (singleLine) Modifier.basicMarquee(Int.MAX_VALUE)
-                    else Modifier
-                )
+                .let { if (singleLine) it.marquee() else it }
                 .padding(horizontal = 4.dp, vertical = 2.dp),
             text = text,
             style = textStyle,

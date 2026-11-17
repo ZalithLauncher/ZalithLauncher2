@@ -21,7 +21,6 @@ package com.movtery.zalithlauncher.ui.screens.content.versions
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.horizontalScroll
@@ -89,6 +88,7 @@ import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.IconTextButton
+import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ProgressDialog
 import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
@@ -695,11 +695,9 @@ private fun ShaderPackItem(
                     .weight(1f),
             ) {
                 //文件名称
-                Text(
-                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                MarqueeText(
                     text = shaderPackInfo.file.name,
                     style = MaterialTheme.typography.titleSmall,
-                    maxLines = 1
                 )
                 //文件大小
                 Text(

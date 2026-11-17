@@ -65,9 +65,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.movtery.inputmap.keycodes.ControlEventKeycode
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.ui.components.AutoSizeText
 import com.movtery.zalithlauncher.ui.components.MarqueeText
-import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.control.gamepad.SPECIAL_KEY_MOUSE_SCROLL_DOWN
 import com.movtery.zalithlauncher.ui.control.gamepad.SPECIAL_KEY_MOUSE_SCROLL_UP
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutTextItem
@@ -658,12 +656,10 @@ private fun KeyButton(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
-            AutoSizeText(
-                modifier = Modifier.marquee(),
+            MarqueeText(
                 text = name,
+                autoSize = TextAutoSize.StepBased(maxFontSize = maxFontSize),
                 style = style,
-                maxLines = 1,
-                autoSize = TextAutoSize.StepBased(maxFontSize = maxFontSize)
             )
         }
     }

@@ -39,6 +39,9 @@ static void vulkan_log(JNIEnv *env, const char *level, const char *fmt, ...) {
 #define LOG_W(...) vulkan_log(env, "WARN", __VA_ARGS__)
 #define LOG_E(...) vulkan_log(env, "ERROR", __VA_ARGS__)
 
+/* apiVersion 的 patch 字段宽 12 位；较新 Vulkan 头文件中名为 VK_MAX_PATCH_VERSION */
+#define ZL_MAX_PATCH_VERSION 4095
+
 JNIEXPORT void JNICALL
 Java_com_movtery_zalithlauncher_utils_device_VulkanChecker_nativeSetLogCallback(
         JNIEnv *env,
@@ -80,9 +83,11 @@ Java_com_movtery_zalithlauncher_utils_device_VulkanChecker_nativeCheckVulkan(
     const char *cacheDir   = jCacheDir   ? (*env)->GetStringUTFChars(env, jCacheDir, NULL) : NULL;
 
     void *vulkan_handle = NULL;
+    int customDriver = 0;
     if (nativeDir && cacheDir) {
 #ifdef ADRENO_POSSIBLE
         vulkan_handle = loadTurnipVulkan(driverPath, nativeDir, cacheDir);
+        customDriver = vulkan_handle != NULL;
 #endif
     }
     if (!vulkan_handle) {
@@ -98,6 +103,12 @@ Java_com_movtery_zalithlauncher_utils_device_VulkanChecker_nativeCheckVulkan(
         return NULL;
     }
 
+    LOG_I("Vulkan library loaded: %s", customDriver ? "custom driver (Turnip)" : "system loader");
+    if (nativeDir && cacheDir && !customDriver) {
+        LOG_W("Custom driver was requested but failed to load; using the system loader instead.");
+    }
+
+    LOAD_VK_FUNC(vkGetInstanceProcAddr);
     LOAD_VK_FUNC(vkEnumerateInstanceVersion);
     LOAD_VK_FUNC(vkCreateInstance);
     LOAD_VK_FUNC(vkDestroyInstance);
@@ -127,6 +138,11 @@ Java_com_movtery_zalithlauncher_utils_device_VulkanChecker_nativeCheckVulkan(
 
     // 查询实例版本
     uint32_t instanceApiVersion = VK_API_VERSION_1_0;
+    if (!pvkEnumerateInstanceVersion && pvkGetInstanceProcAddr) {
+        // 部分加载器不导出该符号，规范要求经 vkGetInstanceProcAddr 解析实例级入口（实例为 NULL）
+        pvkEnumerateInstanceVersion = (PFN_vkEnumerateInstanceVersion)
+                pvkGetInstanceProcAddr(NULL, "vkEnumerateInstanceVersion");
+    }
     if (pvkEnumerateInstanceVersion) {
         if (pvkEnumerateInstanceVersion(&instanceApiVersion) == VK_SUCCESS) {
             LOG_I("Instance reports Vulkan %u.%u.%u",
@@ -145,7 +161,10 @@ Java_com_movtery_zalithlauncher_utils_device_VulkanChecker_nativeCheckVulkan(
             .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
             .pApplicationName = "ZalithLauncher",
             .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-            .apiVersion = instanceApiVersion
+            .apiVersion = VK_MAKE_VERSION(
+                    VK_API_VERSION_MAJOR(instanceApiVersion),
+                    VK_API_VERSION_MINOR(instanceApiVersion),
+                    ZL_MAX_PATCH_VERSION)
     };
     VkInstanceCreateInfo createInfo = {
             .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -155,9 +174,34 @@ Java_com_movtery_zalithlauncher_utils_device_VulkanChecker_nativeCheckVulkan(
     VkInstance instance = VK_NULL_HANDLE;
     VkResult vkRes = pvkCreateInstance(&createInfo, NULL, &instance);
     if (vkRes != VK_SUCCESS) {
-        LOG_E("vkCreateInstance failed, result=%d", vkRes);
-        dlclose(vulkan_handle);
-        return NULL;
+        LOG_I("Probe with max patch version failed (result=%d), fallback to reported instance version.", vkRes);
+        appInfo.apiVersion = instanceApiVersion;
+        vkRes = pvkCreateInstance(&createInfo, NULL, &instance);
+        if (vkRes != VK_SUCCESS) {
+            LOG_E("vkCreateInstance failed, result=%d", vkRes);
+            dlclose(vulkan_handle);
+            return NULL;
+        }
+    }
+
+    // 实例创建后经 vkGetInstanceProcAddr 重新解析 1.1+ 入口（部分加载器不经 dlsym 导出）
+    if (pvkGetInstanceProcAddr) {
+        if (!pvkGetPhysicalDeviceFeatures2) {
+            pvkGetPhysicalDeviceFeatures2 = (PFN_vkGetPhysicalDeviceFeatures2)
+                    pvkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceFeatures2");
+        }
+        if (!pvkGetPhysicalDeviceProperties2) {
+            pvkGetPhysicalDeviceProperties2 = (PFN_vkGetPhysicalDeviceProperties2)
+                    pvkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties2");
+        }
+        if (!pvkGetPhysicalDeviceFeatures2) {
+            pvkGetPhysicalDeviceFeatures2 = (PFN_vkGetPhysicalDeviceFeatures2)
+                    pvkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceFeatures2KHR");
+        }
+        if (!pvkGetPhysicalDeviceProperties2) {
+            pvkGetPhysicalDeviceProperties2 = (PFN_vkGetPhysicalDeviceProperties2)
+                    pvkGetInstanceProcAddr(instance, "vkGetPhysicalDeviceProperties2KHR");
+        }
     }
 
     // 枚举物理设备
@@ -187,44 +231,53 @@ Java_com_movtery_zalithlauncher_utils_device_VulkanChecker_nativeCheckVulkan(
         return NULL;
     }
 
-    /* 为简化实现，仅检测第一个物理设备。
-     * Android 设备通常只有一个 GPU，若有多个（如某些平板/笔记本），
-     * 取第一个即可满足启动器层面的兼容性判断。 */
-    VkPhysicalDevice physicalDevice = devices[0];
-    free(devices);
-    LOG_I("Found %u physical device(s), inspecting first one.", deviceCount);
-
-    // 查询设备版本
+    /* 设备可能有多个（软件实现、不同后端等），逐个查询 apiVersion 并取最高者，
+     * 避免盲取第一个设备读到低版本实现 */
+    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
     uint32_t deviceApiVersion = VK_API_VERSION_1_0;
+    const char *versionVia = "vkGetPhysicalDeviceProperties";
+    for (uint32_t i = 0; i < deviceCount; i++) {
+        uint32_t apiVersion = VK_API_VERSION_1_0;
+        const char *via = "vkGetPhysicalDeviceProperties";
+        if (pvkGetPhysicalDeviceProperties2) {
+            VkPhysicalDeviceProperties2 props2 = {
+                    .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+                    .pNext = NULL
+            };
+            pvkGetPhysicalDeviceProperties2(devices[i], &props2);
+            apiVersion = props2.properties.apiVersion;
+            via = "vkGetPhysicalDeviceProperties2";
+        } else {
+            VkPhysicalDeviceProperties props;
+            pvkGetPhysicalDeviceProperties(devices[i], &props);
+            apiVersion = props.apiVersion;
+        }
 
-    // 优先使用 vkGetPhysicalDeviceProperties2 获取设备属性
-    if (pvkGetPhysicalDeviceProperties2) {
-        VkPhysicalDeviceVulkan11Properties vk11Props = {
-                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_PROPERTIES,
-                .pNext = NULL
-        };
-        VkPhysicalDeviceProperties2 deviceProps2 = {
-                .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
-                .pNext = &vk11Props
-        };
+        LOG_I("Physical device %u reports Vulkan %u.%u.%u (via %s)",
+              (unsigned int) i,
+              (unsigned int) VK_API_VERSION_MAJOR(apiVersion),
+              (unsigned int) VK_API_VERSION_MINOR(apiVersion),
+              (unsigned int) VK_API_VERSION_PATCH(apiVersion),
+              via);
 
-        pvkGetPhysicalDeviceProperties2(physicalDevice, &deviceProps2);
-        deviceApiVersion = deviceProps2.properties.apiVersion;
+        if (physicalDevice == VK_NULL_HANDLE || apiVersion > deviceApiVersion) {
+            physicalDevice = devices[i];
+            deviceApiVersion = apiVersion;
+            versionVia = via;
+        }
+    }
+    free(devices);
+    LOG_I("Found %u physical device(s), inspecting the one with the highest api version (via %s).",
+          (unsigned int) deviceCount, versionVia);
 
-        LOG_I("Device (via vkGetPhysicalDeviceProperties2) reports Vulkan %u.%u.%u",
-              (unsigned int) VK_API_VERSION_MAJOR(deviceApiVersion),
-              (unsigned int) VK_API_VERSION_MINOR(deviceApiVersion),
-              (unsigned int) VK_API_VERSION_PATCH(deviceApiVersion));
-    } else {
-        // 降级到 v1.0 的 vkGetPhysicalDeviceProperties
-        VkPhysicalDeviceProperties deviceProps;
-        pvkGetPhysicalDeviceProperties(physicalDevice, &deviceProps);
-        deviceApiVersion = deviceProps.apiVersion;
-
-        LOG_I("Device (via vkGetPhysicalDeviceProperties) reports Vulkan %u.%u.%u",
-              (unsigned int) VK_API_VERSION_MAJOR(deviceApiVersion),
-              (unsigned int) VK_API_VERSION_MINOR(deviceApiVersion),
-              (unsigned int) VK_API_VERSION_PATCH(deviceApiVersion));
+    // 部分驱动仅在实例版本中携带真实补丁号，设备 apiVersion 的 patch 恒为 0
+    if (VK_API_VERSION_MAJOR(deviceApiVersion) == VK_API_VERSION_MAJOR(instanceApiVersion) &&
+        VK_API_VERSION_MINOR(deviceApiVersion) == VK_API_VERSION_MINOR(instanceApiVersion) &&
+        VK_API_VERSION_PATCH(instanceApiVersion) > VK_API_VERSION_PATCH(deviceApiVersion)) {
+        LOG_I("Device patch version promoted from %u to %u (instance reports the higher patch).",
+              (unsigned int) VK_API_VERSION_PATCH(deviceApiVersion),
+              (unsigned int) VK_API_VERSION_PATCH(instanceApiVersion));
+        deviceApiVersion = instanceApiVersion;
     }
 
     // 枚举设备扩展
@@ -278,6 +331,7 @@ Java_com_movtery_zalithlauncher_utils_device_VulkanChecker_nativeCheckVulkan(
 
     VkBool32 multiDrawIndirect                = VK_FALSE;
     VkBool32 fillModeNonSolid                 = VK_FALSE;
+    VkBool32 drawIndirectFirstInstance        = VK_FALSE;
     VkBool32 samplerAnisotropy                = VK_FALSE;
     VkBool32 shaderDrawParameters             = VK_FALSE;
     VkBool32 timelineSemaphore                = VK_FALSE;
@@ -319,6 +373,7 @@ Java_com_movtery_zalithlauncher_utils_device_VulkanChecker_nativeCheckVulkan(
 
         multiDrawIndirect     = feat2.features.multiDrawIndirect;
         fillModeNonSolid      = feat2.features.fillModeNonSolid;
+        drawIndirectFirstInstance = feat2.features.drawIndirectFirstInstance;
         samplerAnisotropy     = feat2.features.samplerAnisotropy;
         shaderDrawParameters  = featShaderDraw.shaderDrawParameters;
         timelineSemaphore     = featTimeline.timelineSemaphore;
@@ -334,6 +389,7 @@ Java_com_movtery_zalithlauncher_utils_device_VulkanChecker_nativeCheckVulkan(
         pvkGetPhysicalDeviceFeatures(physicalDevice, &feat);
         multiDrawIndirect  = feat.multiDrawIndirect;
         fillModeNonSolid   = feat.fillModeNonSolid;
+        drawIndirectFirstInstance = feat.drawIndirectFirstInstance;
         samplerAnisotropy  = feat.samplerAnisotropy;
         LOG_W("vkGetPhysicalDeviceFeatures2 unavailable; only basic features queried.");
     } else {
@@ -350,6 +406,7 @@ Java_com_movtery_zalithlauncher_utils_device_VulkanChecker_nativeCheckVulkan(
 
     PUT_FEAT("multiDrawIndirect",                multiDrawIndirect);
     PUT_FEAT("fillModeNonSolid",                 fillModeNonSolid);
+    PUT_FEAT("drawIndirectFirstInstance",        drawIndirectFirstInstance);
     PUT_FEAT("samplerAnisotropy",                samplerAnisotropy);
     PUT_FEAT("shaderDrawParameters",             shaderDrawParameters);
     PUT_FEAT("timelineSemaphore",                timelineSemaphore);

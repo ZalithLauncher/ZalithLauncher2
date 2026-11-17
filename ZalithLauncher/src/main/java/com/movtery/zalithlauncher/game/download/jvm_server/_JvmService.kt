@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,8 +23,15 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import com.movtery.zalithlauncher.notification.NoticeProgress
+import com.movtery.zalithlauncher.path.PathManager
+import java.io.File
 
 const val PROCESS_SERVICE_PORT = 53151 //random
+
+/**
+ * 安装 JVM 进程的运行日志文件
+ */
+val LATEST_PROCESS_LOG_FILE: File get() = File(PathManager.DIR_FILES_EXTERNAL, "latest_process.log")
 
 //构造变量
 const val SERVICE_JVM_ARGS = "service.jvm.args"

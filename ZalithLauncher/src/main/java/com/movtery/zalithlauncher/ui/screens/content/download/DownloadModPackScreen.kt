@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,12 +47,10 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.ui.NavDisplay
 import com.google.gson.JsonSyntaxException
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
 import com.movtery.zalithlauncher.game.download.jvm_server.JvmCrashException
 import com.movtery.zalithlauncher.game.download.jvm_server.isProcessStartRefused
 import com.movtery.zalithlauncher.game.download.modpack.install.ModPackInfo
@@ -66,11 +64,12 @@ import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleEditDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
+import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.download.DownloadAssetsScreen
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.search.SearchModPackScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.download.DownloadAddonScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.search.SearchModPackScreen
 import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialog
 import com.movtery.zalithlauncher.ui.screens.content.elements.isFilenameInvalid
 import com.movtery.zalithlauncher.ui.screens.navigateTo
@@ -288,14 +287,14 @@ fun DownloadModPackScreen(
     )
 
     if (backStack.isNotEmpty()) {
-        NavDisplay(
+        NestedNavDisplay(
+            ownerKey = key,
             backStack = backStack,
             modifier = Modifier.fillMaxSize(),
             onBack = {
                 onBack(backStack)
             },
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
+            extraDecorators = listOf(
                 rememberViewModelStoreNavEntryDecorator()
             ),
             transitionSpec = rememberTransitionSpec(),
@@ -311,22 +310,22 @@ fun DownloadModPackScreen(
                         eventViewModel = eventViewModel
                     ) { platform, projectId, iconUrl ->
                         backStack.navigateTo(
-                            NormalNavKey.DownloadAssets(platform, projectId, PlatformClasses.MOD_PACK, iconUrl)
+                            NormalNavKey.DownloadAddon(platform, projectId, PlatformClasses.MOD_PACK, iconUrl)
                         )
                     }
                 }
-                entry<NormalNavKey.DownloadAssets> { assetsKey ->
-                    DownloadAssetsScreen(
+                entry<NormalNavKey.DownloadAddon> { addonKey ->
+                    DownloadAddonScreen(
                         mainScreenKey = mainScreenKey,
                         parentScreenKey = key,
                         parentCurrentKey = downloadScreenKey,
                         currentKey = downloadModPackScreenKey,
-                        key = assetsKey,
+                        key = addonKey,
                         eventViewModel = eventViewModel,
                         onItemClicked = { _, version, iconUrl, _ ->
                             if (viewModel.installOperation !is ModPackInstallOperation.None) {
                                 //不是待安装状态，拒绝此次安装
-                                return@DownloadAssetsScreen
+                                return@DownloadAddonScreen
                             }
                             viewModel.installOperation = if (!NotificationManager.checkNotificationEnabled(context)) {
                                 //警告通知权限
@@ -396,6 +395,7 @@ private fun ModPackInstallOperation(
         is ModPackInstallOperation.Install -> {
             if (installer != null) {
                 val tasks = installer.tasksFlow.collectAsStateWithLifecycle()
+                val installLog = installer.logOutput.collectAsStateWithLifecycle()
                 if (tasks.value.isNotEmpty()) {
                     //安装整合包流程对话框
                     TitleTaskFlowDialog(
@@ -404,7 +404,8 @@ private fun ModPackInstallOperation(
                         onCancel = {
                             onCancel()
                             updateOperation(ModPackInstallOperation.None)
-                        }
+                        },
+                        logOutput = installLog.value
                     )
                 }
             }

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -126,7 +126,8 @@ suspend fun <T> withSpeedReport(
     withSpeedReport(
         onTimeReport = {
             val currentBytes = bytesWritten.getAndSet(0L)
-            onSpeedReport(currentBytes)
+            //下载引擎的回滚增量可能使单秒采样为负，速率不应为负
+            onSpeedReport(currentBytes.coerceAtLeast(0L))
         },
         onClear = {
             bytesWritten.set(0L)

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,12 +81,14 @@ fun getLocalUUIDWithSkinModel(userName: String, skinModelType: SkinModelType): S
 /**
  * 检查皮肤像素合法性，Minecraft仅支持使用64x64或64x32像素的皮肤
  */
-suspend fun validateSkinFile(skinFile: File): Boolean {
+suspend fun validateSkinFile(skinFile: File): SkinType {
     return withContext(Dispatchers.IO) {
         val options = BitmapFactory.Options()
         options.inJustDecodeBounds = true
         BitmapFactory.decodeFile(skinFile.absolutePath, options)
-        options.isDualLayerSkin() || options.isClassicSkin()
+        if (options.isDualLayerSkin()) SkinType.DualLayer
+        else if (options.isClassicSkin()) SkinType.Classic
+        else SkinType.Invalid
     }
 }
 

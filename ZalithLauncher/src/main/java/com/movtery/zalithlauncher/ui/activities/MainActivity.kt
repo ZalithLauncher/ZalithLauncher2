@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,13 +24,12 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -39,6 +38,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.movtery.guide.GuideHost
+import com.movtery.petlib.PetGazeRouter
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.context.COPY_LABEL_LINK
 import com.movtery.zalithlauncher.coroutine.Task
@@ -49,19 +50,24 @@ import com.movtery.zalithlauncher.filemanager.events.FileManagerEventRegistrar
 import com.movtery.zalithlauncher.game.control.ControlManager
 import com.movtery.zalithlauncher.game.path.getVersionsHome
 import com.movtery.zalithlauncher.game.plugin.PluginLoader
-import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.renderer.Renderers
+import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.notification.NotificationManager
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.path.URL_SUPPORT
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.base.ObserveFullScreenSetting
 import com.movtery.zalithlauncher.ui.buildAppendedText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
+import com.movtery.zalithlauncher.ui.guide.GuideKeys
+import com.movtery.zalithlauncher.ui.guide.GuideProgress
+import com.movtery.zalithlauncher.ui.guide.NextTipLabel
+import com.movtery.zalithlauncher.ui.guide.rememberAppGuides
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.Background
@@ -74,15 +80,16 @@ import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenu
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenuOperation
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.ShareLinkOperation
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
-import com.movtery.zalithlauncher.ui.theme.feativals.FestivalEffects
+import com.movtery.zalithlauncher.ui.theme.festivals.FestivalEffects
+import com.movtery.zalithlauncher.ui.theme.festivals.FestivalTapObserver
 import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.ui.vulkan_checker.VCOperation
 import com.movtery.zalithlauncher.ui.vulkan_checker.VulkanChecker
 import com.movtery.zalithlauncher.upgrade.TooFrequentOperationException
+import com.movtery.zalithlauncher.upgrade.UpgradePrefs
 import com.movtery.zalithlauncher.utils.compareLangTag
 import com.movtery.zalithlauncher.utils.copyText
-import com.movtery.zalithlauncher.utils.device.VulkanChecker
 import com.movtery.zalithlauncher.utils.festival.getTodayFestivals
 import com.movtery.zalithlauncher.utils.file.shareFile
 import com.movtery.zalithlauncher.utils.isChinese
@@ -93,19 +100,20 @@ import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.viewmodel.BackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
-import com.movtery.zalithlauncher.viewmodel.HomePageOperation
-import com.movtery.zalithlauncher.viewmodel.HomePageViewModel
 import com.movtery.zalithlauncher.viewmodel.LaunchGameViewModel
 import com.movtery.zalithlauncher.viewmodel.LauncherUpgradeOperation
 import com.movtery.zalithlauncher.viewmodel.LauncherUpgradeViewModel
-import com.movtery.zalithlauncher.viewmodel.LocalHomePageViewModel
 import com.movtery.zalithlauncher.viewmodel.LogShareViewModel
 import com.movtery.zalithlauncher.viewmodel.LogsUploadViewModel
+import com.movtery.zalithlauncher.viewmodel.ModifyVersionOperation
+import com.movtery.zalithlauncher.viewmodel.ModifyVersionViewModel
 import com.movtery.zalithlauncher.viewmodel.ModpackConfirmUseMobileDataOperation
 import com.movtery.zalithlauncher.viewmodel.ModpackImportOperation
 import com.movtery.zalithlauncher.viewmodel.ModpackImportViewModel
 import com.movtery.zalithlauncher.viewmodel.ModpackVersionNameOperation
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
+import com.movtery.zalithlauncher.viewmodel.SponsorsDialog
+import com.movtery.zalithlauncher.viewmodel.SponsorsViewModel
 import com.movtery.zalithlauncher.viewmodel.VulkanCheckerViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -118,7 +126,18 @@ private const val TAG = "MainActivity"
 
 @AndroidEntryPoint
 class MainActivity : BaseAppCompatActivity() {
-    override fun isIgnoreNotch(): Boolean = AllSettings.launcherFullScreen.getValue()
+    override fun isIgnoreNotch(): Boolean = LauncherSettings.launcherFullScreen.getValue()
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        FestivalTapObserver.observe(event)
+        PetGazeRouter.onTouchEvent(event)
+        return super.dispatchTouchEvent(event)
+    }
+
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        PetGazeRouter.onGenericMotionEvent(event)
+        return super.dispatchGenericMotionEvent(event)
+    }
 
     /**
      * 屏幕堆栈管理ViewModel
@@ -151,14 +170,19 @@ class MainActivity : BaseAppCompatActivity() {
     val modpackImportViewModel: ModpackImportViewModel by viewModels()
 
     /**
+     * 版本修改 ViewModel
+     */
+    private val modifyVersionViewModel: ModifyVersionViewModel by viewModels()
+
+    /**
      * 启动器更新状态 ViewModel
      */
     val launcherUpgradeViewModel: LauncherUpgradeViewModel by viewModels()
 
     /**
-     * 启动器自定义主页 ViewModel
+     * 当月赞助者 ViewModel
      */
-    val homePageViewModel: HomePageViewModel by viewModels()
+    private val sponsorsViewModel: SponsorsViewModel by viewModels()
 
     /**
      * 游戏日志分享菜单 ViewModel
@@ -209,6 +233,13 @@ class MainActivity : BaseAppCompatActivity() {
             }
         }
 
+        //拉取当月赞助者数据
+        lifecycleScope.launch {
+            sponsorsViewModel.loadOnStart(
+                showLastMonth = GuideProgress.isPlayed(GuideKeys.Main) && !isImporting
+            )
+        }
+
         //错误信息展示
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -242,6 +273,9 @@ class MainActivity : BaseAppCompatActivity() {
                     is EventViewModel.Event.CheckUpdate -> {
                         checkUpdate()
                     }
+                    is EventViewModel.Event.ShowSponsors -> {
+                        sponsorsViewModel.openDialog()
+                    }
                     is EventViewModel.Event.KeepScreen -> {
                         keepScreen(event.on)
                     }
@@ -267,25 +301,8 @@ class MainActivity : BaseAppCompatActivity() {
                             logShareViewModel.openMenu(file)
                         }
                     }
-                    is EventViewModel.Event.HomePage.Reload -> {
-                        homePageViewModel.reloadPage(true)
-                    }
-                    is EventViewModel.Event.HomePage.GenDocPage -> {
-                        if (homePageViewModel.isLocalExists()) {
-                            //如果本地主页文件已存在，则警告用户是否进行覆盖
-                            homePageViewModel.updateOperation(
-                                HomePageOperation.WarningOverwrite
-                            )
-                        } else {
-                            homePageViewModel.genDocPage(this@MainActivity)
-                        }
-                    }
-                    is EventViewModel.Event.HomePage.Event -> {
-                        val event0 = event.event
-                        handleHomePageEvent(event0.key, event0.data)
-                    }
                     is EventViewModel.Event.VulkanCheck -> {
-                        checkVulkan()
+                        checkVulkan(event.version)
                     }
                     is EventViewModel.Event.ShowToast -> {
                         Toast.makeText(
@@ -309,8 +326,8 @@ class MainActivity : BaseAppCompatActivity() {
             }
         }
 
-        val finishedGame = AllSettings.finishedGame
-        val showSponsorship = AllSettings.showSponsorship
+        val finishedGame = MiscSettings.finishedGame
+        val showSponsorship = MiscSettings.showSponsorship
 
         val festivals = getTodayFestivals(
             containsChinese = isChinese(this@MainActivity)
@@ -321,25 +338,27 @@ class MainActivity : BaseAppCompatActivity() {
                 backgroundViewModel = backgroundViewModel,
                 festivals = festivals
             ) {
-                ObserveFullScreenSetting(AllSettings.launcherFullScreen.state)
-                Box {
+                ObserveFullScreenSetting(LauncherSettings.launcherFullScreen.state)
+
+                val guides = rememberAppGuides(eventViewModel)
+                GuideHost(
+                    guides.mainScreen,
+                    nextTip = { NextTipLabel(it) }
+                ) {
                     Background(
                         modifier = Modifier.fillMaxSize(),
                         viewModel = backgroundViewModel
                     )
 
-                    CompositionLocalProvider(
-                        LocalHomePageViewModel provides homePageViewModel
-                    ) {
-                        MainScreen(
-                            screenBackStackModel = screenBackStackModel,
-                            eventViewModel = eventViewModel,
-                            modpackImportViewModel = modpackImportViewModel,
-                            submitError = {
-                                errorViewModel.showError(it)
-                            }
-                        )
-                    }
+                    MainScreen(
+                        screenBackStackModel = screenBackStackModel,
+                        eventViewModel = eventViewModel,
+                        modpackImportViewModel = modpackImportViewModel,
+                        modifyVersionViewModel = modifyVersionViewModel,
+                        submitError = {
+                            errorViewModel.showError(it)
+                        }
+                    )
 
                     //节日彩蛋效果层
                     FestivalEffects(
@@ -355,7 +374,7 @@ class MainActivity : BaseAppCompatActivity() {
                         exitActivity = {
                             this@MainActivity.finish()
                         },
-                        waitForVulkanChecker = vulkanCheckerViewModel::waitForVulkanChecker,
+                        ensureVulkanSupported = vulkanCheckerViewModel::ensureSupported,
                         submitError = {
                             errorViewModel.showError(it)
                         },
@@ -445,18 +464,6 @@ class MainActivity : BaseAppCompatActivity() {
                     }
                 )
 
-                //启动器主页操作流程
-                val homePageOp by homePageViewModel.pageOp.collectAsStateWithLifecycle()
-                HomePageOperation(
-                    operation = homePageOp,
-                    onChange = {
-                        homePageViewModel.updateOperation(it)
-                    },
-                    onGenDocPage = {
-                        homePageViewModel.genDocPage(this@MainActivity)
-                    }
-                )
-
                 //游戏日志分享菜单
                 val logFile = logShareViewModel.currentLogFile
                 if (logShareViewModel.showMenu && logFile != null) {
@@ -504,9 +511,32 @@ class MainActivity : BaseAppCompatActivity() {
                     operation = launcherUpgradeViewModel.operation,
                     onChanged = { launcherUpgradeViewModel.operation = it },
                     onIgnoredClick = { ver ->
-                        AllSettings.lastIgnoredVersion.save(ver)
+                        UpgradePrefs.lastIgnoredVersion = ver
                     },
                     onLinkClick = { eventViewModel.sendEvent(EventViewModel.Event.OpenLink(it)) }
+                )
+
+                //当月赞助者对话框 / 上月赞助者结算报告
+                SponsorsDialog(
+                    viewModel = sponsorsViewModel,
+                    onSupportClick = {
+                        eventViewModel.sendEvent(EventViewModel.Event.OpenLink(URL_SUPPORT))
+                    }
+                )
+
+                //版本修改操作流程
+                ModifyVersionOperation(
+                    operation = modifyVersionViewModel.installOperation,
+                    changeOperation = { modifyVersionViewModel.installOperation = it },
+                    installer = modifyVersionViewModel.installer,
+                    onModify = { payload ->
+                        modifyVersionViewModel.modify(this@MainActivity, payload)
+                        //任务开始执行，立刻返回主界面，不停留在可能失效的版本设置屏幕
+                        screenBackStackModel.mainScreen.clearWith(NormalNavKey.LauncherMain)
+                    },
+                    onCancel = {
+                        modifyVersionViewModel.cancel()
+                    }
                 )
 
                 val vcOperation by vulkanCheckerViewModel.vcOperation.collectAsStateWithLifecycle()
@@ -515,12 +545,13 @@ class MainActivity : BaseAppCompatActivity() {
                     onChange = {
                         vulkanCheckerViewModel.changeOperation(it)
                     },
-                    startCheck = {
-                        eventViewModel.sendEvent(EventViewModel.Event.VulkanCheck)
+                    startCheck = { version ->
+                        eventViewModel.sendEvent(
+                            EventViewModel.Event.VulkanCheck(version)
+                        )
                     },
                     confirmResult = {
                         vulkanCheckerViewModel.resumeCont()
-                        AllSettings.autoVulkanChecker.save(false)
                     }
                 )
             }
@@ -559,17 +590,9 @@ class MainActivity : BaseAppCompatActivity() {
     /**
      * 检查设备 Vulkan 支持情况
      */
-    private suspend fun checkVulkan() {
-        val driver = DriverPluginManager.getDriver()
-        val useTurnip = !(AllSettings.zinkPreferSystemDriver.getValue() || driver.isLauncher)
-
+    private suspend fun checkVulkan(version: Version) {
         withContext(Dispatchers.Main) {
-            val result = if (useTurnip) {
-                val tempDir = File(PathManager.DIR_CACHE, "vulkan_temp")
-                VulkanChecker.checkCapabilities(null, driver.path, tempDir.absolutePath)
-            } else {
-                VulkanChecker.checkCapabilities(null, null, null)
-            }
+            val (result, useTurnip) = vulkanCheckerViewModel.check(version)
             vulkanCheckerViewModel.changeOperation(VCOperation.Result(result, useTurnip))
         }
     }
@@ -602,92 +625,6 @@ class MainActivity : BaseAppCompatActivity() {
                 }
                 return@launch
             }
-        }
-    }
-
-    /**
-     * 处理自定义主页的事件
-     */
-    private suspend fun handleHomePageEvent(
-        key: String,
-        data: String?
-    ) {
-        runCatching {
-            when (key) {
-                //浏览器内打开指定链接
-                "url" -> {
-                    data?.let { url ->
-                        val trimmed = url.trim()
-                        //防止 file://、intent:// 等危险 scheme
-                        if (trimmed.startsWith("http://", ignoreCase = true) ||
-                            trimmed.startsWith("https://", ignoreCase = true)
-                        ) {
-                            withContext(Dispatchers.Main) {
-                                this@MainActivity.openLink(trimmed)
-                            }
-                        } else {
-                            Logger.warning("HomePage", "Blocked unsafe URL from homepage event: $trimmed")
-                        }
-                    }
-                }
-                //检查启动器更新
-                "check_update" -> checkUpdate()
-                //启动当前选中的游戏版本
-                "launch_game" -> {
-                    val serverIp = data?.let { raw ->
-                        runCatching {
-                            val parms = raw.split("=", limit = 2)
-                            if (parms.size == 2 && parms[0] == "server") {
-                                parms[1].trim()
-                            } else null
-                        }.onFailure { e ->
-                            Logger.warning("HomePage", "Failed to parse quick join server parameters: $raw", e)
-                        }.getOrNull()
-                    }
-                    if (!serverIp.isNullOrEmpty()) {
-                        //禁止控制字符与换行，防止注入命令行参数或配置文件
-                        if (serverIp.none { it.code < 32 }) {
-                            launchGameViewModel.tryPlayServer(serverIp)
-                        } else {
-                            Logger.warning("HomePage", "Invalid server address from homepage event: $serverIp")
-                        }
-                    } else {
-                        launchGameViewModel.tryLaunch()
-                    }
-                }
-                //复制指定文本
-                "copy" -> {
-                    data?.let { text ->
-                        val trimmed = text.trim()
-                        withContext(Dispatchers.Main) {
-                            copyText(
-                                null,
-                                trimmed.take(10_000), //限制复制内容长度
-                                this@MainActivity,
-                                showToast = true
-                            )
-                        }
-                    }
-                }
-                //刷新主页
-                "refresh_page" -> homePageViewModel.reloadPage(true)
-                //分享游戏日志
-                "share_game_log" -> {
-                    VersionsManager.currentVersion.value?.let { version ->
-                        VersionsManager.getLatestLog(version).takeIf { it.exists() }
-                    }?.let { logFile ->
-                        withContext(Dispatchers.Main) {
-                            logsUploadViewModel.check(logFile)
-                            logShareViewModel.openMenu(logFile)
-                        }
-                    }
-                }
-                else -> {
-                    Logger.warning("HomePage", "Unknown homepage event: key=$key, data=$data")
-                }
-            }
-        }.onFailure { e ->
-            Logger.warning("HomePage", "Failed to handle homepage event: key=$key, data=$data", e)
         }
     }
 

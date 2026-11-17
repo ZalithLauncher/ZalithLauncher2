@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,6 +64,9 @@ fun PlayerProfile.Cape.capeLocalRes(): Int? {
         "Zombie Horse" -> R.string.cape_name_zombie_horse
         "Builder" -> R.string.cape_name_builder
         "Crafter" -> R.string.cape_name_crafter
+        "Twisted" -> R.string.cape_name_twisted
+        "Hero" -> R.string.cape_name_hero
+        "Aurora" -> R.string.cape_name_aurora
         else -> null
     }
 

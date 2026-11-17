@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,27 +73,28 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.ui.NavDisplay
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.version.installed.Version
+import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.TextRailItem
+import com.movtery.zalithlauncher.ui.guide.sendStartGuideOnce
 import com.movtery.zalithlauncher.ui.screens.BackStackNavKey
+import com.movtery.zalithlauncher.ui.screens.NavStateHost
+import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.AccountManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.DownloadScreen
 import com.movtery.zalithlauncher.ui.screens.content.FileSelectorScreen
-import com.movtery.zalithlauncher.ui.screens.content.HomePageEditorScreen
 import com.movtery.zalithlauncher.ui.screens.content.LauncherScreen
 import com.movtery.zalithlauncher.ui.screens.content.LicenseScreen
 import com.movtery.zalithlauncher.ui.screens.content.LogViewScreen
@@ -101,14 +104,14 @@ import com.movtery.zalithlauncher.ui.screens.content.VersionExportScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionSettingsScreen
 import com.movtery.zalithlauncher.ui.screens.content.VersionsManageScreen
 import com.movtery.zalithlauncher.ui.screens.content.WebViewScreen
-import com.movtery.zalithlauncher.ui.screens.content.assetinfo.AssetInfoScreen
+import com.movtery.zalithlauncher.ui.screens.content.addoninfo.AddonInfoScreen
 import com.movtery.zalithlauncher.ui.screens.content.navigateToDownload
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
 import com.movtery.zalithlauncher.ui.theme.backgroundColor
 import com.movtery.zalithlauncher.ui.theme.cardColor
-import com.movtery.zalithlauncher.ui.theme.feativals.FestivalTitleText
+import com.movtery.zalithlauncher.ui.theme.festivals.FestivalTitleText
 import com.movtery.zalithlauncher.ui.theme.onBackgroundColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
@@ -117,33 +120,34 @@ import com.movtery.zalithlauncher.utils.file.formatFileSize
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
+import com.movtery.zalithlauncher.viewmodel.ModifyVersionViewModel
 import com.movtery.zalithlauncher.viewmodel.ModpackImportViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
 import com.movtery.zalithlauncher.viewmodel.sendKeepScreen
+import com.movtery.zalithlauncher.viewmodel.sendToast
 
 @Composable
 fun MainScreen(
     screenBackStackModel: ScreenBackStackViewModel,
     eventViewModel: EventViewModel,
     modpackImportViewModel: ModpackImportViewModel,
+    modifyVersionViewModel: ModifyVersionViewModel,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
-    val tasks by TaskSystem.tasksFlow.collectAsStateWithLifecycle()
-
     //监控当前是否有任务正在进行
-    LaunchedEffect(tasks) {
-        if (tasks.isEmpty()) {
-            eventViewModel.sendKeepScreen(false)
-        } else {
-            //有任务正在进行，避免熄屏
-            eventViewModel.sendKeepScreen(true)
+    var taskRunning by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        TaskSystem.tasksFlow.collect { tasks ->
+            val noTasks = tasks.isEmpty()
+            eventViewModel.sendKeepScreen(!noTasks)
+            taskRunning = noTasks
         }
     }
 
-    val isTaskMenuExpanded = AllSettings.launcherTaskMenuExpanded.state
+    val isTaskMenuExpanded = LauncherSettings.launcherTaskMenuExpanded.state
 
     fun changeTasksExpandedState() {
-        AllSettings.launcherTaskMenuExpanded.save(!isTaskMenuExpanded)
+        LauncherSettings.launcherTaskMenuExpanded.save(!isTaskMenuExpanded)
     }
 
     /** 回到主页面通用函数 */
@@ -155,7 +159,7 @@ fun MainScreen(
     val inLauncherScreen = mainScreenKey == null || mainScreenKey is NormalNavKey.LauncherMain
 
     val isBackgroundValid = LocalBackgroundViewModel.current?.isValid == true
-    val launcherBackgroundOpacity = AllSettings.launcherBackgroundOpacity.state.toFloat() / 100f
+    val launcherBackgroundOpacity = LauncherSettings.launcherBackgroundOpacity.state.toFloat() / 100f
 
     val backgroundColor = if (isBackgroundValid) {
         backgroundColor().copy(alpha = launcherBackgroundOpacity)
@@ -176,7 +180,7 @@ fun MainScreen(
                     .height(40.dp),
                 mainScreenKey = mainScreenKey,
                 inLauncherScreen = inLauncherScreen,
-                taskRunning = tasks.isEmpty(),
+                taskRunning = taskRunning,
                 isTasksExpanded = isTaskMenuExpanded,
                 contentColor = onBackgroundColor(),
                 onScreenBack = {
@@ -215,17 +219,19 @@ fun MainScreen(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                NavigationUI(
-                    modifier = Modifier.fillMaxSize(),
-                    screenBackStackModel = screenBackStackModel,
-                    toMainScreen = toMainScreen,
-                    eventViewModel = eventViewModel,
-                    modpackImportViewModel = modpackImportViewModel,
-                    submitError = submitError
-                )
+                NavStateHost(rootKey = screenBackStackModel.mainScreen) {
+                    NavigationUI(
+                        modifier = Modifier.fillMaxSize(),
+                        screenBackStackModel = screenBackStackModel,
+                        toMainScreen = toMainScreen,
+                        eventViewModel = eventViewModel,
+                        modpackImportViewModel = modpackImportViewModel,
+                        modifyVersionViewModel = modifyVersionViewModel,
+                        submitError = submitError
+                    )
+                }
 
                 TaskMenu(
-                    tasks = tasks,
                     isExpanded = isTaskMenuExpanded,
                     modifier = Modifier
                         .fillMaxHeight()
@@ -484,6 +490,7 @@ private fun NavigationUI(
     toMainScreen: () -> Unit,
     eventViewModel: EventViewModel,
     modpackImportViewModel: ModpackImportViewModel,
+    modifyVersionViewModel: ModifyVersionViewModel,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
     val backStack = screenBackStackModel.mainScreen.backStack
@@ -510,7 +517,8 @@ private fun NavigationUI(
             )
         }
 
-        NavDisplay(
+        NestedNavDisplay(
+            ownerKey = screenBackStackModel.mainScreen,
             backStack = backStack,
             modifier = modifier,
             onBack = {
@@ -528,11 +536,22 @@ private fun NavigationUI(
                                 EventViewModel.Event.Launch.Game(version)
                             )
                         },
+                        onQuickPlayServer = { version, address ->
+                            val target = (version ?: VersionsManager.currentVersion.value)?.takeIf { it.isValid() }
+                            if (target != null) {
+                                eventViewModel.sendEvent(
+                                    EventViewModel.Event.Launch.PlayServer(target, address)
+                                )
+                            } else {
+                                eventViewModel.sendToast(androidText(R.string.game_launch_no_version))
+                                screenBackStackModel.mainScreen.navigateTo(NormalNavKey.VersionsManager)
+                            }
+                        },
                         onOpenLink = {
                             eventViewModel.sendEvent(EventViewModel.Event.OpenLink(it))
                         },
-                        onHomePageEvent = { event ->
-                            eventViewModel.sendEvent(EventViewModel.Event.HomePage.Event(event))
+                        startGuideOnce = { keys ->
+                            eventViewModel.sendStartGuideOnce(keys)
                         }
                     )
                 }
@@ -592,6 +611,7 @@ private fun NavigationUI(
                 entry<NestedNavKey.VersionSettings> { key ->
                     VersionSettingsScreen(
                         key = key,
+                        modifyViewModel = modifyVersionViewModel,
                         backScreenViewModel = screenBackStackModel,
                         backToMainScreen = toMainScreen,
                         onExportModpack = {
@@ -618,11 +638,11 @@ private fun NavigationUI(
                         submitError = submitError
                     )
                 }
-                entry<NestedNavKey.AssetInfo> { key ->
-                    AssetInfoScreen(
+                entry<NestedNavKey.AddonInfo> { key ->
+                    AddonInfoScreen(
                         key = key,
                         mainScreenKey = screenBackStackModel.mainScreen.currentKey,
-                        assetInfoScreenKey = key.currentKey,
+                        addonInfoScreenKey = key.currentKey,
                         eventViewModel = eventViewModel,
                         submitError = submitError,
                     )
@@ -631,11 +651,6 @@ private fun NavigationUI(
                     MultiplayerScreen(
                         backScreenViewModel = screenBackStackModel,
                         eventViewModel = eventViewModel
-                    )
-                }
-                entry<NormalNavKey.HomePageEditor> {
-                    HomePageEditorScreen(
-                        backStackViewModel = screenBackStackModel,
                     )
                 }
                 entry<NormalNavKey.LogView> { key ->
@@ -653,11 +668,11 @@ private fun NavigationUI(
 
 @Composable
 private fun TaskMenu(
-    tasks: List<Task>,
     isExpanded: Boolean,
     modifier: Modifier = Modifier,
     changeExpandedState: () -> Unit = {}
 ) {
+    val tasks by TaskSystem.tasksFlow.collectAsStateWithLifecycle()
     val show = isExpanded && tasks.isNotEmpty()
 
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
@@ -719,7 +734,7 @@ private fun TaskMenu(
                         .weight(1f),
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
                 ) {
-                    items(tasks) { task ->
+                    items(tasks, key = { it.id }) { task ->
                         val taskProgress by task.progress.collectAsStateWithLifecycle()
                         val taskMessage by task.message.collectAsStateWithLifecycle()
                         val rateBytesPerSec by task.rateBytesPerSec.collectAsStateWithLifecycle()

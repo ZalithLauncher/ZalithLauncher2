@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -215,7 +215,9 @@ class TerracottaViewModel(
                     is TerracottaState.HostOK -> {
                         if (old !is TerracottaState.HostOK) {
                             //刚切换到这个状态，默认复制一次邀请码
-                            copyInviteCode(new)
+                            withContext(Dispatchers.Main) {
+                                copyInviteCode(new)
+                            }
                             //然后首次更新玩家列表状态
                             updateProfiles(new.profiles)
                         }
@@ -263,19 +265,25 @@ class TerracottaViewModel(
                         }
                         is EventViewModel.Event.Terracotta.VPNUpdateState -> {
                             withContext(Dispatchers.Main) {
-                                val vpnIntent = Intent(activity, TerracottaVPNService::class.java)
-                                    .setAction(TerracottaVPNService.ACTION_UPDATE_STATE)
-                                    .putExtra(TerracottaVPNService.EXTRA_STATE_TEXT, event.stringRes)
-                                activity.startForegroundService(vpnIntent)
+                                if (TerracottaVPNService.isRunning()) {
+                                    //服务已在前台运行，仅投递状态文本即可；
+                                    //服务未运行时直接跳过，避免经由 startForegroundService 拉起一个无法及时进入前台的服务
+                                    activity.startService(
+                                        Intent(activity, TerracottaVPNService::class.java)
+                                            .setAction(TerracottaVPNService.ACTION_UPDATE_STATE)
+                                            .putExtra(TerracottaVPNService.EXTRA_STATE_TEXT, event.stringRes)
+                                    )
+                                }
                             }
                         }
                         is EventViewModel.Event.Terracotta.StopVPN -> {
                             withContext(Dispatchers.Main) {
                                 val activity = gameHandler.activity
                                 if (TerracottaVPNService.isRunning()) {
-                                    val vpnIntent = Intent(activity, TerracottaVPNService::class.java)
-                                        .setAction(TerracottaVPNService.ACTION_STOP)
-                                    activity.startForegroundService(vpnIntent)
+                                    //必须用 stopService 下发停止指令，避免 FGS 启动时限崩溃
+                                    activity.stopService(
+                                        Intent(activity, TerracottaVPNService::class.java)
+                                    )
                                 }
                             }
                         }

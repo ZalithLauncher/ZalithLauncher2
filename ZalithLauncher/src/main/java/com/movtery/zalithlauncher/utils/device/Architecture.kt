@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -72,6 +72,20 @@ object Architecture {
         ARCH_X86_64 -> "x86_64"
         ARCH_X86 -> "x86"
         else -> "UNSUPPORTED_ARCH"
+    }
+
+    /** @return 是否与设备架构匹配 */
+    fun isBuildArchCompatible(buildArch: String, deviceArch: Int): Boolean {
+        return buildArch == "all" || buildArch == archAsString(deviceArch)
+    }
+
+    /** Android ABI 目录名 */
+    fun archAsStringAndroid(buildArch: String) = when (buildArch) {
+        "arm64" -> "arm64-v8a"
+        "arm" -> "armeabi-v7a"
+        "x86_64" -> "x86_64"
+        "x86" -> "x86"
+        else -> "universal"
     }
 
     /** Android ABI 目录名 */

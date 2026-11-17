@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -41,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,6 +64,7 @@ import com.movtery.layer_controller.observable.ObservableJoystickStyleConfig
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.unit.toFloatRange
 import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.components.SingleLineTextCheck
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutColorItem
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutSliderItem
@@ -144,16 +146,32 @@ fun EditJoystickStyleDialog(
                                 .fillMaxHeight()
                                 .padding(all = 12.dp)
                                 .weight(0.4f),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             RenderBox(
                                 modifier = Modifier.weight(1f),
                                 style = style,
                                 isDarkMode = !style.commonStyle && selectedTabIndex == 1
                             )
+                            // 摇杆样式名称
+                            OwnOutlinedTextField(
+                                modifier = Modifier
+                                    .padding(top = 6.dp)
+                                    .fillMaxWidth(),
+                                value = style.name,
+                                onValueChange = {
+                                    style.name = it
+                                },
+                                singleLine = true,
+                                label = {
+                                    Text(stringResource(R.string.control_editor_edit_joystick_style_list_name))
+                                },
+                                shape = MaterialTheme.shapes.large
+                            )
                             // 不区分暗色主题
                             InfoLayoutSwitchItem(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .padding(top = 12.dp)
+                                    .fillMaxWidth(),
                                 title = stringResource(R.string.control_editor_edit_style_config_common_style),
                                 value = style.commonStyle,
                                 onValueChange = { style.commonStyle = it }

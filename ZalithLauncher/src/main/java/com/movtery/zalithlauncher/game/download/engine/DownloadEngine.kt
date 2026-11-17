@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,46 +18,33 @@
 
 package com.movtery.zalithlauncher.game.download.engine
 
-import com.movtery.zalithlauncher.path.DOWNLOAD_OKHTTP_CLIENT
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.sync.Semaphore
-import okhttp3.OkHttpClient
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
- * 引擎的单一文件便捷入口：完整获得分块、换源、降级重试能力，
- * 适合独立的小批量场景；大规模批量请使用 [BatchDownloader]。
+ * 引擎的单一文件便捷入口，适合独立的小批量场景；大规模批量请使用 [BatchDownloader]。
  */
 object DownloadEngine {
-    const val DEFAULT_SINGLE_CONNECTIONS = 4
 
     /**
-     * @param sizeCallback 落盘字节的增量回调；引擎内部的断点重试已被消化，调用方只会收到正值增量
+     * @param sizeCallback 落盘字节的带符号增量回调：失败重试丢弃的字节以负增量回滚，
+     * 全部增量的代数和等于最终落盘大小
      */
     suspend fun download(
         request: DownloadRequest,
-        maxConnections: Int = DEFAULT_SINGLE_CONNECTIONS,
         stats: DownloadStats = DownloadStats(),
-        sizeCallback: (Long) -> Unit = {},
-        /** 显式注入用于测试；生产环境按请求大小自动选择传输客户端 */
-        client: OkHttpClient? = null
+        sizeCallback: (Long) -> Unit = {}
     ) {
         if (request.expectedSize > 0) stats.registerFile(request.expectedSize)
 
-        //与批量侧一致
-        // 只有全局速度不足时才允许追加连接拆段
-        val speedGate = {
-            stats.refreshSpeed() < DownloadStats.LOW_SPEED_THRESHOLD_BPS
-        }
-
         if (sizeCallback === defaultCallback) {
-            FileDownloader(request, Semaphore(maxConnections), stats, allowExtraConnection = speedGate, client = client).download()
+            FileDownloader(request, stats).download()
             stats.markFileFinished()
             return
         }
@@ -71,7 +58,7 @@ object DownloadEngine {
                 }
             }
             try {
-                FileDownloader(request, Semaphore(maxConnections), stats, allowExtraConnection = speedGate, client = client).download()
+                FileDownloader(request, stats).download()
                 stats.markFileFinished()
                 drain(reported, stats, sizeCallback)
             } finally {
@@ -83,7 +70,7 @@ object DownloadEngine {
     private fun drain(reported: AtomicLong, stats: DownloadStats, callback: (Long) -> Unit) {
         val total = stats.downloadedBytes
         val delta = total - reported.get()
-        if (delta > 0) {
+        if (delta != 0L) {
             reported.addAndGet(delta)
             callback(delta)
         }

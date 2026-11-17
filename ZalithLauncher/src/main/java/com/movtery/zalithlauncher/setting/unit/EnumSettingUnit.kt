@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,10 +28,9 @@ class EnumSettingUnit<E : Enum<E>>(
     defaultValue: E,
     private val getEnum: (String) -> E?
 ) : AbstractSettingUnit<E>(key, defaultValue) {
-    override fun getValue(): E {
+    override fun readValue(): E {
         val valueString: String = launcherMMKV().getString(key, defaultValue.name)!!
-        return (getEnum(valueString) ?: defaultValue)
-            .also { state = it }
+        return getEnum(valueString) ?: defaultValue
     }
 
     override fun saveValue(v: E): E {

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,6 +54,7 @@ import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutItem
+import com.movtery.zalithlauncher.ui.screens.main.control_editor.orUnspecified
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -201,7 +202,7 @@ private fun LayerVisibilityItem(
     ) {
         MarqueeText(
             modifier = Modifier.weight(1f),
-            text = layer.name,
+            text = layer.name.orUnspecified(),
             style = MaterialTheme.typography.bodyMedium
         )
         Checkbox(

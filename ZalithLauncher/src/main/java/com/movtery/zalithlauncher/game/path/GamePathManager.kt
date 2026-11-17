@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,13 +19,15 @@
 package com.movtery.zalithlauncher.game.path
 
 import android.content.Context
+import android.os.Environment
 import com.movtery.zalithlauncher.database.AppDatabase
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings.currentGamePathId
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.utils.canHandlePermission
 import com.movtery.zalithlauncher.utils.hasStoragePermission
 import com.movtery.zalithlauncher.utils.logging.Logger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +37,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.UUID
+import kotlin.io.path.exists
 
 private const val TAG = "GamePathManager"
 
@@ -59,9 +64,9 @@ object GamePathManager {
     val currentPath = _currentPath.asStateFlow()
 
     /**
-     * 当前游戏路径
+     * 启动器默认游戏目录
      */
-    fun getCurrentPath(): String = File(_currentPath.value).absolutePath
+    fun getDefaultPath(): String = defaultGamePath
 
     /**
      * 当前用户路径
@@ -114,13 +119,13 @@ object GamePathManager {
     }
 
     private fun String.createNoMediaFile() {
-        val noMediaFile = File(this, ".nomedia")
-        if (!noMediaFile.exists()) {
-            runCatching {
-                noMediaFile.createNewFile()
-            }.onFailure { e ->
-                Logger.error(TAG, "Failed to create .nomedia file in $this", e)
-            }
+        runCatching {
+            val parent = Paths.get(this)
+            Files.createDirectories(parent)
+            val noMediaFile = parent.resolve(".nomedia")
+            if (!noMediaFile.exists()) Files.createFile(noMediaFile)
+        }.onFailure { e ->
+            Logger.error(TAG, "Failed to create .nomedia file in $this", e)
         }
     }
 
@@ -135,6 +140,20 @@ object GamePathManager {
     fun containsPath(path: String): Boolean = _gamePathData.value.any { it.path == path }
 
     /**
+     * 检查指定路径是否被禁止用作游戏目录
+     */
+    fun isForbiddenGamePath(path: String): Boolean {
+        val target = File(path).absolutePath
+        // 从外部存储根目录起逐级向上比对，命中即代表目标路径是根目录本身或其全部上级目录
+        var node: File? = Environment.getExternalStorageDirectory()
+        while (node != null) {
+            if (node.absolutePath == target) return true
+            node = node.parentFile
+        }
+        return false
+    }
+
+    /**
      * 修改并保存指定目录的标题
      * @throws IllegalArgumentException 未找到匹配项
      */
@@ -146,9 +165,10 @@ object GamePathManager {
 
     /**
      * 添加新的路径并保存
-     * @throws IllegalArgumentException 当前添加的路径与现有项冲突
+     * @throws IllegalArgumentException 当前添加的路径被禁止用作游戏目录，或与现有项冲突
      */
     fun addNewPath(title: String, path: String) {
+        if (isForbiddenGamePath(path)) throw IllegalArgumentException("The path is not allowed to be used as a game directory!")
         if (containsPath(path)) throw IllegalArgumentException("The path conflicts with an existing item!")
         savePath(
             GamePath(id = generateUUID(), title = title, path = path)
@@ -182,13 +202,13 @@ object GamePathManager {
     }
 
     private fun saveCurrentPathUncheck(id: String, reloadVersions: Boolean) {
-        if (currentGamePathId.getValue() == id) return
-        currentGamePathId.save(id)
+        if (MiscSettings.currentGamePathId.getValue() == id) return
+        MiscSettings.currentGamePathId.save(id)
         refreshCurrentPath(reloadVersions)
     }
 
     private fun refreshCurrentPath(reloadVersions: Boolean) {
-        val id = currentGamePathId.getValue()
+        val id = MiscSettings.currentGamePathId.getValue()
         _gamePathData.value.find { it.id == id }?.let { item ->
             if (_currentPath.value == item.path) return //避免重复刷新
             val path = item.path
@@ -212,6 +232,7 @@ object GamePathManager {
                 gamePathDao.savePath(path)
                 Logger.info(TAG, "Saved game path: ${path.path}")
             }.onFailure { e ->
+                if (e is CancellationException) throw e
                 Logger.error(TAG, "Failed to save game path config!", e)
             }
             reloadPath()

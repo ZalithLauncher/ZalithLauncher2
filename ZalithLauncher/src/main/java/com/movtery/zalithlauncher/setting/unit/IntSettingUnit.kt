@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,10 +25,9 @@ class IntSettingUnit(
     defaultValue: Int,
     val valueRange: IntRange,
 ) : AbstractSettingUnit<Int>(key, defaultValue) {
-    override fun getValue(): Int {
+    override fun readValue(): Int {
         return launcherMMKV().getInt(key, defaultValue)
             .coerceIn(valueRange)
-            .also { state = it }
     }
 
     override fun saveValue(v: Int): Int {
@@ -38,6 +37,6 @@ class IntSettingUnit(
     }
 
     override fun updateState(value: Int) {
-        this.state = value.coerceIn(valueRange)
+        super.updateState(value.coerceIn(valueRange))
     }
 }

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.game.version.download
 
 import com.movtery.zalithlauncher.game.addons.mirror.mapBMCLMirrorUrls
 import com.movtery.zalithlauncher.game.path.getAssetsHome
+import com.movtery.zalithlauncher.game.path.getGameHome
 import com.movtery.zalithlauncher.game.path.getLibrariesHome
 import com.movtery.zalithlauncher.game.path.getResourcesHome
 import com.movtery.zalithlauncher.game.path.getVersionsHome
@@ -27,7 +28,6 @@ import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersions
 import com.movtery.zalithlauncher.game.versioninfo.models.AssetIndexJson
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.game.versioninfo.models.VersionManifest.Version
-import com.movtery.zalithlauncher.utils.classes.Quadruple
 import com.movtery.zalithlauncher.utils.file.ensureDirectory
 import com.movtery.zalithlauncher.utils.file.ensureParentDirectory
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
@@ -40,13 +40,16 @@ const val MINECRAFT_RES: String = "https://resources.download.minecraft.net/"
 
 /**
  * 设计为通用化 Minecraft 原版完整下载
+ * @param gameHome 下载目标所在的游戏目录
  */
-class BaseMinecraftDownloader {
+class BaseMinecraftDownloader(
+    gameHome: String = getGameHome()
+) {
     //Dir
-    val assetsTarget = File(getAssetsHome()).ensureDirectory()
-    val resourcesTarget = File(getResourcesHome()).ensureDirectory()
-    val versionsTarget = File(getVersionsHome()).ensureDirectory()
-    val librariesTarget = File(getLibrariesHome()).ensureDirectory()
+    val assetsTarget = File(getAssetsHome(gameHome)).ensureDirectory()
+    val resourcesTarget = File(getResourcesHome(gameHome)).ensureDirectory()
+    val versionsTarget = File(getVersionsHome(gameHome)).ensureDirectory()
+    val librariesTarget = File(getLibrariesHome(gameHome)).ensureDirectory()
     val assetIndexTarget = File(assetsTarget, "indexes").ensureDirectory()
 
     suspend fun findVersion(version: String): Version? {
@@ -111,12 +114,14 @@ class BaseMinecraftDownloader {
         scheduleCopy: (targetFile: File) -> Unit
     ) {
         val clientFile = getVersionJarPath(clientName, mcFolder)
-        gameManifest.downloads?.client?.let { client ->
-            scheduleDownload(client.url.mapBMCLMirrorUrls(), client.sha1, clientFile, client.size)
-        } ?: run {
-            //如果未提供下载方式，则很可能是需要复制原版的Jar文件
-            scheduleCopy(clientFile)
-        }
+        gameManifest.downloads?.client
+            ?.takeIf { it.url?.isNotEmptyOrBlank() == true }
+            ?.let { client ->
+                scheduleDownload(client.url.mapBMCLMirrorUrls(), client.sha1, clientFile, client.size)
+            } ?: run {
+                //如果未提供下载方式，则很可能是需要复制原版的Jar文件
+                scheduleCopy(clientFile)
+            }
     }
 
     /** 计划assets资产下载 */
@@ -154,27 +159,27 @@ class BaseMinecraftDownloader {
                 if (library.name.startsWith("org.lwjgl")) return@forEach
 
                 val artifactPath: String = artifactToPath(library) ?: return@forEach
-                val (sha1: String?, url, size, isDownloadable) = library.downloads?.let { downloads ->
-                    downloads.artifact?.let { artifact ->
-                        Quadruple(artifact.sha1, artifact.url, artifact.size, true)
-                    } ?: return@forEach
-                } ?: run {
-                    var isDownloadable = true
-                    val u1 = library.url
+                //downloads 存在但没有 artifact 时，说明是仅含 natives/classifiers 的条目，跳过
+                val artifact = library.downloads?.let { it.artifact ?: return@forEach }
+                val sha1: String? = artifact?.sha1 ?: library.sha1
+                val size: Long = artifact?.size ?: library.size
+
+                var isDownloadable = true
+                val url: String = artifact?.url
+                    ?.takeIf { it.isNotEmptyOrBlank() }
+                    ?: library.url
                         ?.takeIf {
                             // fix(#53): Forge 明明可以不写，但还是给留了个空的值 >:(
                             it.isNotEmptyOrBlank()
                         }
                         ?.replace("http://", "https://")
-                        ?: run {
-                            //对于没有提供下载链接的，可能是需要文件已经安装，而不是临时获取
-                            //不过尝试使用官方源下载，若下载失败则表明这个版本 文件有缺失的情况
-                            isDownloadable = false
-                            "https://libraries.minecraft.net/"
-                        }
-                    val url = u1.let { "${it}$artifactPath" }
-                    Quadruple(library.sha1, url, library.size, isDownloadable)
-                }
+                        ?.let { base -> "${base}$artifactPath" }
+                    ?: run {
+                        //对于没有提供下载链接的，可能是需要文件已经安装，而不是临时获取
+                        //不过尝试使用官方源下载，若下载失败则表明这个版本 文件有缺失的情况
+                        isDownloadable = false
+                        "https://libraries.minecraft.net/$artifactPath"
+                    }
 
                 scheduleDownload(url.mapBMCLMirrorUrls(), sha1, File(targetDir, artifactPath), size, isDownloadable)
             }

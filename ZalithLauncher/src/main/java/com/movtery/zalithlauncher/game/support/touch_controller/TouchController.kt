@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -536,7 +536,14 @@ private class TouchControllerInputConnection(
             }
             updateState(TextInputState::doDelete)
         } else {
-            LWJGLCharSender.sendOther(event)
+            val char = event.unicodeChar
+            if (char == 0) {
+                LWJGLCharSender.sendOther(event)
+            } else if (event.action == KeyEvent.ACTION_DOWN) {
+                updateState { currentState ->
+                    currentState.commitTextAsNewState(char.toString(), 1)
+                }
+            }
         }
         return true
     }
@@ -710,29 +717,43 @@ fun Modifier.touchControllerTouchModifier(
             return Pair(normalizedX, normalizedY)
         }
 
-        while (true) {
-            val event = awaitPointerEvent(PointerEventPass.Initial)
-            val proxyClient = proxyClient.value
-            event.changes.fastForEach { change ->
-                if (change.isConsumed) return@fastForEach
-                if (change.changedToDownIgnoreConsumed()) {
-                    if (!activePointers.containsKey(change.id)) {
-                        val pointerId = nextPointerId++
-                        activePointers[change.id] = pointerId
-                        val (x, y) = change.toProxyOffset()
-                        proxyClient?.addPointer(pointerId, x, y)
-                    }
-                } else if (change.changedToUpIgnoreConsumed()) {
-                    activePointers.remove(change.id)?.let { pointerId ->
-                        proxyClient?.removePointer(pointerId)
-                    }
-                } else if (change.pressed && event.type == PointerEventType.Move) {
-                    activePointers[change.id]?.let { pointerId ->
-                        val (x, y) = change.toProxyOffset()
-                        proxyClient?.addPointer(pointerId, x, y)
+        //手势被取消或监听被销毁时不会有抬起事件，必须主动通知模组清除指针，否则模组侧指针会残留
+        fun releaseAllPointers() {
+            if (activePointers.isEmpty()) return
+            proxyClient.value?.clearPointer()
+            activePointers.clear()
+        }
+
+        try {
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val proxyClient = proxyClient.value
+                event.changes.fastForEach { change ->
+                    if (change.changedToUpIgnoreConsumed()) {
+                        //抬起事件即使已被其他处理器消费，也必须发送释放，否则模组侧指针会残留
+                        activePointers.remove(change.id)?.let { pointerId ->
+                            proxyClient?.removePointer(pointerId)
+                        }
+                    } else {
+                        if (change.isConsumed) return@fastForEach
+                        if (change.changedToDownIgnoreConsumed()) {
+                            if (!activePointers.containsKey(change.id)) {
+                                val pointerId = nextPointerId++
+                                activePointers[change.id] = pointerId
+                                val (x, y) = change.toProxyOffset()
+                                proxyClient?.addPointer(pointerId, x, y)
+                            }
+                        } else if (change.pressed && event.type == PointerEventType.Move) {
+                            activePointers[change.id]?.let { pointerId ->
+                                val (x, y) = change.toProxyOffset()
+                                proxyClient?.addPointer(pointerId, x, y)
+                            }
+                        }
                     }
                 }
             }
+        } finally {
+            releaseAllPointers()
         }
     }
 }

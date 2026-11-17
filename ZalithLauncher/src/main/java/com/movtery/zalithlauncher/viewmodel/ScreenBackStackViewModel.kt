@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,6 +42,8 @@ class ScreenBackStackViewModel : ViewModel() {
     val downloadSavesScreen = NestedNavKey.DownloadSaves()
     /** 下载光影包屏幕 */
     val downloadShadersScreen = NestedNavKey.DownloadShaders()
+    /** 下载收藏屏幕 */
+    val downloadFavoritesScreen = NestedNavKey.DownloadFavorites()
 
     /**
      * 在跳转前，先将导航栈中所有属于 [clearBeforeNavKeys] 的页面全部移除

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,7 +78,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.backgroundColor
@@ -88,7 +88,7 @@ import com.movtery.zalithlauncher.ui.theme.onBackgroundColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
-import com.movtery.zalithlauncher.utils.animation.getAnimateTweenJellyBounce
+import com.movtery.zalithlauncher.utils.animation.getEnterTween
 import java.text.DecimalFormat
 
 /**
@@ -160,7 +160,7 @@ fun MenuSubscreen(
             AnimatedVisibility(
                 visible = visible,
                 enter = fadeIn() + slideInHorizontally(
-                    animationSpec = getAnimateTweenJellyBounce()
+                    animationSpec = getEnterTween()
                 ) {
                     if (isRtl) -40 else 40
                   },
@@ -224,7 +224,7 @@ fun DualMenuSubscreen(
             AnimatedVisibility(
                 visible = visible,
                 enter = fadeIn() + slideInHorizontally(
-                    animationSpec = getAnimateTweenJellyBounce()
+                    animationSpec = getEnterTween()
                 ) {
                     if (isRtl) 40 else -40
                   },
@@ -261,7 +261,7 @@ fun DualMenuSubscreen(
             AnimatedVisibility(
                 visible = visible,
                 enter = fadeIn() + slideInHorizontally(
-                    animationSpec = getAnimateTweenJellyBounce()
+                    animationSpec = getEnterTween()
                 ) {
                     if (isRtl) -40 else 40
                   },
@@ -649,7 +649,7 @@ fun MenuSliderLayout(
     color: Color = itemColor(influencedByBackground),
     contentColor: Color = onItemColor(),
 ) {
-    val formatter = DecimalFormat(decimalFormat)
+    val formatter = remember(decimalFormat) { DecimalFormat(decimalFormat) }
     fun getTextString(value: Float) = formatter.format(value) + (suffix ?: "")
 
     val interactionSource = remember { MutableInteractionSource() }
@@ -722,7 +722,7 @@ fun MenuButtonLayout(
     shape: Shape = MaterialTheme.shapes.large,
     color: Color = itemColor(influencedByBackground),
     contentColor: Color = onItemColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
     onClick: () -> Unit = {},
     horizontalArrangement: Arrangement.Horizontal = Arrangement.Start,
     verticalAlignment: Alignment.Vertical = Alignment.Top,

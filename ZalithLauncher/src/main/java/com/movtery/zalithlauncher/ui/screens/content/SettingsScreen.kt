@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -39,18 +38,19 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.ui.NavDisplay
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.AnimatedDirection
+import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
+import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -67,7 +67,6 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.RendererSettingsSc
 import com.movtery.zalithlauncher.ui.screens.navigateOnce
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
-import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
@@ -102,9 +101,6 @@ fun SettingsScreen(
                     backStackViewModel.settingsScreen.currentKey = newKey
                 },
                 openLicenseScreen = openLicenseScreen,
-                toHomePageEditor = {
-                    backStackViewModel.mainScreen.navigateTo(NormalNavKey.HomePageEditor)
-                },
                 eventViewModel = eventViewModel,
                 submitError = submitError,
                 modifier = Modifier.fillMaxHeight()
@@ -131,11 +127,7 @@ private fun TabMenu(
     settingsScreenKey: TitledNavKey?,
     navigateTo: (TitledNavKey) -> Unit
 ) {
-    val xOffset by swapAnimateDpAsState(
-        targetValue = (-40).dp,
-        swapIn = isVisible,
-        isHorizontal = true
-    )
+    val ctx = rememberAnimatedContext(isVisible = isVisible)
 
     val scrollState = rememberScrollState()
     Column(
@@ -143,7 +135,7 @@ private fun TabMenu(
             .fadeEdge(scrollState)
             .width(IntrinsicSize.Min)
             .padding(start = 8.dp)
-            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
+            .animated(ctx, from = AnimatedDirection.Left)
             .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -189,7 +181,6 @@ private fun NavigationUI(
     settingsScreenKey: TitledNavKey?,
     onCurrentKeyChange: (TitledNavKey?) -> Unit,
     openLicenseScreen: (raw: Int) -> Unit,
-    toHomePageEditor: () -> Unit,
     eventViewModel: EventViewModel,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
     modifier: Modifier = Modifier
@@ -201,7 +192,8 @@ private fun NavigationUI(
     }
 
     if (backStack.isNotEmpty()) {
-        NavDisplay(
+        NestedNavDisplay(
+            ownerKey = key,
             backStack = backStack,
             modifier = modifier,
             onBack = {
@@ -227,8 +219,6 @@ private fun NavigationUI(
                         key = key,
                         settingsScreenKey = settingsScreenKey,
                         mainScreenKey = mainScreenKey,
-                        eventViewModel = eventViewModel,
-                        toHomePageEditor = toHomePageEditor,
                         submitError = submitError,
                     )
                 }
@@ -245,6 +235,9 @@ private fun NavigationUI(
                         mainScreenKey = mainScreenKey,
                         checkUpdate = {
                             eventViewModel.sendEvent(EventViewModel.Event.CheckUpdate)
+                        },
+                        onViewSponsors = {
+                            eventViewModel.sendEvent(EventViewModel.Event.ShowSponsors)
                         },
                         openLicense = openLicenseScreen,
                         openLink = { url ->

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -87,10 +87,14 @@ internal fun TextButton(
     eventHandler: EventHandler? = null,
     drawLine: (ObservableWidget, List<GuideLine>) -> Unit = { _, _ -> },
     onLineCancel: (ObservableWidget) -> Unit = {},
-    isPressed: Boolean,
     onTapInEditMode: () -> Unit = {}
 ) {
     if (visible) {
+        val isPressed = when (data) {
+            is ObservableNormalData -> data.isPressed
+            else -> false
+        }
+
         val styleId = data.styleId
         val style = allStyles
             .takeIf { data.styleId != null }

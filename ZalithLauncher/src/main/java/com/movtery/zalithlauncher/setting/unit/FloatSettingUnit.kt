@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,8 @@ class FloatSettingUnit(
     defaultValue: Float,
     val valueRange: ClosedFloatingPointRange<Float>
 ) : AbstractSettingUnit<Float>(key, defaultValue) {
-    override fun getValue(): Float {
+    override fun readValue(): Float {
         return launcherMMKV().getFloat(key, defaultValue)
-            .also { state = it }
     }
 
     override fun saveValue(v: Float): Float {
@@ -37,6 +36,6 @@ class FloatSettingUnit(
     }
 
     override fun updateState(value: Float) {
-        this.state = value.coerceIn(valueRange)
+        super.updateState(value.coerceIn(valueRange))
     }
 }

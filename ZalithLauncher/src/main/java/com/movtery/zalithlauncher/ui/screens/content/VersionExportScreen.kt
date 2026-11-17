@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.ui.NavDisplay
 import com.google.gson.JsonSyntaxException
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
@@ -62,10 +61,12 @@ import com.movtery.zalithlauncher.game.version.export.data.getSelectedFiles
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.base.VersionViewModelStoreScope
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
+import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -137,13 +138,24 @@ private val selectBlackList = listOf(
 )
 
 /**
+ * @return 是否为版本根目录的版本Json、Jar文件
+ */
+private fun isExcludedVersionFile(fileName: String, currentDepth: Int, versionName: String): Boolean {
+    return currentDepth == 1 && (fileName == "$versionName.json" || fileName == "$versionName.jar")
+}
+
+/**
  * @param versionName 当前游戏版本的自定义名称
  */
 private class ExportModpackViewModel(
     val mcVersion: String,
     val versionName: String,
     val gamePath: File,
-    val loader: ExportInfo.LoaderVersion?
+    val loader: ExportInfo.LoaderVersion?,
+    /** 当前版本配置的游戏参数，导出时预填 */
+    val gameArgs: String,
+    /** 当前版本配置的 JVM 参数，导出时预填 */
+    val javaArgs: String
 ): ViewModel() {
     private val _allFiles = MutableStateFlow<List<FileSelectionData>>(emptyList())
     /** 当前可供选择的全部文件/目录 */
@@ -186,6 +198,8 @@ private class ExportModpackViewModel(
             version = "1.0",
             mcVersion = mcVersion,
             loader = loader,
+            gameArgs = gameArgs,
+            javaArgs = javaArgs,
             packType = packType,
             packModrinth = packModrinth,
             packCurseForge = packCurseForge
@@ -314,11 +328,6 @@ private class ExportModpackViewModel(
         }
     }
 
-    private val packBlackList = listOf(
-        "$versionName.json",
-        "$versionName.jar"
-    )
-
     data class StackNode(
         val dir: File,
         val depth: Int,
@@ -339,7 +348,7 @@ private class ExportModpackViewModel(
             val tempList = ArrayList<FileSelectionData>(files.size)
 
             for (file in files) {
-                if (packBlackList.any { pattern -> file.name.contains(pattern) }) continue
+                if (isExcludedVersionFile(file.name, currentDepth, versionName)) continue
                 //只有根目录的文件才能设置别名
                 val alias = if (currentDepth == 1) getAlias(file.name) else null
 
@@ -415,9 +424,11 @@ private fun rememberExportModpackViewModel(
         mcVersion = info.minecraftVersion,
         versionName = version.getVersionName(),
         gamePath = version.getGameDir(),
-        loader = info.loaderInfo?.let { loader ->
+        loader = info.primaryLoader?.let { loader ->
             ExportInfo.LoaderVersion(loader.loader, loader.version)
-        }
+        },
+        gameArgs = version.getGameArgs(),
+        javaArgs = version.getJvmArgs()
     )
 }
 
@@ -446,36 +457,38 @@ fun VersionExportScreen(
         }
     }
 
-    val viewModel = rememberExportModpackViewModel(version = key.version)
+    VersionViewModelStoreScope(version = key.version) {
+        val viewModel = rememberExportModpackViewModel(version = key.version)
 
-    val packExporter by viewModel.packExporter.collectAsStateWithLifecycle()
-    val exportOperation by viewModel.packExportOperation.collectAsStateWithLifecycle()
-    PackExportOperation(
-        operation = exportOperation,
-        onChange = { new ->
-            viewModel.updateOperation(new)
-        },
-        packExporter = packExporter,
-        onCancel = {
-            viewModel.cancelExport()
-        }
-    )
-
-    BaseScreen(
-        screenKey = key,
-        currentKey = backScreenViewModel.mainScreen.currentKey
-    ) {
-        NavigationUI(
-            modifier = Modifier.fillMaxSize(),
-            viewModel = viewModel,
-            key = key,
-            backScreenViewModel = backScreenViewModel,
-            eventViewModel = eventViewModel,
-            exportScreenKey = key.currentKey,
-            onCurrentKeyChange = { key.currentKey = it },
-            backToMainScreen = backToMainScreen,
-            version = key.version
+        val packExporter by viewModel.packExporter.collectAsStateWithLifecycle()
+        val exportOperation by viewModel.packExportOperation.collectAsStateWithLifecycle()
+        PackExportOperation(
+            operation = exportOperation,
+            onChange = { new ->
+                viewModel.updateOperation(new)
+            },
+            packExporter = packExporter,
+            onCancel = {
+                viewModel.cancelExport()
+            }
         )
+
+        BaseScreen(
+            screenKey = key,
+            currentKey = backScreenViewModel.mainScreen.currentKey
+        ) {
+            NavigationUI(
+                modifier = Modifier.fillMaxSize(),
+                viewModel = viewModel,
+                key = key,
+                backScreenViewModel = backScreenViewModel,
+                eventViewModel = eventViewModel,
+                exportScreenKey = key.currentKey,
+                onCurrentKeyChange = { key.currentKey = it },
+                backToMainScreen = backToMainScreen,
+                version = key.version
+            )
+        }
     }
 }
 
@@ -500,7 +513,8 @@ private fun NavigationUI(
     }
 
     if (backStack.isNotEmpty()) {
-        NavDisplay(
+        NestedNavDisplay(
+            ownerKey = key,
             backStack = backStack,
             modifier = modifier,
             onBack = {

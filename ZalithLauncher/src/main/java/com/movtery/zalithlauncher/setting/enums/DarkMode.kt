@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 
 /**
  * 启动器UI深色主题
@@ -43,7 +43,7 @@ enum class DarkMode(val textRes: Int) {
  */
 @Composable
 fun isLauncherInDarkTheme(): Boolean {
-    val value = AllSettings.launcherDarkMode.state
+    val value = LauncherSettings.launcherDarkMode.state
     return key(value) {
         when (value) {
             DarkMode.Enable -> true

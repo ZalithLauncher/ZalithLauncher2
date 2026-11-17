@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,8 +45,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButtonMenu
 import androidx.compose.material3.FloatingActionButtonMenuItem
@@ -61,6 +59,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleFloatingActionButton
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
@@ -139,7 +138,6 @@ private const val TEXT_SIZE_STEP = 1.15f
  * @param onExit 退出文件管理器回调
  * @param onToggleOrientation 横竖屏切换回调
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FmEditorScreen(
     path: Path,
@@ -330,7 +328,7 @@ fun FmEditorScreen(
                     onToggleWordwrap = {
                         wordwrap = !wordwrap
                         FmConfig.setEditorWordwrap(wordwrap)
-                        editor?.setWordwrap(wordwrap)
+                        editor?.isWordwrap = wordwrap
                     },
                     onToggleReadOnly = { userReadOnly = !userReadOnly },
                     onToggleCompletion = {
@@ -834,7 +832,9 @@ private fun SearchOptionToggle(
     val scope = rememberCoroutineScope()
 
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+            positioning = TooltipAnchorPosition.Below
+        ),
         tooltip = {
             PlainTooltip {
                 Text(contentDescription)
@@ -1005,7 +1005,9 @@ private fun EditorMoreMenu(
 
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { onExpandedChange(false) }
+            onDismissRequest = { onExpandedChange(false) },
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 3.dp
         ) {
             MenuItem(R.string.generic_search, R.drawable.ic_search, enabled = editor != null, onClick = onSearch)
             MenuItem(R.string.fm_editor_goto_line, R.drawable.ic_keyboard_double_arrow_up, enabled = editor != null, onClick = onGotoLine)

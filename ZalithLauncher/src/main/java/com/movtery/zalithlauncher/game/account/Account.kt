@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ data class Account(
     /**
      * 下载并更新账号的皮肤文件
      */
-    suspend fun downloadYggdrasil() = withContext(Dispatchers.IO) {
+    suspend fun downloadYggdrasil(refresh: Boolean = true) = withContext(Dispatchers.IO) {
         val baseUrl = when {
             isMicrosoftAccount() -> "https://sessionserver.mojang.com"
             isAuthServerAccount() -> otherBaseUrl!!.removeSuffix("/") + "/sessionserver/"
@@ -84,7 +84,7 @@ data class Account(
             val skinJob = async { updateSkin(url) }
             val capeJob = async { updateCape(url) }
             joinAll(skinJob, capeJob)
-            AccountsManager.refreshWardrobe()
+            if (refresh) AccountsManager.refreshWardrobe()
         }
     }
 

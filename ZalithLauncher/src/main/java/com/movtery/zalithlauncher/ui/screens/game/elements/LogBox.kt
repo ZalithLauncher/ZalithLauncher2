@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.LoggerBridge
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
 import com.movtery.zalithlauncher.ui.screens.game.elements.log_parser.LogHighlighter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -67,7 +67,16 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.util.Collections
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Duration.Companion.milliseconds
+
+/** 游戏日志的最大保留行数 */
+private const val MAX_LOG_LINES = 2048
+
+/**
+ * 单条游戏日志
+ */
+private data class LogLine(val id: Long, val text: AnnotatedString)
 
 @Composable
 fun LogBox(
@@ -77,9 +86,11 @@ fun LogBox(
 ) {
     val scrollState = rememberLazyListState()
 
-    val logList = remember { mutableStateListOf<AnnotatedString>() }
-    val buffer = remember { Collections.synchronizedList(mutableListOf<AnnotatedString>()) }
-    val scrollChannel = remember { mutableStateOf<Channel<Unit>?>(null) }
+    val logList = remember { mutableStateListOf<LogLine>() }
+    val buffer = remember { Collections.synchronizedList(mutableListOf<String>()) }
+    //元素表示该次滚动是否使用动画，自动跟随日志的滚动不带动画
+    val scrollChannel = remember { mutableStateOf<Channel<Boolean>?>(null) }
+    val lineId = remember { AtomicLong(0) }
 
     val logHighlighter = remember { LogHighlighter() }
     var autoScrollDown by remember { mutableStateOf(true) }
@@ -87,7 +98,7 @@ fun LogBox(
     val config = remember {
         object {
             /** 缓冲区刷新间隔，单位：ms */
-            val BUFFER_FLUSH_INTERVAL: Long = AllSettings.logBufferFlushInterval.getValue().toLong()
+            val BUFFER_FLUSH_INTERVAL: Long = GameSettings.logBufferFlushInterval.getValue().toLong()
         }
     }
 
@@ -97,8 +108,7 @@ fun LogBox(
 
             LoggerBridge.setListener { log ->
                 synchronized(buffer) {
-                    val string = logHighlighter.highlight(log)
-                    buffer.add(string)
+                    buffer.add(log)
                 }
             }
 
@@ -108,7 +118,7 @@ fun LogBox(
                     try {
                         ensureActive()
                         delay(config.BUFFER_FLUSH_INTERVAL.milliseconds)
-                        val pending = mutableListOf<AnnotatedString>()
+                        val pending = mutableListOf<String>()
 
                         mutex.withLock {
                             synchronized(buffer) {
@@ -119,11 +129,16 @@ fun LogBox(
                             }
                         }
                         if (pending.isNotEmpty()) {
+                            val lines = pending.map { raw ->
+                                LogLine(lineId.incrementAndGet(), logHighlighter.highlight(raw))
+                            }
                             withContext(Dispatchers.Main) {
-                                logList.addAll(pending)
+                                logList.addAll(lines)
+                                val overflow = logList.size - MAX_LOG_LINES
+                                if (overflow > 0) logList.subList(0, overflow).clear()
                                 if (autoScrollDown) {
                                     //尝试进行滚动
-                                    scrollChannel.value?.trySend(Unit)
+                                    scrollChannel.value?.trySend(false)
                                 }
                             }
                         }
@@ -135,11 +150,12 @@ fun LogBox(
 
             //自动滚动部分
             launch(Dispatchers.Main) {
-                scrollChannel.value?.consumeAsFlow()?.collect {
+                scrollChannel.value?.consumeAsFlow()?.collect { animated ->
                     runCatching {
                         val targetIndex = logList.lastIndex
                         if (targetIndex >= 0 && targetIndex < logList.size) {
-                            scrollState.animateScrollToItem(targetIndex)
+                            if (animated) scrollState.animateScrollToItem(targetIndex)
+                            else scrollState.scrollToItem(targetIndex)
                         }
                     }
                 }
@@ -167,8 +183,8 @@ fun LogBox(
                     modifier = Modifier.fillMaxSize(),
                     state = scrollState
                 ) {
-                    items(logList) { log ->
-                        val textSize = AllSettings.logTextSize.state
+                    items(logList, key = { it.id }) { line ->
+                        val textSize = GameSettings.logTextSize.state
                         val fontSize = remember(textSize) {
                             TextUnit(textSize.toFloat(), TextUnitType.Sp)
                         }
@@ -178,7 +194,7 @@ fun LogBox(
                         }
 
                         Text(
-                            text = log,
+                            text = line.text,
                             modifier = Modifier.fillParentMaxWidth(),
                             fontSize = fontSize,
                             lineHeight = lineHeight
@@ -236,7 +252,7 @@ fun LogBox(
                             val value = !autoScrollDown
                             autoScrollDown = value
                             if (value) {
-                                scrollChannel.value?.trySend(Unit)
+                                scrollChannel.value?.trySend(true)
                             }
                         },
                         toggle = autoScrollDown,
@@ -250,7 +266,7 @@ fun LogBox(
                     //滚动到底部
                     LogBoxIconButton(
                         onClick = {
-                            scrollChannel.value?.trySend(Unit)
+                            scrollChannel.value?.trySend(true)
                         },
                         toggle = false
                     ) {

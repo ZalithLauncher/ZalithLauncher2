@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.filemanager.logic.entry.FmEntry
 import com.movtery.zalithlauncher.filemanager.ui.components.ExposedDropdown
-import com.movtery.zalithlauncher.filemanager.ui.components.FmAlertDialog
 import com.movtery.zalithlauncher.filemanager.ui.components.FmDialogSurface
 import com.movtery.zalithlauncher.filemanager.ui.components.FmEditDialog
 import com.movtery.zalithlauncher.filemanager.ui.components.PropertyRow
@@ -56,6 +55,7 @@ import com.movtery.zalithlauncher.filemanager.ui.components.fmFilenameInvalid
 import com.movtery.zalithlauncher.filemanager.ui.theme.fmErrorColor
 import com.movtery.zalithlauncher.filemanager.viewmodel.DirScanUiState
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
+import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.utils.file.formatFileSize
 
 private enum class CreateType {
@@ -213,7 +213,7 @@ fun FmDeleteConfirmDialog(
 ) {
     var toTrash by remember { mutableStateOf(true) }
 
-    FmAlertDialog(
+    SimpleAlertDialog(
         title = stringResource(R.string.generic_delete),
         text = {
             Column(
@@ -246,7 +246,8 @@ fun FmDeleteConfirmDialog(
         },
         confirmText = stringResource(R.string.generic_delete),
         onConfirm = { onConfirm(toTrash) },
-        onDismiss = onDismiss
+        onCancel = onDismiss,
+        onDismissRequest = onDismiss
     )
 }
 
@@ -331,7 +332,7 @@ fun FmPropertyDialog(
     }
     val dirStats = dirScan?.stats
 
-    FmAlertDialog(
+    SimpleAlertDialog(
         title = stringResource(R.string.fm_property),
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {

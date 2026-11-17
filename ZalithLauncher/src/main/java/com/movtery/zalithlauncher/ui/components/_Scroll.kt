@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,12 +18,14 @@
 
 package com.movtery.zalithlauncher.ui.components
 
+import android.view.ViewConfiguration
 import androidx.compose.foundation.OverscrollEffect
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.FlingBehavior
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.TopAppBarState
 import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
@@ -37,7 +39,11 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.inset
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -62,20 +68,18 @@ fun Modifier.fadeEdge(
 ): Modifier {
     val fadePx = with(LocalDensity.current) { length.toPx() }
 
-    val topDistance = state.value.toFloat()
-    val startFade = if (state.canScrollBackward) {
-        (topDistance / fadePx).coerceIn(0f, 1f) * fadePx
-    } else 0f
-
-    val bottomDistance = (state.maxValue - state.value).toFloat()
-    val endFade = if (state.canScrollForward) {
-        (bottomDistance / fadePx).coerceIn(0f, 1f) * fadePx
-    } else 0f
-
     return this
         //使用离屏合成，让混合模式只影响当前组件，不污染父级与同级元素
         .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
         .drawWithContent {
+            val startFade = if (state.canScrollBackward) {
+                (state.value.toFloat() / fadePx).coerceIn(0f, 1f) * fadePx
+            } else 0f
+
+            val endFade = if (state.canScrollForward) {
+                ((state.maxValue - state.value).toFloat() / fadePx).coerceIn(0f, 1f) * fadePx
+            } else 0f
+
             drawContent()
             drawFadeEdges(startFade, endFade, direction, position, style)
         }
@@ -101,36 +105,38 @@ fun Modifier.fadeEdge(
     style: FadeStyle = createDefaultFadeStyle(direction)
 ): Modifier {
     val fadePx = with(LocalDensity.current) { length.toPx() }
-    val layoutInfo = state.layoutInfo
-
-    val firstItem = layoutInfo.visibleItemsInfo.firstOrNull()
-    val topDistancePx = when {
-        firstItem == null -> 0f
-        state.firstVisibleItemIndex == 0 -> -firstItem.offset.toFloat()
-        else -> fadePx //说明已经不在顶部了，直接满强度
-    }
-    val startFade = if (state.canScrollBackward) {
-        (topDistancePx / fadePx).coerceIn(0f, 1f) * fadePx
-    } else 0f
-
-    val lastItem = layoutInfo.visibleItemsInfo.lastOrNull()
-    val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
-    val bottomDistancePx = when {
-        lastItem == null -> 0f
-        state.canScrollForward.not() -> 0f
-        state.firstVisibleItemIndex + layoutInfo.visibleItemsInfo.size == layoutInfo.totalItemsCount &&
-                lastItem.offset + lastItem.size > viewportHeight ->
-            (lastItem.offset + lastItem.size - viewportHeight).toFloat()
-        else -> fadePx //还没到底部，直接满强度
-    }
-    val endFade = if (state.canScrollForward) {
-        (bottomDistancePx / fadePx).coerceIn(0f, 1f) * fadePx
-    } else 0f
 
     return this
         //使用离屏合成，让混合模式只影响当前组件，不污染父级与同级元素
         .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
         .drawWithContent {
+            //列表状态在绘制阶段读取：滚动时只触发重绘，不会连带调用方重组
+            val layoutInfo = state.layoutInfo
+
+            val firstItem = layoutInfo.visibleItemsInfo.firstOrNull()
+            val topDistancePx = when {
+                firstItem == null -> 0f
+                state.firstVisibleItemIndex == 0 -> -firstItem.offset.toFloat()
+                else -> fadePx //说明已经不在顶部了，直接满强度
+            }
+            val startFade = if (state.canScrollBackward) {
+                (topDistancePx / fadePx).coerceIn(0f, 1f) * fadePx
+            } else 0f
+
+            val lastItem = layoutInfo.visibleItemsInfo.lastOrNull()
+            val viewportHeight = layoutInfo.viewportEndOffset - layoutInfo.viewportStartOffset
+            val bottomDistancePx = when {
+                lastItem == null -> 0f
+                state.canScrollForward.not() -> 0f
+                state.firstVisibleItemIndex + layoutInfo.visibleItemsInfo.size == layoutInfo.totalItemsCount &&
+                        lastItem.offset + lastItem.size > viewportHeight ->
+                    (lastItem.offset + lastItem.size - viewportHeight).toFloat()
+                else -> fadePx //还没到底部，直接满强度
+            }
+            val endFade = if (state.canScrollForward) {
+                (bottomDistancePx / fadePx).coerceIn(0f, 1f) * fadePx
+            } else 0f
+
             drawContent()
             drawFadeEdges(startFade, endFade, direction, position, style)
         }
@@ -284,3 +290,31 @@ fun Modifier.lazyScrollWithBar(
     state = state.scrollIndicatorState!!,
     orientation = orientation
 )
+
+/**
+ * 鼠标滚轮兜底：列表因自身无法滚动而对滚轮事件置之不理时，
+ * 让未消费的滚轮事件继续驱动顶部操作栏收起或展开，避免操作栏收起后无法通过滚轮恢复。
+ * 应挂在挂载了 nestedScroll 的列表组件上
+ */
+@Composable
+fun Modifier.topBarWheelFallback(state: TopAppBarState): Modifier {
+    //滚轮的原始增量以刻度为单位（每格 ±1），需按系统滚动系数换算为像素，
+    //与系统列表路径 foundation AndroidConfig.calculateMouseWheelScroll 的换算保持一致
+    val scrollFactor = ViewConfiguration.get(LocalView.current.context).scaledVerticalScrollFactor
+    return pointerInput(state, scrollFactor) {
+        awaitPointerEventScope {
+            while (true) {
+                val event = awaitPointerEvent(PointerEventPass.Main)
+                if (event.type != PointerEventType.Scroll) continue
+                if (event.changes.any { it.isConsumed }) continue
+                //滚轮向下为正方向：收起操作栏；向上为负：展开操作栏
+                val deltaY = event.changes.fold(0f) { acc, change -> acc + change.scrollDelta.y } * scrollFactor
+                val target = (state.heightOffset - deltaY).coerceIn(state.heightOffsetLimit, 0f)
+                if (target != state.heightOffset) {
+                    state.heightOffset = target
+                    event.changes.forEach { it.consume() }
+                }
+            }
+        }
+    }
+}

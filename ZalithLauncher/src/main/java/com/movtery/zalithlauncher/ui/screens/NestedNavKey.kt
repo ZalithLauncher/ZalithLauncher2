@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,11 @@
 package com.movtery.zalithlauncher.ui.screens
 
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.download.assets.platform.Platform
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.platform.Platform
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.screens.splash.SplashOperation
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 
@@ -33,7 +34,7 @@ sealed interface NestedNavKey {
     /** 启动屏幕 */
     @Serializable class Splash : BackStackNavKey<TitledNavKey>() {
         init {
-            backStack.addIfEmpty(NormalNavKey.UnpackDeps)
+            backStack.addIfEmpty(SplashOperation.Loading)
         }
     }
     /** 主屏幕 */
@@ -120,9 +121,17 @@ sealed interface NestedNavKey {
             backStack.addIfEmpty(NormalNavKey.SearchShaders)
         }
     }
+    /** 下载收藏屏幕 */
+    @Serializable class DownloadFavorites : BackStackNavKey<TitledNavKey>(
+        androidText(R.string.download_category_favorites)
+    ) {
+        init {
+            backStack.addIfEmpty(NormalNavKey.Favorites)
+        }
+    }
     /** 查看Addons资源信息屏幕 */
     @Serializable
-    class AssetInfo(
+    class AddonInfo(
         val platform: Platform,
         val projectId: String,
         val classes: PlatformClasses
@@ -131,7 +140,7 @@ sealed interface NestedNavKey {
     ) {
         init {
             backStack.addIfEmpty(
-                NormalNavKey.DownloadAssets(platform, projectId, classes)
+                NormalNavKey.DownloadAddon(platform, projectId, classes)
             )
         }
     }

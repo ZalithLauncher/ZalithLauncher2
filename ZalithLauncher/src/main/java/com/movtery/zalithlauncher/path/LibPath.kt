@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,12 +34,15 @@ class LibPath {
         @JvmField val JNA = File(DIR_JNA, "jna")
 
         @JvmField val MIO_LIB_PATCHER = File(LAUNCHER_COMPONENTS, "MioLibPatcher.jar")
+        @JvmField val MIO_LAUNCH_WRAPPER = File(LAUNCHER_COMPONENTS, "MioLaunchWrapper.jar")
         /**
          * [Github](https://github.com/bangbang93/forge-install-bootstrapper)
          */
         @JvmField val FORGE_INSTALLER = File(LAUNCHER_COMPONENTS, "forge_installer.jar")
-        @JvmField val JAR_EXCEPTION_CATCHER = File(LAUNCHER_COMPONENTS, "JarExceptionCatcher.jar")
-        @JvmField val AWT_BLOCKER_AGENT = File(LAUNCHER_COMPONENTS, "AWTBlockerAgent.jar")
+        /**
+         * 供 Forge 1.13 ~ 1.16 的 ModLauncher 加载 OptiFine
+         */
+        @JvmField val TRANSFORMER_DISCOVERY_SERVICE = File(LAUNCHER_COMPONENTS, "HMCLTransformerDiscoveryService-1.0.jar")
 
         @JvmField val AUTHLIB_INJECTOR = File(AUTH_LIBS_DIR, "authlib-injector.jar")
         @JvmField val NIDE_8_AUTH = File(AUTH_LIBS_DIR, "nide8auth.jar")

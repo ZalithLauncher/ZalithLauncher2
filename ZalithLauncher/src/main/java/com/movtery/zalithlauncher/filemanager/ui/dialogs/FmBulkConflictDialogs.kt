@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -144,16 +144,15 @@ private fun FmBulkActionItem(
             .fillMaxWidth()
             .clickable(onClick = onClick),
         colors = colors,
-        headlineContent = {
-            Text(text = text)
-        },
         leadingContent = {
             Icon(
                 painter = icon,
                 contentDescription = null
             )
         }
-    )
+    ) {
+        Text(text = text)
+    }
 }
 
 /**

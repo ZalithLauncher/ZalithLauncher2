@@ -957,6 +957,7 @@ public class GLFW
     }
 
     public static void glfwSetWindowMonitor(@NativeType("GLFWwindow *") long window, @NativeType("GLFWmonitor *") long monitor, int xpos, int ypos, int width, int height, int refreshRate) {
+        if (width <= 0 || height <= 0) return;
         // weird calculation to fake pointer
         mGLFWWindowMonitor = window * monitor;
     }
@@ -1294,6 +1295,13 @@ public class GLFW
     @SuppressWarnings("unused") // Used by pojavexec
     public static void internalWindowSizeChanged(long window) {
         try {
+            GLFWWindowProperties win = internalGetWindow(window);
+            // 仅在尺寸真正变化时才重新触发回调
+            if (win.lastDispatchedWidth == mGLFWWindowWidth && win.lastDispatchedHeight == mGLFWWindowHeight) {
+                return;
+            }
+            win.lastDispatchedWidth = mGLFWWindowWidth;
+            win.lastDispatchedHeight = mGLFWWindowHeight;
             glfwSetWindowSize(window, mGLFWWindowWidth, mGLFWWindowHeight);
             if(mGLFWFramebufferSizeCallbackI != null) mGLFWFramebufferSizeCallbackI.invoke(window, mGLFWWindowWidth, mGLFWWindowHeight);
             if(mGLFWWindowSizeCallbackI != null) mGLFWWindowSizeCallbackI.invoke(window, mGLFWWindowWidth, mGLFWWindowHeight);
@@ -1529,8 +1537,17 @@ public class GLFW
             checkSafe(xpos, 1);
             checkSafe(ypos, 1);
         }
-        xpos[0] = 0;
-        ypos[0] = 0;
+        if (xpos != null) xpos[0] = internalGetWindow(window).x;
+        if (ypos != null) ypos[0] = internalGetWindow(window).y;
+    }
+
+    public static void glfwGetWindowPos(@NativeType("GLFWwindow *") long window, @NativeType("int *") @Nullable IntBuffer xpos, @NativeType("int *") @Nullable IntBuffer ypos) {
+        if (CHECKS) {
+            checkSafe(xpos, 1);
+            checkSafe(ypos, 1);
+        }
+        if (xpos != null) xpos.put(internalGetWindow(window).x);
+        if (ypos != null) ypos.put(internalGetWindow(window).y);
     }
 
     /** Array version of: {@link #glfwGetWindowSize GetWindowSize} */

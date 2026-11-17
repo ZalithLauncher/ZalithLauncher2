@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -39,7 +38,6 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
@@ -48,6 +46,7 @@ import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedLazyColumn
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.WarningCard
+import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -74,11 +73,11 @@ fun ExportTypeSelectScreen(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(all = 16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) { scope ->
-            animatedItem(scope) { yOffset ->
+        ) {
+            animatedItem { ctx ->
                 WarningCard(
                     modifier = Modifier
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                        .animated(ctx),
                     title = stringResource(R.string.generic_tip),
                     icon = { innerModifier ->
                         Icon(
@@ -112,10 +111,10 @@ fun ExportTypeSelectScreen(
                 )
             }
 
-            animatedItem(scope) { yOffset ->
+            animatedItem { ctx ->
                 Column(
                     modifier = Modifier
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                        .animated(ctx)
                         .fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
@@ -142,21 +141,11 @@ fun ExportTypeSelectScreen(
                     //CurseForge
                     TypeItem(
                         modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Middle,
+                        position = CardPosition.Bottom,
                         title = stringResource(R.string.versions_export_type_curseforge),
                         summary = stringResource(R.string.versions_export_type_summary_common),
                         icon = painterResource(R.drawable.img_platform_curseforge),
                         onClick = { onTypeSelect(PackType.CurseForge) }
-                    )
-
-                    //MultiMC
-                    TypeItem(
-                        modifier = Modifier.fillMaxWidth(),
-                        position = CardPosition.Bottom,
-                        title = stringResource(R.string.versions_export_type_multimc),
-                        summary = stringResource(R.string.versions_export_type_multimc_summary, BuildKeys.LAUNCHER_SHORT_NAME),
-                        icon = painterResource(R.drawable.img_platform_multimc),
-                        onClick = { onTypeSelect(PackType.MultiMC) }
                     )
                 }
             }

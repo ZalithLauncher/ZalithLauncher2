@@ -4,64 +4,62 @@ targetSdk = "34"
 minSdk = "26"
 #noinspection GradleDependency,NewerVersionAvailable
 bytehook = "1.0.10"
-coilCompose = "3.5.0"
+coilCompose = "3.6.3"
 compress = "1.28.0"
-documentfile = "1.0.1"
+documentfile = "1.1.0"
 zip4j = "2.11.6"
-commonsCodec = "1.22.1"
+commonsCodec = "1.23.0"
 commonsIo = "2.22.0"
 constraintlayoutCompose = "1.1.2"
 buildKeys = "1.0.0"
 coreSplashscreen = "1.2.0"
 desugarJdkLibs = "2.1.5"
-editorBom = "0.24.6"
+editorBom = "0.24.7"
 fishnet = "1.1.0"
-gson = "2.14.0"
-haze = "2.0.0-alpha05"
-kotlin = "2.4.10"
-kspPlugin = "2.3.6"
-coreKtx = "1.19.0"
+gson = "2.15.0"
+jetbrainsAnnotations = "26.1.0"
+kotlin = "2.4.21"
+kspPlugin = "2.3.12"
+coreKtx = "1.19.1"
 kotlinxCoroutinesAndroid = "1.11.0"
-ktor = "3.5.2"
+ktor = "3.6.1"
 lifecycleRuntimeKtx = "2.11.0"
 activityCompose = "1.13.0"
-composeBom = "2026.08.00"
+composeBom = "2026.09.00"
 lunarcalendar = "4.0.7"
 material = "1.14.0"
-material3 = "1.5.0-alpha26"
-materialKolor = "5.0.0"
-mavenArtifact = "3.9.16"
-media3Exoplayer = "1.11.0"
-minidnsHla = "1.1.1"
+material3 = "1.5.0-beta02"
+materialKolor = "5.0.1"
+mavenArtifact = "3.10.0"
+media3Exoplayer = "1.11.1"
+minidnsHla = "1.1.3"
 #noinspection GradleDependency,NewerVersionAvailable
 mmkv = "1.3.14"
 compose-richtext = "1.0.0-alpha05"
-navigation3 = "1.1.6"
+navigation3 = "1.2.0"
 navigation3Lifecycle = "2.11.0"
-okhttp = "5.4.0"
-okio = "3.18.1"
+okhttp = "5.5.1"
+okio = "3.18.2"
 processPhoenix = "3.0.0"
 proxyClientAndroid = "0.0.5"
 reorderable = "3.1.0"
-room = "2.8.4"
+room = "2.8.5"
 toml4j = "0.7.2"
 xz = "1.12"
-sqlcipher = "4.17.0"
-jspecify = "1.0.0"
+sqlcipher = "4.20.0"
+jspecify = "1.0.1"
 junit = "4.13.2"
 junitVersion = "1.3.0"
 espressoCore = "3.7.0"
 appcompat = "1.8.0"
 dagger = "2.60.1"
 hilt = "1.4.0"
-webkit = "1.17.0"
+webkit = "1.18.0"
 
 [libraries]
 androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3Exoplayer" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
 buildkeys = { module = "com.github.MovTery.BuildKeys:core", version.ref = "buildKeys" }
-dev-haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
-dev-haze-blur = { module = "dev.chrisbanes.haze:haze-blur", version.ref = "haze" }
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 editor = { module = "io.github.rosemoe:editor" }
 editor-bom = { module = "io.github.rosemoe:editor-bom", version.ref = "editorBom" }
@@ -87,6 +85,8 @@ androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
 androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation" }
+androidx-compose-animation = { group = "androidx.compose.animation", name = "animation" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
@@ -101,7 +101,9 @@ commons-compress = { module = "org.apache.commons:commons-compress", version.ref
 commons-codec = { module = "commons-codec:commons-codec", version.ref = "commonsCodec" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commonsIo" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+jetbrains-annotations = { module = "org.jetbrains:annotations", version.ref = "jetbrainsAnnotations" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesAndroid" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }

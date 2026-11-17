@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -75,7 +75,21 @@ private fun longToBytes(long: Long): ByteArray {
 suspend fun ControlLayout.saveToFile(file: File) {
     withContext(Dispatchers.IO) {
         val jsonString = layoutJson.encodeToString(this@saveToFile)
-        file.writeText(jsonString)
+        val parentDir = file.parentFile ?: File(".")
+        parentDir.mkdirs()
+
+        // 先写入临时文件再替换目标文件
+        val tempFile = File(parentDir, "${file.name}.tmp")
+        try {
+            tempFile.writeText(jsonString)
+            if (!tempFile.renameTo(file)) {
+                tempFile.copyTo(file, overwrite = true)
+                tempFile.delete()
+            }
+        } catch (e: Exception) {
+            tempFile.delete()
+            throw e
+        }
     }
 }
 

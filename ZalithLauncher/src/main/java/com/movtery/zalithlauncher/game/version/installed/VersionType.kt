@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,14 +49,10 @@ private val loaders = ModLoader.entries.filter { it.isLoader }
  * 通过版本信息，尝试识别版本类型
  */
 fun VersionInfo?.getVersionType(): VersionType {
+    val loader = this?.primaryLoader
     return when {
-        this != null -> {
-            when {
-                loaderInfo == null || loaderInfo.loader == ModLoader.OPTIFINE -> VANILLA
-                loaderInfo.loader in loaders -> MODLOADERS
-                else -> UNKNOWN
-            }
-        }
+        loader == null || loader.loader == ModLoader.OPTIFINE -> VANILLA
+        loader.loader in loaders -> MODLOADERS
         else -> UNKNOWN
     }
 }

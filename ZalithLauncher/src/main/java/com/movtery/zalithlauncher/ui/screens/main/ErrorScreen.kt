@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,7 +36,6 @@ import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialExpressiveTheme
@@ -59,7 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.activities.CrashType
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -166,7 +165,7 @@ private fun ErrorScreenLandscape(
         modifier = Modifier.fillMaxSize(),
         containerColor = backgroundColor(),
         contentColor = onBackgroundColor(),
-        contentWindowInsets = if (AllSettings.launcherFullScreen.state) {
+        contentWindowInsets = if (LauncherSettings.launcherFullScreen.state) {
             WindowInsets()
         } else {
             WindowInsets.safeContent.only(WindowInsetsSides.Horizontal)
@@ -202,7 +201,6 @@ private fun ErrorScreenLandscape(
 /**
  * 崩溃页面（竖屏版本）
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ErrorScreenPortrait(
     crashType: CrashType,

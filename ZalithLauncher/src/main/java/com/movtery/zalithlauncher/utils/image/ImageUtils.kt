@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,11 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.core.graphics.createBitmap
 import androidx.core.graphics.get
+import coil3.decode.DecodeUtils
+import coil3.gif.isGif
 import com.movtery.zalithlauncher.utils.logging.Logger
+import okio.buffer
+import okio.source
 import java.io.File
 
 private const val TAG = "ImageUtils"
@@ -108,6 +112,23 @@ fun File.isImageFile(): Boolean {
     } catch (e: Exception) {
         Logger.warning(TAG,
             "An exception occurred while trying to determine if ${this.absolutePath} is an image.",
+            e
+        )
+        false
+    }
+}
+
+/**
+ * 判断文件是否为 GIF 图片
+ */
+fun File.isGifFile(): Boolean {
+    if (!this.exists()) return false
+
+    return try {
+        source().buffer().use { DecodeUtils.isGif(it) }
+    } catch (e: Exception) {
+        Logger.warning(TAG,
+            "An exception occurred while trying to determine if ${this.absolutePath} is a gif.",
             e
         )
         false

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,10 @@ import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.bridge.LoggerBridge
 import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
+import com.movtery.zalithlauncher.components.Components
+import com.movtery.zalithlauncher.components.InstallableItem
+import com.movtery.zalithlauncher.components.UnpackComponentsTask
+import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.game.multirt.Runtime
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
 import com.movtery.zalithlauncher.game.path.getGameHome
@@ -37,14 +41,18 @@ import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 import com.movtery.zalithlauncher.setting.unit.getOrMin
 import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.device.Architecture.ARCH_X86
 import com.movtery.zalithlauncher.utils.device.Architecture.is64BitsDevice
 import com.movtery.zalithlauncher.utils.logging.Logger
+import com.movtery.zalithlauncher.utils.network.getSystemDnsServerAddresses
 import com.movtery.zalithlauncher.utils.string.splitPreservingQuotes
 import com.oracle.dalvik.VMLauncher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.io.IOException
@@ -62,16 +70,48 @@ abstract class Launcher(
 
     /** 当前启动版本要求的 LWJGL 版本（见 [detectLwjglVersion]），0 = 未探测/默认 */
     protected var lwjglVersion: Int = 0
+        private set
 
-    /** LWJGL 组件目录名（3.3.3 / 3.4.1） */
-    protected fun getLwjglVersionDir(): String = lwjglVersionDir(lwjglVersion)
+    /**
+     * 当前启动版本的 LWJGL natives 目录
+     */
+    protected lateinit var lwjglNativesDir: String
+        private set
 
-    /** 当前启动版本的 LWJGL natives 目录 */
-    protected val lwjglNativesDir: String
-        get() = File(
+    /**
+     * 初始化 LWJGL 组件
+     */
+    protected suspend fun initLwjglComponent(context: Context, version: Int) {
+        check(!::lwjglNativesDir.isInitialized) { "LWJGL component has already been initialized" }
+        lwjglVersion = version
+        lwjglNativesDir = File(
             PathManager.DIR_COMPONENTS,
-            "lwjgl/${getLwjglVersionDir()}/natives/${Architecture.archAsStringAndroid(Architecture.getDeviceArchitecture())}"
+            "lwjgl/${lwjglVersionDir(version)}/natives/${Architecture.archAsStringAndroid(Architecture.getDeviceArchitecture())}"
         ).absolutePath
+        verifyLwjglNatives(context)
+    }
+
+    private suspend fun verifyLwjglNatives(context: Context) {
+        val versionDir = lwjglVersionDir(lwjglVersion)
+        val component = Components.entries.firstOrNull {
+            it.component == "lwjgl/$versionDir"
+        } ?: error("Unrecognized LWJGL component: lwjgl/$versionDir")
+        val task = UnpackComponentsTask(context, component)
+
+        withContext(Dispatchers.IO) {
+            if (task.checkState() == InstallableItem.State.FINISHED) {
+                LoggerBridge.appendInfo("LWJGL: LWJGL $versionDir passed SHA-1 verification")
+                return@withContext
+            }
+
+            LoggerBridge.appendInfo("LWJGL: LWJGL $versionDir failed verification, re-unpacking the component now")
+            task.run()
+            check(task.checkState() == InstallableItem.State.FINISHED) {
+                "LWJGL component failed SHA-1 verification after re-unpack: $versionDir"
+            }
+            LoggerBridge.appendInfo("LWJGL: LWJGL $versionDir passed SHA-1 verification after re-unpack")
+        }
+    }
 
     private val runtimeHome: String by lazy {
         RuntimesManager.getRuntimeHome(runtime.name).absolutePath
@@ -83,6 +123,11 @@ abstract class Launcher(
     abstract fun chdir(): String
     abstract fun getLogFile(): File
     abstract fun exit()
+
+    /**
+     * 游戏目录（.minecraft），默认为当前选择的游戏目录
+     */
+    protected open fun getMinecraftPath(): String = getGameHome()
 
     protected suspend fun launchJvm(
         context: Context,
@@ -140,11 +185,11 @@ abstract class Launcher(
             val arg = iterator.next()
             if (arg.startsWith("--accessToken") && iterator.hasNext()) {
                 iterator.next()
-                LoggerBridge.append("▷ $arg")
-                LoggerBridge.append("▷ ********************")
+                LoggerBridge.appendInfo(arg)
+                LoggerBridge.appendInfo("********************")
                 continue
             }
-            LoggerBridge.append("▷ $arg")
+            LoggerBridge.appendInfo(arg)
         }
 
         ZLBridge.setupExitMethod(context.applicationContext)
@@ -182,7 +227,7 @@ abstract class Launcher(
             put("user.timezone", TimeZone.getDefault().id)
             put("os.name", "Linux")
             put("os.version", "Android-${Build.VERSION.RELEASE}")
-            put("pojav.path.minecraft", getGameHome())
+            put("pojav.path.minecraft", getMinecraftPath())
             put("pojav.path.private.account", PathManager.DIR_DATA_BASES.absolutePath)
             put("org.lwjgl.vulkan.libname", "libvulkan.so")
             // LWJGL 3.4 的 Library.loadSystem 通过该属性定位 native 库。
@@ -211,6 +256,10 @@ abstract class Launcher(
 
             put("sodium.checks.issue2561", "false")
 
+            put("file.encoding", "UTF-8")
+            put("sun.stdout.encoding", "UTF-8")
+            put("sun.stderr.encoding", "UTF-8")
+
             put("cpu.name", getSocName())
 
             putJavaArgs()
@@ -236,26 +285,37 @@ abstract class Launcher(
      */
     private fun ensureDNSConfig(): File {
         val resolvFile = File(PathManager.DIR_GAME, "resolv.conf")
-        if (!resolvFile.exists()) {
-            val configText = if (LocaleList.getDefault().get(0).displayName != Locale.CHINA.displayName) {
-                """
-                    nameserver 1.1.1.1
-                    nameserver 1.0.0.1
-                """.trimIndent()
-            } else {
-                """
-                    nameserver 8.8.8.8
-                    nameserver 8.8.4.4
-                """.trimIndent()
-            }
-            runCatching {
+        val servers = buildResolvConfSet()
+        Logger.info(TAG, "Using DNS servers for game: $servers")
+        val configText = servers.joinToString(separator = "\n") { "nameserver $it" }
+        runCatching {
+            // 配置文件不存在或内容不一致时覆写一次
+            if (!resolvFile.exists() || resolvFile.readText().trim() != configText.trim()) {
                 resolvFile.writeText(configText)
-            }.onFailure {
-                Logger.warning(TAG, "Failed to create resolv.conf", it)
-                FileUtils.deleteQuietly(resolvFile)
             }
+        }.onFailure {
+            Logger.warning(TAG, "Failed to create resolv.conf", it)
+            FileUtils.deleteQuietly(resolvFile)
         }
         return resolvFile
+    }
+
+    private fun buildResolvConfSet(): Set<String> {
+        return buildSet {
+            getSystemDnsServerAddresses()
+                // JNDI DNS 的 nameserver 解析无法处理裸 IPv6 地址，仅保留 IPv4
+                ?.filterNot { it.contains(':') }
+                ?.let { addAll(it) }
+
+            // 按地区获取公共 DNS
+            if (LocaleList.getDefault().get(0).displayName != Locale.CHINA.displayName) {
+                add("1.1.1.1")
+                add("1.0.0.1")
+            } else {
+                add("223.5.5.5")
+                add("119.29.29.29")
+            }
+        }
     }
 
     /**
@@ -264,7 +324,7 @@ abstract class Launcher(
      */
     protected open fun progressFinalUserArgs(
         args: MutableList<String>,
-        ramAllocation: Int = AllSettings.ramAllocation.getOrMin()
+        ramAllocation: Int = GameSettings.ramAllocation.getOrMin()
     ) {
         args.purgeArg("-Xms")
         args.purgeArg("-Xmx")
@@ -280,8 +340,6 @@ abstract class Launcher(
         // Overridden by us to specify the exact number of cores that the android system has
         args.purgeArg("-XX:ActiveProcessorCount")
 
-        args.add("-javaagent:${LibPath.MIO_LIB_PATCHER.absolutePath}")
-
         //Add automatically generated args
         val ramAllocationString = ramAllocation.toString()
         args.add("-Xms${ramAllocationString}M")
@@ -291,9 +349,8 @@ abstract class Launcher(
 
         // Force LWJGL to use the Freetype library intended for it, instead of using the one
         // that we ship with Java (since it may be older than what's needed).
-        // Prefer the per-version LWJGL natives component so 3.4.x games get the matching freetype.
-        val freetypeLib = File(lwjglNativesDir, "libfreetype.so")
-        args.add("-Dorg.lwjgl.freetype.libname=" + if (freetypeLib.exists()) freetypeLib.absolutePath else "${PathManager.DIR_NATIVE_LIB}/libfreetype.so")
+        // 始终指向 LWJGL 组件 natives 目录内的库，禁止回退到应用原生 libs 目录（其中不含 LWJGL 系库）
+        args.add("-Dorg.lwjgl.freetype.libname=${File(lwjglNativesDir, "libfreetype.so").absolutePath}")
 
         // Our spirv-cross is compiled shared, so it gets named shared.
         args.add("-Dorg.lwjgl.spvc.libname=spirv-cross-c-shared")
@@ -398,9 +455,14 @@ abstract class Launcher(
     }
 
     private fun setEnv(screenSize: IntSize) {
-        val envMap = initEnv(screenSize)
+        val envMap = runCatching {
+            initEnv(screenSize)
+        }.onFailure {
+            LoggerBridge.appendTitle("Init Env Failed")
+            LoggerBridge.append(it.stackTraceToString())
+        }.getOrThrow()
         envMap.forEach { (key, value) ->
-            LoggerBridge.append("▷ $key = $value")
+            LoggerBridge.appendInfo("$key = $value")
             runCatching {
                 Os.setenv(key, value, true)
             }.onFailure {
@@ -435,11 +497,13 @@ abstract class Launcher(
             map["AWTSTUB_WIDTH"] = screenSize.width.toString()
             map["AWTSTUB_HEIGHT"] = screenSize.height.toString()
             map["MOD_ANDROID_RUNTIME"] = PathManager.DIR_RUNTIME_MOD?.absolutePath ?: ""
+            map["DALVIK_JAVAVM"] = ZLBridge.getJavaVMPointer().toString()
+            map["DALVIK_APPLICATION"] = ZLBridge.jObjectToString(GlobalContext.applicationContext)
             map["ALSOFT_DRIVERS"] = "opensl"
 
-            if (AllSettings.dumpShaders.getValue()) map["LIBGL_VGPU_DUMP"] = "1"
-            if (AllSettings.zinkPreferSystemDriver.getValue()) map["POJAV_ZINK_PREFER_SYSTEM_DRIVER"] = "1"
-            if (AllSettings.vsyncInZink.getValue()) map["POJAV_VSYNC_IN_ZINK"] = "1"
+            if (RendererSettings.dumpShaders.getValue()) map["LIBGL_VGPU_DUMP"] = "1"
+            if (RendererSettings.zinkPreferSystemDriver.getValue()) map["POJAV_ZINK_PREFER_SYSTEM_DRIVER"] = "1"
+            if (RendererSettings.vsyncInZink.getValue()) map["POJAV_VSYNC_IN_ZINK"] = "1"
 
             if (FFmpegPluginManager.isAvailable) map["POJAV_FFMPEG_PATH"] = FFmpegPluginManager.executablePath!!
         }

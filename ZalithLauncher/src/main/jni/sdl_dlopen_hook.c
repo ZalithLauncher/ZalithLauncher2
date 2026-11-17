@@ -9,6 +9,7 @@
 
 #include "environ/environ.h"
 #include "logger/logger.h"
+#include "sdl_hook.h"
 #include "utils.h"
 
 typedef void *(*dlsym_func_t)(void *handle, const char *symbol);
@@ -36,6 +37,15 @@ static void *customDlsym(void *handle, const char *symbol) {
     if (sdlHandle != NULL && handle == sdlHandle && symbol != NULL && strcmp(symbol, "JNI_OnLoad") == 0) {
         originalSdlJniOnLoad = (jni_on_load_func_t) result;
         result = (void *) isolatedSdlJniOnLoad;
+    }
+    // LWJGL 的 org.lwjgl.sdl 绑定等消费方经 dlsym 解析 SDL 函数指针后直接调用，
+    // hook_all 的 GOT 导入补丁拦截不到；在解析出口统一换成 sdl_hook 的 dlsym 层代理
+    if (result != NULL && symbol != NULL) {
+        void *proxy = sdlDlsymProxy(symbol, result);
+        if (proxy != NULL) {
+            LOG_TO_I("SDL_Hook: dlsym proxy for %s", symbol);
+            result = proxy;
+        }
     }
     return result;
 }

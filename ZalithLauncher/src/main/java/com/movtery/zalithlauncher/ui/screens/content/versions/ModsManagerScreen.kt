@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,8 +25,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.Orientation
@@ -45,7 +43,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -54,7 +51,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -93,8 +89,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -103,8 +100,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
-import com.movtery.zalithlauncher.game.download.assets.platform.Platform
-import com.movtery.zalithlauncher.game.download.assets.utils.getMcmodTitle
+import com.movtery.zalithlauncher.game.download.addon.platform.Platform
+import com.movtery.zalithlauncher.game.download.addon.utils.getMcmodTitle
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
 import com.movtery.zalithlauncher.game.version.mod.AllModReader
@@ -116,6 +113,7 @@ import com.movtery.zalithlauncher.game.version.mod.update.ModManifest
 import com.movtery.zalithlauncher.game.version.mod.update.ModUpdater
 import com.movtery.zalithlauncher.game.version.mod.update.SelectableModManifest
 import com.movtery.zalithlauncher.game.version.mod.update.toSelectableList
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
@@ -123,14 +121,17 @@ import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SimpleTextInputField
 import com.movtery.zalithlauncher.ui.components.TooltipIconButton
+import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.AssetsIcon
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.AddonIcon
 import com.movtery.zalithlauncher.ui.screens.content.elements.ImportMultipleFileButton
 import com.movtery.zalithlauncher.ui.screens.content.elements.ModLoaderIcon
 import com.movtery.zalithlauncher.ui.screens.content.elements.SortByDropdownMenu
@@ -148,7 +149,6 @@ import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.VersionChu
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
-import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.file.FolderFileCounter
 import com.movtery.zalithlauncher.utils.file.formatFileSize
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
@@ -162,6 +162,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.sync.Mutex
@@ -171,6 +172,7 @@ import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
 import java.util.LinkedList
+import java.util.Locale
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
 import kotlin.time.Duration.Companion.milliseconds
@@ -183,10 +185,6 @@ private class ModsManageViewModel(
     var nameFilter by mutableStateOf("")
         private set
     var stateFilter by mutableStateOf(ModStateFilter.All)
-        private set
-    var sortByEnum by mutableStateOf(SortByEnum.FileName)
-        private set
-    var isAscending by mutableStateOf(true)
         private set
 
     var allMods by mutableStateOf<List<RemoteMod>>(emptyList())
@@ -302,12 +300,13 @@ private class ModsManageViewModel(
     }
 
     fun updateSortBy(sortByEnum: SortByEnum, context: Context? = null) {
-        this.sortByEnum = sortByEnum
+        MiscSettings.modsSortBy.save(sortByEnum)
         filterMods(context)
     }
 
     fun updateSortOrder(context: Context? = null) {
-        this.isAscending = !this.isAscending
+        val ascending = MiscSettings.modsSortAscending
+        ascending.save(!ascending.flow.value)
         filterMods(context)
     }
 
@@ -315,25 +314,32 @@ private class ModsManageViewModel(
         SortByEnum.FileName, SortByEnum.FileModifiedTime
     )
 
+    private var filterJob: Job? = null
+
     private fun filterMods(context: Context? = null) {
-        refreshCounter()
-        filteredMods = allMods
-            .takeIf { it.isNotEmpty() }
-            ?.filterMods(nameFilter, stateFilter, context)
-            ?.sortedWith { o1, o2 ->
-                val file1 = o1.localMod.file
-                val file2 = o2.localMod.file
-                val value = when (sortByEnum) {
-                    SortByEnum.FileName -> file1.name.compareTo(file2.name)
-                    SortByEnum.FileModifiedTime -> file2.lastModified().compareTo(file1.lastModified())
-                    else -> error("This sorting method is not supported: $sortByEnum")
+        filterJob?.cancel()
+        filterJob = viewModelScope.launch(Dispatchers.Default) {
+            refreshCounter()
+            val result = allMods
+                .takeIf { it.isNotEmpty() }
+                ?.filterMods(nameFilter, stateFilter, context)
+                ?.let { mods ->
+                    //排序前先快照排序键，排序过程中键值不再变化，保证比较结果前后一致
+                    val entries = mods.map { mod ->
+                        val file = mod.localMod.file
+                        mod to ModsSortKey(
+                            name = file.name,
+                            lowercaseName = file.name.lowercase(Locale.ROOT),
+                            lastModified = file.lastModified()
+                        )
+                    }
+                    entries
+                        .sortedWith(compareBy(modsComparator(MiscSettings.modsSortBy.flow.value, MiscSettings.modsSortAscending.flow.value)) { it.second })
+                        .map { (mod, _) -> mod }
                 }
-                if (isAscending) {
-                    value
-                } else {
-                    -value
-                }
-            }
+            if (!isActive) return@launch
+            filteredMods = result
+        }
     }
 
     fun selectAllMods() {
@@ -432,6 +438,28 @@ private class ModsManageViewModel(
     }
 }
 
+/** 模组列表的排序键，排序前一次性读取，保证排序过程中的比较结果稳定 */
+private data class ModsSortKey(
+    /** 原始文件名，用于细分大小写不同的同名文件 */
+    val name: String,
+    /** 转为小写后的文件名，用于忽略大小写的主排序 */
+    val lowercaseName: String,
+    val lastModified: Long
+)
+
+/**
+ * 构建模组列表的比较器：文件名忽略大小写排序；修改时间在升序时最新优先，保持原有展示行为
+ */
+private fun modsComparator(sortByEnum: SortByEnum, isAscending: Boolean): Comparator<ModsSortKey> {
+    val comparator: Comparator<ModsSortKey> = when (sortByEnum) {
+        SortByEnum.FileName -> compareBy({ it.lowercaseName }, { it.name })
+        SortByEnum.FileModifiedTime -> compareByDescending { it.lastModified }
+        else -> error("This sorting method is not supported: $sortByEnum")
+    }
+    //通过 reversed() 翻转顺序，而非对比较结果取反（取反无法翻转 Int.MIN_VALUE 的符号）
+    return if (isAscending) comparator else comparator.reversed()
+}
+
 
 // ------------
 // 模组更新
@@ -475,7 +503,8 @@ private class ModsUpdaterViewModel(
         onStop: () -> Unit = {}
     ) {
         val minecraftVer = version.getVersionInfo()!!.minecraftVersion
-        val modLoader = version.getVersionInfo()!!.loaderInfo!!.loader
+        //模组更新按主加载器过滤
+        val modLoader = version.getVersionInfo()!!.primaryLoader?.loader ?: ModLoader.UNKNOWN
 
         modsUpdater = ModUpdater(
             mods = mods,
@@ -571,7 +600,7 @@ fun ModsManagerScreen(
 
     //是否拥有模组加载器
     val hasModLoader = remember(version) {
-        version.getVersionInfo()?.loaderInfo?.loader?.isLoader == true
+        version.getVersionInfo()?.loaderInfos?.any { it.loader.isLoader } == true
     }
     val modsDir = remember(version) {
         VersionFolders.MOD.getDir(version.getGameDir())
@@ -637,149 +666,154 @@ fun ModsManagerScreen(
             }
         )
 
-        val yOffset by swapAnimateDpAsState(
-            targetValue = (-40).dp,
-            swapIn = isVisible
+        val ctx = rememberAnimatedContext(isVisible = isVisible)
+
+        var modsOperation by remember { mutableStateOf<ModsOperation>(ModsOperation.None) }
+        /** 运行任务并刷新模组列表 */
+        fun runProgress(task: () -> Unit) {
+            viewModel.doInScope {
+                withContext(Dispatchers.IO) {
+                    modsOperation = ModsOperation.Progress
+                    task()
+                    modsOperation = ModsOperation.None
+                    viewModel.refresh(context)
+                }
+            }
+        }
+
+        ModsOperation(
+            modsOperation = modsOperation,
+            updateOperation = { modsOperation = it },
+            onDelete = { mod ->
+                runProgress {
+                    FileUtils.deleteQuietly(mod.file)
+                }
+            }
         )
 
         VersionChunkBackground(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(all = 12.dp)
-                .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                .animated(ctx),
             paddingValues = PaddingValues()
         ) {
-            when (viewModel.modsState) {
-                LoadingState.None -> {
-                    var modsOperation by remember { mutableStateOf<ModsOperation>(ModsOperation.None) }
-                    /** 运行任务并刷新模组列表 */
-                    fun runProgress(task: () -> Unit) {
-                        viewModel.doInScope {
-                            withContext(Dispatchers.IO) {
-                                modsOperation = ModsOperation.Progress
-                                task()
-                                modsOperation = ModsOperation.None
-                                viewModel.refresh(context)
-                            }
+            Column(modifier = Modifier.fillMaxSize()) {
+                ModsActionsHeader(
+                    modifier = Modifier.fillMaxWidth(),
+                    nameFilter = viewModel.nameFilter,
+                    onNameFilterChange = { viewModel.updateFilter(it, context) },
+                    stateFilter = viewModel.stateFilter,
+                    onStateFilterChange = { viewModel.updateStateFilter(it, context) },
+                    allModsCount = viewModel.allMods.size,
+                    enabledModsCount = viewModel.enabledCount.takeIf { it >= 0 },
+                    disabledModsCount = viewModel.disabledCount.takeIf { it >= 0 },
+                    supportedSortByEnums = viewModel.supportedSortByEnums,
+                    sortByEnum = MiscSettings.modsSortBy.state,
+                    onSortByChanged = { viewModel.updateSortBy(it, context) },
+                    isAscending = MiscSettings.modsSortAscending.state,
+                    onToggleSortOrder = { viewModel.updateSortOrder(context) },
+                    hasModLoader = hasModLoader,
+                    onUpdateMods = {
+                        if (
+                            updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
+                            viewModel.deleteAllOperation == DeleteAllOperation.None
+                        ) {
+                            updaterViewModel.modsUpdateOperation = ModsUpdateOperation.Warning(viewModel.selectedMods)
                         }
-                    }
-
-                    ModsOperation(
-                        modsOperation = modsOperation,
-                        updateOperation = { modsOperation = it },
-                        onDelete = { mod ->
-                            runProgress {
-                                FileUtils.deleteQuietly(mod.file)
-                            }
-                        }
-                    )
-
-                    Column {
-                        ModsActionsHeader(
-                            modifier = Modifier.fillMaxWidth(),
-                            nameFilter = viewModel.nameFilter,
-                            onNameFilterChange = { viewModel.updateFilter(it, context) },
-                            stateFilter = viewModel.stateFilter,
-                            onStateFilterChange = { viewModel.updateStateFilter(it, context) },
-                            allModsCount = viewModel.allMods.size,
-                            enabledModsCount = viewModel.enabledCount.takeIf { it >= 0 },
-                            disabledModsCount = viewModel.disabledCount.takeIf { it >= 0 },
-                            supportedSortByEnums = viewModel.supportedSortByEnums,
-                            sortByEnum = viewModel.sortByEnum,
-                            onSortByChanged = { viewModel.updateSortBy(it, context) },
-                            isAscending = viewModel.isAscending,
-                            onToggleSortOrder = { viewModel.updateSortOrder(context) },
-                            hasModLoader = hasModLoader,
-                            onUpdateMods = {
-                                if (
-                                    updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
-                                    viewModel.deleteAllOperation == DeleteAllOperation.None
-                                ) {
-                                    updaterViewModel.modsUpdateOperation = ModsUpdateOperation.Warning(viewModel.selectedMods)
+                    },
+                    modsDir = modsDir,
+                    onDeleteAll = {
+                        if (
+                            updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
+                            viewModel.deleteAllOperation == DeleteAllOperation.None &&
+                            viewModel.selectedMods.isNotEmpty()
+                        ) {
+                            viewModel.deleteAllOperation = DeleteAllOperation.Warning(
+                                files = viewModel.selectedMods.map { mod ->
+                                    mod.localMod.file
                                 }
-                            },
-                            modsDir = modsDir,
-                            onDeleteAll = {
-                                if (
-                                    updaterViewModel.modsUpdateOperation == ModsUpdateOperation.None &&
-                                    viewModel.deleteAllOperation == DeleteAllOperation.None &&
-                                    viewModel.selectedMods.isNotEmpty()
-                                ) {
-                                    viewModel.deleteAllOperation = DeleteAllOperation.Warning(
-                                        files = viewModel.selectedMods.map { mod ->
-                                            mod.localMod.file
+                            )
+                        }
+                    },
+                    isModsSelected = viewModel.selectedMods.isNotEmpty(),
+                    canUpdate = viewModel.canUpdate,
+                    onSelectAll = {
+                        viewModel.selectAllMods()
+                    },
+                    onClearModsSelected = {
+                        viewModel.clearSelected()
+                    },
+                    swapToDownload = swapToDownload,
+                    refresh = { viewModel.refresh(context) },
+                    submitError = submitError,
+                    enabled = viewModel.modsState is LoadingState.None,
+                )
+
+                PullToRefreshLayout(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    isRefreshing = false,
+                    enabled = viewModel.modsState !is LoadingState.Loading,
+                    onRefresh = { viewModel.refresh(context) }
+                ) {
+                    when (viewModel.modsState) {
+                        LoadingState.None -> {
+                            ModsList(
+                                modifier = Modifier.fillMaxSize(),
+                                hasModLoader = hasModLoader,
+                                modsList = viewModel.filteredMods,
+                                selectedMods = viewModel.selectedMods,
+                                removeFromSelected = { mod ->
+                                    viewModel.selectedMods.remove(mod)
+                                    viewModel.checkCanUpdate()
+                                },
+                                addToSelected = { mod ->
+                                    viewModel.selectedMods.add(mod)
+                                    viewModel.checkCanUpdate()
+                                },
+                                onLoad = { mod ->
+                                    viewModel.loadMod(mod)
+                                },
+                                onForceRefresh = { mod ->
+                                    viewModel.loadMod(mod, loadFromCache = false)
+                                },
+                                onEnable = { mod ->
+                                    //启用和禁用模组应该避免刷新所有模组，否则将会极度影响体验
+                                    viewModel.doInScope {
+                                        withContext(Dispatchers.IO) {
+                                            mod.localMod.enable()
                                         }
-                                    )
+                                        withContext(Dispatchers.Main) {
+                                            viewModel.refreshCounter()
+                                        }
+                                    }
+                                },
+                                onDisable = { mod ->
+                                    viewModel.doInScope {
+                                        withContext(Dispatchers.IO) {
+                                            mod.localMod.disable()
+                                        }
+                                        withContext(Dispatchers.Main) {
+                                            viewModel.refreshCounter()
+                                        }
+                                    }
+                                },
+                                onSwapMoreInfo = onSwapMoreInfo,
+                                onDelete = { mod ->
+                                    modsOperation = ModsOperation.Delete(mod.localMod)
                                 }
-                            },
-                            isModsSelected = viewModel.selectedMods.isNotEmpty(),
-                            canUpdate = viewModel.canUpdate,
-                            onSelectAll = {
-                                viewModel.selectAllMods()
-                            },
-                            onClearModsSelected = {
-                                viewModel.clearSelected()
-                            },
-                            swapToDownload = swapToDownload,
-                            refresh = { viewModel.refresh(context) },
-                            submitError = submitError
-                        )
-
-                        ModsList(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .weight(1f),
-                            hasModLoader = hasModLoader,
-                            modsList = viewModel.filteredMods,
-                            selectedMods = viewModel.selectedMods,
-                            removeFromSelected = { mod ->
-                                viewModel.selectedMods.remove(mod)
-                                viewModel.checkCanUpdate()
-                            },
-                            addToSelected = { mod ->
-                                viewModel.selectedMods.add(mod)
-                                viewModel.checkCanUpdate()
-                            },
-                            onLoad = { mod ->
-                                viewModel.loadMod(mod)
-                            },
-                            onForceRefresh = { mod ->
-                                viewModel.loadMod(mod, loadFromCache = false)
-                            },
-                            onEnable = { mod ->
-                                //启用和禁用模组应该避免刷新所有模组，否则将会极度影响体验
-                                viewModel.doInScope {
-                                    withContext(Dispatchers.IO) {
-                                        mod.localMod.enable()
-                                    }
-                                    withContext(Dispatchers.Main) {
-                                        viewModel.refreshCounter()
-                                    }
-                                }
-                            },
-                            onDisable = { mod ->
-                                viewModel.doInScope {
-                                    withContext(Dispatchers.IO) {
-                                        mod.localMod.disable()
-                                    }
-                                    withContext(Dispatchers.Main) {
-                                        viewModel.refreshCounter()
-                                    }
-                                }
-                            },
-                            onSwapMoreInfo = onSwapMoreInfo,
-                            onDelete = { mod ->
-                                modsOperation = ModsOperation.Delete(mod.localMod)
+                            )
+                        }
+                        LoadingState.Loading -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                LoadingIndicator()
                             }
-                        )
-                    }
-                }
-                LoadingState.Loading -> {
-                    Box(
-                        Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        LoadingIndicator()
+                        }
                     }
                 }
             }
@@ -814,7 +848,8 @@ private fun ModsActionsHeader(
     refresh: () -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit = {},
     inputFieldColor: Color = itemColor(),
-    inputFieldContentColor: Color = onItemColor()
+    inputFieldContentColor: Color = onItemColor(),
+    enabled: Boolean = true,
 ) {
     CardTitleLayout(modifier = modifier) {
         BoxWithConstraints(
@@ -829,7 +864,8 @@ private fun ModsActionsHeader(
                 Box {
                     var expanded by remember { mutableStateOf(false) }
                     IconButton(
-                        onClick = { expanded = !expanded }
+                        onClick = { expanded = !expanded },
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_filter_alt_outlined),
@@ -859,6 +895,7 @@ private fun ModsActionsHeader(
                                         }
                                     }
                                 },
+                                enabled = enabled,
                                 onClick = {
                                     onStateFilterChange(filter)
                                     expanded = false
@@ -879,7 +916,8 @@ private fun ModsActionsHeader(
                 Box {
                     var expanded by remember { mutableStateOf(false) }
                     IconButton(
-                        onClick = { expanded = !expanded }
+                        onClick = { expanded = !expanded },
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_sort),
@@ -893,7 +931,8 @@ private fun ModsActionsHeader(
                         currentEnum = sortByEnum,
                         onEnumChanged = onSortByChanged,
                         isAscending = isAscending,
-                        onToggleSortOrder = onToggleSortOrder
+                        onToggleSortOrder = onToggleSortOrder,
+                        enabled = enabled,
                     )
                 }
 
@@ -911,7 +950,8 @@ private fun ModsActionsHeader(
                     },
                     color = inputFieldColor,
                     contentColor = inputFieldContentColor,
-                    singleLine = true
+                    singleLine = true,
+                    enabled = enabled,
                 )
 
                 AnimatedVisibility(
@@ -921,7 +961,8 @@ private fun ModsActionsHeader(
                     Row {
                         if (hasModLoader && canUpdate) {
                             IconButton(
-                                onClick = onUpdateMods
+                                onClick = onUpdateMods,
+                                enabled = enabled,
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.ic_update),
@@ -931,7 +972,8 @@ private fun ModsActionsHeader(
                         }
 
                         IconButton(
-                            onClick = onDeleteAll
+                            onClick = onDeleteAll,
+                            enabled = enabled,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_delete_outlined),
@@ -940,7 +982,8 @@ private fun ModsActionsHeader(
                         }
 
                         IconButton(
-                            onClick = onSelectAll
+                            onClick = onSelectAll,
+                            enabled = enabled,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_select_all),
@@ -949,6 +992,7 @@ private fun ModsActionsHeader(
                         }
 
                         IconButton(
+                            enabled = enabled,
                             onClick = {
                                 if (isModsSelected) onClearModsSelected()
                             }
@@ -1000,17 +1044,20 @@ private fun ModsActionsHeader(
                             TaskSystem.submitTask(
                                 taskBuilder(uris)
                             )
-                        }
+                        },
+                        enabled = enabled,
                     )
 
                     IconTextButton(
                         onClick = swapToDownload,
                         painter = painterResource(R.drawable.ic_download_2_filled),
-                        text = stringResource(R.string.generic_download)
+                        text = stringResource(R.string.generic_download),
+                        enabled = enabled,
                     )
 
                     IconButton(
-                        onClick = refresh
+                        onClick = refresh,
+                        enabled = enabled,
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_refresh),
@@ -1117,7 +1164,6 @@ private fun ModsList(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ModItemLayout(
     modifier: Modifier = Modifier,
@@ -1177,6 +1223,20 @@ private fun ModItemLayout(
                 iconSize = 48.dp
             )
 
+            val isDisabled = mod.localMod.file.isDisabled()
+
+            val titleDecoration = if (isDisabled) {
+                TextDecoration.LineThrough
+            } else {
+                null
+            }
+            val titleStyle = if (isDisabled) {
+                FontStyle.Italic
+            } else {
+                null
+            }
+            val titleAlpha = if (isDisabled) 0.8f else 1f
+
             //模组简要信息
             Crossfade(
                 modifier = Modifier
@@ -1194,11 +1254,16 @@ private fun ModItemLayout(
                         isUnknown -> {
                             //非模组，只展示文件名称
                             Text(
-                                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                                modifier = Modifier
+                                    .alpha(titleAlpha)
+                                    .basicMarquee(iterations = Int.MAX_VALUE),
                                 text = localMod.file.name,
                                 style = MaterialTheme.typography.titleSmall,
+                                textDecoration = titleDecoration,
+                                fontStyle = titleStyle,
                                 maxLines = 1
                             )
+
                             if (localMod.loader != ModLoader.UNKNOWN) {
                                 LittleTextLabel(
                                     text = localMod.loader.displayName,
@@ -1208,7 +1273,7 @@ private fun ModItemLayout(
                         }
                         else -> {
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.height(IntrinsicSize.Max),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 val displayTitle = if (projectInfo != null) {
@@ -1219,21 +1284,26 @@ private fun ModItemLayout(
                                 }
                                 Text(
                                     modifier = Modifier
+                                        .alpha(titleAlpha)
                                         .weight(1f, fill = false)
                                         .basicMarquee(iterations = Int.MAX_VALUE)
                                         .animateContentSize(),
                                     text = displayTitle,
                                     style = MaterialTheme.typography.titleSmall,
+                                    textDecoration = titleDecoration,
+                                    fontStyle = titleStyle,
                                     maxLines = 1
                                 )
+
                                 Row(
                                     modifier = Modifier
+                                        .padding(start = 8.dp)
                                         .basicMarquee(iterations = Int.MAX_VALUE)
                                         .animateContentSize(),
                                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                                 ) {
                                     val remoteLoaders = mod.remoteFile?.loaders
-                                    if (remoteLoaders != null && remoteLoaders.isNotEmpty()) {
+                                    if (!remoteLoaders.isNullOrEmpty()) {
                                         remoteLoaders.forEach { loader ->
                                             LittleTextLabel(
                                                 text = loader.getDisplayName(),
@@ -1334,7 +1404,6 @@ private fun ModIcon(
     modifier: Modifier = Modifier,
     mod: RemoteMod,
     iconSize: Dp,
-    disableContainerSize: Dp = 28.dp
 ) {
     Box(modifier = modifier) {
         val colorMatrix = remember(mod, mod.localMod.file) { ColorMatrix() }
@@ -1362,33 +1431,11 @@ private fun ModIcon(
                 )
             }
         } else {
-            AssetsIcon(
+            AddonIcon(
                 iconUrl = projectInfo.iconUrl,
                 size = iconSize,
                 colorFilter = ColorFilter.colorMatrix(colorMatrix)
             )
-        }
-
-        AnimatedVisibility(
-            modifier = Modifier.align(Alignment.Center),
-            visible = mod.localMod.file.isDisabled(),
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-            Surface(
-                modifier = Modifier
-                    .padding(all = 4.dp)
-                    .size(disableContainerSize),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                shape = CircleShape,
-                shadowElevation = 4.dp
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_block_outlined),
-                    contentDescription = null
-                )
-            }
         }
     }
 }

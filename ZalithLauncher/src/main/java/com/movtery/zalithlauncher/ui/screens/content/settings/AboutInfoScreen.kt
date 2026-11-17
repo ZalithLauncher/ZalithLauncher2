@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -50,7 +49,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
@@ -60,6 +58,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.plugin.ApkPlugin
 import com.movtery.zalithlauncher.game.plugin.PluginLoader
 import com.movtery.zalithlauncher.game.plugin.appCacheIcon
+import com.movtery.zalithlauncher.launcherName
 import com.movtery.zalithlauncher.library.LibraryInfo
 import com.movtery.zalithlauncher.library.libraryData
 import com.movtery.zalithlauncher.path.URL_COMMUNITY
@@ -71,6 +70,7 @@ import com.movtery.zalithlauncher.path.URL_WEBLATE
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedLazyColumn
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
+import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -78,6 +78,7 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPositi
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCard
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
+import com.movtery.petlib.R as PetLibR
 
 @Composable
 fun AboutInfoScreen(
@@ -85,6 +86,7 @@ fun AboutInfoScreen(
     settingsScreenKey: TitledNavKey?,
     mainScreenKey: TitledNavKey?,
     checkUpdate: () -> Unit,
+    onViewSponsors: () -> Unit,
     openLicense: (raw: Int) -> Unit,
     openLink: (url: String) -> Unit
 ) {
@@ -96,13 +98,15 @@ fun AboutInfoScreen(
             modifier = Modifier.fillMaxSize(),
             isVisible = isVisible,
             contentPadding = PaddingValues(all = 12.dp)
-        ) { scope ->
-            animatedItem(scope) { yOffset ->
+        ) {
+            animatedItem { ctx ->
                 ChunkLayout(
-                    modifier = Modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                    modifier = Modifier.animated(ctx),
                     title = stringResource(R.string.about_launcher_title)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        val launcherName = remember { launcherName() }
+
                         ButtonIconItem(
                             icon = painterResource(R.drawable.img_launcher),
                             title = BuildKeys.LAUNCHER_NAME,
@@ -129,7 +133,7 @@ fun AboutInfoScreen(
                         ButtonIconItem(
                             icon = painterResource(R.drawable.img_avatar_movtery),
                             title = stringResource(R.string.about_launcher_author_movtery_title),
-                            text = stringResource(R.string.about_launcher_author_movtery_text, BuildKeys.LAUNCHER_NAME),
+                            text = stringResource(R.string.about_launcher_author_movtery_text, launcherName),
                             button = {
                                 Button(
                                     onClick = { openLink(URL_SUPPORT) }
@@ -142,12 +146,27 @@ fun AboutInfoScreen(
                 }
             }
 
-            animatedItem(scope) { yOffset ->
+            animatedItem { ctx ->
                 ChunkLayout(
-                    modifier = Modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                    modifier = Modifier.animated(ctx),
                     title = stringResource(R.string.about_acknowledgements_title)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        val launcherName = remember { launcherName() }
+
+                        ButtonIconItem(
+                            icon = painterResource(R.drawable.img_sponsor),
+                            title = stringResource(R.string.about_sponsors_title),
+                            text = stringResource(R.string.about_sponsors_summary, launcherName),
+                            button = {
+                                Button(
+                                    onClick = onViewSponsors
+                                ) {
+                                    Text(text = stringResource(R.string.generic_view))
+                                }
+                            }
+                        )
+
                         ButtonIconItem(
                             icon = painterResource(R.drawable.img_avatar_bangbang93),
                             title = "bangbang93",
@@ -193,6 +212,13 @@ fun AboutInfoScreen(
                             }
                         )
                         LinkIconItem(
+                            icon = painterResource(R.drawable.img_platform_modrinth),
+                            title = "Modrinth App",
+                            text = stringResource(R.string.about_acknowledgements_modrinth_text, BuildKeys.LAUNCHER_SHORT_NAME),
+                            openLicense = { openLicense(PetLibR.raw.modrinth_license) },
+                            openLink = { openLink("https://github.com/modrinth/code") },
+                        )
+                        LinkIconItem(
                             icon = painterResource(R.drawable.img_launcher_pcl2),
                             title = "Plain Craft Launcher 2",
                             text = stringResource(R.string.about_acknowledgements_pcl_text, BuildKeys.LAUNCHER_SHORT_NAME),
@@ -223,9 +249,9 @@ fun AboutInfoScreen(
             }
 
             //额外依赖库板块
-            animatedItem(scope) { yOffset ->
+            animatedItem { ctx ->
                 ChunkLayout(
-                    modifier = Modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                    modifier = Modifier.animated(ctx),
                     title = stringResource(R.string.about_library_title)
                 ) {
                     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -238,9 +264,9 @@ fun AboutInfoScreen(
 
             //已加载插件板块
             PluginLoader.allPlugins.takeIf { it.isNotEmpty() }?.let { allPlugins ->
-                animatedItem(scope) { yOffset ->
+                animatedItem { ctx ->
                     ChunkLayout(
-                        modifier = Modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                        modifier = Modifier.animated(ctx),
                         title = stringResource(R.string.about_plugin_title)
                     ) {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {

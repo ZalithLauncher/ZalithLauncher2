@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,6 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
-import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -39,7 +38,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -61,11 +59,11 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -73,10 +71,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -88,6 +86,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Transparent
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
@@ -107,11 +106,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.movtery.petlib.ArmModel
+import com.movtery.petlib.PetAnimation
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.account.Account
@@ -129,6 +129,7 @@ import com.movtery.zalithlauncher.game.account.isSkinChangeAllowed
 import com.movtery.zalithlauncher.game.account.wardrobe.EmptyCape
 import com.movtery.zalithlauncher.game.account.wardrobe.SkinModelType
 import com.movtery.zalithlauncher.game.account.wardrobe.capeLocalRes
+import com.movtery.zalithlauncher.game.account.wardrobe.toArmModel
 import com.movtery.zalithlauncher.game.account.yggdrasil.PlayerProfile
 import com.movtery.zalithlauncher.game.account.yggdrasil.findUsing
 import com.movtery.zalithlauncher.game.account.yggdrasil.getFile
@@ -137,12 +138,14 @@ import com.movtery.zalithlauncher.path.URL_MINECRAFT_PURCHASE
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.BaseIconTextButton
+import com.movtery.zalithlauncher.ui.components.ButtonPosition
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.ImePanContainer
 import com.movtery.zalithlauncher.ui.components.MarqueeText
-import com.movtery.zalithlauncher.ui.components.ModelAnimation
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
-import com.movtery.zalithlauncher.ui.components.PlayerSkin
+import com.movtery.zalithlauncher.ui.components.PetModelView
+import com.movtery.zalithlauncher.ui.components.PositionButton
+import com.movtery.zalithlauncher.ui.components.PositionFilledTonalButton
 import com.movtery.zalithlauncher.ui.components.RadioCard
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleListDialog
@@ -150,6 +153,7 @@ import com.movtery.zalithlauncher.ui.components.SingleLineTextCheck
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
+import com.movtery.zalithlauncher.ui.screens.content.elements.ChangeSkin.SkinModel
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.InfoLayoutTextItem
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.itemColor
@@ -157,6 +161,8 @@ import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 import com.movtery.zalithlauncher.utils.logging.Logger
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -181,6 +187,9 @@ sealed interface MicrosoftLoginOperation {
 
     /** 微软账号相关提示Dialog流程 */
     data object Tip : MicrosoftLoginOperation
+
+    /** 选择微软登录验证方式的Dialog流程 */
+    data object SelectBrowser : MicrosoftLoginOperation
 }
 
 /**
@@ -257,57 +266,6 @@ sealed interface OtherLoginOperation {
 }
 
 @Composable
-fun AccountAvatar(
-    modifier: Modifier = Modifier,
-    account: Account?,
-    avatarSize: Dp = 64.dp,
-    refreshKey: Any? = null,
-    onClick: () -> Unit = {}
-) {
-    Box(
-        modifier = modifier
-            .clip(shape = MaterialTheme.shapes.extraLarge)
-            .clickable(onClick = onClick)
-    ) {
-        Column(
-            modifier = Modifier
-                .padding(all = 12.dp)
-        ) {
-            if (account != null) {
-                PlayerFace(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    account = account,
-                    avatarSize = avatarSize,
-                    refreshKey = refreshKey
-                )
-            } else {
-                Icon(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.CenterHorizontally),
-                    painter = painterResource(R.drawable.ic_add),
-                    contentDescription = null
-                )
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                text = account?.username ?: stringResource(R.string.account_add_new_account),
-                maxLines = 1,
-                style = MaterialTheme.typography.titleSmall
-            )
-            if (account != null) {
-                Text(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    text = getAccountTypeName(account),
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-        }
-    }
-}
-
-@Composable
 fun PlayerFace(
     modifier: Modifier = Modifier,
     account: Account,
@@ -317,15 +275,27 @@ fun PlayerFace(
     val context = LocalContext.current
     val density = LocalDensity.current
     val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
-    val avatarBitmap = remember(account, refreshKey, refreshWardrobe, density) {
-        getSkinAvatarFromAccount(context, account, avatarSize, density).asImageBitmap()
+    val avatarBitmap by produceState<ImageBitmap?>(null, account, refreshKey, refreshWardrobe, density) {
+        value = withContext(Dispatchers.IO) {
+            getSkinAvatarFromAccount(
+                context = context,
+                account = account,
+                size = avatarSize,
+                density = density
+            ).asImageBitmap()
+        }
     }
 
-    Image(
-        modifier = modifier.size(avatarSize),
-        bitmap = avatarBitmap,
-        contentDescription = null
-    )
+    val avatar = avatarBitmap
+    if (avatar != null) {
+        Image(
+            modifier = modifier.size(avatarSize),
+            bitmap = avatar,
+            contentDescription = null
+        )
+    } else {
+        Spacer(modifier = modifier.size(avatarSize))
+    }
 }
 
 @Composable
@@ -393,20 +363,6 @@ fun AccountItem(
                 )
             }
             Row {
-                //更换皮肤/披风
-                Row {
-                    IconButton(
-                        onClick = { openChangeSkinDialog() },
-                        enabled = account.isSkinChangeAllowed()
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            painter = painterResource(R.drawable.ic_checkroom),
-                            contentDescription = stringResource(R.string.account_change_skin)
-                        )
-                    }
-                }
-
                 //刷新
                 IconButton(
                     onClick = onRefreshClick,
@@ -419,26 +375,62 @@ fun AccountItem(
                     )
                 }
 
-                //复制 UUID
-                IconButton(
-                    onClick = onCopyUUID
-                ) {
-                    Icon(
-                        modifier = Modifier.size(22.dp),
-                        painter = painterResource(R.drawable.ic_copy_all_outlined),
-                        contentDescription = stringResource(R.string.account_local_uuid_copy)
-                    )
-                }
-
-                //删除
-                IconButton(
-                    onClick = onDeleteClick
-                ) {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        painter = painterResource(R.drawable.ic_delete_outlined),
-                        contentDescription = stringResource(R.string.generic_delete)
-                    )
+                //更多操作
+                var menuExpanded by remember { mutableStateOf(false) }
+                Box {
+                    IconButton(onClick = { menuExpanded = true }) {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            painter = painterResource(R.drawable.ic_more_vert),
+                            contentDescription = stringResource(R.string.generic_more)
+                        )
+                    }
+                    DropdownMenu(
+                        expanded = menuExpanded,
+                        onDismissRequest = { menuExpanded = false },
+                        shape = MaterialTheme.shapes.large,
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.account_wardrobe)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_checkroom),
+                                    contentDescription = null
+                                )
+                            },
+                            enabled = account.isSkinChangeAllowed(),
+                            onClick = {
+                                menuExpanded = false
+                                openChangeSkinDialog()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.account_local_uuid_copy)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_copy_all_outlined),
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onCopyUUID()
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.generic_delete)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_delete_outlined),
+                                    contentDescription = null
+                                )
+                            },
+                            onClick = {
+                                menuExpanded = false
+                                onDeleteClick()
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -629,7 +621,6 @@ private fun PreviewLoginItem() {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MicrosoftLoginTipDialog(
     onDismissRequest: () -> Unit = {},
@@ -703,6 +694,78 @@ fun MicrosoftLoginTipDialog(
     )
 }
 
+@Composable
+fun MicrosoftLoginMethodDialog(
+    onDismissRequest: () -> Unit,
+    onSystemBrowser: () -> Unit,
+    onInternalBrowser: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onDismissRequest,
+    ) {
+        BoxWithConstraints(
+            modifier = Modifier
+                .heightIn(max = rememberDialogMaxHeight())
+                .fillMaxHeight(),
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                modifier = Modifier
+                    .padding(all = 6.dp)
+                    .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
+                    .wrapContentHeight(),
+                shape = MaterialTheme.shapes.extraLarge,
+                color = cardColor(false),
+                contentColor = onCardColor(),
+                shadowElevation = 6.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(all = 16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.account_supporting_microsoft_tip_title),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text(
+                        text = stringResource(R.string.account_microsoft_login_method_summary),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        PositionButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            position = ButtonPosition.Top,
+                            onClick = onSystemBrowser
+                        ) {
+                            MarqueeText(text = stringResource(R.string.account_microsoft_login_method_system_browser))
+                        }
+                        PositionFilledTonalButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            position = ButtonPosition.Middle,
+                            onClick = onInternalBrowser
+                        ) {
+                            MarqueeText(text = stringResource(R.string.account_microsoft_login_method_internal_browser))
+                        }
+                        PositionFilledTonalButton(
+                            modifier = Modifier.fillMaxWidth(),
+                            position = ButtonPosition.Bottom,
+                            onClick = onDismissRequest
+                        ) {
+                            MarqueeText(text = stringResource(R.string.generic_cancel))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 private val localNamePattern = Pattern.compile("[^a-zA-Z0-9_]")
 
 @Composable
@@ -736,14 +799,11 @@ fun LocalLoginDialog(
 
     /** 用户UUID是否无效 */
     val isUserUUIDInvalid: Boolean = remember(userUUID) {
-        if (userUUID.isEmpty()) false
-        else {
-            runCatching {
-                accountUUID(userUUID)
-                false
-            }.getOrElse {
-                true
-            }
+        userUUID.isNotEmpty() && runCatching {
+            accountUUID(userUUID)
+            false
+        }.getOrElse {
+            true
         }
     }
 
@@ -1305,13 +1365,30 @@ sealed interface ChangeSkin {
 
     data class ChangeSkinData(
         val cacheFile: File,
-        val skinModel: SkinModelType = SkinModelType.STEVE
+        val data: SkinModel
     ) : ChangeSkin
 
     /**
      * 重置离线皮肤
      */
     data object ResetSkin : ChangeSkin
+
+    sealed interface SkinModel {
+        /** 拒绝选择皮肤模型 */
+        data object Rejected : SkinModel
+        data class Model(val model: SkinModelType): SkinModel
+        /** @return 获取模型类型 */
+        fun getModelType(): SkinModelType = when (this) {
+            is Rejected -> SkinModelType.STEVE
+            is Model -> model
+        }
+
+        /** @return 获取模型类型 */
+        fun getModelTypeNullable(): SkinModelType? = when (this) {
+            is Rejected -> null
+            is Model -> model
+        }
+    }
 }
 
 /**
@@ -1324,12 +1401,10 @@ sealed interface ChangeCape {
     ) : ChangeCape
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun ChangeSkinDialog(
     account: Account,
-    availableCapes: List<PlayerProfile.Cape> = emptyList(),
+    availableCapes: List<PlayerProfile.Cape>? = null,
     skinState: ChangeSkin,
     onSkinStateChange: (ChangeSkin) -> Unit,
     capeState: ChangeCape,
@@ -1342,15 +1417,6 @@ fun ChangeSkinDialog(
     onApplyCape: (PlayerProfile.Cape) -> Unit,
     onFetchCapes: () -> Unit
 ) {
-    val context = LocalContext.current
-    val playerSkin = remember { PlayerSkin(context) }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            playerSkin.destroy()
-        }
-    }
-
     var showCapeSelector by remember { mutableStateOf(false) }
 
     var isFetchingCapes by remember { mutableStateOf(false) }
@@ -1360,7 +1426,7 @@ fun ChangeSkinDialog(
 
     LaunchedEffect(availableCapes) {
         if (account.isMicrosoftAccount()) {
-            if (availableCapes.isNotEmpty()) {
+            if (availableCapes != null) {
                 isFetchingCapes = false
                 val currentUsingCape0 = availableCapes.findUsing() ?: EmptyCape
                 currentUsingCape = currentUsingCape0
@@ -1372,26 +1438,58 @@ fun ChangeSkinDialog(
         }
     }
 
+    // 加载披风
+    val previewCape by produceState<ByteArray?>(null, currentCapeToLoad, availableCapes) {
+        if (!account.isMicrosoftAccount()) return@produceState
+
+        value = withContext(Dispatchers.IO) {
+            if (currentCapeToLoad != EmptyCape) {
+                // 列表已加载完成才会走到这里
+                runCatching {
+                    currentCapeToLoad
+                        .getFile(PathManager.DIR_ACCOUNT_CAPE)
+                        .inputStream()
+                        .use { it.readBytes() }
+                }.getOrNull()
+            } else if (availableCapes == null && account.getCapeFile().exists()) {
+                // 列表就绪前若本地有缓存披风则优先显示，列表加载完或切换时更新 ↑
+                runCatching {
+                    account.getCapeFile()
+                        .inputStream()
+                        .use { it.readBytes() }
+                }.getOrNull()
+            } else {
+                null
+            }
+        }
+    }
+
     val skinPicker =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let(onSkinPicked)
         }
 
-    /**
-     * 初始化账号设置的皮肤
-     */
-    fun loadSkin() {
-        playerSkin.loadSkin(
-            skinId = account.uniqueUUID.takeIf { account.hasSkinFile },
-            model = account.skinModelType
-        )
+    // 皮肤状态变化时重载预览皮肤
+    val previewSkin by produceState<ByteArray?>(null, skinState) {
+        value = withContext(Dispatchers.IO) {
+            when (skinState) {
+                ChangeSkin.None -> account.getSkinFile()
+                    .takeIf { it.exists() }
+                    ?.inputStream()
+                    ?.use { it.readBytes() }
+                is ChangeSkin.ChangeSkinData -> runCatching {
+                    skinState.cacheFile
+                        .inputStream()
+                        .use { it.readBytes() }
+                }.getOrNull()
+                ChangeSkin.ResetSkin -> null
+            }
+        }
     }
-
-    /**
-     * 重置皮肤预览
-     */
-    fun resetSkin() {
-        playerSkin.resetSkin()
+    val previewArm = when (skinState) {
+        ChangeSkin.None -> account.skinModelType.toArmModel()
+        is ChangeSkin.ChangeSkinData -> skinState.data.getModelType().toArmModel()
+        ChangeSkin.ResetSkin -> ArmModel.Classic
     }
 
     Dialog(
@@ -1411,7 +1509,6 @@ fun ChangeSkinDialog(
             Surface(
                 modifier = Modifier
                     .padding(all = 6.dp)
-                    .heightIn(min = (maxHeight * 0.85f).coerceAtMost(rememberDialogMaxHeight()))
                     .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight())),
                 shape = MaterialTheme.shapes.extraLarge,
                 color = cardColor(false),
@@ -1436,49 +1533,14 @@ fun ChangeSkinDialog(
                                 .background(itemColor(false)),
                             contentAlignment = Alignment.Center
                         ) {
-                            var pageFinished by remember { mutableStateOf(false) }
-
-                            if (!pageFinished) {
-                                //加载皮肤预览中
-                                LoadingIndicator()
-                            }
-
-                            AndroidView(
-                                factory = { context ->
-                                    playerSkin.loadWebView(
-                                        context = context,
-                                        onPageFinished = {
-                                            pageFinished = true
-                                            playerSkin.startAnim(ModelAnimation.Walking, 0.8f)
-                                            playerSkin.setAzimuthAndPitch(0, 10, 50)
-                                        }
-                                    )
-                                },
-                                update = {
-                                    if (pageFinished) {
-                                        when (skinState) {
-                                            ChangeSkin.None -> loadSkin()
-                                            is ChangeSkin.ChangeSkinData -> {
-                                                runCatching {
-                                                    skinState.cacheFile.inputStream().use { stream ->
-                                                        playerSkin.loadSkin(stream, skinState.skinModel)
-                                                    }
-                                                }.onFailure {
-                                                    playerSkin.loadSkin(
-                                                        skinId = null,
-                                                        skinState.skinModel
-                                                    )
-                                                }
-                                            }
-
-                                            is ChangeSkin.ResetSkin -> resetSkin()
-                                        }
-                                        if (account.isMicrosoftAccount()) {
-                                            playerSkin.loadCape(currentCapeToLoad)
-                                        }
-                                    }
-                                },
-                                modifier = Modifier.fillMaxSize()
+                            PetModelView(
+                                modifier = Modifier.fillMaxSize(),
+                                skin = previewSkin,
+                                cape = previewCape,
+                                arm = previewArm,
+                                animation = PetAnimation.Walking,
+                                animationSpeed = 0.8f,
+                                gazeEnabled = false
                             )
                         }
 
@@ -1517,6 +1579,8 @@ fun ChangeSkinDialog(
                                 }
 
                                 is ChangeSkin.ChangeSkinData -> {
+                                    val model = skinState.data.getModelTypeNullable()
+
                                     Column(
                                         modifier = Modifier.fillMaxWidth(),
                                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -1532,24 +1596,26 @@ fun ChangeSkinDialog(
                                         ) {
                                             //粗臂
                                             RadioCard(
-                                                selected = skinState.skinModel == SkinModelType.STEVE,
+                                                selected = model == SkinModelType.STEVE,
+                                                enabled = skinState.data !is SkinModel.Rejected,
                                                 text = stringResource(R.string.account_change_skin_arm_wide),
                                                 onClick = {
                                                     onSkinStateChange(
                                                         skinState.copy(
-                                                            skinModel = SkinModelType.STEVE
+                                                            data = SkinModel.Model(SkinModelType.STEVE)
                                                         )
                                                     )
                                                 }
                                             )
                                             //细臂
                                             RadioCard(
-                                                selected = skinState.skinModel == SkinModelType.ALEX,
+                                                selected = model == SkinModelType.ALEX,
+                                                enabled = skinState.data !is SkinModel.Rejected,
                                                 text = stringResource(R.string.account_change_skin_arm_slim),
                                                 onClick = {
                                                     onSkinStateChange(
                                                         skinState.copy(
-                                                            skinModel = SkinModelType.ALEX
+                                                            data = SkinModel.Model(SkinModelType.ALEX)
                                                         )
                                                     )
                                                 }
@@ -1626,7 +1692,7 @@ fun ChangeSkinDialog(
                             onClick = {
                                 when (skinState) {
                                     is ChangeSkin.ChangeSkinData -> {
-                                        onApplySkin(skinState.cacheFile, skinState.skinModel)
+                                        onApplySkin(skinState.cacheFile, skinState.data.getModelType())
                                     }
 
                                     is ChangeSkin.ResetSkin -> {
@@ -1662,7 +1728,7 @@ fun ChangeSkinDialog(
         SelectCapeDialog(
             capes = buildList {
                 add(EmptyCape)
-                addAll(availableCapes)
+                addAll(availableCapes ?: emptyList())
             },
             selectedCape = cape,
             onSelected = { cape ->
@@ -1740,14 +1806,16 @@ fun CapeListItem(
     density: Density,
     onClick: () -> Unit,
 ) {
-    val avatar = remember(cape, density) {
-        if (cape != EmptyCape) {
-            getCapeAvatar(
-                cape = cape,
-                size = size,
-                density = density
-            )?.asImageBitmap()
-        } else null
+    val avatar by produceState<ImageBitmap?>(null, cape, density) {
+        value = withContext(Dispatchers.IO) {
+            if (cape != EmptyCape) {
+                getCapeAvatar(
+                    cape = cape,
+                    size = size,
+                    density = density
+                )?.asImageBitmap()
+            } else null
+        }
     }
 
     Row(
@@ -1761,14 +1829,15 @@ fun CapeListItem(
             onClick = onClick
         )
 
-        if (avatar != null) {
-            val displayWidth = with(density) { avatar.width.toDp() }
-            val displayHeight = with(density) { avatar.height.toDp() }
+        val avatarBitmap = avatar
+        if (avatarBitmap != null) {
+            val displayWidth = with(density) { avatarBitmap.width.toDp() }
+            val displayHeight = with(density) { avatarBitmap.height.toDp() }
             Image(
                 modifier = Modifier
                     .width(displayWidth)
                     .height(displayHeight),
-                bitmap = avatar,
+                bitmap = avatarBitmap,
                 contentDescription = null
             )
 
@@ -1860,7 +1929,7 @@ private fun getDefaultAvatar(
 ): Bitmap {
     return getSkinAvatar(
         skin = BitmapFactory.decodeStream(
-            context.assets.open("steve.png")
+            context.assets.open("skin/steve.png")
         ),
         size = size,
         density = density

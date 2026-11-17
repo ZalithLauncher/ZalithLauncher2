@@ -1,9 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  AGENT / DEVELOPER NOTES: Weblate shows the XML comment directly above each
+  <string> element to translators as context. Every new <string> must have
+  exactly ONE single-line English comment above it describing where the string
+  appears and what it does; update it when wording or usage changes. Comments
+  must be single-line and must not contain a double hyphen.
+-->
 <resources xmlns:tools="http://schemas.android.com/tools"
     tools:ignore="MissingTranslation">
+    <!-- Greeting shown on the launcher main screen during Chinese New Year (lunar January 1st) -->
     <string name="festivals_spring">春节快乐！</string>
+    <!-- Greeting shown on the launcher main screen during the Qingming Festival, around April 4 to 6 -->
     <string name="festivals_qing_ming">清明节安康！</string>
+    <!-- Greeting shown on the launcher main screen during the Dragon Boat Festival (lunar May 5th) -->
     <string name="festivals_dragon_boat">端午节安康！</string>
+    <!-- Greeting shown on the launcher main screen during the Mid-Autumn Festival (lunar August 15th) -->
     <string name="festivals_mid_autumn">中秋节快乐！</string>
+    <!-- Greeting shown on the launcher main screen during China's National Day holiday, October 1 to 7 -->
     <string name="festivals_national_day">国庆节快乐！</string>
+    <!-- Greeting shown on the launcher main screen during the Qixi Festival (lunar July 7th) -->
+    <string name="festivals_qixi">七夕节快乐！</string>
 </resources>

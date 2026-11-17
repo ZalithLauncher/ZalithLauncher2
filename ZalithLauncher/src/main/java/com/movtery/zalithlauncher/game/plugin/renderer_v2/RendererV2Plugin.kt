@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,8 +20,7 @@ package com.movtery.zalithlauncher.game.plugin.renderer_v2
 
 import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.plugin.renderer_v2.data.RendererConfig
-import com.movtery.zalithlauncher.game.plugin.renderer_v2.data.RendererEnv
-import com.movtery.zalithlauncher.game.renderer.RendererInterface
+import com.movtery.zalithlauncher.game.renderer.ConfigurableRenderer
 
 /**
  * V2 渲染器插件项
@@ -35,12 +34,10 @@ class RendererV2Data(
     val summary: String,
     val renderer: RendererConfig,
     genSummary: (metaString: String) -> String?,
-): RendererInterface, Plugin {
-    val env = RendererEnv(
-        packageName = packageName,
-        envs = renderer.env,
-        genSummary = genSummary,
-    )
+): ConfigurableRenderer, Plugin {
+    override val configSpec = renderer.toConfigSpec(genSummary)
+
+    override val mesaBased: Boolean = true
 
     override fun getIdentifier(): String = packageName
     override fun getNativeLibPath(): String = nativePath
@@ -51,7 +48,6 @@ class RendererV2Data(
     override fun getRendererSummary(): String = summary
     override fun getMinMCVersion(): String? = renderer.minMCVer
     override fun getMaxMCVersion(): String? = renderer.maxMCVer
-    override fun getRendererEnv(): Lazy<Map<String, String>> = lazy { env.getEnv() }
     override fun getDlopenLibrary(): Lazy<List<String>> = lazy { renderer.dlopenLibPaths }
     override fun getRendererLibrary(): String = renderer.rendererGLPath
     override fun getRendererEGL(): String = renderer.rendererEGLPath

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.filemanager.ui.components.FmAlertDialog
 import com.movtery.zalithlauncher.filemanager.ui.components.FmCheckEditDialog
 import com.movtery.zalithlauncher.filemanager.ui.components.FmDialogSurface
 import com.movtery.zalithlauncher.filemanager.ui.components.FmIcons
@@ -61,6 +60,7 @@ import com.movtery.zalithlauncher.filemanager.ui.theme.fmSecondaryTextColor
 import com.movtery.zalithlauncher.filemanager.viewmodel.SearchHitView
 import com.movtery.zalithlauncher.filemanager.viewmodel.SearchUiState
 import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.lazyScrollWithBar
 
@@ -120,7 +120,7 @@ fun FmSearchTaskDialog(
     searchUi: SearchUiState,
     onCancel: () -> Unit
 ) {
-    FmAlertDialog(
+    SimpleAlertDialog(
         title = stringResource(R.string.generic_search),
         text = {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {

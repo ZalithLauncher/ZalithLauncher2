@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -88,7 +88,6 @@ class MCBBSPackExporter: AbstractExporter(
                         ModLoader.FABRIC -> "fabric"
                         ModLoader.QUILT -> "quilt"
                         ModLoader.LITE_LOADER -> "liteloader"
-                        ModLoader.CLEANROOM -> "cleanroom"
                         else -> null
                     } ?: return@let
                     add(MCBBSManifest.Addon(id = patchId, version = loader.version))
@@ -99,7 +98,7 @@ class MCBBSPackExporter: AbstractExporter(
             val launchInfo = MCBBSManifest.LaunchInfo(
                 minMemory = info.minMemory.takeIf { it > 0 } ?: version.getRamAllocation(context),
                 supportJava = null,
-                launchArguments = tokenize(info.jvmArgs),
+                launchArguments = tokenize(info.gameArgs),
                 javaArguments = tokenize(info.javaArgs)
             )
 

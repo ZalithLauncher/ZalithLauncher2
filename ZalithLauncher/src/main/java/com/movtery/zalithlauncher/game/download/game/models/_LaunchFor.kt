@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@ import com.movtery.zalithlauncher.game.addons.modloader.optifine.OptiFineVersion
  */
 fun OptiFineVersion.toLaunchForInfo(): LaunchFor.Info {
     return LaunchFor.Info(
-        version = this.realVersion,
+        version = this.version, // 存储规范版本串，便于修改版本时匹配
         name = ModLoader.OPTIFINE.displayName
     )
 }

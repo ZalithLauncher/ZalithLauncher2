@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,7 +37,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -83,14 +82,20 @@ import com.movtery.zalithlauncher.game.version.installed.VersionComparator
 import com.movtery.zalithlauncher.game.version.installed.VersionType
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.version.installed.cleanup.GameAssetCleaner
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.activities.MainActivity
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.AnimatedDirection
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
+import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
+import com.movtery.zalithlauncher.ui.components.topBarWheelFallback
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.CleanupOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.GamePathItemLayout
@@ -99,14 +104,15 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.VersionCategory
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionCategoryItem
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionItemLayout
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionsOperation
+import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
-import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.canHandlePermission
 import com.movtery.zalithlauncher.utils.checkStoragePermissions
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
+import com.movtery.zalithlauncher.viewmodel.backgroundVisible
 import com.movtery.zalithlauncher.viewmodel.sendKeepScreen
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
@@ -273,7 +279,8 @@ fun VersionsManageScreen(
                     backScreenViewModel.mainScreen.backStack.navigateToFileSelector(
                         startPath = path,
                         selectFile = false,
-                        saveKey = NormalNavKey.VersionsManager
+                        saveKey = NormalNavKey.VersionsManager,
+                        canSelect = { !GamePathManager.isForbiddenGamePath(it) }
                     ) { path ->
                         viewModel.gamePathOperation = GamePathOperation.AddNewPath(path)
                     }
@@ -351,14 +358,10 @@ private fun LeftMenu(
     changePathOperation: (GamePathOperation) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val surfaceXOffset by swapAnimateDpAsState(
-        targetValue = (-40).dp,
-        swapIn = isVisible,
-        isHorizontal = true
-    )
+    val ctx = rememberAnimatedContext(isVisible = isVisible)
 
     Column(
-        modifier = modifier.offset { IntOffset(x = surfaceXOffset.roundToPx(), y = 0) },
+        modifier = modifier.animated(ctx, from = AnimatedDirection.Left),
     ) {
         val gamePaths by GamePathManager.gamePathData.collectAsStateWithLifecycle()
         val currentPath by GamePathManager.currentPath.collectAsStateWithLifecycle()
@@ -440,7 +443,7 @@ private fun LeftMenu(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun VersionsLayout(
     modifier: Modifier = Modifier,
@@ -460,13 +463,13 @@ private fun VersionsLayout(
     onVersionPinned: () -> Unit,
     onInstall: () -> Unit,
 ) {
-    val surfaceYOffset by swapAnimateDpAsState(
-        targetValue = (-40).dp,
-        swapIn = isVisible
-    )
+    val ctx = rememberAnimatedContext(isVisible = isVisible)
 
-    Box(
-        modifier = modifier.offset { IntOffset(x = 0, y = surfaceYOffset.roundToPx()) }
+    PullToRefreshLayout(
+        modifier = modifier.animated(ctx),
+        isRefreshing = false,
+        enabled = !isRefreshing,
+        onRefresh = onRefresh
     ) {
         if (isRefreshing) { //版本正在刷新中
             Box(
@@ -504,11 +507,17 @@ private fun VersionsLayout(
             val barShownFraction = remember(topAppBarState) {
                 derivedStateOf { 1f - topAppBarState.collapsedFraction }
             }
-            val actionBarShadowElevation = 5.dp * barShownFraction.value * listScrolledFraction.value
+            //背景可见时不使用阴影，因为卡片会半透明化
+            val withShadow = !backgroundVisible()
 
-            val listTopFadePx = (headerHeightPx + headerTopPaddingPx + 80f) *
-                    listScrolledFraction.value *
-                    barShownFraction.value
+            //悬浮操作栏的阴影在图层块内读取滚动比例，滚动时只更新图层不重组
+            val barShape = MaterialTheme.shapes.large
+            val barShadowModifier = Modifier.graphicsLayer {
+                if (withShadow) {
+                    shadowElevation = 5.dp.toPx() * listScrolledFraction.value * barShownFraction.value
+                }
+                shape = barShape
+            }
 
             Box(modifier = Modifier.fillMaxSize()) {
                 if (versions.isNotEmpty()) {
@@ -516,16 +525,21 @@ private fun VersionsLayout(
                         modifier = Modifier
                             .fillMaxSize()
                             .nestedScroll(scrollBehavior.nestedScrollConnection)
+                            .topBarWheelFallback(topAppBarState)
                             .nonInteractiveScrollbar(
                                 state = listState.scrollIndicatorState!!,
                                 orientation = Orientation.Vertical,
                             )
                             .clipToBounds()
-                            .topFade(listTopFadePx),
+                            .topFade {
+                                (headerHeightPx + headerTopPaddingPx + 80f) *
+                                        listScrolledFraction.value *
+                                        barShownFraction.value
+                            },
                         contentPadding = PaddingValues(
                             start = 12.dp,
-                            top = 24.dp + with(density) {
-                                (headerHeightPx + topAppBarState.heightOffset).coerceAtLeast(-headerTopPaddingPx).toDp()
+                            top = with(density) {
+                                (headerHeightPx + topAppBarState.heightOffset).coerceAtLeast(0f).toDp()
                             },
                             end = 12.dp,
                             bottom = 12.dp
@@ -568,87 +582,99 @@ private fun VersionsLayout(
                     }
                 }
 
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(IntrinsicSize.Min)
                         .zIndex(1f)
-                        .padding(start = 12.dp, end = 12.dp, top = 12.dp)
                         .onSizeChanged {
                             headerHeightPx = it.height
-                            topAppBarState.heightOffsetLimit = -(it.height + headerTopPaddingPx)
+                            topAppBarState.heightOffsetLimit = -it.height.toFloat()
                         }
-                        .offset { IntOffset(x = 0, y = topAppBarState.heightOffset.roundToInt()) },
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        .offset { IntOffset(x = 0, y = topAppBarState.heightOffset.roundToInt()) }
                 ) {
-                    Surface(
-                        modifier = Modifier.height(IntrinsicSize.Max),
-                        color = cardColor(false),
-                        contentColor = onCardColor(),
-                        shape = MaterialTheme.shapes.large,
-                        shadowElevation = actionBarShadowElevation,
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(all = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconTextButton(
-                                onClick = onRefresh,
-                                painter = painterResource(R.drawable.ic_refresh),
-                                contentDescription = stringResource(R.string.generic_refresh),
-                                text = stringResource(R.string.generic_refresh)
-                            )
-                            IconTextButton(
-                                onClick = onInstall,
-                                painter = painterResource(R.drawable.ic_download),
-                                contentDescription = stringResource(R.string.versions_manage_install_new),
-                                text = stringResource(R.string.versions_manage_install_new),
-                            )
-                        }
-                    }
-
-                    // 版本分类
-                    Surface(
+                    Row(
                         modifier = Modifier
-                            .weight(1f, fill = false)
-                            .height(IntrinsicSize.Max),
-                        color = cardColor(false),
-                        contentColor = onCardColor(),
-                        shape = MaterialTheme.shapes.large,
-                        shadowElevation = actionBarShadowElevation,
+                            .fillMaxWidth()
+                            .height(IntrinsicSize.Min)
+                            .padding(all = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        val scrollState = rememberScrollState()
-                        Row(
+                        val blur = LauncherSettings.backgroundBlur.state
+                        val cardColor = cardColor()
+
+                        Surface(
                             modifier = Modifier
-                                .fadeEdge(
-                                    state = scrollState,
-                                    length = 32.dp,
-                                    direction = EdgeDirection.Horizontal
-                                )
-                                .horizontalScroll(state = scrollState)
-                                .padding(all = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .height(IntrinsicSize.Max)
+                                .then(barShadowModifier),
+                            color = cardColor,
+                            contentColor = onCardColor(),
+                            shape = MaterialTheme.shapes.large,
                         ) {
-                            VersionCategoryItem(
-                                value = VersionCategory.ALL,
-                                versionsCount = allVersionsCount,
-                                selected = versionCategory == VersionCategory.ALL,
-                                onClick = { onCategoryChange(VersionCategory.ALL) }
-                            )
-                            VersionCategoryItem(
-                                value = VersionCategory.VANILLA,
-                                versionsCount = vanillaVersionsCount,
-                                selected = versionCategory == VersionCategory.VANILLA,
-                                onClick = { onCategoryChange(VersionCategory.VANILLA) }
-                            )
-                            VersionCategoryItem(
-                                value = VersionCategory.MODLOADER,
-                                versionsCount = modloaderVersionsCount,
-                                selected = versionCategory == VersionCategory.MODLOADER,
-                                onClick = { onCategoryChange(VersionCategory.MODLOADER) }
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .backgroundGlass(blur, cardColor)
+                                    .padding(all = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                IconTextButton(
+                                    onClick = onRefresh,
+                                    painter = painterResource(R.drawable.ic_refresh),
+                                    contentDescription = stringResource(R.string.generic_refresh),
+                                    text = stringResource(R.string.generic_refresh)
+                                )
+                                IconTextButton(
+                                    onClick = onInstall,
+                                    painter = painterResource(R.drawable.ic_download),
+                                    contentDescription = stringResource(R.string.versions_manage_install_new),
+                                    text = stringResource(R.string.versions_manage_install_new),
+                                )
+                            }
+                        }
+
+                        // 版本分类
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                                .height(IntrinsicSize.Max)
+                                .then(barShadowModifier),
+                            color = cardColor,
+                            contentColor = onCardColor(),
+                            shape = MaterialTheme.shapes.large,
+                        ) {
+                            val scrollState = rememberScrollState()
+                            Row(
+                                modifier = Modifier
+                                    .backgroundGlass(blur, cardColor)
+                                    .fadeEdge(
+                                        state = scrollState,
+                                        length = 32.dp,
+                                        direction = EdgeDirection.Horizontal
+                                    )
+                                    .horizontalScroll(state = scrollState)
+                                    .padding(all = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                VersionCategoryItem(
+                                    value = VersionCategory.ALL,
+                                    versionsCount = allVersionsCount,
+                                    selected = versionCategory == VersionCategory.ALL,
+                                    onClick = { onCategoryChange(VersionCategory.ALL) }
+                                )
+                                VersionCategoryItem(
+                                    value = VersionCategory.VANILLA,
+                                    versionsCount = vanillaVersionsCount,
+                                    selected = versionCategory == VersionCategory.VANILLA,
+                                    onClick = { onCategoryChange(VersionCategory.VANILLA) }
+                                )
+                                VersionCategoryItem(
+                                    value = VersionCategory.MODLOADER,
+                                    versionsCount = modloaderVersionsCount,
+                                    selected = versionCategory == VersionCategory.MODLOADER,
+                                    onClick = { onCategoryChange(VersionCategory.MODLOADER) }
+                                )
+                            }
                         }
                     }
                 }
@@ -658,22 +684,26 @@ private fun VersionsLayout(
 }
 
 /**
- * 在组件顶部绘制指定像素高度的线性渐隐
+ * 在组件顶部绘制指定像素高度的线性渐隐；高度在绘制阶段读取，随滚动只触发重绘
  */
-private fun Modifier.topFade(heightPx: Float): Modifier = this
+private fun Modifier.topFade(heightPx: () -> Float): Modifier = this
     .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
     .drawWithContent {
         drawContent()
-        if (heightPx <= 0f) return@drawWithContent
+        val height = heightPx()
+        if (height <= 0f) return@drawWithContent
         inset(
             left = 0f,
             top = 0f,
             right = 0f,
-            bottom = (size.height - heightPx).coerceAtLeast(0f)
+            bottom = (size.height - height).coerceAtLeast(0f)
         ) {
             drawRect(
-                brush = Brush.verticalGradient(0f to Color.Black, 1f to Color.Transparent),
+                brush = TopFadeBrush,
                 blendMode = BlendMode.DstOut
             )
         }
     }
+
+/** 顶部渐隐使用的固定渐变 */
+private val TopFadeBrush = Brush.verticalGradient(0f to Color.Black, 1f to Color.Transparent)

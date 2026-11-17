@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,20 +82,25 @@ class TouchProcessor(
         visibleWidgets: List<ObservableWidget>,
         position: Offset,
     ): List<ObservableWidget> {
-        val hitList = visibleWidgets.filter { widget ->
-            widget.canTouch() && hitTest(widget, position)
+        var hitList: MutableList<ObservableWidget>? = null
+        var deepIndex = -1
+
+        for (widget in visibleWidgets) {
+            if (!widget.canTouch() || !hitTest(widget, position)) continue
+            val list = hitList ?: mutableListOf<ObservableWidget>().also { hitList = it }
+            list.add(widget)
+            //记录第一个支持深度检测的控件位置
+            if (deepIndex == -1 && widget.supportsDeepTouchDetection()) deepIndex = list.lastIndex
         }
-        if (hitList.isEmpty()) return emptyList()
 
-        //找到第一个支持深度检测的控件
-        val firstDeepWidget = hitList
-            .firstOrNull { it.supportsDeepTouchDetection() }
-            ?: return hitList
+        val hits = hitList ?: return emptyList()
+        if (deepIndex == -1) return hits
 
-        val topIndex = hitList.indexOf(firstDeepWidget)
-        //只保留该控件及其上方的可穿透控件
-        return hitList.subList(0, topIndex + 1)
-            .filter { !it.canProcess() }
+        //只保留深度检测控件及其上方的可穿透控件
+        for (i in hits.lastIndex downTo deepIndex) {
+            if (i > deepIndex || hits[i].canProcess()) hits.removeAt(i)
+        }
+        return hits
     }
 
     /**
@@ -110,7 +115,6 @@ class TouchProcessor(
         val widgets = session.activeWidgets(pointerId)
         if (widgets.isEmpty()) return
 
-        val preSnapshot = session.snapshot(pointerId)
         val backInBounds = mutableListOf<ObservableWidget>()
         val removed = mutableListOf<ObservableWidget>()
 
@@ -139,7 +143,7 @@ class TouchProcessor(
         if (
             currentWidgets.isEmpty() &&
             //越界前存在可滑动控件
-            preSnapshot.any { it.behavior is InteractionBehavior.Swipable }
+            widgets.any { it.behavior is InteractionBehavior.Swipable }
         ) {
             session.enterSwipeChain(pointerId)
         }

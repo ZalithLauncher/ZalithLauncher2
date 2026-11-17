@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
@@ -77,7 +76,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.ViewModel
@@ -99,10 +97,11 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.control.ControlData
 import com.movtery.zalithlauncher.game.control.ControlManager
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.ui.activities.startEditorActivity
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.AnimatedDirection
 import com.movtery.zalithlauncher.ui.components.AnimatedRow
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
@@ -115,6 +114,7 @@ import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleEditDialog
 import com.movtery.zalithlauncher.ui.components.SingleLineTextCheck
+import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
@@ -123,6 +123,7 @@ import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.ImportMultipleFileButton
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_translatable.EditTranslatableTextDialog
+import com.movtery.zalithlauncher.ui.screens.main.control_editor.orUnspecified
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -273,12 +274,12 @@ fun ControlManageScreen(
                 .fillMaxSize()
                 .padding(all = 12.dp),
             isVisible = isVisible
-        ) { scope ->
-            AnimatedItem(scope) { xOffset ->
+        ) {
+            AnimatedItem { ctx ->
                 ControlLayoutList(
                     modifier = Modifier
                         .weight(0.5f)
-                        .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+                        .animated(ctx, from = AnimatedDirection.Right),
                     dataList = dataList,
                     locale = locale,
                     isLoading = isRefreshing,
@@ -305,11 +306,11 @@ fun ControlManageScreen(
                 )
             }
 
-            AnimatedItem(scope) { xOffset ->
+            AnimatedItem { ctx ->
                 ControlLayoutInfo(
                     modifier = Modifier
                         .weight(0.5f)
-                        .offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+                        .animated(ctx, from = AnimatedDirection.Right),
                     isLoading = isRefreshing,
                     data = selectedLayout,
                     locale = locale,
@@ -356,7 +357,7 @@ private fun ControlOperation(
         is ControlOperation.Delete -> {
             val data = operation.data
             val layoutName = if (data.isSupport) {
-                data.controlLayout.info.name.translate()
+                data.controlLayout.info.name.translate().orUnspecified()
             } else {
                 data.file.name
             }
@@ -490,7 +491,7 @@ private fun ControlLayoutList(
                                 .padding(vertical = 6.dp),
                             data = data,
                             locale = locale,
-                            selected = data.file.name == AllSettings.controlLayout.state,
+                            selected = data.file.name == ControlSettings.controlLayout.state,
                             onSelected = { ControlManager.selectControl(data) },
                             onCopy = { onCopy(data) },
                             onDelete = { onDelete(data) }
@@ -614,7 +615,11 @@ private fun ControlLayoutItem(
                 ) {
                     MarqueeText(
                         modifier = Modifier.weight(1f, fill = false),
-                        text = if (data.isSupport) info.name.translate(locale) else data.file.name,
+                        text = if (data.isSupport) {
+                            info.name.translate(locale).orUnspecified()
+                        } else {
+                            data.file.name
+                        },
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -705,11 +710,10 @@ private fun ControlLayoutInfo(
                 contentPadding = PaddingValues(all = 12.dp)
             ) {
                 item {
-                    val name = info.name.translate(locale)
                     ControlInfoItem(
                         modifier = Modifier.fillMaxWidth(),
                         title = stringResource(R.string.control_manage_create_new_name),
-                        value = if (name.isEmptyOrBlank()) stringResource(R.string.generic_unspecified) else name,
+                        value = info.name.translate(locale).orUnspecified(),
                         onEdit = {
                             onEditText(data, info.name, EditTextType.NAME)
                         }
@@ -717,11 +721,10 @@ private fun ControlLayoutInfo(
                 }
 
                 item {
-                    val author = info.author.translate(locale)
                     ControlInfoItem(
                         modifier = Modifier.fillMaxWidth(),
                         title = stringResource(R.string.control_manage_create_new_author),
-                        value = if (author.isEmptyOrBlank()) stringResource(R.string.generic_unspecified) else author,
+                        value = info.author.translate(locale).orUnspecified(),
                         onEdit = {
                             onEditText(data, info.author, EditTextType.AUTHOR)
                         }
@@ -729,11 +732,10 @@ private fun ControlLayoutInfo(
                 }
 
                 item {
-                    val versionName = info.versionName
                     ControlInfoItem(
                         modifier = Modifier.fillMaxWidth(),
                         title = stringResource(R.string.control_manage_create_new_version_name),
-                        value = if (versionName.isEmptyOrBlank()) stringResource(R.string.generic_unspecified) else versionName,
+                        value = info.versionName.orUnspecified(),
                         onEdit = {
                             onEditVersion(data)
                         }

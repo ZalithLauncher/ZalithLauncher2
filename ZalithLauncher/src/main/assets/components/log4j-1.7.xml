@@ -3,10 +3,6 @@
     <Appenders>
         <Console name="SysOut" target="SYSTEM_OUT">
             <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level]: %msg%n" />
-            <Policies>
-                <TimeBasedTriggeringPolicy />
-                <OnStartupTriggeringPolicy />
-            </Policies>
         </Console>
         <RollingRandomAccessFile name="File" fileName="logs/latest.log" filePattern="logs/%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="[%d{HH:mm:ss}] [%t/%level]: %msg%n" />

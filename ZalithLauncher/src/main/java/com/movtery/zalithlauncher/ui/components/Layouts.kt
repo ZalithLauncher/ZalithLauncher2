@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,7 +55,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
@@ -68,7 +69,7 @@ fun ScalingLabel(
     shape: Shape = MaterialTheme.shapes.extraLarge,
     color: Color = itemColor(influencedByBackground),
     contentColor: Color = onItemColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
 ) {
     val scale = remember { Animatable(initialValue = 0.95f) }
     LaunchedEffect(Unit) {
@@ -313,17 +314,21 @@ fun TitleAndSummary(
 @Composable
 fun FocusableBox(
     modifier: Modifier = Modifier,
-    requestKey: Any? = null
+    requestKey: Any? = null,
+    canRequestFocus: () -> Boolean = { true }
 ) {
     val focusRequester = remember { FocusRequester() }
+    val currentCanRequestFocus by rememberUpdatedState(canRequestFocus)
 
     Box(
         modifier = modifier
-            .focusable(enabled = true)
             .focusRequester(focusRequester)
+            .focusable(enabled = true)
     )
 
     LaunchedEffect(requestKey) {
-        focusRequester.requestFocus()
+        if (currentCanRequestFocus()) {
+            focusRequester.requestFocus()
+        }
     }
 }

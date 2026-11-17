@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -59,6 +59,7 @@ fun IntSliderSettingsCard(
     enabled: Boolean = true,
     shorter: Boolean = true,
     fineTuningControl: Boolean = false,
+    valueText: ((Float) -> String)? = null,
     titleStyle: TextStyle = MaterialTheme.typography.titleSmall,
     summaryStyle: TextStyle = MaterialTheme.typography.labelSmall,
     appendContent: @Composable () -> Unit = {},
@@ -102,6 +103,7 @@ fun IntSliderSettingsCard(
                 suffix = suffix,
                 fineTuningControl = fineTuningControl,
                 fineTuningStep = 1f,
+                valueText = valueText,
                 appendContent = appendContent
             )
             previewContent()
@@ -137,6 +139,7 @@ fun IntSliderSettingsCard(
     enabled: Boolean = true,
     shorter: Boolean = true,
     fineTuningControl: Boolean = false,
+    valueText: ((Float) -> String)? = null,
     titleStyle: TextStyle = MaterialTheme.typography.titleSmall,
     summaryStyle: TextStyle = MaterialTheme.typography.labelSmall,
     appendContent: @Composable () -> Unit = {},
@@ -157,10 +160,11 @@ fun IntSliderSettingsCard(
             unit.updateState(it)
             onValueChange(it)
         },
-        onValueChangeFinished = { unit.save(unit.state) },
+        onValueChangeFinished = { unit.save(unit.flow.value) },
         enabled = enabled,
         shorter = shorter,
         fineTuningControl = fineTuningControl,
+        valueText = valueText,
         titleStyle = titleStyle,
         summaryStyle = summaryStyle,
         appendContent = appendContent,
@@ -184,6 +188,7 @@ fun IntSliderSettingsCard(
     enabled: Boolean = true,
     shorter: Boolean = true,
     fineTuningControl: Boolean = false,
+    valueText: ((Float) -> String)? = null,
     titleStyle: TextStyle = MaterialTheme.typography.titleSmall,
     summaryStyle: TextStyle = MaterialTheme.typography.labelSmall,
     appendContent: @Composable () -> Unit = {},
@@ -204,10 +209,11 @@ fun IntSliderSettingsCard(
             unit.updateState(it)
             onValueChange(it)
         },
-        onValueChangeFinished = { unit.save(unit.state) },
+        onValueChangeFinished = { unit.save(unit.flow.value) },
         enabled = enabled,
         shorter = shorter,
         fineTuningControl = fineTuningControl,
+        valueText = valueText,
         titleStyle = titleStyle,
         summaryStyle = summaryStyle,
         appendContent = appendContent,

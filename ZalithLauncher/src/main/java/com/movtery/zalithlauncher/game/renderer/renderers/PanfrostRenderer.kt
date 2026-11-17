@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@ object PanfrostRenderer : RendererInterface {
     override fun getRendererId(): String = "gallium_panfrost"
 
     override fun getUniqueIdentifier(): String = "9b2808c4-11af-4c72-a9c6-94c940396475"
+
+    override val mesaBased: Boolean = true
 
     override fun getRendererName(): String = "Panfrost (Mali)"
 

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import android.content.Context
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskFlowExecutor
+import com.movtery.zalithlauncher.coroutine.TaskLogOutput
 import com.movtery.zalithlauncher.coroutine.TitledTask
 import com.movtery.zalithlauncher.coroutine.addTask
 import com.movtery.zalithlauncher.coroutine.buildPhase
@@ -34,6 +35,7 @@ import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.file.copyDirectoryContents
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 
 /**
@@ -78,7 +80,8 @@ abstract class ModPackInfoTask(
         versionFolder: File,
         waitForVersionName: suspend (name: String) -> String,
         addPhases: (List<TaskFlowExecutor.TaskPhase>) -> Unit,
-        onClearTemp: suspend () -> Unit
+        onClearTemp: suspend () -> Unit,
+        logOutputHolder: MutableStateFlow<TaskLogOutput?>
     ): List<TaskFlowExecutor.TaskPhase> {
         return listOf(
             buildPhase {
@@ -123,7 +126,12 @@ abstract class ModPackInfoTask(
                     )
 
                     //开始安装游戏！切换到下一阶段！
-                    val gameInstaller = GameInstaller(context, gameDownloadInfo, scope)
+                    val gameInstaller = GameInstaller(
+                        context = context,
+                        info = gameDownloadInfo,
+                        scope = scope,
+                        logOutputHolder = logOutputHolder
+                    )
                     addPhases(
                         gameInstaller.getTaskPhase(
                             createIsolation = false,
@@ -174,7 +182,7 @@ abstract class ModPackInfoTask(
             }
 
             //创建版本信息
-            VersionConfig.createIsolation(targetClientDir).apply {
+            VersionConfig.createIsolationForModPack(targetClientDir).apply {
                 this.versionSummary = modpackInfo.summary ?: "" //整合包描述
                 this.ramAllocation = modpackInfo.ram ?: -1
             }.save()

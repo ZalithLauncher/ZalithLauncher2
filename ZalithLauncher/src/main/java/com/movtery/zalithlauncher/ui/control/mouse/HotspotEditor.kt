@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -131,11 +131,11 @@ fun MouseHotspotEditorDialog(
                             value = hotspot.state.xPercent.toFloat(),
                             onValueChange = { value ->
                                 hotspot.updateState(
-                                    hotspot.state.copy(xPercent = value.toInt())
+                                    hotspot.flow.value.copy(xPercent = value.toInt())
                                 )
                             },
                             onValueChangeFinished = {
-                                hotspot.save(hotspot.state)
+                                hotspot.save(hotspot.flow.value)
                             },
                             decimalFormat = "#0",
                             suffix = "%",
@@ -149,11 +149,11 @@ fun MouseHotspotEditorDialog(
                             value = hotspot.state.yPercent.toFloat(),
                             onValueChange = { value ->
                                 hotspot.updateState(
-                                    hotspot.state.copy(yPercent = value.toInt())
+                                    hotspot.flow.value.copy(yPercent = value.toInt())
                                 )
                             },
                             onValueChangeFinished = {
-                                hotspot.save(hotspot.state)
+                                hotspot.save(hotspot.flow.value)
                             },
                             decimalFormat = "#0",
                             suffix = "%",

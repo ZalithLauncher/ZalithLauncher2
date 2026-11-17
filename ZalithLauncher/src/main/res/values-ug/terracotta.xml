@@ -24,6 +24,7 @@
     <string name="terracotta_menu">بىرلەشمە ئويۇن تىزىملىكى</string>
     <string name="terracotta_notification_title">Terracotta | تاۋۋا بىرلەشمە ئويۇنى ھازىر مۇلازىمەت قىلىۋاتىدۇ</string>
     <string name="terracotta_notification_desc">سالاھىيىتى: %s ھالەت: %s</string>
+    <string name="terracotta_notification_state_preparing">ئۇلىنىش تەييارلىنىۋاتىدۇ…</string>
     <string name="terracotta_status_waiting_host_title">مەن ئۆي ئىگىسى بولىمەن</string>
     <string name="terracotta_status_waiting_host_desc">ئۆي ئاچىمىز ھەمدە تەكلىپ نومۇرى ھاسىل قىلىمىز، دوستلىرىڭىز بىلەن بىللە خۇشال-خۇرام ئوينايمىز</string>
     <string name="terracotta_status_waiting_guest_title">مەن مېھمان بولىمەن</string>

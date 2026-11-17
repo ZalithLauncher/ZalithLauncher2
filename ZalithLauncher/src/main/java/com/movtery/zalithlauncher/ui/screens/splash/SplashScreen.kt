@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,57 +18,58 @@
 
 package com.movtery.zalithlauncher.ui.screens.splash
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.ui.NavDisplay
-import com.movtery.zalithlauncher.BuildKeys
+import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.components.InstallableItem
-import com.movtery.zalithlauncher.ui.screens.NormalNavKey
+import com.movtery.zalithlauncher.legal.AvailableAgreement
+import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.AnimatedDirection
+import com.movtery.zalithlauncher.ui.components.animated
+import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
+import com.movtery.zalithlauncher.ui.screens.NavStateHost
+import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
-import com.movtery.zalithlauncher.ui.theme.onBackgroundColor
 import com.movtery.zalithlauncher.viewmodel.SplashBackStackViewModel
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * @param startAllTask 开启全部的解压任务
+ * @param onWelcomeFinished 完成欢迎页
+ * @param onExitClick 架构不匹配屏幕的退出按钮
+ * @param availableAgreement 完整的可用协议数据
  * @param unpackItems 解压任务列表
  */
 @Composable
 fun SplashScreen(
     startAllTask: () -> Unit,
+    onWelcomeFinished: () -> Unit,
+    onExitClick: () -> Unit = {},
+    availableAgreement: StateFlow<AvailableAgreement?>,
     unpackItems: List<InstallableItem>,
     screenViewModel: SplashBackStackViewModel
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-        TopBar(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(40.dp),
-            contentColor = onBackgroundColor()
-        )
-
+    NavStateHost(rootKey = screenViewModel.splashScreen) {
         NavigationUI(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxSize(),
             startAllTask = startAllTask,
+            onWelcomeFinished = onWelcomeFinished,
+            onExitClick = onExitClick,
+            availableAgreement = availableAgreement,
             unpackItems = unpackItems,
             screenViewModel = screenViewModel
         )
@@ -76,29 +77,12 @@ fun SplashScreen(
 }
 
 @Composable
-private fun TopBar(
-    modifier: Modifier = Modifier,
-    contentColor: Color,
-) {
-    CompositionLocalProvider(
-        LocalContentColor provides contentColor
-    ) {
-        Row(
-            modifier = modifier,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Text(
-                modifier = Modifier.align(Alignment.CenterVertically),
-                text = BuildKeys.LAUNCHER_NAME
-            )
-        }
-    }
-}
-
-@Composable
 private fun NavigationUI(
     modifier: Modifier = Modifier,
     startAllTask: () -> Unit,
+    onWelcomeFinished: () -> Unit,
+    onExitClick: () -> Unit = {},
+    availableAgreement: StateFlow<AvailableAgreement?>,
     unpackItems: List<InstallableItem>,
     screenViewModel: SplashBackStackViewModel
 ) {
@@ -110,20 +94,75 @@ private fun NavigationUI(
     }
 
     if (backStack.isNotEmpty()) {
-        NavDisplay(
+        NestedNavDisplay(
+            ownerKey = screenViewModel.splashScreen,
             backStack = backStack,
             modifier = modifier,
+            onBack = {},
             transitionSpec = rememberTransitionSpec(),
             popTransitionSpec = rememberTransitionSpec(),
             entryProvider = entryProvider {
-                entry<NormalNavKey.UnpackDeps> {
-                    UnpackScreen(unpackItems, screenViewModel) {
-                        startAllTask()
-                    }
+                entry<SplashOperation.Loading> {
+                    LoadingScreen(screenViewModel = screenViewModel)
+                }
+                entry<SplashOperation.Welcome> {
+                    WelcomeScreen(
+                        modifier = Modifier.fillMaxSize(),
+                        onFinished = onWelcomeFinished,
+                        availableAgreement = availableAgreement,
+                        screenViewModel = screenViewModel
+                    )
+                }
+                entry<SplashOperation.Unpacking> {
+                    UnpackScreen(
+                        items = unpackItems,
+                        screenViewModel = screenViewModel,
+                        onAgreeClick = startAllTask
+                    )
+                }
+                entry<SplashOperation.ArchMismatch> {
+                    ArchMismatchScreen(
+                        screenViewModel = screenViewModel,
+                        onExitClick = onExitClick,
+                    )
                 }
             }
         )
     } else {
         Box(modifier)
+    }
+}
+
+@Composable
+private fun LoadingScreen(
+    screenViewModel: SplashBackStackViewModel
+) {
+    BaseScreen(
+        screenKey = SplashOperation.Loading,
+        currentKey = screenViewModel.splashScreen.currentKey
+    ) { isVisible ->
+        val ctx = rememberAnimatedContext(isVisible = isVisible)
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .animated(ctx, from = AnimatedDirection.Bottom),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Image(
+                    modifier = Modifier.size(58.dp),
+                    painter = painterResource(R.drawable.img_launcher),
+                    contentDescription = stringResource(R.string.generic_loading)
+                )
+                LinearWavyProgressIndicator(
+                    modifier = Modifier.width(128.dp),
+                    wavelength = 32.dp
+                )
+            }
+        }
     }
 }

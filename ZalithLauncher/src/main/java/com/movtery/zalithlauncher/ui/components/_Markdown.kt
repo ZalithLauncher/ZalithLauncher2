@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@ import com.halilibo.richtext.markdown.AstBlockNodeComposer
 import com.halilibo.richtext.markdown.BasicMarkdown
 import com.halilibo.richtext.markdown.node.AstNode
 import com.halilibo.richtext.ui.CodeBlockStyle
+import com.halilibo.richtext.ui.ListStyle
 import com.halilibo.richtext.ui.RichTextStyle
 import com.halilibo.richtext.ui.TableStyle
 import com.halilibo.richtext.ui.material3.RichText
@@ -80,37 +81,50 @@ fun MarkdownView(
 fun defaultRichTextStyle(
     influencedByBackground: Boolean = true,
     codeBackground: Color = cardColor(influencedByBackground),
+    headingColor: Color = MaterialTheme.colorScheme.primary,
+    tableColor: Color = MaterialTheme.colorScheme.outlineVariant,
+    linkColor: Color = MaterialTheme.colorScheme.secondary,
+    linkBackgroundColor: Color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
 ): RichTextStyle {
     return RichTextStyle(
         headingStyle = { level, textStyle ->
             when (level) {
                 0 -> TextStyle(
                     fontSize = 34.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = headingColor,
                 )
                 1 -> TextStyle(
                     fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = headingColor,
                 )
                 2 -> TextStyle(
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
+                    color = headingColor,
                 )
                 3 -> TextStyle(
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
+                    color = headingColor,
                 )
                 4 -> TextStyle(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
+                    color = headingColor,
                 )
                 5 -> TextStyle(
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
+                    color = headingColor,
                 )
                 else -> textStyle
             }
         },
+        listStyle = ListStyle(
+
+        ),
         codeBlockStyle = CodeBlockStyle(
             modifier = Modifier
                 .fillMaxWidth()
@@ -124,18 +138,18 @@ fun defaultRichTextStyle(
             padding = 8.sp
         ),
         tableStyle = TableStyle(
-            borderColor = MaterialTheme.colorScheme.outlineVariant,
+            borderColor = tableColor,
         ),
         stringStyle = RichTextStringStyle(
             linkStyle = TextLinkStyles(
                 style = SpanStyle(
-                    color = MaterialTheme.colorScheme.primary,
+                    color = linkColor,
                     textDecoration = TextDecoration.Underline,
                     fontWeight = FontWeight.Bold
                 ),
                 pressedStyle = SpanStyle(
-                    color = MaterialTheme.colorScheme.primary,
-                    background = MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f),
+                    color = linkColor,
+                    background = linkBackgroundColor,
                     textDecoration = TextDecoration.Underline,
                     fontWeight = FontWeight.Bold
                 )

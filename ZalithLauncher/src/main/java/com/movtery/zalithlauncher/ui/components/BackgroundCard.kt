@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,11 +33,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.UiComposable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import com.movtery.zalithlauncher.setting.AllSettings
+import androidx.compose.ui.unit.dp
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.cardTitleColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
+
+@Composable
+private fun flatCardElevation() = CardDefaults.cardElevation(
+    defaultElevation = 0.dp,
+    pressedElevation = 0.dp,
+    focusedElevation = 0.dp,
+    hoveredElevation = 0.dp,
+    draggedElevation = 0.dp,
+    disabledElevation = 0.dp
+)
 
 /**
  * 背景卡片组件，
@@ -52,8 +63,8 @@ fun BackgroundCard(
         containerColor = cardColor(influencedByBackground),
         contentColor = onCardColor()
     ),
-    elevation: CardElevation = CardDefaults.cardElevation(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    elevation: CardElevation = flatCardElevation(),
+    blur: Int = LauncherSettings.backgroundBlur.state,
     border: BorderStroke? = null,
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -85,8 +96,8 @@ fun BackgroundCard(
         contentColor = onCardColor(),
         disabledContainerColor = cardColor(influencedByBackground)
     ),
-    elevation: CardElevation = CardDefaults.cardElevation(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    elevation: CardElevation = flatCardElevation(),
+    blur: Int = LauncherSettings.backgroundBlur.state,
     border: BorderStroke? = null,
     onClick: () -> Unit,
     enabled: Boolean = true,
@@ -122,7 +133,7 @@ fun CardTitleLayout(
         enabled = influencedByBackground
     ),
     contentColor: Color = onCardColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
     content: @Composable @UiComposable ColumnScope.() -> Unit
 ) {
     Column(

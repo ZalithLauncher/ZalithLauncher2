@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,6 +78,19 @@ public final class ZLBridge {
 
     //Utils
     @Keep public static native int chdir(String path);
+
+    //Narrator (flite)
+    /**
+     * 返回当前（Dalvik/ART）JavaVM 指针，供游戏 JVM 侧原生代码经环境变量 attach 回安卓运行时
+     */
+    @Keep
+    public static native long getJavaVMPointer();
+
+    /**
+     * 为对象创建全局引用并以十六进制字符串返回其地址，配合 {@link #getJavaVMPointer()} 注入环境变量
+     */
+    @Keep
+    public static native String jObjectToString(Object object);
 
     static {
         NativeLibraryLoader.loadExitHookLib();

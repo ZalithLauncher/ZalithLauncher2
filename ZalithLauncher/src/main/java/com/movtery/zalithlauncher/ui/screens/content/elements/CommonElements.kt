@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,12 +80,14 @@ import com.movtery.zalithlauncher.context.copyLocalFile
 import com.movtery.zalithlauncher.context.getFileName
 import com.movtery.zalithlauncher.contract.extensionToMimeType
 import com.movtery.zalithlauncher.coroutine.Task
+import com.movtery.zalithlauncher.coroutine.TaskLogOutput
 import com.movtery.zalithlauncher.coroutine.TaskStage
 import com.movtery.zalithlauncher.coroutine.TitledTask
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.TaskLogCard
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -163,7 +165,8 @@ fun SortByDropdownMenu(
     currentEnum: SortByEnum,
     onEnumChanged: (SortByEnum) -> Unit,
     isAscending: Boolean,
-    onToggleSortOrder: () -> Unit
+    onToggleSortOrder: () -> Unit,
+    enabled: Boolean = true,
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -176,6 +179,7 @@ fun SortByDropdownMenu(
                 onClick = {
                     onEnumChanged(item)
                 },
+                enabled = enabled,
                 trailingIcon = if (item == currentEnum) {
                     {
                         IconButton(
@@ -270,7 +274,8 @@ fun ImportMultipleFileButton(
     progressUris: (uris: List<Uri>) -> Unit,
     modifier: Modifier = Modifier,
     painter: Painter = painterResource(R.drawable.ic_add),
-    text: String = stringResource(R.string.generic_import)
+    text: String = stringResource(R.string.generic_import),
+    enabled: Boolean = true,
 ) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
@@ -286,7 +291,8 @@ fun ImportMultipleFileButton(
             launcher.launch(extension.extensionToMimeType())
         },
         painter = painter,
-        text = text
+        text = text,
+        enabled = enabled,
     )
 }
 
@@ -296,7 +302,9 @@ fun ImportSingleFileButton(
     progressUris: (uris: List<Uri>) -> Unit,
     modifier: Modifier = Modifier,
     painter: Painter = painterResource(R.drawable.ic_add),
-    text: String = stringResource(R.string.generic_import)
+    text: String = stringResource(R.string.generic_import),
+    onClick: () -> Unit = {},
+    onLongClick: ((launch: () -> Unit) -> Unit)? = null
 ) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -309,10 +317,18 @@ fun ImportSingleFileButton(
     IconTextButton(
         modifier = modifier,
         onClick = {
+            onClick()
             launcher.launch(extension.extensionToMimeType())
         },
         painter = painter,
-        text = text
+        text = text,
+        onLongClick = {
+            if (onLongClick != null) {
+                onLongClick { launcher.launch(extension.extensionToMimeType()) }
+            } else {
+                launcher.launch(extension.extensionToMimeType())
+            }
+        }
     )
 }
 
@@ -344,12 +360,14 @@ fun <I, O> ImportFileButton(
 fun TitleTaskFlowDialog(
     title: String,
     tasks: List<TitledTask>,
-    onCancel: () -> Unit = {}
+    onCancel: () -> Unit = {},
+    logOutput: TaskLogOutput? = null
 ) {
     Dialog(
         onDismissRequest = {},
         properties = DialogProperties(
-            dismissOnClickOutside = false
+            dismissOnClickOutside = false,
+            usePlatformDefaultWidth = logOutput == null
         )
     ) {
         BoxWithConstraints(
@@ -362,7 +380,12 @@ fun TitleTaskFlowDialog(
                 modifier = Modifier
                     .padding(all = 6.dp)
                     .heightIn(max = (maxHeight - 12.dp).coerceAtMost(rememberDialogMaxHeight()))
-                    .wrapContentHeight(),
+                    .wrapContentHeight()
+                    .then(
+                        if (logOutput != null) {
+                            Modifier.fillMaxWidth(0.8f)
+                        } else Modifier
+                    ),
                 shape = MaterialTheme.shapes.extraLarge,
                 color = cardColor(false),
                 contentColor = onCardColor(),
@@ -370,29 +393,29 @@ fun TitleTaskFlowDialog(
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-
-                    val scrollState = rememberLazyListState()
-                    LazyColumn(
-                        modifier = Modifier
-                            .fadeEdge(state = scrollState)
-                            .weight(1f, fill = false),
-                        state = scrollState
-                    ) {
-                        items(tasks) { task ->
-                            InstallingTaskItem(
+                    if (logOutput == null) {
+                        TaskFlowListColumn(
+                            title = title,
+                            tasks = tasks,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                    } else {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            TaskFlowListColumn(
+                                title = title,
+                                tasks = tasks,
+                                modifier = Modifier.weight(1f)
+                            )
+                            TaskLogCard(
+                                logOutput = logOutput,
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 6.dp),
-                                title = task.title,
-                                runningIcon = task.runningIcon,
-                                task = task.task
+                                    .weight(1f)
+                                    .fillMaxHeight()
                             )
                         }
                     }
@@ -404,6 +427,43 @@ fun TitleTaskFlowDialog(
                         MarqueeText(text = stringResource(R.string.generic_cancel))
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TaskFlowListColumn(
+    title: String,
+    tasks: List<TitledTask>,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium
+        )
+
+        val scrollState = rememberLazyListState()
+        LazyColumn(
+            modifier = Modifier
+                .fadeEdge(state = scrollState)
+                .weight(1f, fill = false),
+            state = scrollState
+        ) {
+            items(tasks, key = { it.task.id }) { task ->
+                InstallingTaskItem(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 6.dp),
+                    title = task.title,
+                    runningIcon = task.runningIcon,
+                    task = task.task
+                )
             }
         }
     }

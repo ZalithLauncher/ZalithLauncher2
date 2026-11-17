@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,3 +21,4 @@ package com.movtery.zalithlauncher.notification
 const val NOTIFICATION_ID_JVM_SERVICE = 1001
 const val NOTIFICATION_ID_GAME_SERVICE = 1002
 const val NOTIFICATION_ID_VPN_REQUEST_CODE = 1003
+const val NOTIFICATION_ID_TASK_SERVICE = 1004

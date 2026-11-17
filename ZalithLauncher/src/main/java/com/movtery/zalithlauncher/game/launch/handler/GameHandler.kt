@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,7 +40,8 @@ import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.sdl.handleGamepadKeyEvent
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
+import com.movtery.zalithlauncher.setting.GameUiSettings
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.terracotta.Terracotta
 import com.movtery.zalithlauncher.ui.control.gamepad.isGamepadKeyEvent
@@ -99,9 +100,9 @@ class GameHandler(
             set("fullscreen", "false")
             set("touchscreen", "false")
 
-            //关闭文本转语音功能
-            set("options.narrator", "0")
-            set("narrator", "0")
+//            //关闭文本转语音功能
+//            set("options.narrator", "0")
+//            set("narrator", "0")
 
             if (version.getVersionInfo()!!.minecraftVersion.isLowerVer("1.13")) {
                 //fix: 牢版本按键事件
@@ -161,11 +162,11 @@ class GameHandler(
         if (event.action == KeyEvent.ACTION_UP && (event.flags and KeyEvent.FLAG_CANCELED) != 0) return false
 
         if (event.isGamepadKeyEvent()) {
-            if (AllSettings.gamepadControl.state && gamepadViewModel.checkModePrompt()) {
+            if (ControlSettings.gamepadControl.flow.value && gamepadViewModel.checkModePrompt()) {
                 //模式选择询问完成前，吞掉所有手柄按键输入
                 return false
             }
-            if (AllSettings.gamepadControl.state && AllSettings.gamepadInputMode.state == GamepadInputMode.SdlDirect) {
+            if (ControlSettings.gamepadControl.flow.value && ControlSettings.gamepadInputMode.flow.value == GamepadInputMode.SdlDirect) {
                 //SDL 直通模式下，按键原样交给 SDL native
                 if (SdlBridge.sdlEnabled) {
                     //让控制布局等注册方感知到手柄使用中
@@ -179,13 +180,13 @@ class GameHandler(
                 }
                 return false
             }
-            return if (AllSettings.gamepadControl.state) {
+            return if (ControlSettings.gamepadControl.flow.value) {
                 //开启时，提前发送事件，在UI层处理（或重映射）
                 gamepadViewModel.sendKeyEvent(event)
                 false
             } else {
                 //已禁用手柄控制，避免继续向下被当作键盘事件进行处理
-                if (AllSettings.showMenuBall.state) {
+                if (GameUiSettings.showMenuBall.flow.value) {
                     //开启游戏菜单悬浮窗时，完全无响应
                     false
                 } else {
@@ -201,6 +202,8 @@ class GameHandler(
                 LWJGLCharSender.sendEnter()
                 return false
             }
+            //输入法产生的字符类按键事件不能转发给游戏
+            if (event.unicodeChar != 0) return true
         }
 
         EfficientAndroidLWJGLKeycode.getIndexByKey(event.keyCode).takeIf { it >= 0 }?.let { index ->

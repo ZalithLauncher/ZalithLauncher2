@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,15 +68,15 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
-import com.movtery.zalithlauncher.game.addons.modloader.cleanroom.CleanroomVersion
 import com.movtery.zalithlauncher.game.addons.modloader.fabriclike.FabricLikeVersion
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.forge.ForgeVersion
 import com.movtery.zalithlauncher.game.addons.modloader.forgelike.neoforge.NeoForgeVersion
 import com.movtery.zalithlauncher.game.addons.modloader.modlike.ModVersion
 import com.movtery.zalithlauncher.game.addons.modloader.optifine.OptiFineVersion
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.influencedByBackgroundColor
 import com.movtery.zalithlauncher.ui.components.rememberMaxHeight
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
@@ -112,6 +112,27 @@ private fun AddonTextLayout(
         title = title,
         summary = {
             Text(
+                text = summary,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+    )
+}
+
+/**
+ * 简易 Addon 文本占位
+ */
+@Composable
+private fun AddonTextLayout(
+    modifier: Modifier = Modifier,
+    title: String,
+    summary: AndroidStringText
+) {
+    AddonTextLayout(
+        modifier = modifier,
+        title = title,
+        summary = {
+            AndroidStringText(
                 text = summary,
                 style = MaterialTheme.typography.bodySmall
             )
@@ -175,7 +196,7 @@ fun <E> AddonListLayout(
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
 ) {
     var selectedItem by remember { mutableStateOf<E?>(null) }
 
@@ -305,20 +326,33 @@ private fun <E> AddonListHeader(
         when(state) {
             is AddonState.None -> {
                 Column(modifier = Modifier.weight(1f)) {
-                    val summary: String = when {
-                        error != null -> error
-                        incompatibleSet.isNotEmpty() -> {
-                            stringResource(R.string.download_game_addon_incompatible_with, incompatibleSet.joinToString(", ") { it.displayName })
+                    if (error == null && incompatibleSet.isEmpty() && !items.isNullOrEmpty() && selectedItem != null) {
+                        //已经选择了对应的 Addon 版本
+                        AddonTextLayout(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = title,
+                            summary = {
+                                LittleTextLabel(
+                                    text = getItemText(selectedItem),
+                                    textStyle = MaterialTheme.typography.labelSmall,
+                                )
+                            }
+                        )
+                    } else {
+                        val summary: String = when {
+                            error != null -> error
+                            incompatibleSet.isNotEmpty() -> {
+                                stringResource(R.string.download_game_addon_incompatible_with, incompatibleSet.joinToString(", ") { it.displayName })
+                            }
+                            items.isNullOrEmpty() -> stringResource(R.string.download_game_addon_unavailable)
+                            else -> stringResource(R.string.download_game_addon_available)
                         }
-                        items.isNullOrEmpty() -> stringResource(R.string.download_game_addon_unavailable)
-                        selectedItem == null -> stringResource(R.string.download_game_addon_available)
-                        else -> stringResource(R.string.settings_element_selected, getItemText(selectedItem))
+                        AddonTextLayout(
+                            modifier = Modifier.fillMaxWidth(),
+                            title = title,
+                            summary = summary,
+                        )
                     }
-                    AddonTextLayout(
-                        modifier = Modifier.fillMaxWidth(),
-                        title = title,
-                        summary = summary,
-                    )
                 }
                 if (!items.isNullOrEmpty() && incompatibleSet.isEmpty() && error == null) {
                     val rotation by animateFloatAsState(
@@ -359,14 +393,10 @@ private fun <E> AddonListHeader(
                 AddonTextLayout(
                     modifier = Modifier.weight(1f),
                     title = title,
-                    summary = {
-                        AndroidStringText(
-                            text = androidText(
-                                R.string.download_game_addon_list_load_error,
-                                state.message
-                            )
-                        )
-                    },
+                    summary = androidText(
+                        R.string.download_game_addon_list_load_error,
+                        state.message
+                    )
                 )
                 IconButton(
                     modifier = Modifier
@@ -425,7 +455,7 @@ fun AddonWarningItem(
         enabled = true
     ),
     contentColor: Color = MaterialTheme.colorScheme.onErrorContainer,
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
 ) {
     Surface(
         modifier = modifier,
@@ -638,33 +668,6 @@ fun FabricLikeSummary(
             )
             Text(text = typeText, style = textStyle)
         }
-    }
-}
-
-@Composable
-fun CleanroomSummary(
-    version: CleanroomVersion,
-    iconSize: Dp = 14.dp,
-    textStyle: TextStyle = MaterialTheme.typography.labelSmall
-) {
-    //更新时间
-    Row(
-        modifier = Modifier.alpha(alpha = 0.7f),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            modifier = Modifier.size(iconSize),
-            painter = painterResource(R.drawable.ic_autorenew),
-            contentDescription = null
-        )
-        Text(
-            text = getTimeAgo(
-                context = LocalContext.current,
-                pastInstant = version.createdAt
-            ),
-            style = textStyle
-        )
     }
 }
 

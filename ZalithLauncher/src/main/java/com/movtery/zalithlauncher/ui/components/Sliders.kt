@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -36,6 +35,7 @@ import androidx.compose.material3.SliderColors
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -73,10 +73,11 @@ fun SimpleTextSlider(
     valueRange: ClosedFloatingPointRange<Float> = 0f..1f,
     fineTuningControl: Boolean = false,
     fineTuningStep: Float = 0.5f,
+    valueText: ((Float) -> String)? = null,
     appendContent: @Composable () -> Unit = {}
 ) {
-    val formatter = DecimalFormat(decimalFormat)
-    fun getTextString(value: Float) = "${if (toInt) {
+    val formatter = remember(decimalFormat) { DecimalFormat(decimalFormat) }
+    fun getTextString(value: Float) = valueText?.invoke(value) ?: "${if (toInt) {
         value.toInt()
     } else {
         formatter.format(value)
@@ -194,7 +195,6 @@ fun SimpleTextSlider(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IndicatorSlider(
     modifier: Modifier = Modifier,
@@ -214,14 +214,20 @@ fun IndicatorSlider(
     Layout(
         modifier = modifier,
         content = {
-            Slider(
+            val state = rememberSliderState(
                 value = value,
-                onValueChange = onValueChange,
-                valueRange = valueRange,
+                steps = steps,
+                trackRange = valueRange,
+            )
+            Slider(
+                state = state,
+                onValueChange = { value ->
+                    onValueChange(value)
+                    state.value = value
+                },
                 enabled = enabled,
                 onValueChangeFinished = onValueChangeFinished,
                 interactionSource = interactionSource,
-                steps = steps,
                 colors = colors,
                 thumb = {
                     SliderDefaults.Thumb(

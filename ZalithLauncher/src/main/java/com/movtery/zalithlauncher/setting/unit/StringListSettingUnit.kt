@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,10 +29,9 @@ class StringListSettingUnit(
     key = key,
     defaultValue = defaultValue
 ) {
-    override fun getValue(): List<String> {
+    override fun readValue(): List<String> {
         val list = launcherMMKV().decodeParcelable(key, ListParcelable::class.java)
-        return (list?.value ?: defaultValue)
-            .also { state = it }
+        return list?.value ?: defaultValue
     }
 
     override fun saveValue(v: List<String>): List<String> {

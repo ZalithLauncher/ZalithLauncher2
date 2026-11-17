@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.plugin.ApkPlugin
 import com.movtery.zalithlauncher.game.plugin.ApkPluginManager
 import com.movtery.zalithlauncher.game.plugin.cacheAppIcon
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 
 /**
  * FCL 驱动器插件
@@ -33,18 +33,10 @@ import com.movtery.zalithlauncher.setting.AllSettings
 object DriverPluginManager: ApkPluginManager() {
     private val driverList: MutableList<Driver> = mutableListOf()
 
-    @JvmStatic
     fun getDriverList(): List<Driver> = driverList.toList()
 
-    private lateinit var currentDriver: Driver
-
-    @JvmStatic
-    fun setDriverById(driverId: String) {
-        currentDriver = driverList.find { it.id == driverId } ?: driverList[0]
-    }
-
-    @JvmStatic
-    fun getDriver(): Driver = currentDriver
+    fun getDriver(driverId: String): Driver =
+        driverList.find { it.id == driverId } ?: driverList[0]
 
     /**
      * 初始化驱动器
@@ -54,7 +46,7 @@ object DriverPluginManager: ApkPluginManager() {
         val applicationInfo = context.applicationInfo
         driverList.add(
             Driver(
-                id = AllSettings.vulkanDriver.defaultValue,
+                id = RendererSettings.vulkanDriver.defaultValue,
                 appName = "",
                 appVersion = "",
                 name = "Turnip",
@@ -62,7 +54,6 @@ object DriverPluginManager: ApkPluginManager() {
                 isLauncher = true
             )
         )
-        setDriverById(AllSettings.vulkanDriver.getValue())
     }
 
     /**

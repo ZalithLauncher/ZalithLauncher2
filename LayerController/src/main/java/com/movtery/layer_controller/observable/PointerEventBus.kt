@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,11 +74,6 @@ class PointerEventBus {
     fun addActiveWidget(pointerId: PointerId, widget: ObservableWidget) {
         _activeWidgets.getOrPut(pointerId) { mutableListOf() }.add(widget)
     }
-
-    /**
-     * 获取活跃控件快照
-     */
-    fun snapshot(pointerId: PointerId): List<ObservableWidget> = activeWidgets(pointerId)
 
     /**
      * 替换指定指针的活跃控件列表

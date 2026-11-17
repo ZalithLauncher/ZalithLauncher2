@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@ import android.content.Context
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskFlowExecutor
+import com.movtery.zalithlauncher.coroutine.TaskLogOutput
 import com.movtery.zalithlauncher.coroutine.TitledTask
 import com.movtery.zalithlauncher.coroutine.addTask
 import com.movtery.zalithlauncher.coroutine.buildPhase
@@ -31,12 +32,13 @@ import com.movtery.zalithlauncher.game.download.modpack.install.retrieveLoader
 import com.movtery.zalithlauncher.game.download.modpack.platform.AbstractPack
 import com.movtery.zalithlauncher.game.download.modpack.platform.PackPlatform
 import com.movtery.zalithlauncher.game.version.installed.VersionConfig
-import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.game.version.installed.getVersionIconFile
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.file.copyDirectoryContents
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import java.io.File
 
 private const val TAG = "MultiMCPack"
@@ -71,7 +73,8 @@ open class MultiMCPack(
         versionFolder: File,
         waitForVersionName: suspend (name: String) -> String,
         addPhases: (List<TaskFlowExecutor.TaskPhase>) -> Unit,
-        onClearTemp: suspend () -> Unit
+        onClearTemp: suspend () -> Unit,
+        logOutputHolder: MutableStateFlow<TaskLogOutput?>
     ): List<TaskFlowExecutor.TaskPhase> {
         return listOf(
             buildPhase {
@@ -107,7 +110,7 @@ open class MultiMCPack(
                         } ?: File(minecraftDir, "icon.png")
                         
                         if (iconFile.exists() && iconFile.isFile) {
-                            iconFile.copyTo(VersionsManager.getVersionIconFile(versionFolder))
+                            iconFile.copyTo(getVersionIconFile(versionFolder))
                             //成功复制后，原本有的图标应该被删除
                             iconFile.delete()
                         }
@@ -152,7 +155,12 @@ open class MultiMCPack(
                     }
 
                     //开始安装游戏！切换到下一阶段！
-                    val gameInstaller = GameInstaller(context, gameDownloadInfo, scope)
+                    val gameInstaller = GameInstaller(
+                        context = context,
+                        info = gameDownloadInfo,
+                        scope = scope,
+                        logOutputHolder = logOutputHolder
+                    )
                     addPhases(
                         gameInstaller.getTaskPhase(
                             createIsolation = false,
@@ -203,7 +211,7 @@ open class MultiMCPack(
             }
 
             //创建版本信息
-            VersionConfig.createIsolation(targetClientDir).apply {
+            VersionConfig.createIsolationForModPack(targetClientDir).apply {
                 //Jvm启动参数
                 configuration?.jvmArgs?.let { this.jvmArgs = it }
                 //启动时自动加入服务器

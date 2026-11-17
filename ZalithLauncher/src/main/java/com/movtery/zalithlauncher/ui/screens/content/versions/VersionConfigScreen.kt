@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,34 +22,39 @@ import android.os.Build
 import android.os.Vibrator
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.control.ControlManager
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
+import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
+import com.movtery.zalithlauncher.game.renderer.ConfigurableRenderer
 import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.support.touch_controller.VibrationHandler
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
+import com.movtery.zalithlauncher.game.version.installed.SettingState
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionConfig
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.setting.unit.getOrMin
 import com.movtery.zalithlauncher.ui.AndroidStringText
@@ -57,6 +62,7 @@ import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedColumn
 import com.movtery.zalithlauncher.ui.components.IDItem
+import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -65,6 +71,7 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.MemoryPreview
 import com.movtery.zalithlauncher.ui.screens.content.elements.MicrophoneCheckOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.MicrophoneCheckState
 import com.movtery.zalithlauncher.ui.screens.content.settings.DriverSummaryLayout
+import com.movtery.zalithlauncher.ui.screens.content.settings.RendererConfigDialog
 import com.movtery.zalithlauncher.ui.screens.content.settings.RendererSummaryLayout
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPosition
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.EnumSettingsCard
@@ -74,14 +81,23 @@ import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCa
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SettingsCardColumn
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.SimpleIDListCard
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.TextInputSettingsCard
+import com.movtery.zalithlauncher.ui.screens.content.versions.elements.StatefulVersionConfig
 import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.StatefulDropdownMenuFollowGlobal
 import com.movtery.zalithlauncher.ui.screens.content.versions.layouts.ToggleableIntSliderSettingsCard
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.platform.getMaxMemoryForSettings
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
+import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 private const val TAG = "VersionConfigScreen"
+
+/** 页面退出后的配置保存作用域 */
+private val configSaveScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 @Composable
 fun VersionConfigScreen(
@@ -89,7 +105,7 @@ fun VersionConfigScreen(
     versionsScreenKey: TitledNavKey?,
     version: Version,
     backToMainScreen: () -> Unit,
-    onCheckVulkan: () -> Unit,
+    onCheckVulkan: (Version) -> Unit,
     showToast: (AndroidStringText) -> Unit,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
@@ -105,6 +121,17 @@ fun VersionConfigScreen(
         Triple(NormalNavKey.Versions.Config, versionsScreenKey, false)
     ) { isVisible ->
         val config = version.getVersionConfig()
+        val stateful = remember(version) { StatefulVersionConfig(config) }
+
+        DisposableEffect(version) {
+            onDispose {
+                if (stateful.isModified()) {
+                    // 页面退出时统一进行保存
+                    stateful.packInto(config)
+                    saveConfigAsync(config, submitError)
+                }
+            }
+        }
 
         AnimatedColumn(
             modifier = Modifier
@@ -112,36 +139,35 @@ fun VersionConfigScreen(
                 .verticalScrollWithBar(state = rememberScrollState())
                 .padding(all = 12.dp),
             isVisible = isVisible
-        ) { scope ->
-            AnimatedItem(scope) { yOffset ->
+        ) {
+            AnimatedItem { ctx ->
                 VersionConfigs(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-                    config = config,
-                    submitError = submitError
+                        .animated(ctx),
+                    stateful = stateful,
                 )
             }
 
-            AnimatedItem(scope) { yOffset ->
+            AnimatedItem { ctx ->
                 GameConfigs(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-                    config = config,
-                    submitError = submitError
+                        .animated(ctx),
+                    stateful = stateful,
                 )
             }
 
-            AnimatedItem(scope) { yOffset ->
+            AnimatedItem { ctx ->
                 SupportConfigs(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-                    config = config,
-                    onCheckVulkan = onCheckVulkan,
+                        .animated(ctx),
+                    stateful = stateful,
+                    onCheckVulkan = {
+                        onCheckVulkan(version)
+                    },
                     showToast = showToast,
-                    submitError = submitError
                 )
             }
         }
@@ -150,8 +176,7 @@ fun VersionConfigScreen(
 
 @Composable
 private fun VersionConfigs(
-    config: VersionConfig,
-    submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
+    stateful: StatefulVersionConfig,
     modifier: Modifier = Modifier
 ) {
     SettingsCardColumn(
@@ -167,13 +192,8 @@ private fun VersionConfigs(
         StatefulDropdownMenuFollowGlobal(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Top,
-            currentValue = config.isolationType,
-            onValueChange = { type ->
-                if (config.isolationType != type) {
-                    config.isolationType = type
-                    config.saveOrShowError(submitError)
-                }
-            },
+            currentValue = stateful.isolationType,
+            onValueChange = { stateful.isolationType = it },
             title = stringResource(R.string.versions_config_isolation_title),
             summary = stringResource(R.string.versions_config_isolation_summary)
         )
@@ -181,24 +201,32 @@ private fun VersionConfigs(
         StatefulDropdownMenuFollowGlobal(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Middle,
-            currentValue = config.skipGameIntegrityCheck,
-            onValueChange = { type ->
-                if (config.skipGameIntegrityCheck != type) {
-                    config.skipGameIntegrityCheck = type
-                    config.saveOrShowError(submitError)
-                }
-            },
+            currentValue = stateful.skipGameIntegrityCheck,
+            onValueChange = { stateful.skipGameIntegrityCheck = it },
             title = stringResource(R.string.settings_game_skip_game_integrity_check_title),
             summary = stringResource(R.string.settings_game_skip_game_integrity_check_summary)
         )
 
         val renderers = Renderers.getRenderers()
         val renderersIdList = getIDList(renderers) { IDItem(it.getUniqueIdentifier(), it.getRendererName()) }
+        val effectiveRendererId = stateful.renderer.ifEmpty { RendererSettings.renderer.state }
+        val effectiveRenderer = remember(effectiveRendererId) {
+            renderers.find { it.getUniqueIdentifier() == effectiveRendererId }
+        }
+        val configurableRenderer = remember(stateful.renderer) {
+            if (stateful.renderer.isNotEmpty()) {
+                renderers.filterIsInstance<ConfigurableRenderer>()
+                    .find { it.getUniqueIdentifier() == stateful.renderer }
+                    ?.takeIf { it.configSpec.entries.isNotEmpty() }
+            } else null
+        }
+        var showConfigDialog by remember { mutableStateOf(false) }
+
         ListSettingsCard(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Middle,
             items = renderersIdList,
-            currentId = config.renderer,
+            currentId = stateful.renderer,
             defaultId = "",
             title = stringResource(R.string.versions_config_renderer),
             getItemText = { it.title },
@@ -208,12 +236,55 @@ private fun VersionConfigs(
                     RendererSummaryLayout(renderer)
                 }
             },
-            onValueChange = { item ->
-                if (config.renderer != item.id) {
-                    config.renderer = item.id
-                    config.saveOrShowError(submitError)
+            trailingIcon = {
+                // 设置跟随全局时不能独立修改
+                if (configurableRenderer != null) {
+                    IconButton(onClick = { showConfigDialog = true }) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_settings_filled),
+                            contentDescription = stringResource(R.string.settings_renderer_config_title)
+                        )
+                    }
                 }
-            }
+            },
+            onValueChange = { stateful.renderer = it.id }
+        )
+
+        if (showConfigDialog && configurableRenderer != null) {
+            RendererConfigDialog(
+                renderer = configurableRenderer,
+                versionFolder = stateful.versionPath,
+                onDismissRequest = { showConfigDialog = false }
+            )
+        }
+
+        val sfpewPluginLayerEnabled = when (stateful.sfpewPluginLayer) {
+            SettingState.FOLLOW_GLOBAL -> RendererSettings.sfpewPluginLayer.state
+            SettingState.ENABLE -> true
+            SettingState.DISABLE -> false
+        }
+        StatefulDropdownMenuFollowGlobal(
+            modifier = Modifier.fillMaxWidth(),
+            position = CardPosition.Middle,
+            currentValue = stateful.sfpewPluginLayer,
+            enabled = effectiveRenderer is Plugin,
+            onValueChange = { stateful.sfpewPluginLayer = it },
+            title = stringResource(R.string.settings_renderer_sfpew_plugin_layer_title),
+            summary = stringResource(R.string.settings_renderer_sfpew_plugin_layer_summary)
+        )
+
+        StatefulDropdownMenuFollowGlobal(
+            modifier = Modifier.fillMaxWidth(),
+            position = CardPosition.Middle,
+            currentValue = stateful.sfpewRelaxedContext,
+            enabled = effectiveRenderer?.let { renderer ->
+                renderer.supportsSfpewByDefault() ||
+                // 如果是插件，需要看是否给插件启用了这个玩意
+                (renderer is Plugin && sfpewPluginLayerEnabled)
+            } == true,
+            onValueChange = { stateful.sfpewRelaxedContext = it },
+            title = stringResource(R.string.renderer_config_sfpew_relaxed_context_title),
+            summary = stringResource(R.string.renderer_config_sfpew_relaxed_context_desc)
         )
 
         val drivers = DriverPluginManager.getDriverList()
@@ -222,7 +293,7 @@ private fun VersionConfigs(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Middle,
             items = driversIdList,
-            currentId = config.driver,
+            currentId = stateful.driver,
             defaultId = "",
             title = stringResource(R.string.versions_config_vulkan_driver),
             getItemText = { it.title },
@@ -232,12 +303,7 @@ private fun VersionConfigs(
                     DriverSummaryLayout(driver)
                 }
             },
-            onValueChange = { item ->
-                if (config.driver != item.id) {
-                    config.driver = item.id
-                    config.saveOrShowError(submitError)
-                }
-            }
+            onValueChange = { stateful.driver = it.id }
         )
 
         val graphicsApis = GraphicsApi.entries
@@ -255,47 +321,43 @@ private fun VersionConfigs(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Middle,
             items = graphicsApisList,
-            currentId = config.graphicsApi?.name ?: "",
+            currentId = stateful.graphicsApi?.name ?: "",
             defaultId = "",
             title = stringResource(R.string.settings_game_graphics_api_title),
             summary = stringResource(R.string.settings_game_graphics_api_summary),
             getItemText = { it.title },
             getItemId = { it.id },
             onValueChange = { item ->
-                if (config.graphicsApi?.name != item.id) {
-                    config.graphicsApi = GraphicsApi.entries.find { it.name == item.id }
-                    config.saveOrShowError(submitError)
-                }
+                stateful.graphicsApi = GraphicsApi.entries.find { it.name == item.id }
             }
         )
 
         val controls by ControlManager.dataList.collectAsStateWithLifecycle()
+        val unspecifiedName = stringResource(R.string.generic_unspecified)
         val controlsIdList = getIDList(controls.filter { it.isSupport }) {
-            IDItem(it.file.name, it.controlLayout.info.name.translate())
+            IDItem(
+                it.file.name,
+                it.controlLayout.info.name.translate()
+                    .takeIf { name -> name.isNotEmptyOrBlank() } ?: unspecifiedName
+            )
         }
         ListSettingsCard(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Bottom,
             items = controlsIdList,
-            currentId = config.control,
+            currentId = stateful.control,
             defaultId = "",
             title = stringResource(R.string.versions_config_control),
             getItemText = { it.title },
             getItemId = { it.id },
-            onValueChange = {
-                if (config.control != it.id) {
-                    config.control = it.id
-                    config.saveOrShowError(submitError)
-                }
-            }
+            onValueChange = { stateful.control = it.id }
         )
     }
 }
 
 @Composable
 private fun GameConfigs(
-    config: VersionConfig,
-    submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
+    stateful: StatefulVersionConfig,
     modifier: Modifier = Modifier
 ) {
     SettingsCardColumn(
@@ -312,46 +374,33 @@ private fun GameConfigs(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Top,
             items = getIDList(RuntimesManager.getRuntimes().filter { it.isCompatible() }) { IDItem(it.name, it.name) },
-            currentId = config.javaRuntime,
+            currentId = stateful.javaRuntime,
             defaultId = "",
             title = stringResource(R.string.settings_game_java_runtime_title),
             summary = stringResource(R.string.versions_config_java_runtime_summary),
-            onValueChange = { item ->
-                if (config.javaRuntime != item.id) {
-                    config.javaRuntime = item.id
-                    config.saveOrShowError(submitError)
-                }
-            }
+            onValueChange = { stateful.javaRuntime = it.id }
         )
 
-        /**
-         * 临时已分配内存，用于UI状态更新
-         */
-        var ramAllocation by remember { mutableIntStateOf(config.ramAllocation) }
         ToggleableIntSliderSettingsCard(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Middle,
-            currentValue = config.ramAllocation,
-            valueRange = AllSettings.ramAllocation.floatRange.start..getMaxMemoryForSettings(LocalContext.current).toFloat(),
-            defaultValue = AllSettings.ramAllocation.getOrMin(),
+            currentValue = stateful.ramAllocation,
+            valueRange = GameSettings.ramAllocation.floatRange.start..getMaxMemoryForSettings(LocalContext.current).toFloat(),
+            defaultValue = GameSettings.ramAllocation.getOrMin(),
             title = stringResource(R.string.settings_game_java_memory_title),
             summary = stringResource(R.string.settings_game_java_memory_summary),
             suffix = "MB",
-            onValueChange = {
-                config.ramAllocation = it
-                ramAllocation = it
-            },
-            onValueChangeFinished = { config.saveOrShowError(submitError) },
+            onValueChange = { stateful.ramAllocation = it },
             previewContent = {
                 AnimatedVisibility(
                     modifier = Modifier.fillMaxWidth(),
-                    visible = ramAllocation >= 256
+                    visible = stateful.ramAllocation >= 256
                 ) {
                     MemoryPreview(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 2.dp, end = 8.dp),
-                        preview = ramAllocation.takeIf { it >= 256 }?.toDouble(),
+                        preview = stateful.ramAllocation.takeIf { it >= 256 }?.toDouble(),
                         usedText = { usedMemory, totalMemory ->
                             stringResource(R.string.settings_game_java_memory_used_text, usedMemory.toInt(), totalMemory.toInt())
                         },
@@ -363,18 +412,11 @@ private fun GameConfigs(
             }
         )
 
-        var customInfo by remember { mutableStateOf(config.customInfo) }
         TextInputSettingsCard(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Middle,
-            value = customInfo,
-            onValueChange = { value ->
-                customInfo = value
-                if (config.customInfo != value) {
-                    config.customInfo = value
-                    config.saveOrShowError(submitError)
-                }
-            },
+            value = stateful.customInfo,
+            onValueChange = { stateful.customInfo = it },
             title = stringResource(R.string.settings_game_version_custom_info_title),
             summary = stringResource(R.string.settings_game_version_custom_info_summary),
             label = {
@@ -382,39 +424,37 @@ private fun GameConfigs(
             }
         )
 
-        var jvmArgs by remember { mutableStateOf(config.jvmArgs) }
         TextInputSettingsCard(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Middle,
-            value = jvmArgs,
+            value = stateful.gameArgs,
+            title = stringResource(R.string.versions_config_game_args_title),
+            summary = stringResource(R.string.versions_config_game_args_summary),
+            onValueChange = { stateful.gameArgs = it },
+            label = {
+                Text(text = stringResource(R.string.versions_config_disable_if_blank))
+            }
+        )
+
+        TextInputSettingsCard(
+            modifier = Modifier.fillMaxWidth(),
+            position = CardPosition.Middle,
+            value = stateful.jvmArgs,
             title = stringResource(R.string.settings_game_jvm_args_title),
             summary = stringResource(R.string.settings_game_jvm_args_summary),
-            onValueChange = { value ->
-                jvmArgs = value
-                if (config.jvmArgs != value) {
-                    config.jvmArgs = value
-                    config.saveOrShowError(submitError)
-                }
-            },
+            onValueChange = { stateful.jvmArgs = it },
             label = {
                 Text(text = stringResource(R.string.versions_config_follow_global_if_blank))
             }
         )
 
-        var serverIp by remember { mutableStateOf(config.serverIp) }
         TextInputSettingsCard(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Bottom,
-            value = serverIp,
+            value = stateful.serverIp,
             title = stringResource(R.string.versions_config_auto_join_server_ip_title),
             summary = stringResource(R.string.versions_config_auto_join_server_ip_summary),
-            onValueChange = { value ->
-                serverIp = value
-                if (config.serverIp != value) {
-                    config.serverIp = value
-                    config.saveOrShowError(submitError)
-                }
-            },
+            onValueChange = { stateful.serverIp = it },
             label = {
                 Text(text = stringResource(R.string.versions_config_disable_if_blank))
             }
@@ -424,10 +464,9 @@ private fun GameConfigs(
 
 @Composable
 private fun SupportConfigs(
-    config: VersionConfig,
+    stateful: StatefulVersionConfig,
     onCheckVulkan: () -> Unit,
     showToast: (AndroidStringText) -> Unit,
-    submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -441,9 +480,7 @@ private fun SupportConfigs(
         )
 
         val vibrator = remember(context) { context.getSystemService<Vibrator>() }
-        var touchVibrateKind by remember { mutableStateOf(config.touchVibrateKind) }
-        val effectiveVibrateKind = touchVibrateKind ?: VibrationHandler.VibrateKind.default
-        var touchVibrateDuration by remember { mutableIntStateOf(config.touchVibrateDuration) }
+        val effectiveVibrateKind = stateful.touchVibrateKind ?: VibrationHandler.VibrateKind.default
         EnumSettingsCard(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Top,
@@ -452,11 +489,7 @@ private fun SupportConfigs(
             summary = stringResource(R.string.versions_config_vibrate_kind_summary),
             entries = VibrationHandler.VibrateKind.entries,
             getRadioEnable = { enum ->
-                if (enum == VibrationHandler.VibrateKind.ONE_SHOT) {
-                    true
-                } else {
-                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-                }
+                enum == VibrationHandler.VibrateKind.ONE_SHOT || Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
             },
             getRadioText = { enum ->
                 when (enum) {
@@ -469,17 +502,13 @@ private fun SupportConfigs(
             },
             maxItemsInEachRow = 4,
             onRadioClick = { enum ->
-                touchVibrateKind = enum
+                stateful.touchVibrateKind = enum
                 vibrator?.let { vibrator ->
                     VibrationHandler.vibrate(
                         vibrator = vibrator,
-                        vibrateDuration = touchVibrateDuration,
-                        vibrateKind = touchVibrateKind,
+                        vibrateDuration = stateful.touchVibrateDuration,
+                        vibrateKind = stateful.touchVibrateKind,
                     )
-                }
-                if (config.touchVibrateKind != enum) {
-                    config.touchVibrateKind = enum
-                    config.saveOrShowError(submitError)
                 }
             }
         )
@@ -488,23 +517,19 @@ private fun SupportConfigs(
             IntSliderSettingsCard(
                 modifier = Modifier.fillMaxWidth(),
                 position = CardPosition.Middle,
-                value = touchVibrateDuration,
+                value = stateful.touchVibrateDuration,
                 title = stringResource(R.string.versions_config_vibrate_duration_title),
                 summary = stringResource(R.string.versions_config_vibrate_duration_summary),
                 valueRange = 80f..500f,
-                onValueChange = {
-                    touchVibrateDuration = it
-                    config.touchVibrateDuration = touchVibrateDuration
-                },
+                onValueChange = { stateful.touchVibrateDuration = it },
                 onValueChangeFinished = {
                     vibrator?.let { vibrator ->
                         VibrationHandler.vibrate(
                             vibrator = vibrator,
-                            vibrateDuration = touchVibrateDuration,
-                            vibrateKind = touchVibrateKind,
+                            vibrateDuration = stateful.touchVibrateDuration,
+                            vibrateKind = stateful.touchVibrateKind,
                         )
                     }
-                    config.saveOrShowError(submitError)
                 },
                 suffix = "ms",
                 fineTuningControl = true
@@ -547,18 +572,21 @@ private fun <E> getIDList(list: List<E>, toIDItem: (E) -> IDItem): List<IDItem> 
     }
 }
 
-private fun VersionConfig.saveOrShowError(
+private fun saveConfigAsync(
+    config: VersionConfig,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
-    runCatching {
-        saveWithThrowable()
-    }.onFailure { e ->
-        Logger.error(TAG, "Failed to save version config!", e)
-        submitError(
-            ErrorViewModel.ThrowableMessage(
-                title = androidText(R.string.versions_config_failed_to_save),
-                message = androidText(e.getMessageOrToString())
+    configSaveScope.launch {
+        runCatching {
+            config.saveWithThrowable()
+        }.onFailure { e ->
+            Logger.error(TAG, "Failed to save version config!", e)
+            submitError(
+                ErrorViewModel.ThrowableMessage(
+                    title = androidText(R.string.versions_config_failed_to_save),
+                    message = androidText(e.getMessageOrToString())
+                )
             )
-        )
+        }
     }
 }

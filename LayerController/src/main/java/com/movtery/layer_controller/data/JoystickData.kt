@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@ package com.movtery.layer_controller.data
 
 import com.movtery.inputmap.keycodes.ControlEventKeycode.GLFW_KEY_A
 import com.movtery.inputmap.keycodes.ControlEventKeycode.GLFW_KEY_D
+import com.movtery.inputmap.keycodes.ControlEventKeycode.GLFW_KEY_LEFT_CONTROL
 import com.movtery.inputmap.keycodes.ControlEventKeycode.GLFW_KEY_S
 import com.movtery.inputmap.keycodes.ControlEventKeycode.GLFW_KEY_W
 import com.movtery.layer_controller.event.ClickEvent
@@ -98,7 +99,7 @@ data class JoystickData(
     @SerialName("directionEvents")
     val directionEvents: Map<JoystickDirection, List<ClickEvent>> = DefaultDirectionEvents,
     @SerialName("lockEvents")
-    val lockEvents: List<ClickEvent> = emptyList()
+    val lockEvents: List<ClickEvent> = DefaultLockEvents,
 ): Widget, Modifiable<JoystickData> {
     init {
         require(sizeType != ButtonSize.Type.WrapContent) { "JoystickData does not support WrapContent size type" }
@@ -179,6 +180,13 @@ val DefaultDirectionEvents = buildMap {
 
     put(JoystickDirection.East, listOf(right))
     put(JoystickDirection.West, listOf(left))
+}
+
+/**
+ * 默认的摇杆锁定事件绑定
+ */
+val DefaultLockEvents = buildList {
+    add(ClickEvent(ClickEvent.Type.Key, GLFW_KEY_LEFT_CONTROL))
 }
 
 fun JoystickData.cloneNew(): JoystickData = JoystickData(

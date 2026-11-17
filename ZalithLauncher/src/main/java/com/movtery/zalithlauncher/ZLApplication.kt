@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,20 +28,25 @@ import coil3.SingletonImageLoader
 import coil3.disk.DiskCache
 import coil3.gif.GifDecoder
 import coil3.memory.MemoryCache
+import coil3.network.ktor3.KtorNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
 import com.kyant.fishnet.Fishnet
+import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.context.refreshContext
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.path.GamePathManager
+import com.movtery.zalithlauncher.keepalive.TaskKeepAlive
+import com.movtery.zalithlauncher.path.IMAGE_LOADER_CLIENT
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.loadAllSettings
 import com.movtery.zalithlauncher.ui.activities.showFatalError
 import com.movtery.zalithlauncher.ui.activities.showLauncherCrash
 import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.logging.Logger
+import com.movtery.zalithlauncher.utils.network.TLSSecurity
 import com.movtery.zalithlauncher.utils.writeCrashFile
 import com.tencent.mmkv.MMKV
 import dagger.hilt.android.HiltAndroidApp
@@ -56,7 +61,11 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
     }
 
     override fun onCreate() {
+        GlobalContext = this
+        TLSSecurity.install()
         refreshContext(this)
+        //初始化任务保活控制器，需在任何任务开始前完成初始化
+        TaskKeepAlive.initialize(this)
 
         Thread.setDefaultUncaughtExceptionHandler { _, th ->
             //停止所有任务
@@ -128,6 +137,7 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
                     .build()
             }
             .components {
+                add(KtorNetworkFetcherFactory(IMAGE_LOADER_CLIENT))
                 add(GifDecoder.Factory())
                 add(SvgDecoder.Factory())
             }

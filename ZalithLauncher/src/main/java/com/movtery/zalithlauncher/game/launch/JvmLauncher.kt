@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@ import com.movtery.zalithlauncher.game.multirt.RuntimesManager
 import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.game.path.getGameHome
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
 import com.movtery.zalithlauncher.ui.activities.runJar
 import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -63,6 +63,7 @@ open class JvmLauncher(
 
     override suspend fun launch(screenSize: IntSize): Int {
         generateLauncherProfiles(jvmLaunchInfo.userHome)
+        initLwjglComponent(context, 0)
         val (runtime, argList) = getStartupNeeded(screenSize)
 
         this.runtime = runtime
@@ -72,7 +73,7 @@ open class JvmLauncher(
             jvmArgs = argList,
             userHome = jvmLaunchInfo.userHome ?: GamePathManager.getUserPath(),
             userArgs = if (jvmLaunchInfo.useUserJvm) {
-                AllSettings.jvmArgs.getValue()
+                GameSettings.jvmArgs.getValue()
             } else {
                 ""
             },
@@ -97,7 +98,7 @@ open class JvmLauncher(
         val runtime = jvmLaunchInfo.jreName?.let { jreName ->
             RuntimesManager.forceReload(jreName)
         } ?: run {
-            RuntimesManager.forceReload(AllSettings.javaRuntime.getValue())
+            RuntimesManager.forceReload(GameSettings.javaRuntime.getValue())
         }
 
         val argList: MutableList<String> = ArrayList(
@@ -107,7 +108,7 @@ open class JvmLauncher(
         }
 
         LoggerBridge.appendTitle("Launch JVM")
-        LoggerBridge.append("▷ Java arguments: \r\n${argList.joinToString("\r\n")}")
+        LoggerBridge.appendInfo("Java arguments: \r\n${argList.joinToString("\r\n")}")
 
         return Pair(runtime, argList)
     }

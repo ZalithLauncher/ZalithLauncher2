@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -44,14 +45,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -78,15 +78,18 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.filemanager.config.FmConfig
 import com.movtery.zalithlauncher.filemanager.logic.ops.ConflictResolution
 import com.movtery.zalithlauncher.filemanager.logic.trash.TrashItem
 import com.movtery.zalithlauncher.filemanager.ui.components.AppBarSubTexts
-import com.movtery.zalithlauncher.filemanager.ui.components.FmAlertDialog
+import com.movtery.zalithlauncher.filemanager.ui.components.FmCardPosition
 import com.movtery.zalithlauncher.filemanager.ui.components.FmIcons
 import com.movtery.zalithlauncher.filemanager.ui.components.fmSwipeTrigger
+import com.movtery.zalithlauncher.filemanager.ui.components.rememberFmCardShape
+import com.movtery.zalithlauncher.filemanager.ui.components.rememberFmSwipeTriggerState
 import com.movtery.zalithlauncher.filemanager.ui.dialogs.FmConflictDialog
 import com.movtery.zalithlauncher.filemanager.ui.dialogs.FmTrashPropertyDialog
 import com.movtery.zalithlauncher.filemanager.ui.theme.FmAnimations
@@ -104,8 +107,11 @@ import com.movtery.zalithlauncher.filemanager.viewmodel.TrashItemView
 import com.movtery.zalithlauncher.filemanager.viewmodel.TrashListView
 import com.movtery.zalithlauncher.filemanager.viewmodel.TrashSortConfig
 import com.movtery.zalithlauncher.filemanager.viewmodel.TrashViewState
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
+import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.utils.file.formatFileSize
 import com.movtery.zalithlauncher.utils.formatDate
+import kotlin.math.floor
 
 private sealed interface FmTrashOperation {
     data object None : FmTrashOperation
@@ -126,7 +132,6 @@ private sealed interface FmTrashOperation {
  * @param onExit 退出文件管理器回调
  * @param onToggleOrientation 横竖屏切换回调
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FmTrashScreen(
     vm: FileManagerViewModel,
@@ -217,14 +222,10 @@ fun FmTrashScreen(
                         updateTrashOperation = updateTrashOperation
                     )
 
-                    Surface(
+                    Box(
                         modifier = Modifier
                             .weight(1f)
                             .fillMaxHeight()
-                            .padding(end = 12.dp, bottom = 12.dp),
-                        color = fmCardColor(),
-                        contentColor = fmOnCardColor(),
-                        shape = MaterialTheme.shapes.large
                     ) {
                         TrashContent(
                             vm = vm,
@@ -274,10 +275,13 @@ private fun TrashContent(
 
     val contentState = if (list.loading) null else list.items
 
-    Box(
+    PullToRefreshLayout(
         modifier = Modifier
             .fillMaxSize()
-            .graphicsLayer { alpha = contentAlpha.value }
+            .graphicsLayer { alpha = contentAlpha.value },
+        isRefreshing = false,
+        enabled = !list.loading,
+        onRefresh = vm::refreshTrashList,
     ) {
         AnimatedContent(
             targetState = contentState,
@@ -298,9 +302,10 @@ private fun TrashContent(
                     val rawItemByUuid = remember(trash.rawItems) {
                         trash.rawItems.associateBy { it.uuid }
                     }
-                    val itemContent: @Composable (TrashItemView) -> Unit = { item ->
+                    val itemContent: @Composable (TrashItemView, FmCardPosition) -> Unit = { item, position ->
                         FmTrashItem(
                             item = item,
+                            position = position,
                             multiSelect = list.multiSelect,
                             selected = item.uuid in list.selection,
                             onClick = {
@@ -329,23 +334,33 @@ private fun TrashContent(
 
                     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
                     if (isLandscape) {
-                        LazyVerticalGrid(
-                            columns = GridCells.Adaptive(minSize = 280.dp),
-                            modifier = Modifier.fillMaxSize(),
-                            horizontalArrangement = Arrangement.spacedBy(0.dp),
-                            verticalArrangement = Arrangement.spacedBy(0.dp)
-                        ) {
-                            items(items, key = { it.uuid }) {
-                                itemContent(it)
+                        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                            val gap = 2.dp
+                            val minColumnSize = 280.dp
+                            // 与 GridCells.Adaptive 相同的列数公式，保证条目方位与实际网格一致
+                            val columns = floor(
+                                (maxWidth - 24.dp + gap).value / (minColumnSize + gap).value
+                            ).toInt().coerceAtLeast(1)
+                            LazyVerticalGrid(
+                                columns = GridCells.Fixed(columns),
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = PaddingValues(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(gap),
+                                verticalArrangement = Arrangement.spacedBy(gap)
+                            ) {
+                                itemsIndexed(items, key = { _, item -> item.uuid }) { index, item ->
+                                    itemContent(item, FmCardPosition.of(index, items.size, columns))
+                                }
                             }
                         }
                     } else {
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(vertical = 8.dp)
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(2.dp)
                         ) {
-                            items(items, key = { it.uuid }) {
-                                itemContent(it)
+                            itemsIndexed(items, key = { _, item -> item.uuid }) { index, item ->
+                                itemContent(item, FmCardPosition.of(index, items.size))
                             }
                         }
                     }
@@ -373,6 +388,7 @@ private fun FmTrashItem(
     item: TrashItemView,
     multiSelect: Boolean,
     selected: Boolean,
+    position: FmCardPosition,
     onClick: () -> Unit,
     onSwipeTrigger: () -> Unit,
     onDetail: () -> Unit,
@@ -382,76 +398,88 @@ private fun FmTrashItem(
     onMultiPurgeWithConfirm: () -> Unit
 ) {
     var menuExpanded by remember { mutableStateOf(false) }
+    val shape = rememberFmCardShape(position)
+    val swipeState = rememberFmSwipeTriggerState()
     val selectionColor = fmSelectionColor()
     val unselectionColor = selectionColor.copy(alpha = 0f)
     val bg by animateColorAsState(
         if (selected) selectionColor else unselectionColor
     )
 
-    Row(
+    Surface(
         modifier = Modifier
+            .zIndex(if (swipeState.isDragging) 1f else 0f)
             .fillMaxWidth()
             .fmSwipeTrigger(
+                state = swipeState,
                 triggerable = true,
                 onTriggered = onSwipeTrigger
-            )
-            .background(bg)
-            .combinedClickable(
-                onClick = {
-                    if (multiSelect) {
-                        onClick()
-                    } else {
-                        // 非多选模式点击弹条目菜单
-                        menuExpanded = true
-                    }
-                },
-                onLongClick = { menuExpanded = true }
-            )
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ),
+        shape = shape,
+        color = fmCardColor(),
+        shadowElevation = 6.dp * swipeState.dragFraction
     ) {
-        FmIcons.IconFor(
-            name = item.name,
-            isDirectory = item.isFolder,
-        )
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (!multiSelect) {
-                TrashSingleMenu(
-                    expanded = menuExpanded,
-                    onDismiss = { menuExpanded = false },
-                    onDetail = onDetail,
-                    onRestoreWithConfirm = onRestoreWithConfirm,
-                    onPurgeWithConfirm = onPurgeWithConfirm
-                )
-            }
-
-            Column {
-                Text(
-                    text = if (item.corrupted) {
-                        "${item.name} (${stringResource(R.string.fm_trash_corrupted)})"
-                    } else {
-                        item.name
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(bg)
+                .combinedClickable(
+                    onClick = {
+                        if (multiSelect) {
+                            onClick()
+                        } else {
+                            // 非多选模式点击弹条目菜单
+                            menuExpanded = true
+                        }
                     },
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    onLongClick = { menuExpanded = true }
                 )
-                Text(
-                    text = stringResource(R.string.fm_trash_deleted_at, formatDate(item.deletedAt)),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = fmSecondaryTextColor()
-                )
-            }
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            FmIcons.IconFor(
+                name = item.name,
+                isDirectory = item.isFolder,
+            )
 
-            if (multiSelect) {
-                TrashMultiMenu(
-                    expanded = menuExpanded,
-                    onDismiss = { menuExpanded = false },
-                    onRestoreWithConfirm = onMultiRestoreWithConfirm,
-                    onPurgeWithConfirm = onMultiPurgeWithConfirm
-                )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (!multiSelect) {
+                    TrashSingleMenu(
+                        expanded = menuExpanded,
+                        onDismiss = { menuExpanded = false },
+                        onDetail = onDetail,
+                        onRestoreWithConfirm = onRestoreWithConfirm,
+                        onPurgeWithConfirm = onPurgeWithConfirm
+                    )
+                }
+
+                Column {
+                    Text(
+                        text = if (item.corrupted) {
+                            "${item.name} (${stringResource(R.string.fm_trash_corrupted)})"
+                        } else {
+                            item.name
+                        },
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        text = stringResource(R.string.fm_trash_deleted_at, formatDate(item.deletedAt)),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = fmSecondaryTextColor()
+                    )
+                }
+
+                if (multiSelect) {
+                    TrashMultiMenu(
+                        expanded = menuExpanded,
+                        onDismiss = { menuExpanded = false },
+                        onRestoreWithConfirm = onMultiRestoreWithConfirm,
+                        onPurgeWithConfirm = onMultiPurgeWithConfirm
+                    )
+                }
             }
         }
     }
@@ -468,7 +496,9 @@ private fun TrashSingleMenu(
     Box {
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = onDismiss
+            onDismissRequest = onDismiss,
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 3.dp
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.fm_property)) },
@@ -505,7 +535,9 @@ private fun TrashMultiMenu(
     Box {
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = onDismiss
+            onDismissRequest = onDismiss,
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 3.dp
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.fm_trash_restore)) },
@@ -547,7 +579,9 @@ private fun FmTrashMoreMenu(
         onDismissRequest = {
             menuExpanded = false
             sortExpanded = false
-        }
+        },
+        shape = MaterialTheme.shapes.large,
+        shadowElevation = 3.dp
     ) {
         DropdownMenuItem(
             text = { Text(stringResource(R.string.generic_refresh)) },
@@ -580,7 +614,9 @@ private fun FmTrashMoreMenu(
 
         DropdownMenu(
             expanded = sortExpanded,
-            onDismissRequest = { sortExpanded = false }
+            onDismissRequest = { sortExpanded = false },
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 3.dp
         ) {
             FmTrashSortMenuItem(
                 labelRes = R.string.fm_sort_name,
@@ -821,7 +857,7 @@ private fun TrashDialogs(
             )
         }
 
-        is FmTrashOperation.RestoreConfirm -> FmAlertDialog(
+        is FmTrashOperation.RestoreConfirm -> SimpleAlertDialog(
             title = stringResource(R.string.fm_trash_restore_confirm_title),
             text = stringResource(R.string.fm_trash_restore_confirm_text, trashOperation.item.meta.name),
             onConfirm = {
@@ -831,7 +867,7 @@ private fun TrashDialogs(
             onDismiss = { updateTrashOperation(FmTrashOperation.None) }
         )
 
-        is FmTrashOperation.PurgeConfirm -> FmAlertDialog(
+        is FmTrashOperation.PurgeConfirm -> SimpleAlertDialog(
             title = stringResource(R.string.fm_trash_purge_confirm_title),
             text = stringResource(R.string.fm_trash_purge_confirm_text, trashOperation.item.meta.name),
             confirmText = stringResource(R.string.generic_delete),
@@ -845,7 +881,7 @@ private fun TrashDialogs(
         FmTrashOperation.RestoreAllConfirm -> {
             val total = (uiState.trashView as? TrashViewState.Opened)?.trashListView?.total ?: 0
             val selected = vm.selectedTrashItems()
-            FmAlertDialog(
+            SimpleAlertDialog(
                 title = stringResource(R.string.fm_trash_restore_all_title),
                 text = if (selected.isNotEmpty()) {
                     stringResource(R.string.fm_trash_restore_selected_text, selected.size)
@@ -866,7 +902,7 @@ private fun TrashDialogs(
 
         FmTrashOperation.PurgeAllConfirm -> {
             val selected = vm.selectedTrashItems()
-            FmAlertDialog(
+            SimpleAlertDialog(
                 title = stringResource(R.string.fm_trash_purge_confirm_title),
                 text = stringResource(R.string.fm_trash_purge_selected_text, selected.size),
                 confirmText = stringResource(R.string.generic_delete),
@@ -878,7 +914,7 @@ private fun TrashDialogs(
             )
         }
 
-        FmTrashOperation.ClearConfirm -> FmAlertDialog(
+        FmTrashOperation.ClearConfirm -> SimpleAlertDialog(
             title = stringResource(R.string.fm_trash_clear),
             text = stringResource(
                 R.string.fm_trash_confirm_purge,
@@ -892,7 +928,7 @@ private fun TrashDialogs(
             onDismiss = { updateTrashOperation(FmTrashOperation.None) }
         )
 
-        FmTrashOperation.RangeSelectHelp -> FmAlertDialog(
+        FmTrashOperation.RangeSelectHelp -> SimpleAlertDialog(
             title = stringResource(R.string.fm_range_select_help),
             text = stringResource(R.string.fm_range_select_help_text),
             onDismiss = { updateTrashOperation(FmTrashOperation.None) }

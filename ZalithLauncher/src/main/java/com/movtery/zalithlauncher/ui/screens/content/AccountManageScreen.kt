@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,13 +28,10 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -42,10 +39,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -56,9 +53,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
@@ -67,21 +62,25 @@ import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.account.AccountsManager
 import com.movtery.zalithlauncher.game.account.auth_server.data.AuthServer
 import com.movtery.zalithlauncher.game.account.isAuthServerAccount
+import com.movtery.zalithlauncher.game.account.isMicrosoftAccount
 import com.movtery.zalithlauncher.game.account.isMicrosoftLogging
+import com.movtery.zalithlauncher.game.account.wardrobe.toArmModel
 import com.movtery.zalithlauncher.game.account.yggdrasil.PlayerProfile
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.AnimatedDirection
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
-import com.movtery.zalithlauncher.ui.components.ModelAnimation
-import com.movtery.zalithlauncher.ui.components.PlayerSkin
+import com.movtery.zalithlauncher.ui.components.PetModelView
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleEditDialog
 import com.movtery.zalithlauncher.ui.components.SimpleListDialog
 import com.movtery.zalithlauncher.ui.components.SimpleListItem
+import com.movtery.zalithlauncher.ui.components.animated
+import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.content.elements.AccountItem
 import com.movtery.zalithlauncher.ui.screens.content.elements.AccountOperation
@@ -91,6 +90,7 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.LocalLoginDialog
 import com.movtery.zalithlauncher.ui.screens.content.elements.LocalLoginOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.LoginMenuDialog
 import com.movtery.zalithlauncher.ui.screens.content.elements.LoginMenuOperation
+import com.movtery.zalithlauncher.ui.screens.content.elements.MicrosoftLoginMethodDialog
 import com.movtery.zalithlauncher.ui.screens.content.elements.MicrosoftLoginOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.MicrosoftLoginTipDialog
 import com.movtery.zalithlauncher.ui.screens.content.elements.MicrosoftReloginDialog
@@ -98,8 +98,6 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.OtherAccountRelogi
 import com.movtery.zalithlauncher.ui.screens.content.elements.OtherLoginOperation
 import com.movtery.zalithlauncher.ui.screens.content.elements.OtherServerLoginDialog
 import com.movtery.zalithlauncher.ui.screens.content.elements.ServerOperation
-import com.movtery.zalithlauncher.game.account.isMicrosoftAccount
-import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.copyText
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.viewmodel.AccountManageEffect
@@ -109,6 +107,8 @@ import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.ScreenBackStackViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 封装账号界面 UI 交互的回调函数
@@ -241,7 +241,6 @@ private fun AccountManageContent(
                 .padding(all = 12.dp)
                 .weight(3f),
             currentAccount = profileUiState.currentAccount,
-            isOffline = profileUiState.isOffline,
             actions = actions
         )
 
@@ -253,7 +252,6 @@ private fun AccountManageContent(
                 .weight(7f),
             accounts = profileUiState.accounts,
             currentAccount = profileUiState.currentAccount,
-            isOffline = profileUiState.isOffline,
             accountOperation = operationUiState.accountOp,
             accountSkinOperation = operationUiState.accountSkinOp,
             accountSkinDialogState = operationUiState.accountSkinDialogState,
@@ -272,95 +270,55 @@ private fun AccountManageContent(
 /**
  * 左侧登录方式菜单组件
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ActionsLayout(
     isVisible: Boolean,
     modifier: Modifier = Modifier,
     currentAccount: Account?,
-    isOffline: Boolean,
     actions: AccountActions
 ) {
-    val xOffset by swapAnimateDpAsState(
-        targetValue = (-40).dp,
-        swapIn = isVisible,
-        isHorizontal = true
-    )
+    val ctx = rememberAnimatedContext(isVisible = isVisible)
 
     Column(
         modifier = modifier
-            .offset { IntOffset(x = xOffset.roundToPx(), y = 0) }
+            .animated(ctx, from = AnimatedDirection.Left)
             .fillMaxHeight()
     ) {
         //玩家模型预览
         val refreshWardrobe by AccountsManager.refreshWardrobe.collectAsStateWithLifecycle()
-        val accountSkin = remember(currentAccount, refreshWardrobe) {
-            currentAccount?.getSkinFile()?.takeIf { it.exists() }
-        }
-        val accountCape = remember(currentAccount, refreshWardrobe) {
-            currentAccount?.getCapeFile()?.takeIf { it.exists() }
-        }
-        val context = LocalContext.current
-        val playerSkin = remember {
-            PlayerSkin(context)
-        }
-        var pageFinished by remember { mutableStateOf(false) }
-
-        DisposableEffect(Unit) {
-            onDispose {
-                playerSkin.destroy()
+        val armModel = currentAccount?.skinModelType?.toArmModel()
+        val skinStamp = currentAccount?.getSkinFile()?.lastModified()
+        val capeStamp = currentAccount?.getCapeFile()?.lastModified()
+        val skinBytes by produceState<ByteArray?>(
+            null, currentAccount, refreshWardrobe, skinStamp, armModel
+        ) {
+            value = withContext(Dispatchers.IO) {
+                currentAccount?.getSkinFile()?.takeIf { it.exists() }
+                    ?.inputStream()?.use { it.readBytes() }
             }
         }
-
-        Box(
+        val capeBytes by produceState<ByteArray?>(null, currentAccount, refreshWardrobe, capeStamp) {
+            value = withContext(Dispatchers.IO) {
+                currentAccount?.getCapeFile()?.takeIf { it.exists() }
+                    ?.inputStream()?.use { it.readBytes() }
+            }
+        }
+        PetModelView(
             modifier = Modifier
                 .weight(1f)
                 .fillMaxWidth(),
-            contentAlignment = Alignment.Center
-        ) {
-            AndroidView(
-                modifier = Modifier.fillMaxSize(),
-                factory = { context ->
-                    playerSkin.loadWebView(
-                        context = context,
-                        onPageFinished = {
-                            pageFinished = true
-                            playerSkin.startAnim(ModelAnimation.NewIdle)
-                            playerSkin.setAzimuthAndPitch(-35, 10)
-                        }
-                    )
-                },
-                update = {
-                    if (pageFinished) {
-                        runCatching {
-                            accountSkin?.inputStream().use { inputStream ->
-                                playerSkin.loadSkin(inputStream, currentAccount?.skinModelType)
-                            }
-                        }
-                        runCatching {
-                            accountCape?.inputStream().use { inputStream ->
-                                playerSkin.loadCape(inputStream)
-                            }
-                        }
-                    }
-                }
-            )
-            if (!pageFinished) {
-                LoadingIndicator()
-            }
-        }
+            skin = skinBytes,
+            cape = capeBytes,
+            arm = armModel,
+            yaw = Math.toRadians(35.0).toFloat()
+        )
 
         //添加账号
         ScalingActionButton(
             modifier = Modifier
                 .fillMaxWidth(),
             onClick = {
-                if (isOffline) {
-                    //非正版状态下，只允许创建微软账号
-                    actions.onIntent(AccountManageIntent.UpdateMicrosoftLoginOp(MicrosoftLoginOperation.Tip))
-                } else {
-                    actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
-                }
+                actions.onIntent(AccountManageIntent.UpdateLoginMenuOp(LoginMenuOperation.Login))
             }
         ) {
             MarqueeText(text = stringResource(R.string.account_add_new_account))
@@ -440,18 +398,44 @@ private fun MicrosoftLoginOperation(
                 onConfirm = {
                     actions.onIntent(
                         AccountManageIntent.UpdateMicrosoftLoginOp(
+                            MicrosoftLoginOperation.SelectBrowser
+                        )
+                    )
+                },
+                openLink = actions.openLink
+            )
+        }
+        is MicrosoftLoginOperation.SelectBrowser -> {
+            MicrosoftLoginMethodDialog(
+                onDismissRequest = {
+                    actions.onIntent(
+                        AccountManageIntent.UpdateMicrosoftLoginOp(
                             MicrosoftLoginOperation.None
                         )
                     )
+                },
+                onSystemBrowser = {
                     actions.onIntent(
                         AccountManageIntent.PerformMicrosoftLogin(
+                            useSystemBrowser = true,
                             toWeb = actions.navigateToWeb,
+                            toSystemBrowser = actions.openLink,
                             backToMain = actions.backToMainScreen,
                             checkIfInWebScreen = actions.checkIfInWebScreen
                         )
                     )
                 },
-                openLink = actions.openLink
+                onInternalBrowser = {
+                    actions.onIntent(
+                        AccountManageIntent.PerformMicrosoftLogin(
+                            useSystemBrowser = false,
+                            toWeb = actions.navigateToWeb,
+                            toSystemBrowser = actions.openLink,
+                            backToMain = actions.backToMainScreen,
+                            checkIfInWebScreen = actions.checkIfInWebScreen
+                        )
+                    )
+                }
             )
         }
     }
@@ -680,14 +664,13 @@ private fun AccountsLayout(
     modifier: Modifier = Modifier,
     accounts: List<Account>,
     currentAccount: Account?,
-    isOffline: Boolean,
     accountOperation: AccountOperation,
     accountSkinOperation: AccountSkinOperation,
     accountSkinDialogState: AccountManageViewModel.AccountSkinDialogState,
     accountCapes: Map<String, List<PlayerProfile.Cape>>,
     actions: AccountActions
 ) {
-    val yOffset by swapAnimateDpAsState(targetValue = (-40).dp, swapIn = isVisible)
+    val ctx = rememberAnimatedContext(isVisible = isVisible)
     val context = LocalContext.current
 
     AccountOperation(accountOperation, actions)
@@ -700,7 +683,7 @@ private fun AccountsLayout(
     )
 
     BackgroundCard(
-        modifier = modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+        modifier = modifier.animated(ctx),
         shape = MaterialTheme.shapes.extraLarge
     ) {
         if (accounts.isNotEmpty()) {
@@ -723,7 +706,6 @@ private fun AccountsLayout(
                             .padding(vertical = 6.dp),
                         currentAccount = currentAccount,
                         account = account,
-                        enabled = !isOffline, //非正版状态下不允许选择任何状态
                         onSelected = { AccountsManager.setCurrentAccount(it) },
                         openChangeSkinDialog = {
                             if (!account.isAuthServerAccount()) {
@@ -781,7 +763,7 @@ private fun AccountSkinOperation(
             val account = accountSkinOperation.account
             ChangeSkinDialog(
                 account = account,
-                availableCapes = accountCapes[account.uniqueUUID] ?: emptyList(),
+                availableCapes = accountCapes[account.uniqueUUID],
                 skinState = skinDialogState.pendingSkinData,
                 onSkinStateChange = { skinState ->
                     actions.onIntent(
@@ -864,10 +846,8 @@ private fun AccountOperation(
                     onConfirm = {
                         actions.onIntent(AccountManageIntent.UpdateAccountOp(AccountOperation.None))
                         actions.onIntent(
-                            AccountManageIntent.PerformMicrosoftLogin(
-                                toWeb = actions.navigateToWeb,
-                                backToMain = actions.backToMainScreen,
-                                checkIfInWebScreen = actions.checkIfInWebScreen
+                            AccountManageIntent.UpdateMicrosoftLoginOp(
+                                MicrosoftLoginOperation.SelectBrowser
                             )
                         )
                     }

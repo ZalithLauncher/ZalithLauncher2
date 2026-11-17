@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,16 +42,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.download.assets.platform.Platform
+import com.movtery.zalithlauncher.game.download.addon.platform.Platform
 import com.movtery.zalithlauncher.game.version.export.ExportInfo
 import com.movtery.zalithlauncher.game.version.export.PackEditOptions
 import com.movtery.zalithlauncher.game.version.export.PackType
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedLazyColumn
 import com.movtery.zalithlauncher.ui.components.WarningCard
+import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -67,11 +66,10 @@ import com.movtery.zalithlauncher.utils.string.toSingleLine
 
 private const val OPTIONAL_AUTHOR = "requireAuthor"
 private const val OPTION_DESCRIPTION = "requireDescription"
-private const val OPTIONAL_JVM_ARGS = "requireJvmArgs"
+private const val OPTIONAL_GAME_ARGS = "requireGameArgs"
 private const val OPTIONAL_JAVA_ARGS = "requireJavaArgs"
 private const val OPTIONAL_WEBSITE_URL = "requireWebsiteUrl"
 private const val OPTIONAL_MIN_MEMORY = "requireMinMemory"
-private const val OPTIONAL_MAX_MEMORY = "requireMaxMemory"
 private const val OPTIONAL_PACK_MODRINTH = "requirePackModrinth"
 private const val OPTIONAL_PACK_CURSEFORGE = "requirePackCurseForge"
 
@@ -83,11 +81,10 @@ private fun rememberOptionalItemIDList(
         buildList {
             if (options.requireAuthor) add(OPTIONAL_AUTHOR)
             if (options.requireSummary) add(OPTION_DESCRIPTION)
-            if (options.requireJvmArgs) add(OPTIONAL_JVM_ARGS)
+            if (options.requireGameArgs) add(OPTIONAL_GAME_ARGS)
             if (options.requireJavaArgs) add(OPTIONAL_JAVA_ARGS)
             if (options.requireWebsiteUrl) add(OPTIONAL_WEBSITE_URL)
             if (options.requireMinMemory) add(OPTIONAL_MIN_MEMORY)
-            if (options.requireMaxMemory) add(OPTIONAL_MAX_MEMORY)
             if (options.requirePackModrinth) add(OPTIONAL_PACK_MODRINTH)
             if (options.requirePackCurseForge) add(OPTIONAL_PACK_CURSEFORGE)
         }
@@ -133,14 +130,14 @@ fun ExportInfoScreen(
             isVisible = isVisible,
             contentPadding = PaddingValues(all = 16.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) { scope ->
+        ) {
             //整合包名称/版本编辑
-            animatedItem(scope) { yOffset ->
+            animatedItem { ctx ->
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(IntrinsicSize.Min)
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                        .animated(ctx),
                     horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     TextInputSettingsCard(
@@ -187,11 +184,11 @@ fun ExportInfoScreen(
             }
 
             if (info.packType.options.requireAuthor) {
-                animatedItem(scope) { yOffset ->
+                animatedItem { ctx ->
                     TextInputSettingsCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                            .animated(ctx),
                         position = CardPosition.Middle,
                         title = stringResource(R.string.versions_export_pack_author),
                         value = info.author,
@@ -210,11 +207,11 @@ fun ExportInfoScreen(
             }
 
             if (info.packType.options.requireSummary) {
-                animatedItem(scope) { yOffset ->
+                animatedItem { ctx ->
                     TextInputSettingsCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                            .animated(ctx),
                         position = optionalItemIDs.rememberCardPosition(OPTION_DESCRIPTION),
                         title = stringResource(R.string.versions_export_pack_summary),
                         value = info.summary ?: "",
@@ -232,19 +229,19 @@ fun ExportInfoScreen(
                 }
             }
 
-            if (info.packType.options.requireJvmArgs) {
+            if (info.packType.options.requireGameArgs) {
                 //游戏参数
-                animatedItem(scope) { yOffset ->
+                animatedItem { ctx ->
                     TextInputSettingsCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-                        position = optionalItemIDs.rememberCardPosition(OPTIONAL_JVM_ARGS),
-                        title = stringResource(R.string.versions_export_pack_jvm_args),
-                        value = info.jvmArgs,
+                            .animated(ctx),
+                        position = optionalItemIDs.rememberCardPosition(OPTIONAL_GAME_ARGS),
+                        title = stringResource(R.string.versions_export_pack_game_args),
+                        value = info.gameArgs,
                         onValueChange = { new ->
                             onInfoEdited(
-                                info.copy(jvmArgs = new.toSingleLine())
+                                info.copy(gameArgs = new.toSingleLine())
                             )
                         },
                         singleLine = true,
@@ -254,11 +251,11 @@ fun ExportInfoScreen(
 
             if (info.packType.options.requireJavaArgs) {
                 //Java虚拟机参数
-                animatedItem(scope) { yOffset ->
+                animatedItem { ctx ->
                     TextInputSettingsCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                            .animated(ctx),
                         position = optionalItemIDs.rememberCardPosition(OPTIONAL_JAVA_ARGS),
                         title = stringResource(R.string.versions_export_pack_java_args),
                         value = info.javaArgs,
@@ -274,11 +271,11 @@ fun ExportInfoScreen(
 
             if (info.packType.options.requireWebsiteUrl) {
                 //整合包官方网站
-                animatedItem(scope) { yOffset ->
+                animatedItem { ctx ->
                     TextInputSettingsCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                            .animated(ctx),
                         position = optionalItemIDs.rememberCardPosition(OPTIONAL_WEBSITE_URL),
                         title = stringResource(R.string.versions_export_pack_website),
                         value = info.url,
@@ -294,13 +291,13 @@ fun ExportInfoScreen(
 
             if (info.packType.options.requireMinMemory) {
                 //最小内存
-                animatedItem(scope) { yOffset ->
+                animatedItem { ctx ->
                     var memory by remember(info) { mutableIntStateOf(info.minMemory) }
 
                     IntSliderSettingsCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                            .animated(ctx),
                         position = optionalItemIDs.rememberCardPosition(OPTIONAL_MIN_MEMORY),
                         title = stringResource(R.string.versions_export_pack_min_memory),
                         value = memory,
@@ -316,37 +313,13 @@ fun ExportInfoScreen(
                 }
             }
 
-            if (info.packType.options.requireMaxMemory) {
-                //最大内存
-                animatedItem(scope) { yOffset ->
-                    var memory by remember(info) { mutableIntStateOf(info.maxMemory) }
-
-                    IntSliderSettingsCard(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
-                        position = optionalItemIDs.rememberCardPosition(OPTIONAL_MAX_MEMORY),
-                        title = stringResource(R.string.versions_export_pack_max_memory),
-                        value = memory,
-                        onValueChange = {
-                            memory = it
-                        },
-                        onValueChangeFinished = {
-                            onInfoEdited(info.copy(maxMemory = memory))
-                        },
-                        valueRange = 0f..getMaxMemoryForSettings(LocalContext.current).toFloat(),
-                        suffix = "MB"
-                    )
-                }
-            }
-
             if (info.packType.options.requirePackModrinth) {
                 //是否打包 Modrinth 的远程资源
-                animatedItem(scope) { yOffset ->
+                animatedItem { ctx ->
                     SwitchSettingsCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                            .animated(ctx),
                         position = CardPosition.Middle,
                         title = stringResource(
                             id = R.string.versions_export_pack_pack_remote,
@@ -362,7 +335,7 @@ fun ExportInfoScreen(
 
             if (info.packType.options.requirePackCurseForge) {
                 //是否打包 CurseForge 的远程资源
-                animatedItem(scope) { yOffset ->
+                animatedItem { ctx ->
                     val enabled = remember(info) {
                         info.packType == PackType.CurseForge ||
                                 (info.packType == PackType.Modrinth && info.packModrinth)
@@ -378,7 +351,7 @@ fun ExportInfoScreen(
                     SwitchSettingsCard(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                            .animated(ctx),
                         position = optionalItemIDs.rememberCardPosition(OPTIONAL_PACK_CURSEFORGE),
                         title = finalText,
                         checked = info.packCurseForge,
@@ -391,11 +364,11 @@ fun ExportInfoScreen(
             }
 
             //导出按钮
-            animatedItem(scope) { yOffset ->
+            animatedItem { ctx ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                        .animated(ctx)
                 ) {
                     Spacer(Modifier.height(8.dp))
 
@@ -416,7 +389,7 @@ fun ExportInfoScreen(
                         ) {
                             WarningCard(
                                 modifier = Modifier
-                                    .offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+                                    .animated(ctx),
                                 title = stringResource(R.string.generic_tip),
                                 icon = { innerModifier ->
                                     Icon(

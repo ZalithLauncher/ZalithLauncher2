@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@ import android.util.SparseArray
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import kotlinx.parcelize.IgnoredOnParcel
@@ -172,7 +172,7 @@ data class GamepadRemapper(
     private fun getDeadzone(event: MotionEvent, axis: Int): Float {
         return try {
             val range = event.device?.getMotionRange(axis, InputDevice.SOURCE_JOYSTICK)
-            val deadzoneScale = AllSettings.gamepadDeadZoneScale.state / 100f
+            val deadzoneScale = ControlSettings.gamepadDeadZoneScale.flow.value / 100f
             val deadzone = (range?.flat ?: 0f) * deadzoneScale
             max(deadzone, 0.1f * deadzoneScale)
         } catch (e: Exception) {

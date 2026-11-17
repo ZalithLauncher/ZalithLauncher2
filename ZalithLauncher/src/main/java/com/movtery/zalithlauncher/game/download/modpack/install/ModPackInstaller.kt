@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,16 +22,17 @@ import android.content.Context
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskFlowExecutor
+import com.movtery.zalithlauncher.coroutine.TaskLogOutput
 import com.movtery.zalithlauncher.coroutine.TitledTask
 import com.movtery.zalithlauncher.coroutine.addTask
 import com.movtery.zalithlauncher.coroutine.buildPhase
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
-import com.movtery.zalithlauncher.game.download.assets.platform.mcim.mapMCIMMirrorUrls
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.mcim.mapMCIMMirrorUrls
 import com.movtery.zalithlauncher.game.download.game.GameDownloadInfo
 import com.movtery.zalithlauncher.game.download.game.GameInstaller
 import com.movtery.zalithlauncher.game.version.installed.VersionConfig
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
-import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.game.version.installed.getVersionIconFile
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.utils.file.copyDirectoryContents
@@ -42,7 +43,9 @@ import com.movtery.zalithlauncher.utils.network.isUsingMobileData
 import com.movtery.zalithlauncher.utils.network.withSpeedReport
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
@@ -67,6 +70,10 @@ class ModPackInstaller(
 ) {
     private val taskExecutor = TaskFlowExecutor(scope)
     val tasksFlow: StateFlow<List<TitledTask>> = taskExecutor.tasksFlow
+
+    private val _logOutput = MutableStateFlow<TaskLogOutput?>(null)
+    /** 安装 JVM 实时日志输出 */
+    val logOutput: StateFlow<TaskLogOutput?> = _logOutput.asStateFlow()
 
     /**
      * 整合包文件解析出的信息
@@ -242,7 +249,12 @@ class ModPackInstaller(
                     )
 
                     //开始安装游戏！切换到下一阶段！
-                    val gameInstaller = GameInstaller(context, gameDownloadInfo, scope)
+                    val gameInstaller = GameInstaller(
+                        context = context,
+                        info = gameDownloadInfo,
+                        scope = scope,
+                        logOutputHolder = _logOutput
+                    )
                     taskExecutor.addPhases(
                         phases = gameInstaller.getTaskPhase(
                             createIsolation = false,
@@ -309,13 +321,13 @@ class ModPackInstaller(
 
             //复制整合包icon
             if (tempIconFile.exists() && tempIconFile.isFile) {
-                val iconFile = VersionsManager.getVersionIconFile(targetClientDir)
+                val iconFile = getVersionIconFile(targetClientDir)
                 if (iconFile.exists()) FileUtils.deleteQuietly(iconFile)
                 tempIconFile.copyTo(iconFile)
             }
 
             //创建版本信息
-            VersionConfig.createIsolation(targetClientDir).apply {
+            VersionConfig.createIsolationForModPack(targetClientDir).apply {
                 this.versionSummary = modpackInfo.summary ?: "" //整合包描述
                 this.ramAllocation = modpackInfo.ram ?: -1
             }.save()

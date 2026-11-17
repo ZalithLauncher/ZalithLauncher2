@@ -21,6 +21,30 @@ void (*vtest_swap_buffers_p)(void);
 
 static OSMesaContext virgl_context;
 
+// OSMesa 要求一块可写的用户缓冲区作为颜色缓冲（宽*高*4 字节）。
+// 呈现实际由 vtest 服务端经自身 EGL surface 直出，不经这块内存，
+// 但缓冲区必须真实可写，否则首帧 flush 会写入只读内存导致 SIGSEGV
+static void *virgl_framebuffer = NULL;
+static int virgl_fb_width = 0;
+static int virgl_fb_height = 0;
+
+// 分配失败时保留旧缓冲不动（返回 NULL），调用方据此跳过本次绑定
+static void *virgl_ensure_framebuffer(int width, int height) {
+    if (virgl_framebuffer != NULL && virgl_fb_width == width && virgl_fb_height == height) {
+        return virgl_framebuffer;
+    }
+    void *buffer = calloc((size_t) width * (size_t) height, 4);
+    if (buffer == NULL) {
+        printf("VirGL: allocate %dx%d OSMesa color buffer failed\n", width, height);
+        return NULL;
+    }
+    free(virgl_framebuffer);
+    virgl_framebuffer = buffer;
+    virgl_fb_width = width;
+    virgl_fb_height = height;
+    return virgl_framebuffer;
+}
+
 void *egl_make_current(void *window) {
     if (pojav_environ->config_renderer == RENDERER_VIRGL)
     {
@@ -190,7 +214,10 @@ void virglMakeCurrent(void *window) {
     if (!onMakeCurrent)
         printf("OSMDroid: making current\n");
 
-    OSMesaMakeCurrent_p(virgl_context, setbuffer, GL_UNSIGNED_BYTE, pojav_environ->savedWidth, pojav_environ->savedHeight);
+    void *framebuffer = virgl_ensure_framebuffer(pojav_environ->savedWidth, pojav_environ->savedHeight);
+    if (framebuffer == NULL) return;
+
+    OSMesaMakeCurrent_p(virgl_context, framebuffer, GL_UNSIGNED_BYTE, pojav_environ->savedWidth, pojav_environ->savedHeight);
 
     glClear_p(GL_COLOR_BUFFER_BIT);
     glClearColor_p(0.4f, 0.4f, 0.4f, 1.0f);

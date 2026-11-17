@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,6 +49,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -81,7 +82,7 @@ import kotlin.coroutines.CoroutineContext
 fun rememberDialogMaxHeight(): Dp {
     val windowInfo = LocalWindowInfo.current
     val density = LocalDensity.current
-    var maxHeight by remember(windowInfo) { mutableStateOf(windowInfo.containerSize.height) }
+    var maxHeight by remember(windowInfo) { mutableIntStateOf(windowInfo.containerSize.height) }
     maxHeight = maxOf(maxHeight, windowInfo.containerSize.height)
     return with(density) { maxHeight.toDp() }
 }
@@ -218,6 +219,46 @@ fun SimpleAlertDialog(
         dismissButton = {
             FilledTonalButton(onClick = onCancel) {
                 MarqueeText(text = dismissText)
+            }
+        }
+    )
+}
+
+/**
+ * 展示仅带确认按钮的警告对话框
+ *
+ * @param title 对话框标题
+ * @param text 对话框内容
+ * @param onDismiss 点击确认或对话框外部的回调
+ */
+@Composable
+fun SimpleAlertDialog(
+    title: String,
+    text: @Composable () -> Unit = {},
+    confirmText: String = stringResource(R.string.generic_confirm),
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        text = {
+            val scrollState = rememberScrollState()
+            Column(
+                modifier = Modifier
+                    .fadeEdge(state = scrollState)
+                    .verticalScrollWithBar(state = scrollState)
+            ) {
+                text()
+            }
+        },
+        confirmButton = {
+            Button(onClick = onDismiss) {
+                MarqueeText(text = confirmText)
             }
         }
     )

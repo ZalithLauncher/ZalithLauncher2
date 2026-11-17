@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,17 @@ sealed interface SavesOperation {
     data class BackupSave(val saveData: SaveData) : SavesOperation
     /** 删除存档对话框 */
     data class DeleteSave(val saveData: SaveData) : SavesOperation
+}
+
+/**
+ * 存档压缩分享任务的操作状态
+ */
+sealed interface SavesCompressOperation {
+    data object None : SavesCompressOperation
+    /** 正在压缩存档 */
+    data class Compressing(val saveData: SaveData) : SavesCompressOperation
+    /** 压缩过程出现异常 */
+    data class Error(val throwable: Throwable) : SavesCompressOperation
 }
 
 /**

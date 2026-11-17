@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,8 @@ package com.movtery.zalithlauncher.setting.unit
 import com.movtery.zalithlauncher.setting.launcherMMKV
 
 class StringSettingUnit(key: String, defaultValue: String) : AbstractSettingUnit<String>(key, defaultValue) {
-    override fun getValue(): String {
-        return launcherMMKV().getString(key ,defaultValue)!!
-            .also { state = it }
+    override fun readValue(): String {
+        return launcherMMKV().getString(key, defaultValue)!!
     }
 
     override fun saveValue(v: String): String {

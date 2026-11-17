@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,13 @@ object VirGLRenderer : RendererInterface {
 
     override fun getUniqueIdentifier(): String = "a3ccc1fe-de3f-4a81-8c45-2485181b63b3"
 
+    override val mesaBased: Boolean = true
+
     override fun getRendererName(): String = "VirGLRenderer"
+
+    override fun getMaxMCVersion(): String = "26.3-snapshot-3"
+
+    override fun getDisplayMaxMCVersion(): String = "26.2"
 
     override fun getRendererEnv(): Lazy<Map<String, String>> = lazy {
         mapOf(

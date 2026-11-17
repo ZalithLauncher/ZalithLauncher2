@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,8 +31,7 @@ import java.io.File
  * @param loader 该版本所加载的模组加载器
  * @param selectedFiles 用户选定的要导出的文件
  * @param minMemory 用户指定的整合包最小内存大小
- * @param maxMemory 用户指定的整合包最大内存大小
- * @param jvmArgs 游戏参数
+ * @param gameArgs 游戏参数
  * @param javaArgs Java虚拟机参数
  * @param fileApi 整合包下载链接前缀
  * @param url 整合包官方网站
@@ -51,8 +50,7 @@ data class ExportInfo(
     val loader: LoaderVersion? = null,
     val selectedFiles: List<File> = emptyList(),
     val minMemory: Int = 0,
-    val maxMemory: Int = 0,
-    val jvmArgs: String = "",
+    val gameArgs: String = "",
     val javaArgs: String = "",
     val fileApi: String? = null,
     val url: String = "",

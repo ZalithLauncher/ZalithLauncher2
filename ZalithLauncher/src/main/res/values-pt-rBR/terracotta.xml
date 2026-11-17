@@ -25,6 +25,7 @@
     <string name="terracotta_menu">Menu Do Multiplayer</string>
     <string name="terracotta_notification_title">Terracota | Multijogador em andamento</string>
     <string name="terracotta_notification_desc">Identidade: %s, Estado: %s</string>
+    <string name="terracotta_notification_state_preparing">Preparando conexão…</string>
     <string name="terracotta_status_waiting_host_title">Eu procuro organizar uma sessão</string>
     <string name="terracotta_status_waiting_host_desc">Crie uma sala e gere um código de convite para jogar com amigos</string>
     <string name="terracotta_status_waiting_guest_title">Quero participar de uma sessão</string>

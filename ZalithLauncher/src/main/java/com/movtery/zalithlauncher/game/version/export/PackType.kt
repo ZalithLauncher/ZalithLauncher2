@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@ enum class PackType(val options: PackEditOptions) {
         PackEditOptions.Builder()
             .requireAuthor()
             .requireSummary()
-            .requireJvmArgs()
+            .requireGameArgs()
             .requireJavaArgs()
             .requireWebsiteUrl()
             .requireMinMemory()
@@ -54,60 +54,44 @@ enum class PackType(val options: PackEditOptions) {
             .requireMinMemory()
             .build()
     ),
-
-    /**
-     * MultiMC 导出格式
-     */
-    MultiMC(
-        PackEditOptions.Builder()
-            .requireAuthor()
-            .requireSummary()
-            .requireMinMemory()
-            .requireMaxMemory()
-            .build()
-    ),
 }
 
 class PackEditOptions private constructor(
     val requireAuthor: Boolean = false,
     val requireSummary: Boolean = false,
-    val requireJvmArgs: Boolean = false,
+    val requireGameArgs: Boolean = false,
     val requireJavaArgs: Boolean = false,
     val requireWebsiteUrl: Boolean = false,
     val requireMinMemory: Boolean = false,
-    val requireMaxMemory: Boolean = false,
     val requirePackModrinth: Boolean = false,
     val requirePackCurseForge: Boolean = false
 ) {
     class Builder {
         private var requireAuthor: Boolean = false
         private var requireSummary: Boolean = false
-        private var requireJvmArgs: Boolean = false
+        private var requireGameArgs: Boolean = false
         private var requireJavaArgs: Boolean = false
         private var requireWebsiteUrl: Boolean = false
         private var requireMinMemory: Boolean = false
-        private var requireMaxMemory: Boolean = false
         private var requirePackModrinth: Boolean = false
         private var requirePackCurseForge: Boolean = false
 
         fun requireAuthor() = this.also { requireAuthor = true }
         fun requireSummary() = this.also { requireSummary = true }
-        fun requireJvmArgs() = this.also { requireJvmArgs = true }
+        fun requireGameArgs() = this.also { requireGameArgs = true }
         fun requireJavaArgs() = this.also { requireJavaArgs = true }
         fun requireWebsiteUrl() = this.also { requireWebsiteUrl = true }
         fun requireMinMemory() = this.also { requireMinMemory = true }
-        fun requireMaxMemory() = this.also { requireMaxMemory = true }
         fun requirePackModrinth() = this.also { requirePackModrinth = true }
         fun requirePackCurseForge() = this.also { requirePackCurseForge = true }
 
         fun build() = PackEditOptions(
             requireAuthor = requireAuthor,
             requireSummary = requireSummary,
-            requireJvmArgs = requireJvmArgs,
+            requireGameArgs = requireGameArgs,
             requireJavaArgs = requireJavaArgs,
             requireWebsiteUrl = requireWebsiteUrl,
             requireMinMemory = requireMinMemory,
-            requireMaxMemory = requireMaxMemory,
             requirePackModrinth = requirePackModrinth,
             requirePackCurseForge = requirePackCurseForge
         )

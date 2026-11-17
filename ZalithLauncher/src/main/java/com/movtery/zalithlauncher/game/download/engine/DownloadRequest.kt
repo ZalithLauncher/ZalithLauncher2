@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,12 +49,12 @@ fun Throwable.findHttpCode(): Int? =
         ?.code
 
 /** 全部源尝试完毕仍然失败时抛出，message 内含每个源的失败原因 */
-class AllSourcesFailedException internal constructor(
+class AllSourcesFailedException(
     summary: String,
     cause: Throwable?
 ) : IOException(summary, cause)
 
-class HttpResultException internal constructor(
+class HttpResultException(
     val code: Int,
     message: String
 ) : IOException(message)

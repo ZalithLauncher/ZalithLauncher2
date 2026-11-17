@@ -113,3 +113,60 @@ include $(BUILD_SHARED_LIBRARY)
 # delete fake libs after linked
 $(info $(shell (rm $(HERE_PATH)/../jniLibs/*/libawt_headless.so)))
 
+
+# 模块：jsound - OpenJDK libjsound 核心 + OpenAL 平台后端
+# 为四套 JRE（jre8/17/21/25）提供 javax.sound.sampled 的原生实现，
+# 核心 .c/.h 文件 vendor 自 openjdk/jdk17u
+# （https://github.com/openjdk/jdk17u/blob/master/src/java.desktop/share/native/libjsound，
+# GPL-2.0 + Classpath 异常，与本项目 GPL-3.0 兼容；8u 与 17u 的该目录字节级一致，
+# 故一套源码可同时服务两代 ABI）。PORT/MIDI 子系统关闭（桩返回 0 设备），
+# 音频路径由 jsound_openal.c 桥接 OpenAL，JDK8 的 Platform 额外 native 由 jdk8_compat.c 补齐
+LOCAL_PATH := $(HERE_PATH)
+include $(CLEAR_VARS)
+LOCAL_MODULE := jsound
+LOCAL_CFLAGS += \
+    -DX_PLATFORM=X_LINUX \
+    -D_LITTLE_ENDIAN \
+    -DUSE_DAUDIO=TRUE \
+    -DUSE_PORTS=FALSE \
+    -DUSE_PLATFORM_MIDI_OUT=FALSE \
+    -DUSE_PLATFORM_MIDI_IN=FALSE
+LOCAL_C_INCLUDES := $(HERE_PATH)/jsound
+LOCAL_LDLIBS := -llog -ldl
+LOCAL_SRC_FILES := \
+    jsound/Utilities.c \
+    jsound/Platform.c \
+    jsound/DirectAudioDevice.c \
+    jsound/DirectAudioDeviceProvider.c \
+    jsound/PortMixer.c \
+    jsound/PortMixerProvider.c \
+    jsound/MidiOutDevice.c \
+    jsound/MidiOutDeviceProvider.c \
+    jsound/MidiInDevice.c \
+    jsound/MidiInDeviceProvider.c \
+    jsound/PlatformMidi.c \
+    jsound/jsound_openal.c \
+    jsound/jdk8_compat.c
+include $(BUILD_SHARED_LIBRARY)
+
+
+LOCAL_PATH := $(HERE_PATH)/flite
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := flite
+LOCAL_SRC_FILES := flite_bridge.c
+LOCAL_LDLIBS := -llog
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := fliteWrapper
+LOCAL_SRC_FILES := flite_wrapper.c
+LOCAL_SHARED_LIBRARIES := flite
+include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := flite_cmu_us_kal16
+LOCAL_SRC_FILES := flite_cmu_us_kal16.c
+include $(BUILD_SHARED_LIBRARY)
+
+LOCAL_PATH := $(HERE_PATH)

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,16 +30,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.ui.NavDisplay
-import com.movtery.zalithlauncher.game.download.assets.downloadSingleForVersions
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.downloadDependenciesForVersions
+import com.movtery.zalithlauncher.game.download.addon.downloadSingleForVersions
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.download.DownloadAssetsScreen
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.DownloadSingleOperation
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.search.SearchResourcePackScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.download.DownloadAddonScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.DownloadSingleOperation
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.search.SearchResourcePackScreen
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
@@ -70,30 +70,35 @@ fun DownloadResourcePackScreen(
     DownloadSingleOperation(
         operation = operation,
         changeOperation = { operation = it },
-        doInstall = { classes, version, versions ->
+        doInstall = { classes, version, versions, dependencies ->
             downloadSingleForVersions(
                 version = version,
                 versions = versions,
                 folder = classes.versionFolder.folderName,
                 submitError = submitError
             )
+            downloadDependenciesForVersions(
+                requests = dependencies,
+                versions = versions,
+                submitError = submitError
+            )
         },
-        onDependencyClicked = { dep, classes ->
+        onDependencyClicked = { platform, projectId, classes ->
             backStack.navigateTo(
-                NormalNavKey.DownloadAssets(dep.platform, dep.projectId, classes)
+                NormalNavKey.DownloadAddon(platform, projectId, classes)
             )
         }
     )
 
     if (backStack.isNotEmpty()) {
-        NavDisplay(
+        NestedNavDisplay(
+            ownerKey = key,
             backStack = backStack,
             modifier = Modifier.fillMaxSize(),
             onBack = {
                 onBack(backStack)
             },
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
+            extraDecorators = listOf(
                 rememberViewModelStoreNavEntryDecorator()
             ),
             transitionSpec = rememberTransitionSpec(),
@@ -107,17 +112,17 @@ fun DownloadResourcePackScreen(
                         downloadResourcePackScreenCurrentKey = downloadResourcePackScreenKey
                     ) { platform, projectId, _ ->
                         backStack.navigateTo(
-                            NormalNavKey.DownloadAssets(platform, projectId, PlatformClasses.RESOURCE_PACK)
+                            NormalNavKey.DownloadAddon(platform, projectId, PlatformClasses.RESOURCE_PACK)
                         )
                     }
                 }
-                entry<NormalNavKey.DownloadAssets> { assetsKey ->
-                    DownloadAssetsScreen(
+                entry<NormalNavKey.DownloadAddon> { addonKey ->
+                    DownloadAddonScreen(
                         mainScreenKey = mainScreenKey,
                         parentScreenKey = key,
                         parentCurrentKey = downloadScreenKey,
                         currentKey = downloadResourcePackScreenKey,
-                        key = assetsKey,
+                        key = addonKey,
                         eventViewModel = eventViewModel,
                         onItemClicked = { classes, version, _, deps ->
                             operation = if (isUsingMobileData(context)) {

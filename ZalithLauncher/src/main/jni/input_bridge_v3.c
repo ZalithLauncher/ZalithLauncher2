@@ -17,6 +17,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdatomic.h>
+#include <stdbool.h>
+#include <stdint.h>
 #include <math.h>
 
 #include "logger/logger.h"
@@ -80,40 +82,69 @@ jint JNI_OnLoad(JavaVM* vm, __attribute__((unused)) void* reserved) {
 }
 
 /**
- * Called from GLFW.<clinit> right after libpojavexec finished loading in the game JVM.
+ * 解析 GLFW 桥所需的类、方法 ID 与按键缓冲，供 GLFW.<clinit> 与渲染线程按需调用。
  *
- * This MUST NOT run inside JNI_OnLoad: at that point the GLFW class is usually not
- * initialized yet, and FindClass("org/lwjgl/glfw/GLFW") would trigger its <clinit>,
- * which in turn calls System.loadLibrary("pojavexec") again -> reentry into the still
- * running JNI_OnLoad -> crash. Deferring it here (after the library finished loading)
- * avoids that recursion and follows the reference implementation from
- * https://github.com/AngelAuraMC/Amethyst-Android.
+ * 必须在 libpojavexec 完成加载后运行，不能放进 JNI_OnLoad：此时 GLFW 类尚未初始化，
+ * FindClass 会触发其 <clinit>，进而再次 System.loadLibrary("pojavexec")，重入尚未返回的
+ * JNI_OnLoad 导致崩溃。
+ * 只能使用调用线程自己的 JNIEnv（传入的 env，必要时经 GetEnv 获取）：缓存下来的
+ * runtimeJNIEnvPtr_JRE 属于最先加载 pojavexec 的线程，模组可能在其它线程上更早触发
+ * GLFW 类初始化，跨线程复用该指针属于未定义行为，会导致 FindClass 失败。
+ * 可安全重复调用：已初始化时直接返回；单次尝试内任一成员解析失败都不会写入全局状态，
+ * 留待下次在有效线程上重试。
  */
-JNIEXPORT void JNICALL Java_org_lwjgl_glfw_GLFW_nativeInitializeGLFWNativeBridge(__attribute__((unused)) JNIEnv* env, __attribute__((unused)) jclass clazz) {
-    JNIEnv *vmEnv = pojav_environ->runtimeJNIEnvPtr_JRE;
-    if (vmEnv == NULL || pojav_environ->runtimeJavaVMPtr == NULL) {
-        LOG_TO_E("<%s> %s", "Native", "nativeInitializeGLFWNativeBridge: no game JVM environ saved yet!");
-        return;
+jboolean ensureGlfwNativeBridgeInitialized(JNIEnv *env) {
+    if (pojav_environ->vmGlfwClass != NULL) {
+        return JNI_TRUE;
     }
-    pojav_environ->vmGlfwClass = (*vmEnv)->NewGlobalRef(vmEnv, (*vmEnv)->FindClass(vmEnv, "org/lwjgl/glfw/GLFW"));
-    if (pojav_environ->vmGlfwClass == NULL) {
+    if (env == NULL && pojav_environ->runtimeJavaVMPtr != NULL) {
+        (*pojav_environ->runtimeJavaVMPtr)->GetEnv(
+                pojav_environ->runtimeJavaVMPtr, (void **) &env, JNI_VERSION_1_4);
+    }
+    if (env == NULL) {
+        LOG_TO_E("<%s> %s", "Native", "nativeInitializeGLFWNativeBridge: no game JVM environ available!");
+        return JNI_FALSE;
+    }
+
+    jclass glfwClass = (*env)->FindClass(env, "org/lwjgl/glfw/GLFW");
+    if (glfwClass == NULL) {
+        if ((*env)->ExceptionCheck(env)) (*env)->ExceptionClear(env);
         LOG_TO_E("<%s> %s", "Native", "nativeInitializeGLFWNativeBridge: failed to find org.lwjgl.glfw.GLFW");
-        (*vmEnv)->ExceptionClear(vmEnv);
-        return;
+        return JNI_FALSE;
     }
-    pojav_environ->method_glftSetWindowAttrib = (*vmEnv)->GetStaticMethodID(vmEnv, pojav_environ->vmGlfwClass, "glfwSetWindowAttrib", "(JII)V");
-    pojav_environ->method_internalWindowSizeChanged = (*vmEnv)->GetStaticMethodID(vmEnv, pojav_environ->vmGlfwClass, "internalWindowSizeChanged", "(J)V");
-    pojav_environ->method_internalChangeMonitorSize = (*vmEnv)->GetStaticMethodID(vmEnv, pojav_environ->vmGlfwClass, "internalChangeMonitorSize", "(II)V");
-    jfieldID field_keyDownBuffer = (*vmEnv)->GetStaticFieldID(vmEnv, pojav_environ->vmGlfwClass, "keyDownBuffer", "Ljava/nio/ByteBuffer;");
-    jobject keyDownBufferJ = (*vmEnv)->GetStaticObjectField(vmEnv, pojav_environ->vmGlfwClass, field_keyDownBuffer);
-    pojav_environ->keyDownBuffer = (*vmEnv)->GetDirectBufferAddress(vmEnv, keyDownBufferJ);
-    jfieldID field_mouseDownBuffer = (*vmEnv)->GetStaticFieldID(vmEnv, pojav_environ->vmGlfwClass, "mouseDownBuffer", "Ljava/nio/ByteBuffer;");
-    jobject mouseDownBufferJ = (*vmEnv)->GetStaticObjectField(vmEnv, pojav_environ->vmGlfwClass, field_mouseDownBuffer);
-    pojav_environ->mouseDownBuffer = (*vmEnv)->GetDirectBufferAddress(vmEnv, mouseDownBufferJ);
-    if ((*vmEnv)->ExceptionCheck(vmEnv)) {
-        LOG_TO_E("<%s> %s", "Native", "nativeInitializeGLFWNativeBridge: exception while grabbing GLFW bridge members");
-        (*vmEnv)->ExceptionClear(vmEnv);
+
+    jmethodID method_glftSetWindowAttrib = (*env)->GetStaticMethodID(env, glfwClass, "glfwSetWindowAttrib", "(JII)V");
+    jmethodID method_internalWindowSizeChanged = (*env)->GetStaticMethodID(env, glfwClass, "internalWindowSizeChanged", "(J)V");
+    jmethodID method_internalChangeMonitorSize = (*env)->GetStaticMethodID(env, glfwClass, "internalChangeMonitorSize", "(II)V");
+    jfieldID field_keyDownBuffer = (*env)->GetStaticFieldID(env, glfwClass, "keyDownBuffer", "Ljava/nio/ByteBuffer;");
+    jfieldID field_mouseDownBuffer = (*env)->GetStaticFieldID(env, glfwClass, "mouseDownBuffer", "Ljava/nio/ByteBuffer;");
+    if ((*env)->ExceptionCheck(env)) {
+        LOG_TO_E("<%s> %s", "Native", "nativeInitializeGLFWNativeBridge: failed to resolve GLFW bridge members");
+        (*env)->ExceptionClear(env);
+        (*env)->DeleteLocalRef(env, glfwClass);
+        return JNI_FALSE;
     }
+
+    jobject keyDownBufferJ = (*env)->GetStaticObjectField(env, glfwClass, field_keyDownBuffer);
+    jobject mouseDownBufferJ = (*env)->GetStaticObjectField(env, glfwClass, field_mouseDownBuffer);
+    jbyte *keyDownBuffer = (*env)->GetDirectBufferAddress(env, keyDownBufferJ);
+    jbyte *mouseDownBuffer = (*env)->GetDirectBufferAddress(env, mouseDownBufferJ);
+    (*env)->DeleteLocalRef(env, keyDownBufferJ);
+    (*env)->DeleteLocalRef(env, mouseDownBufferJ);
+
+    // 全部成员解析成功后才写入全局状态，避免留下半初始化的桥
+    pojav_environ->vmGlfwClass = (*env)->NewGlobalRef(env, glfwClass);
+    (*env)->DeleteLocalRef(env, glfwClass);
+    pojav_environ->method_glftSetWindowAttrib = method_glftSetWindowAttrib;
+    pojav_environ->method_internalWindowSizeChanged = method_internalWindowSizeChanged;
+    pojav_environ->method_internalChangeMonitorSize = method_internalChangeMonitorSize;
+    pojav_environ->keyDownBuffer = keyDownBuffer;
+    pojav_environ->mouseDownBuffer = mouseDownBuffer;
+    return JNI_TRUE;
+}
+
+JNIEXPORT void JNICALL Java_org_lwjgl_glfw_GLFW_nativeInitializeGLFWNativeBridge(JNIEnv* env, __attribute__((unused)) jclass clazz) {
+    ensureGlfwNativeBridgeInitialized(env);
 }
 
 #define ADD_CALLBACK_WWIN(NAME) \
@@ -136,12 +167,20 @@ ADD_CALLBACK_WWIN(WindowSize)
 #undef ADD_CALLBACK_WWIN
 
 void updateMonitorSize(int width, int height) {
+    if (pojav_environ->glfwThreadVmEnv == NULL || pojav_environ->vmGlfwClass == NULL) {
+        LOG_TO_E("<%s> %s", "Native", "updateMonitorSize: GLFW bridge is not initialized, skipped");
+        return;
+    }
     (*pojav_environ->glfwThreadVmEnv)->CallStaticVoidMethod(
             pojav_environ->glfwThreadVmEnv, pojav_environ->vmGlfwClass,
             pojav_environ->method_internalChangeMonitorSize, width, height);
 }
 
 void updateWindowSize(void *window) {
+    if (pojav_environ->glfwThreadVmEnv == NULL || pojav_environ->vmGlfwClass == NULL) {
+        LOG_TO_E("<%s> %s", "Native", "updateWindowSize: GLFW bridge is not initialized, skipped");
+        return;
+    }
     (*pojav_environ->glfwThreadVmEnv)->CallStaticVoidMethod(
             pojav_environ->glfwThreadVmEnv, pojav_environ->vmGlfwClass,
             pojav_environ->method_internalWindowSizeChanged, (jlong) window);
@@ -409,6 +448,88 @@ Java_com_movtery_zalithlauncher_game_sdl_SdlBridge_initializeControllerSubsystem
     LOG_TO_I("<%s> %s", "SDL", "initializeControllerSubsystems: SDL controller subsystems initialized");
 }
 
+// --- SDL 文本输入通道（启动器代管，供启动器侧显式唤起输入法） ---
+// 参考 Fold Craft Launcher（https://github.com/FCL-Team/FoldCraftLauncher/blob/cacd666292d9646ceb622c39b82123d8671e5b41/FCL/src/main/jni/input_bridge_v3.c）
+
+typedef struct SDL_Window SDL_Window;
+typedef uint32_t SDL_PropertiesID;
+typedef void (*SDL_MainThreadCallback)(void *userdata);
+typedef bool (*sdlStartTextInput_t)(SDL_Window *, SDL_PropertiesID);
+typedef bool (*sdlStopTextInput_t)(SDL_Window *);
+typedef bool (*sdlIsTextInputActive_t)(SDL_Window *);
+typedef bool (*sdlRunOnMainThread_t)(SDL_MainThreadCallback, void *, bool);
+
+// SDL 主窗口指针，由 exithook/sdl_hook.c 在窗口创建/销毁时同步（两库不反链接，经导出函数回填）
+static SDL_Window *sSdlPrimaryWindow = NULL;
+
+void sdlBridgeSetPrimaryWindow(struct SDL_Window *window) {
+    sSdlPrimaryWindow = window;
+}
+
+static void sdlTextInputMainThreadCallback(void *userdata) {
+    void *handle = dlopen("libSDL3.so", RTLD_NOW);
+    if (handle == NULL) return;
+    SDL_Window *window = sSdlPrimaryWindow;
+    if (window == NULL) return;
+    if (userdata != NULL) {
+        sdlStartTextInput_t start = (sdlStartTextInput_t) dlsym(handle, "SDL_StartTextInput");
+        if (start != NULL) start(window, 0);
+        else LOG_TO_E("<%s> %s", "SDL", "sdlTextInputMainThreadCallback: SDL_StartTextInput not found");
+    } else {
+        sdlStopTextInput_t stop = (sdlStopTextInput_t) dlsym(handle, "SDL_StopTextInput");
+        if (stop != NULL) stop(window);
+        else LOG_TO_E("<%s> %s", "SDL", "sdlTextInputMainThreadCallback: SDL_StopTextInput not found");
+    }
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_movtery_zalithlauncher_game_sdl_SdlBridge_isSdlRenderActive(__attribute__((unused)) JNIEnv* env, __attribute__((unused)) jclass clazz) {
+    // SDL 渲染路径以首个 SDL 窗口创建为标志；仅手柄子系统初始化 SDL（MC 26.2 挂 Controlify）时无窗口
+    return sSdlPrimaryWindow != NULL ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_movtery_zalithlauncher_game_sdl_SdlBridge_setNativeTextInputActive(__attribute__((unused)) JNIEnv* env, __attribute__((unused)) jclass clazz, jboolean active) {
+    if (sSdlPrimaryWindow == NULL) {
+        LOG_TO_W("<%s> %s", "SDL", "setNativeTextInputActive: no SDL window (SDL render path inactive)");
+        return JNI_FALSE;
+    }
+    void *handle = dlopen("libSDL3.so", RTLD_NOW);
+    if (handle == NULL) {
+        LOG_TO_E("<%s> %s", "SDL", "setNativeTextInputActive: libSDL3.so dlopen failed");
+        return JNI_FALSE;
+    }
+    sdlRunOnMainThread_t runOnMain = (sdlRunOnMainThread_t) dlsym(handle, "SDL_RunOnMainThread");
+    if (runOnMain == NULL) {
+        LOG_TO_E("<%s> %s", "SDL", "setNativeTextInputActive: SDL_RunOnMainThread not found");
+        return JNI_FALSE;
+    }
+    // SDL3 文本输入 API 要求主线程，经 SDL_RunOnMainThread 投递；不等待完成，激活结果由
+    // SDL 回调 showTextInput 异步镜像回 Java 层
+    bool result = runOnMain(sdlTextInputMainThreadCallback, (void *) (intptr_t) (active ? 1 : 0), JNI_FALSE);
+    if (!result) {
+        LOG_TO_E("<%s> %s", "SDL", "setNativeTextInputActive: SDL_RunOnMainThread dispatch failed");
+    }
+    return result ? JNI_TRUE : JNI_FALSE;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_com_movtery_zalithlauncher_game_sdl_SdlBridge_isNativeTextInputActive(__attribute__((unused)) JNIEnv* env, __attribute__((unused)) jclass clazz) {
+    if (sSdlPrimaryWindow == NULL) return JNI_FALSE;
+    void *handle = dlopen("libSDL3.so", RTLD_NOW);
+    if (handle == NULL) {
+        LOG_TO_E("<%s> %s", "SDL", "isNativeTextInputActive: libSDL3.so dlopen failed");
+        return JNI_FALSE;
+    }
+    sdlIsTextInputActive_t isActive = (sdlIsTextInputActive_t) dlsym(handle, "SDL_TextInputActive");
+    if (isActive == NULL) {
+        LOG_TO_E("<%s> %s", "SDL", "isNativeTextInputActive: SDL_TextInputActive not found");
+        return JNI_FALSE;
+    }
+    // 仅读取激活标志，无需像 setNativeTextInputActive 那样经 SDL_RunOnMainThread 投递
+    return isActive(sSdlPrimaryWindow) ? JNI_TRUE : JNI_FALSE;
+}
+
 JNIEXPORT jobject JNICALL
 Java_org_lwjgl_glfw_CallbackBridge_nativeCreateGamepadButtonBuffer(JNIEnv* env, __attribute__((unused)) jclass clazz) {
     return (*env)->NewDirectByteBuffer(env, pojav_environ->gamepadState.buttons, sizeof(pojav_environ->gamepadState.buttons));
@@ -595,6 +716,10 @@ JNIEXPORT void JNICALL Java_org_lwjgl_glfw_CallbackBridge_nativeSetWindowAttrib(
     // Check for stack queue no longer necessary here as the JVM crash's origin is resolved
     if (!pojav_environ->showingWindow) {
         // If the window is not shown, there is nothing to do yet.
+        return;
+    }
+    if (pojav_environ->vmGlfwClass == NULL || pojav_environ->method_glftSetWindowAttrib == NULL) {
+        LOG_TO_E("<%s> %s", "Native", "nativeSetWindowAttrib: GLFW bridge is not initialized, skipped");
         return;
     }
 

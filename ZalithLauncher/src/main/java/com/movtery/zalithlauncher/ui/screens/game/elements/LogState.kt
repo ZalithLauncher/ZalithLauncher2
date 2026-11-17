@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@ package com.movtery.zalithlauncher.ui.screens.game.elements
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
 import com.movtery.zalithlauncher.ui.screens.game.elements.LogState.CLOSE
 import com.movtery.zalithlauncher.ui.screens.game.elements.LogState.SHOW_BEFORE_LOADING
 
@@ -54,7 +54,7 @@ enum class LogState(val value: Boolean) {
 
 fun mutableStateOfLog(): MutableState<LogState> {
     return mutableStateOf(
-        if (AllSettings.showLogAutomatic.getValue()) SHOW_BEFORE_LOADING
+        if (GameSettings.showLogAutomatic.getValue()) SHOW_BEFORE_LOADING
         else CLOSE
     )
 }

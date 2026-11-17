@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,11 @@ enum class NotificationChannelData(
      * JVM 保活服务
      */
     GAME_SERVICE_CHANNEL("game.service", { it.getString(R.string.notification_jvm_running_name) }, null, IMPORTANCE_LOW),
+
+    /**
+     * 任务保活服务
+     */
+    TASK_SERVICE_CHANNEL("task.service", { it.getString(R.string.notification_task_service_name) }, null, IMPORTANCE_LOW),
 
     /**
      * 陶瓦联机 VPN 状态显示服务

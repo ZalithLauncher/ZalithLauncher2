@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -182,6 +182,14 @@ object RuntimesManager {
         val targetXawtLib = dest.child(libFolder, "libawt_xawt.so")
         if (targetXawtLib.exists()) targetXawtLib.delete()
         FileUtils.copyFile(localXawtLib, targetXawtLib)
+
+        // 补装 libjsound.so
+        val localJsoundLib = File(PathManager.DIR_NATIVE_LIB, "libjsound.so")
+        if (localJsoundLib.exists()) {
+            val targetJsoundLib = dest.child(libFolder, "libjsound.so")
+            if (targetJsoundLib.exists()) targetJsoundLib.delete()
+            FileUtils.copyFile(localJsoundLib, targetJsoundLib)
+        }
     }
 
     @Throws(IOException::class)

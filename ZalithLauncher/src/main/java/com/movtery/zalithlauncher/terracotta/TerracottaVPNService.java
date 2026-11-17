@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,36 +89,37 @@ public class TerracottaVPNService extends VpnService {
             return Service.START_NOT_STICKY;
         }
 
-        if (ACTION_UPDATE_STATE.equals(action)) {
+        if (ACTION_UPDATE_STATE.equals(action) || ACTION_REPOST.equals(action)) {
             currentStateStringRes = getStateTextRes(intent);
-
-            if (!isStopping) {
-                Notification n = buildVpnNotification();
-                notificationManager.notify(VPN_NOTIFICATION_ID, n);
-            }
-            return Service.START_STICKY;
         }
 
-        boolean fromDelete = intent != null && intent.getBooleanExtra(EXTRA_FROM_DELETE, false);
-
-        if (ACTION_REPOST.equals(action) && fromDelete && !isStopping) {
-            Log.d(TAG, "Repost VPN notification after user cleared it.");
-            currentStateStringRes = getStateTextRes(intent);
-            Notification notification = buildVpnNotification();
-            if (notification == null)
+        if (!isStopping) {
+            //经 startForegroundService 启动后必须及时进入前台，否则系统将抛出
+            //ForegroundServiceDidNotStartInTimeException 导致进程崩溃
+            try {
+                startForeground0(buildVpnNotification());
+            } catch (Exception e) {
+                Log.w(TAG, "Cannot start VPN foreground service.", e);
+                try {
+                    TerracottaAndroidAPI.getPendingVpnServiceRequest().reject();
+                } catch (IllegalStateException ignored) {
+                }
+                stopSelf();
                 return Service.START_NOT_STICKY;
+            }
+        }
 
-            startForeground0(notification);
+        if (intent == null) {
+            //系统重建服务时不会重新下发联机请求，没有可建立的隧道
+            stopSelf();
+            return Service.START_NOT_STICKY;
+        }
+
+        if (ACTION_UPDATE_STATE.equals(action) || ACTION_REPOST.equals(action)) {
             return Service.START_STICKY;
         }
 
         isStopping = false;
-
-        Notification notification = buildVpnNotification();
-        if (notification == null)
-            return Service.START_NOT_STICKY;
-
-        startForeground0(notification);
 
         Builder vpnBuilder = new Builder().setSession("Terracotta Connection");
 
@@ -127,7 +128,14 @@ public class TerracottaVPNService extends VpnService {
         } catch (PackageManager.NameNotFoundException ignored) {
         }
 
-        TerracottaAndroidAPI.VpnServiceRequest request = TerracottaAndroidAPI.getPendingVpnServiceRequest();
+        TerracottaAndroidAPI.VpnServiceRequest request;
+        try {
+            request = TerracottaAndroidAPI.getPendingVpnServiceRequest();
+        } catch (IllegalStateException e) {
+            //原生侧已无挂起的联机请求（如等待授权超时），无需建立隧道
+            stopSelf();
+            return Service.START_NOT_STICKY;
+        }
         vpnInterface = request.startVpnService(vpnBuilder);
 
         return Service.START_STICKY;
@@ -161,24 +169,30 @@ public class TerracottaVPNService extends VpnService {
     }
 
     private Notification buildVpnNotification() {
-        Terracotta.Mode mode = Terracotta.INSTANCE.getMode();
-        if (mode == null) return null;
-
         String title = getString(R.string.terracotta_notification_title);
-        String modeText = mode == Terracotta.Mode.Host ? getString(R.string.terracotta_player_kind_host) : getString(R.string.terracotta_player_kind_guest);
+
         if (currentStateStringRes == -1) {
             TerracottaState.Ready state = Terracotta.INSTANCE.getState().getValue();
             if (state != null && !(state instanceof TerracottaState.Waiting)) {
                 currentStateStringRes = state.localStringRes();
             }
         }
-        String stateString;
-        if (currentStateStringRes == -1) {
-            stateString = "Unknown";
+
+        String contentText;
+        Terracotta.Mode mode = Terracotta.INSTANCE.getMode();
+        if (mode == null) {
+            //联机模式尚未确定，此时通知不展示身份信息
+            contentText = getString(R.string.terracotta_notification_state_preparing);
         } else {
-            stateString = getString(currentStateStringRes);
+            String modeText = mode == Terracotta.Mode.Host ? getString(R.string.terracotta_player_kind_host) : getString(R.string.terracotta_player_kind_guest);
+            String stateString;
+            if (currentStateStringRes == -1) {
+                stateString = "Unknown";
+            } else {
+                stateString = getString(currentStateStringRes);
+            }
+            contentText = String.format(getString(R.string.terracotta_notification_desc), modeText, stateString);
         }
-        String contentText = String.format(getString(R.string.terracotta_notification_desc), modeText, stateString);
 
         Notification.Builder builder;
         builder = new Notification.Builder(this, NotificationChannelData.TERRACOTTA_VPN_CHANNEL.getChannelId());
@@ -208,7 +222,7 @@ public class TerracottaVPNService extends VpnService {
 
     private void startForeground0(Notification notification) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            startForeground(TerracottaVPNService.VPN_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE);
+            startForeground(TerracottaVPNService.VPN_NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         } else {
             startForeground(TerracottaVPNService.VPN_NOTIFICATION_ID, notification);
         }

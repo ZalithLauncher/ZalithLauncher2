@@ -1,0 +1,32 @@
+{
+  "version": "2026/10/30",
+  "files": [
+    {
+      "effective_region": "global",
+      "data_list": [
+        {
+          "title": "ZalithLauncher2 User Agreement",
+          "path": "legal/en/user_agreement.md"
+        },
+        {
+          "title": "ZalithLauncher2 Privacy Policy",
+          "path": "legal/en/privacy_policy.md"
+        }
+      ]
+    },
+
+    {
+      "effective_region": "zh",
+      "data_list": [
+        {
+          "title": "《ZalithLauncher2 用户协议》",
+          "path": "legal/zh/user_agreement.md"
+        },
+        {
+          "title": "《ZalithLauncher2 隐私政策》",
+          "path": "legal/zh/privacy_policy.md"
+        }
+      ]
+    }
+  ]
+}

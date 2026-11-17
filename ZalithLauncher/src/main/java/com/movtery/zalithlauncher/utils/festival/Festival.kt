@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -157,6 +157,54 @@ enum class Festival(
             lunarCalendar: LunarCalendar
         ): Boolean {
             return date.checkDateRange(12, 24..25)
+        }
+    },
+
+    /**
+     * 万圣节
+     */
+    HALLOWEEN(
+        isChinese = false,
+        isInternational = true,
+        textRes = R.string.festivals_halloween
+    ) {
+        override fun isToday(
+            date: LocalDate,
+            lunarCalendar: LunarCalendar
+        ): Boolean {
+            return date.checkDate(10, 31)
+        }
+    },
+
+    /**
+     * 情人节
+     */
+    VALENTINES(
+        isChinese = false,
+        isInternational = true,
+        textRes = R.string.festivals_valentines
+    ) {
+        override fun isToday(
+            date: LocalDate,
+            lunarCalendar: LunarCalendar
+        ): Boolean {
+            return date.checkDate(2, 14)
+        }
+    },
+
+    /**
+     * 七夕
+     */
+    QIXI(
+        isChinese = true,
+        isInternational = false,
+        textRes = R.string.festivals_qixi
+    ) {
+        override fun isToday(
+            date: LocalDate,
+            lunarCalendar: LunarCalendar
+        ): Boolean {
+            return lunarCalendar.checkDate(7, 7)
         }
     };
 

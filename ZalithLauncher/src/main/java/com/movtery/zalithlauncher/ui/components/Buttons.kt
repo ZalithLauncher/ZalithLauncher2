@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@ package com.movtery.zalithlauncher.ui.components
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.basicMarquee
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -47,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TooltipScope
@@ -114,6 +115,44 @@ fun ScalingActionButton(
 }
 
 @Composable
+fun ScalingIconButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    size: Dp = 40.dp,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
+    border: BorderStroke? = null,
+    content: @Composable () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale = animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "ButtonScale"
+    )
+
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .size(size)
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            },
+        enabled = enabled,
+        shape = CircleShape,
+        colors = colors,
+        elevation = elevation,
+        border = border,
+        contentPadding = PaddingValues(0.dp),
+        interactionSource = interactionSource,
+        content = { content() }
+    )
+}
+
+@Composable
 fun MarqueeText(
     modifier: Modifier = Modifier,
     text: String,
@@ -141,7 +180,8 @@ fun IconTextButton(
     text: String,
     contentDescription: String? = text,
     style: TextStyle = MaterialTheme.typography.labelMedium,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    onLongClick: () -> Unit = {},
 ) {
     BaseIconTextButton(
         onClick = onClick,
@@ -156,7 +196,8 @@ fun IconTextButton(
         },
         text = text,
         style = style,
-        enabled = enabled
+        enabled = enabled,
+        onLongClick = onLongClick
     )
 }
 
@@ -171,6 +212,7 @@ fun IconTextButton(
     contentDescription: String? = text,
     style: TextStyle = MaterialTheme.typography.labelMedium,
     enabled: Boolean = true,
+    onLongClick: () -> Unit = {},
 ) {
     BaseIconTextButton(
         onClick = onClick,
@@ -185,7 +227,8 @@ fun IconTextButton(
         },
         text = text,
         style = style,
-        enabled = enabled
+        enabled = enabled,
+        onLongClick = onLongClick
     )
 }
 
@@ -197,12 +240,13 @@ fun BaseIconTextButton(
     icon: @Composable (Modifier) -> Unit,
     text: String,
     style: TextStyle = MaterialTheme.typography.labelMedium,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    onLongClick: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
             .clip(shape = shape)
-            .clickable(enabled = enabled, onClick = onClick)
+            .combinedClickable(enabled = enabled, onClick = onClick, onLongClick = onLongClick)
             .padding(PaddingValues(horizontal = 8.dp, vertical = 4.dp))
             .alpha(if (enabled) 1f else DisabledAlpha),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -299,7 +343,9 @@ fun TooltipIconButton(
 
     TooltipBox(
         modifier = modifier,
-        positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+            positioning = TooltipAnchorPosition.Below
+        ),
         tooltip = tooltip,
         state = tooltipState,
         enableUserInput = false

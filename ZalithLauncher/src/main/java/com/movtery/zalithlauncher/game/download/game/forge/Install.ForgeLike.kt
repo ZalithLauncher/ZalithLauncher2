@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,8 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.components.jre.Jre
 import com.movtery.zalithlauncher.context.GlobalContext
 import com.movtery.zalithlauncher.coroutine.Task
+import com.movtery.zalithlauncher.coroutine.TaskLogOutput
+import com.movtery.zalithlauncher.coroutine.withTaskLogOutput
 import com.movtery.zalithlauncher.game.download.game.GameLibDownloader
 import com.movtery.zalithlauncher.game.download.game.getLibraryPath
 import com.movtery.zalithlauncher.game.download.game.models.ForgeLikeInstallProcessor
@@ -43,6 +45,7 @@ import com.movtery.zalithlauncher.utils.json.parseToJson
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.isBiggerOrEqualTo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.withContext
 import org.jackhuang.hmcl.util.DigestUtils
 import java.io.File
@@ -64,6 +67,7 @@ const val FORGE_LIKE_INSTALL_ID = "Install.ForgeLike"
  * Forge Like 安装 Task
  * @param isNew 是否为新版本 Forge、NeoForge
  * @param tempFolderName 临时版本文件夹名称
+ * @param logOutputHolder 安装器持有的日志输出容器
  */
 fun getForgeLikeInstallTask(
     isNew: Boolean,
@@ -73,7 +77,8 @@ fun getForgeLikeInstallTask(
     tempInstaller: File,
     tempGameFolder: File,
     tempMinecraftDir: File,
-    inherit: String
+    inherit: String,
+    logOutputHolder: MutableStateFlow<TaskLogOutput?>
 ): Task {
     return Task.runTask(
         id = FORGE_LIKE_INSTALL_ID,
@@ -82,15 +87,24 @@ fun getForgeLikeInstallTask(
             val tempVersionJson = File(tempMinecraftDir, "versions/$tempFolderName/$tempFolderName.json")
             if (isNew) { //新版 Forge、NeoForge
                 //以 HMCL 的方式手动安装
-                installNewForgeHMCLWay(
-                    task = task,
-                    loaderName = loaderName,
-                    tempInstaller = tempInstaller,
-                    tempGameFolder = tempGameFolder,
-                    tempMinecraftDir = tempMinecraftDir,
-                    tempVersionJson = tempVersionJson,
-                    tempVanillaJar = tempVanillaJar
-                )
+                withTaskLogOutput(
+                    holder = logOutputHolder,
+                    title = androidText(
+                        R.string.download_game_install_base_install,
+                        loaderName
+                    )
+                ) { output ->
+                    installNewForgeHMCLWay(
+                        task = task,
+                        loaderName = loaderName,
+                        tempInstaller = tempInstaller,
+                        tempGameFolder = tempGameFolder,
+                        tempMinecraftDir = tempMinecraftDir,
+                        tempVersionJson = tempVersionJson,
+                        tempVanillaJar = tempVanillaJar,
+                        logOutput = output
+                    )
+                }
             } else { //旧版 Forge
                 installOldForge(
                     task = task,
@@ -119,7 +133,8 @@ private suspend fun installNewForgeHMCLWay(
     tempGameFolder: File,
     tempMinecraftDir: File,
     tempVersionJson: File,
-    tempVanillaJar: File
+    tempVanillaJar: File,
+    logOutput: TaskLogOutput
 ) = withContext(Dispatchers.IO) {
     task.updateProgress(-1f)
 
@@ -187,7 +202,8 @@ private suspend fun installNewForgeHMCLWay(
         tempMinecraftDir = tempMinecraftDir,
         tempGameDir = tempGameFolder,
         processors = processors,
-        vars = vars
+        vars = vars,
+        logOutput = logOutput
     )
 }
 
@@ -284,7 +300,8 @@ private suspend fun runProcessors(
     tempMinecraftDir: File,
     tempGameDir: File,
     processors: List<ForgeLikeInstallProcessor>,
-    vars: Map<String, String>
+    vars: Map<String, String>,
+    logOutput: TaskLogOutput
 ): Unit = withContext(Dispatchers.IO) {
     //优先构建所有需要执行的命令，以便于更好的计算进度
     val commandList = processors.mapNotNull { processor ->
@@ -363,17 +380,19 @@ private suspend fun runProcessors(
             jre = Jre.JRE_8,
             userHome = tempGameDir.absolutePath.trimEnd('\\'),
             postSummary = "$loaderName $taskStr ($step/${commandList.size})",
-            postProgress = NoticeProgress(commandList.size, step)
-        ) {
-            val jarPath = processor.getJar().toPath()
+            postProgress = NoticeProgress(commandList.size, step),
+            logOutput = logOutput,
+            start = {
+                val jarPath = processor.getJar().toPath()
 
-            task.updateProgress(progress)
-            task.updateMessage(androidText(
-                R.string.download_game_install_base_installing, taskStr
-            ))
+                task.updateProgress(progress)
+                task.updateMessage(androidText(
+                    R.string.download_game_install_base_installing, taskStr
+                ))
 
-            Logger.info(TAG, "Start to run $jarPath with args: $jvmArgs")
-        }
+                Logger.info(TAG, "Start to run $jarPath with args: $jvmArgs")
+            }
+        )
 
         for ((artifact, value) in outputs) {
             if (!Files.isRegularFile(artifact)) throw FileNotFoundException("File missing: $artifact")

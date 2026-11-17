@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.screens.content.download.ModpackVersionNameDialog
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.PackIdentifier
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.PackIdentifier
 import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialog
 import com.movtery.zalithlauncher.utils.logging.Logger
 import io.ktor.client.plugins.HttpRequestTimeoutException
@@ -220,6 +220,7 @@ fun ModpackImportOperation(
         is ModpackImportOperation.Import -> {
             if (importer != null) {
                 val tasks by importer.taskFlow.collectAsStateWithLifecycle()
+                val installLog = importer.logOutput.collectAsStateWithLifecycle()
                 if (tasks.isNotEmpty()) {
                     TitleTaskFlowDialog(
                         title = stringResource(R.string.import_modpack),
@@ -227,7 +228,8 @@ fun ModpackImportOperation(
                         onCancel = {
                             onCancel()
                             changeOperation(ModpackImportOperation.None)
-                        }
+                        },
+                        logOutput = installLog.value
                     )
                 }
             }

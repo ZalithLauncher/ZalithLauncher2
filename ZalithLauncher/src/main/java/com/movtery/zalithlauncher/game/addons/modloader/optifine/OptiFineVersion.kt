@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,5 +49,26 @@ class OptiFineVersion(
 
     override fun isVersion(versionString: String): Boolean {
         return this.version == versionString
+    }
+
+    /**
+     * 从 OptiFine 文件名解析出 Maven 版本号
+     * OptiFine_1.10.2_HD_U_C1.jar -> 1.10.2_HD_U_C1
+     */
+    fun mavenVersion(): String {
+        return fileName
+            .removePrefix("preview_")
+            .removePrefix("OptiFine_")
+            .removeSuffix(".jar")
+    }
+
+    /**
+     * 判断是否与已安装信息匹配，兼容以下几种来源：
+     * 规范版本串（launchFor 元数据）、Maven 坐标版本（外来安装的 libraries 识别）、旧版元数据的短版本串
+     */
+    fun matchesInstalledVersion(installedVersion: String): Boolean {
+        return installedVersion == version
+                || installedVersion == mavenVersion()
+                || installedVersion == realVersion
     }
 }

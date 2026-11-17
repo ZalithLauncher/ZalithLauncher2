@@ -149,6 +149,16 @@
         </service>
 
         <service
+            android:name=".keepalive.TaskKeepAliveService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_TYPE"
+                android:value="Keep the launcher process alive while background tasks such as downloads and installations are running" />
+        </service>
+
+        <service
             android:name=".game.download.jvm_server.JvmService"
             android:enabled="true"
             android:foregroundServiceType="specialUse"
@@ -173,8 +183,11 @@
             android:permission="android.permission.BIND_VPN_SERVICE"
             android:exported="true"
             android:process=":game"
-            android:foregroundServiceType="connectedDevice"
+            android:foregroundServiceType="specialUse"
             tools:ignore="VpnServicePolicy">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_TYPE"
+                android:value="Establish VPN tunnel for the multiplayer feature" />
             <intent-filter>
                 <action android:name="android.net.VpnService" />
             </intent-filter>
@@ -213,6 +226,9 @@
         <package android:name="net.kdt.pojavlaunch.ffmpeg"/>
         <intent>
             <action android:name="android.intent.action.MAIN" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.TTS_SERVICE" />
         </intent>
     </queries>
 </manifest>

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@ import com.movtery.zalithlauncher.game.control.ControlManager
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleListDialog
 import com.movtery.zalithlauncher.ui.components.SimpleListItem
+import com.movtery.zalithlauncher.ui.screens.main.control_editor.orUnspecified
 import java.io.File
 
 sealed interface ReplacementControlState {
@@ -88,7 +89,7 @@ private fun ReplacementControlDialog(
             itemLayout = { item, isCurrent, onClick ->
                 SimpleListItem(
                     selected = isCurrent,
-                    itemName = item.controlLayout.info.name.translate(locale),
+                    itemName = item.controlLayout.info.name.translate(locale).orUnspecified(),
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onClick
                 )

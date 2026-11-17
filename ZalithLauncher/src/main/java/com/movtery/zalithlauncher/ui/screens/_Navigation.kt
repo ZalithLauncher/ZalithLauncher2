@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,9 +29,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.scene.Scene
-import com.movtery.zalithlauncher.setting.AllSettings
-import com.movtery.zalithlauncher.utils.animation.TransitionAnimationType
-import com.movtery.zalithlauncher.utils.animation.getAnimateSpeed
+import com.movtery.zalithlauncher.setting.LauncherSettings
+import com.movtery.zalithlauncher.utils.animation.SwapClock
+import com.movtery.zalithlauncher.utils.animation.SwapTimeline
 import kotlin.reflect.KClass
 
 /**
@@ -111,27 +111,26 @@ fun <E: TitledNavKey> NavBackStack<E>.addIfEmpty(navKey: E) {
 
 @Composable
 fun rememberSwapTween(): FiniteAnimationSpec<Float> {
-    val speed = AllSettings.launcherAnimateSpeed.state
-    return remember(speed) {
-        tween(durationMillis = (getAnimateSpeed() / 5) * 2)
+    val level = LauncherSettings.launcherAnimateSpeedLevel.state
+    return remember(level) {
+        tween(durationMillis = SwapTimeline.time(SwapTimeline.CONTENT_BASE))
     }
 }
 
+/**
+ * 串行页面切换编排
+ */
 @Composable
 fun <T : Any> rememberTransitionSpec(): AnimatedContentTransitionScope<Scene<T>>.() -> ContentTransform {
-    val type = AllSettings.launcherSwapAnimateType.state
-    val speed = AllSettings.launcherAnimateSpeed.state
-    return remember(type, speed) {
-        val tween: FiniteAnimationSpec<Float> = when (type) {
-            TransitionAnimationType.CLOSE -> snap()
-            else -> tween(durationMillis = (getAnimateSpeed() / 5) * 2)
-        }
-
-        {
+    val level = LauncherSettings.launcherAnimateSpeedLevel.state
+    return remember(level) {
+        val transform: AnimatedContentTransitionScope<Scene<T>>.() -> ContentTransform = {
+            val window = SwapClock.record(initialState, targetState)
             ContentTransform(
-                fadeIn(animationSpec = tween),
-                fadeOut(animationSpec = tween),
+                fadeIn(animationSpec = snap(delayMillis = window.enterDelayMillis)),
+                fadeOut(animationSpec = snap(delayMillis = window.exitDelayMillis)),
             )
         }
+        transform
     }
 }

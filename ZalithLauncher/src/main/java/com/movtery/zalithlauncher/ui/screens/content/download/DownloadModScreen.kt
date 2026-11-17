@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,18 +28,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.ui.NavDisplay
-import com.movtery.zalithlauncher.game.download.assets.downloadSingleForVersions
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.downloadDependenciesForVersions
+import com.movtery.zalithlauncher.game.download.addon.downloadSingleForVersions
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.download.DownloadAssetsScreen
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.DownloadSingleOperation
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.search.SearchModScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.download.DownloadAddonScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.DownloadSingleOperation
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.search.SearchModScreen
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
@@ -59,41 +61,61 @@ fun DownloadModScreen(
 ) {
     val backStack = key.backStack
     val stackTopKey = backStack.lastOrNull()
+    val installedViewModel: DownloadModViewModel =
+        viewModel(key = "download_mod_installed")
+
     LaunchedEffect(stackTopKey) {
         onCurrentKeyChange(stackTopKey)
+        // 进入模组搜索页或项目详情页时，重新扫描当前版本已安装的模组
+        // 同版本重复扫描会直接复用内存与持久缓存，且不会清除已有的标注数据
+        if (stackTopKey is NormalNavKey.SearchMod || stackTopKey is NormalNavKey.DownloadAddon) {
+            installedViewModel.scan(VersionsManager.currentVersion.value)
+        }
     }
 
     val context = LocalContext.current
+
+    //当前版本本地已安装的模组项目，用于依赖项的已安装标注与默认勾选
+    val installedByProject = installedViewModel.installedByProject
+    val installedProjects = remember(installedByProject, installedViewModel.currentPlatform) {
+        mapOf(installedViewModel.currentPlatform to installedByProject.keys.toSet())
+    }
 
     //下载资源操作
     var operation by remember { mutableStateOf<DownloadSingleOperation>(DownloadSingleOperation.None) }
     DownloadSingleOperation(
         operation = operation,
         changeOperation = { operation = it },
-        doInstall = { classes, version, gameVersions ->
+        doInstall = { classes, version, gameVersions, dependencies ->
             downloadSingleForVersions(
                 version = version,
                 versions = gameVersions,
                 folder = classes.versionFolder.folderName,
                 submitError = submitError
             )
+            downloadDependenciesForVersions(
+                requests = dependencies,
+                versions = gameVersions,
+                submitError = submitError
+            )
         },
-        onDependencyClicked = { dep, classes ->
+        installedProjects = installedProjects,
+        onDependencyClicked = { platform, projectId, classes ->
             backStack.navigateTo(
-                NormalNavKey.DownloadAssets(dep.platform, dep.projectId, classes)
+                NormalNavKey.DownloadAddon(platform, projectId, classes)
             )
         }
     )
 
     if (backStack.isNotEmpty()) {
-        NavDisplay(
+        NestedNavDisplay(
+            ownerKey = key,
             backStack = backStack,
             modifier = Modifier.fillMaxSize(),
             onBack = {
                 onBack(backStack)
             },
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
+            extraDecorators = listOf(
                 rememberViewModelStoreNavEntryDecorator()
             ),
             transitionSpec = rememberTransitionSpec(),
@@ -104,21 +126,26 @@ fun DownloadModScreen(
                         mainScreenKey = mainScreenKey,
                         downloadScreenKey = downloadScreenKey,
                         downloadModScreenKey = key,
-                        downloadModScreenCurrentKey = downloadModScreenKey
+                        downloadModScreenCurrentKey = downloadModScreenKey,
+                        onPlatformChange = {
+                            installedViewModel.onPlatformChanged(it)
+                        },
+                        installedInfo = installedViewModel::checkProject
                     ) { platform, projectId, _ ->
                         backStack.navigateTo(
-                            NormalNavKey.DownloadAssets(platform, projectId, PlatformClasses.MOD)
+                            NormalNavKey.DownloadAddon(platform, projectId, PlatformClasses.MOD)
                         )
                     }
                 }
-                entry<NormalNavKey.DownloadAssets> { assetsKey ->
-                    DownloadAssetsScreen(
+                entry<NormalNavKey.DownloadAddon> { addonKey ->
+                    DownloadAddonScreen(
                         mainScreenKey = mainScreenKey,
                         parentScreenKey = key,
                         parentCurrentKey = downloadScreenKey,
                         currentKey = downloadModScreenKey,
-                        key = assetsKey,
+                        key = addonKey,
                         eventViewModel = eventViewModel,
+                        installedChecker = installedViewModel::checkVersion,
                         onItemClicked = { classes, version, _, deps ->
                             operation = if (isUsingMobileData(context)) {
                                 DownloadSingleOperation.WarningForMobileData(classes, version, deps)

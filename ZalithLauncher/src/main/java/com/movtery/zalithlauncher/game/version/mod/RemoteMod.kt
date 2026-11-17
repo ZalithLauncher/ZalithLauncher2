@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,18 +21,17 @@ package com.movtery.zalithlauncher.game.version.mod
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.movtery.zalithlauncher.game.download.assets.platform.Platform
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
-import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.CurseForgeFile
-import com.movtery.zalithlauncher.game.download.assets.platform.curseforge.models.CurseForgeModLoader
-import com.movtery.zalithlauncher.game.download.assets.platform.getProjectByVersion
-import com.movtery.zalithlauncher.game.download.assets.platform.getVersionByLocalFile
-import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthModLoaderCategory
-import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthVersion
-import com.movtery.zalithlauncher.game.download.assets.utils.ModTranslations
-import com.movtery.zalithlauncher.game.download.assets.utils.getMcMod
-import com.movtery.zalithlauncher.game.download.assets.utils.getTranslations
+import com.movtery.zalithlauncher.game.download.addon.platform.Platform
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeFile
+import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeModLoader
+import com.movtery.zalithlauncher.game.download.addon.platform.getProjectByVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.getVersionByLocalFile
+import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthModLoaderCategory
+import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthVersion
+import com.movtery.zalithlauncher.game.download.addon.utils.getMcMod
+import com.movtery.zalithlauncher.game.download.addon.utils.getTranslations
 import com.movtery.zalithlauncher.utils.file.calculateFileSha1
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.tencent.mmkv.MMKV
@@ -40,6 +39,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import org.jackhuang.hmcl.addon.AddonProjectInfo
 
 private const val TAG = "RemoteMod"
 
@@ -67,7 +67,7 @@ class RemoteMod(
     /**
      * 项目翻译信息
      */
-    var mcMod: ModTranslations.McMod? by mutableStateOf(null)
+    var mcMod: AddonProjectInfo? by mutableStateOf(null)
         private set
 
     /**
@@ -127,7 +127,7 @@ class RemoteMod(
 
                     if (loadFromCache && cachedProject != null) {
                         projectInfo = cachedProject
-                        mcMod = PlatformClasses.MOD.getTranslations().getModBySlugId(cachedProject.slug)
+                        mcMod = PlatformClasses.MOD.getTranslations()?.getInfoByCurseForgeId(cachedProject.slug)
                     } else {
                         ensureActive()
                         remoteFile?.let { modFile ->

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,6 +45,11 @@ public final class LoggerBridge {
 
     public static void appendTitle(String title) {
         String logText = "==================== " + title + " ====================";
+        append(logText);
+    }
+
+    public static void appendInfo(String info) {
+        String logText = "▷ " + info;
         append(logText);
     }
 

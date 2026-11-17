@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,10 +18,12 @@
 
 package com.movtery.zalithlauncher.game.addons.mirror
 
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.utils.isChinaMainland
 
 private const val ROOT = "https://bmclapi2.bangbang93.com"
+private const val NEOFORGED_MAVEN_ROOT = "https://maven.neoforged.net"
+private const val NEOFORGE_CDN_ROOT = "https://neoforged.forgecdn.net"
 
 enum class BMCLAPI(val url: String) {
     BASE_URL(ROOT),
@@ -53,29 +55,41 @@ private val REPLACE_MIRROR_HOLDERS = mapOf(
     Pair("https://authlib-injector.yushi.moe", BMCLAPI.BASE_URL.url + "/mirrors/authlib-injector"),
     Pair("https://repo1.maven.org/maven2", "https://mirrors.cloud.tencent.com/nexus/repository/maven-public"),
     Pair("https://repo.maven.apache.org/maven2", "https://mirrors.cloud.tencent.com/nexus/repository/maven-public"),
-    Pair("https://hmcl-dev.github.io/metadata/cleanroom", "https://alist.8mi.tech/d/mirror/HMCL-Metadata/Auto/cleanroom")
 )
 
 /**
- * 替换为镜像源链接并按用户偏好排序；非中国大陆不注入任何镜像。
+ * 替换为镜像源链接并按用户偏好排序
  */
 fun String.mapBMCLMirrorUrls(): List<String> {
-    if (!isChinaMainland()) return listOf(this)
+    val mainland = isChinaMainland()
+    return mapBMCLMirrorUrls(
+        mainland = mainland,
+        priority = resolveMirrorPriority(
+            source = LauncherSettings.gameDownloadSource.getValue(),
+            mainland = mainland
+        )
+    )
+}
 
-    val match = REPLACE_MIRROR_HOLDERS.entries.firstOrNull { (origin, _) ->
+fun String.mapBMCLMirrorUrls(
+    mainland: Boolean,
+    priority: MirrorPriority
+): List<String> {
+    val neoForgeCDNUrl = takeIf {
+        startsWith(NEOFORGED_MAVEN_ROOT)
+    }?.replaceFirst(NEOFORGED_MAVEN_ROOT, NEOFORGE_CDN_ROOT) // NeoForge 始终保留 CurseForge CDN 作为备用源
+
+    if (!mainland) return listOfNotNull(this, neoForgeCDNUrl)
+
+    val mirrorUrl = REPLACE_MIRROR_HOLDERS.entries.firstOrNull { (origin, _) ->
         this.startsWith(origin)
-    }
-    val isAssetsFile = match?.value == BMCLAPI.ASSETS.url
-    val mirrorUrl = match?.let { (origin, mirror) ->
+    }?.let { (origin, mirror) ->
         replaceFirst(origin, mirror)
     }
 
-    //资源文件数量庞大、请求量大，assets 保持官方优先，减轻镜像服务压力
     return orderCandidates(
         official = this,
         mirror = mirrorUrl,
-        priority = resolveMirrorPriority(AllSettings.gameDownloadSource.getValue(), mainland = true).let { priority ->
-            if (isAssetsFile) MirrorPriority.OFFICIAL_FIRST else priority
-        }
-    )
+        priority = priority
+    ) + listOfNotNull(neoForgeCDNUrl)
 }

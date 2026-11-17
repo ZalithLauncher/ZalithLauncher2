@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.PointerId
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -78,16 +77,20 @@ import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
 import com.movtery.zalithlauncher.game.input.LWJGLCharSender
 import com.movtery.zalithlauncher.game.keycodes.mapToKeycode
 import com.movtery.zalithlauncher.game.launch.handler.GameHandler
+import com.movtery.zalithlauncher.game.renderer.SimpleRendererInfo
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.sdl.SdlTextSender
 import com.movtery.zalithlauncher.game.support.touch_controller.touchControllerInputModifier
 import com.movtery.zalithlauncher.game.support.touch_controller.touchControllerTouchModifier
 import com.movtery.zalithlauncher.game.version.installed.Version
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
+import com.movtery.zalithlauncher.setting.GameUiSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.setting.enums.toAction
 import com.movtery.zalithlauncher.terracotta.Terracotta
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
+import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MenuState
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
 import com.movtery.zalithlauncher.ui.control.MinecraftHotbar
@@ -115,11 +118,14 @@ import com.movtery.zalithlauncher.ui.screens.game.elements.SendKeycodeState
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.TerracottaOperation
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.rememberTerracottaViewModel
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
+import com.movtery.zalithlauncher.utils.GameDisplayLayoutState
 import com.movtery.zalithlauncher.utils.logging.Logger
+import com.movtery.zalithlauncher.utils.rememberGameDisplayLayoutState
 import com.movtery.zalithlauncher.viewmodel.EditorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import com.movtery.zalithlauncher.viewmodel.sendToast
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -136,6 +142,11 @@ import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val TAG = "GameScreen"
+
+/** 帧率历史记录的最大时间节点数 */
+private const val FPS_HISTORY_SIZE = 15
+/** 最高/最低帧所在节点被清理后，重算前等待的时间节点数 */
+private const val FPS_RESYNC_NODES = 10
 
 private class GameViewModel(
     private val version: Version,
@@ -159,9 +170,29 @@ private class GameViewModel(
     /** 游戏内帧率状态 */
     var gameFps by mutableIntStateOf(0)
         private set
+    /** 帧率历史记录（最多保留最近15个时间节点） */
+    var fpsHistory by mutableStateOf<List<Int>>(emptyList())
+        private set
+    /** 记录范围内的历史最高帧 */
+    var fpsMax by mutableIntStateOf(0)
+        private set
+    /** 记录范围内的历史最低帧 */
+    var fpsMin by mutableIntStateOf(0)
+        private set
+    /** 最高帧重算倒计时（时间节点数），-1 表示无需重算 */
+    private var fpsMaxResyncCountdown = -1
+    /** 最低帧重算倒计时（时间节点数），-1 表示无需重算 */
+    private var fpsMinResyncCountdown = -1
     private var fpsJob: Job? = null
     /** 开始帧率捕获 */
     fun startFpsCapture() {
+        if (fpsJob?.isActive == true) return
+        //新一轮捕获，重置历史记录
+        fpsHistory = emptyList()
+        fpsMax = 0
+        fpsMin = 0
+        fpsMaxResyncCountdown = -1
+        fpsMinResyncCountdown = -1
         //开启一个新的协程，每秒更新一次帧率数据
         fpsJob = viewModelScope.launch(Dispatchers.Default) {
             while (true) {
@@ -170,7 +201,7 @@ private class GameViewModel(
                 }.onFailure {
                     break
                 }
-                gameFps = CallbackBridge.getCurrentFps()
+                recordFps(CallbackBridge.getCurrentFps())
                 delay(1000L.milliseconds)
             }
         }
@@ -179,6 +210,53 @@ private class GameViewModel(
     fun stopFpsCapture() {
         fpsJob?.cancel()
         fpsJob = null
+    }
+
+    /**
+     * 记录一次帧率采样，并维护记录范围内的最高/最低帧。
+     * 被清理的最老节点若恰好是最高/最低帧，不立即重算：
+     * 若之后10个时间节点内没有出现更高/更低的帧，才用当前记录的所有节点重算一次
+     */
+    private fun recordFps(fps: Int) {
+        gameFps = fps
+        //衰减重算倒计时，归零说明等待期内没有出现更高/更低的帧
+        if (fpsMaxResyncCountdown > 0) fpsMaxResyncCountdown--
+        if (fpsMinResyncCountdown > 0) fpsMinResyncCountdown--
+        if (fpsMaxResyncCountdown == 0) {
+            fpsMax = fpsHistory.max()
+            fpsMaxResyncCountdown = -1
+        }
+        if (fpsMinResyncCountdown == 0) {
+            fpsMin = fpsHistory.min()
+            fpsMinResyncCountdown = -1
+        }
+
+        if (fpsHistory.isEmpty()) {
+            fpsMax = fps
+            fpsMin = fps
+        } else {
+            if (fps > fpsMax) {
+                fpsMax = fps
+                fpsMaxResyncCountdown = -1
+            }
+            if (fps < fpsMin) {
+                fpsMin = fps
+                fpsMinResyncCountdown = -1
+            }
+        }
+        fpsHistory = fpsHistory + fps
+
+        //超出最大节点数时清理最老的节点
+        if (fpsHistory.size > FPS_HISTORY_SIZE) {
+            val removed = fpsHistory.first()
+            fpsHistory = fpsHistory.drop(1)
+            if (removed == fpsMax && fpsHistory.none { it == fpsMax }) {
+                fpsMaxResyncCountdown = FPS_RESYNC_NODES
+            }
+            if (removed == fpsMin && fpsHistory.none { it == fpsMin }) {
+                fpsMinResyncCountdown = FPS_RESYNC_NODES
+            }
+        }
     }
 
     var editorRefresh by mutableIntStateOf(0)
@@ -374,6 +452,8 @@ private class MouseScrollEvent(
                     ensureActive()
                     CallbackBridge.sendScroll(0.0, offset)
                     delay(50L.milliseconds)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (_: Exception) {
                     break
                 }
@@ -429,9 +509,12 @@ private class GameTextSender(private val scope: CoroutineScope) {
 
     private suspend fun sendMessage(text: String, inGame: Boolean) {
         withContext(Dispatchers.Main) {
+            // 仅 SDL 渲染路径（MC 26.3+）经 SDL 通道提交；仅手柄子系统初始化 SDL 时游戏输入仍走 GLFW 桥
+            val useSdl = SdlBridge.sdlEnabled && SdlBridge.isSdlRenderActive()
+
             fun sendText() {
                 for (ch in text) {
-                    if (SdlBridge.sdlEnabled) {
+                    if (useSdl) {
                         SdlTextSender.sendChar(ch)
                     } else {
                         LWJGLCharSender.sendChar(ch)
@@ -443,12 +526,14 @@ private class GameTextSender(private val scope: CoroutineScope) {
                 //根据options.txt中的配置，找到打开聊天栏的键
                 //如果找不到，则忽略这次事件
                 mapToKeycode(OPEN_CHAT, OPEN_CHAT_VALUE)?.let { openChat ->
-                    if (SdlBridge.sdlEnabled) {
+                    if (useSdl) {
                         SdlTextSender.sendKey(openChat)
-                        delay(50L.milliseconds)
-                        sendText()
-                        delay(50L.milliseconds)
-                        SdlTextSender.sendEnter()
+                        // 等待游戏侧激活文本输入通道，未激活就提交的文本会被 SDL 丢弃
+                        if (SdlTextSender.awaitTextInputActive()) {
+                            sendText()
+                            delay(50L.milliseconds)
+                            SdlTextSender.sendEnter()
+                        }
                     } else {
                         CallbackBridge.sendKeyPress(openChat)
                         delay(50L.milliseconds)
@@ -515,10 +600,10 @@ fun GameScreen(
         getUserName = getAccountName
     )
 
-    LaunchedEffect(viewModel.isEditingLayout) {
-        val state = viewModel.isEditingLayout
-        //向VMActivity同步状态，编辑控制布局时，不会继续处理按键事件
-        eventViewModel.sendEvent(EventViewModel.Event.Game.KeyHandle(state.not()))
+    LaunchedEffect(viewModel.isEditingLayout, viewModel.gameMenuState) {
+        //向VMActivity同步状态，编辑控制布局或打开游戏菜单时，不会继续处理按键事件
+        val allowKeyHandle = !viewModel.isEditingLayout && viewModel.gameMenuState != MenuState.SHOW
+        eventViewModel.sendEvent(EventViewModel.Event.Game.KeyHandle(allowKeyHandle))
     }
 
     SendKeycodeOperation(
@@ -557,7 +642,9 @@ fun GameScreen(
         val screenSize = rememberBoxSize()
 
         if (!viewModel.isEditingLayout) {
-            if (AllSettings.gamepadControl.state) {
+            val displayLayoutState = rememberGameDisplayLayoutState(screenSize)
+
+            if (ControlSettings.gamepadControl.state) {
                 GamepadOnActionListener(
                     gamepadViewModel = gamepadViewModel,
                     onAction = {
@@ -566,7 +653,7 @@ fun GameScreen(
                 )
             }
 
-            if (AllSettings.gamepadControl.state && gamepadViewModel.gamepadEngaged) {
+            if (ControlSettings.gamepadControl.state && gamepadViewModel.gamepadEngaged) {
                 //手柄事件监听
                 GamepadKeyListener(
                     gamepadViewModel = gamepadViewModel,
@@ -594,7 +681,7 @@ fun GameScreen(
                 observedLayout = viewModel.observableLayout,
                 eventHandler = viewModel.eventHandler,
                 checkOccupiedPointers = { viewModel.occupiedPointers.contains(it) },
-                opacity = (AllSettings.controlsOpacity.state.toFloat() / 100f).coerceIn(0f, 1f),
+                opacity = { (GameUiSettings.controlsOpacity.flow.value.toFloat() / 100f).coerceIn(0f, 1f) },
                 markPointerAsMoveOnly = { viewModel.moveOnlyPointers.add(it) },
                 onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) },
@@ -608,6 +695,7 @@ fun GameScreen(
                     modifier = Modifier.fillMaxSize(),
                     cursorMode = cursorMode,
                     screenSize = screenSize,
+                    displayLayoutState = displayLayoutState,
                     onInputAreaRectUpdated = onInputAreaRectUpdated,
                     textInputMode = textInputMode,
                     isMoveOnlyPointer = { viewModel.moveOnlyPointers.contains(it) },
@@ -618,21 +706,21 @@ fun GameScreen(
                     },
                     onMouseMoved = { viewModel.switchControlLayer(HideLayerWhen.WhenMouse) },
                     onTouch = { viewModel.switchControlLayer(HideLayerWhen.None) },
-                    gamepadViewModel = gamepadViewModel.takeIf { AllSettings.gamepadControl.state }
+                    gamepadViewModel = gamepadViewModel.takeIf { ControlSettings.gamepadControl.state }
                 )
             }
 
             //物品栏触发层
             MinecraftHotbar(
                 screenSize = screenSize,
-                rule = AllSettings.hotbarRule.state,
-                widthPercentage = AllSettings.hotbarWidth.state.hotbarPercentage(),
-                heightPercentage = AllSettings.hotbarHeight.state.hotbarPercentage(),
+                rule = GameUiSettings.hotbarRule.state,
+                widthPercentage = GameUiSettings.hotbarWidth.state.hotbarPercentage(),
+                heightPercentage = GameUiSettings.hotbarHeight.state.hotbarPercentage(),
                 sendKeycode = { keycode ->
                     CallbackBridge.sendKeyPress(keycode)
                 },
                 isGrabbing = isGrabbing,
-                resolutionRatio = AllSettings.resolutionRatio.state,
+                displayOffset = displayLayoutState.current.offset,
                 onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) }
             )
@@ -642,18 +730,18 @@ fun GameScreen(
         val isGyroscopeAvailable = remember(context) {
             isGyroscopeAvailable(context = context)
         }
-        if (isGrabbing && isGyroscopeAvailable && AllSettings.gyroscopeControl.state) {
+        if (isGrabbing && isGyroscopeAvailable && ControlSettings.gyroscopeControl.state) {
             GyroscopeReader(
                 xEvent = { delta ->
-                    CallbackBridge.sendCursorDelta(if (AllSettings.gyroscopeInvertX.state) -delta else delta, 0f)
+                    CallbackBridge.sendCursorDelta(if (ControlSettings.gyroscopeInvertX.flow.value) -delta else delta, 0f)
                 },
                 yEvent = { delta ->
-                    CallbackBridge.sendCursorDelta(0f, if (AllSettings.gyroscopeInvertY.state) delta else -delta)
+                    CallbackBridge.sendCursorDelta(0f, if (ControlSettings.gyroscopeInvertY.flow.value) delta else -delta)
                 },
-                sampleRate = AllSettings.gyroscopeSampleRate.state,
-                smoothing = AllSettings.gyroscopeSmoothing.state,
-                smoothingWindow = AllSettings.gyroscopeSmoothingWindow.state,
-                sensitivity = AllSettings.gyroscopeSensitivity.state / 100f
+                sampleRate = ControlSettings.gyroscopeSampleRate.state,
+                smoothing = ControlSettings.gyroscopeSmoothing.state,
+                smoothingWindow = ControlSettings.gyroscopeSmoothingWindow.state,
+                sensitivity = ControlSettings.gyroscopeSensitivity.state / 100f
             )
         }
 
@@ -663,6 +751,7 @@ fun GameScreen(
                 .padding(all = 16.dp),
             versionName = version.getVersionName(),
             versionInfo = version.getVersionInfo()?.getInfoString(),
+            renderer = version.rendererInfo,
             visible = showGameInfo,
             onClose = onInfoBoxClose
         )
@@ -683,7 +772,7 @@ fun GameScreen(
             closeScreen = { viewModel.gameMenuState = MenuState.HIDE },
             onForceClose = { viewModel.forceCloseState = ForceCloseOperation.Show },
             onSwitchLog = { onLogStateChange(logState.next()) },
-            enableTerracotta = AllSettings.enableTerracotta.state,
+            enableTerracotta = MiscSettings.enableTerracotta.state,
             onOpenTerracottaMenu = { terracottaViewModel.openMenu() },
             onRefreshWindowSize = { eventViewModel.sendEvent(EventViewModel.Event.Game.RefreshSize) },
             onInputMethod = {
@@ -701,7 +790,7 @@ fun GameScreen(
             }
         )
 
-        if (AllSettings.gamepadControl.state) {
+        if (ControlSettings.gamepadControl.state) {
             //手柄事件捕获层
             SimpleGamepadCapture(
                 gamepadViewModel = gamepadViewModel
@@ -735,9 +824,9 @@ fun GameScreen(
                 )
             }
         } else {
-            if (AllSettings.showMenuBall.state) {
+            if (GameUiSettings.showMenuBall.state) {
                 //在这里根据设置决定是否启用帧率捕获协程
-                val showFps = AllSettings.showFPS.state
+                val showFps = GameUiSettings.showFPS.state
                 DisposableEffect(showFps) {
                     if (showFps) viewModel.startFpsCapture()
                     onDispose {
@@ -745,24 +834,22 @@ fun GameScreen(
                     }
                 }
 
-                val gameFps: Int? = if (showFps) {
-                    viewModel.gameFps
-                } else {
-                    null
-                }
-
                 DraggableGameBall(
-                    position = AllSettings.menuBallPos.state,
+                    position = GameUiSettings.menuBallPos.state,
                     onPositionChanged = {
-                        AllSettings.menuBallPos.updateState(it)
+                        GameUiSettings.menuBallPos.updateState(it)
                     },
                     onSavePos = {
-                        AllSettings.menuBallPos.save()
+                        GameUiSettings.menuBallPos.save()
                     },
-                    gameFps = gameFps,
-                    showMemory = AllSettings.showMemory.state,
+                    gameFps = { if (showFps) viewModel.gameFps else null },
+                    fpsDisplayMode = GameUiSettings.fpsDisplayMode.state,
+                    fpsHistory = { viewModel.fpsHistory },
+                    fpsMax = { viewModel.fpsMax },
+                    fpsMin = { viewModel.fpsMin },
+                    showMemory = GameUiSettings.showMemory.state,
                     opened = viewModel.gameMenuState == MenuState.SHOW,
-                    alpha = AllSettings.menuBallOpacity.state / 100f,
+                    alpha = GameUiSettings.menuBallOpacity.state / 100f,
                     onClick = {
                         viewModel.switchMenu()
                     }
@@ -785,7 +872,7 @@ fun GameScreen(
                                     viewModel.exitControlEditor()
                                 }
                             )
-                        } else if (!AllSettings.showMenuBall.getValue()) {
+                        } else if (!GameUiSettings.showMenuBall.getValue()) {
                             viewModel.switchMenu()
                         } else {
                             //按下返回键
@@ -812,6 +899,7 @@ fun GameScreen(
 private fun GameInfoBox(
     versionName: String,
     versionInfo: String?,
+    renderer: SimpleRendererInfo?,
     visible: Boolean,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -858,6 +946,22 @@ private fun GameInfoBox(
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
+                        renderer?.let {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.game_loading_renderer, it.name),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                                if (it.isPlugin) {
+                                    LittleTextLabel(
+                                        modifier = Modifier.padding(start = 6.dp),
+                                        text = stringResource(R.string.generic_plugin)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -883,6 +987,10 @@ private fun PreviewGameInfoBox() {
         GameInfoBox(
             versionName = "1.21.11",
             versionInfo = "1.21.11",
+            renderer = SimpleRendererInfo(
+                name = "Mobile Glues",
+                isPlugin = true,
+            ),
             visible = true,
             onClose = {}
         )
@@ -906,6 +1014,7 @@ private fun MouseControlLayout(
     modifier: Modifier = Modifier,
     cursorMode: Int,
     screenSize: IntSize,
+    displayLayoutState: GameDisplayLayoutState,
     onInputAreaRectUpdated: (IntRect?) -> Unit,
     textInputMode: TextInputMode,
     isMoveOnlyPointer: (PointerId) -> Boolean,
@@ -931,9 +1040,9 @@ private fun MouseControlLayout(
             )
     ) {
 
-        val capturedSpeedFactor = AllSettings.mouseCaptureSensitivity.state / 100f
-        val capturedTapMouseAction = AllSettings.gestureTapMouseAction.state.toAction()
-        val capturedLongPressMouseAction = AllSettings.gestureLongPressMouseAction.state.toAction()
+        val capturedSpeedFactor = ControlSettings.mouseCaptureSensitivity.state / 100f
+        val capturedTapMouseAction = ControlSettings.gestureTapMouseAction.state.toAction()
+        val capturedLongPressMouseAction = ControlSettings.gestureLongPressMouseAction.state.toAction()
 
         SwitchableMouseLayout(
             modifier = Modifier.fillMaxSize(),
@@ -943,10 +1052,11 @@ private fun MouseControlLayout(
             onMouse = onMouseMoved,
             gamepadViewModel = gamepadViewModel,
             onTap = { position ->
-                CallbackBridge.putMouseEventWithCoords(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), position.x.sumPosition(), position.y.sumPosition())
+                val gamePosition = displayLayoutState.current.mapToGame(position)
+                CallbackBridge.putMouseEventWithCoords(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), gamePosition.x, gamePosition.y)
             },
             onCapturedTap = {
-                if (AllSettings.gestureControl.state) {
+                if (ControlSettings.gestureControl.flow.value) {
                     CallbackBridge.putMouseEvent(capturedTapMouseAction)
                 }
             },
@@ -957,17 +1067,18 @@ private fun MouseControlLayout(
                 CallbackBridge.putMouseEvent(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), false)
             },
             onCapturedLongPress = {
-                if (AllSettings.gestureControl.state) {
+                if (ControlSettings.gestureControl.flow.value) {
                     CallbackBridge.putMouseEvent(capturedLongPressMouseAction, true)
                 }
             },
             onCapturedLongPressEnd = {
-                if (AllSettings.gestureControl.state) {
+                if (ControlSettings.gestureControl.flow.value) {
                     CallbackBridge.putMouseEvent(capturedLongPressMouseAction, false)
                 }
             },
             onPointerMove = { pos ->
-                pos.sendPosition()
+                val gamePosition = displayLayoutState.current.mapToGame(pos)
+                CallbackBridge.sendCursorPos(gamePosition.x, gamePosition.y)
             },
             onCapturedMove = { delta ->
                 CallbackBridge.sendCursorDelta(
@@ -984,15 +1095,11 @@ private fun MouseControlLayout(
             },
             isMoveOnlyPointer = isMoveOnlyPointer,
             onOccupiedPointer = onOccupiedPointer,
-            onReleasePointer = onReleasePointer
+            onReleasePointer = onReleasePointer,
+            enableScrollGesture = ControlSettings.gestureControl.state,
+            onScrollGesture = { scroll ->
+                CallbackBridge.sendScroll(scroll.x.toDouble(), scroll.y.toDouble())
+            }
         )
     }
-}
-
-private fun Offset.sendPosition() {
-    CallbackBridge.sendCursorPos(x.sumPosition(), y.sumPosition())
-}
-
-private fun Float.sumPosition(): Float {
-    return (this * (AllSettings.resolutionRatio.state / 100f))
 }

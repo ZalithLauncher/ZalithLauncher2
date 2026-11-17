@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,16 +40,14 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.ImageLoader
 import coil3.compose.AsyncImage
-import coil3.gif.GifDecoder
+import coil3.request.ImageRequest
 import coil3.request.crossfade
-import coil3.svg.SvgDecoder
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CursorShape
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
 import com.movtery.zalithlauncher.utils.device.PhysicalMouseChecker
 import com.movtery.zalithlauncher.utils.file.child
@@ -121,11 +119,11 @@ val notAllowedPointerFile: File = PathManager.DIR_MOUSE_POINTER.child("not_allow
 @Composable
 fun VirtualPointerLayout(
     modifier: Modifier = Modifier,
-    controlMode: MouseControlMode = AllSettings.mouseControlMode.state,
-    enableMouseClick: Boolean = AllSettings.enableMouseClick.state,
-    longPressTimeoutMillis: Long = AllSettings.mouseLongPressDelay.state.toLong(),
-    requestPointerCapture: Boolean = !AllSettings.physicalMouseMode.state,
-    hideMouseInClickMode: Boolean = AllSettings.hideMouse.state,
+    controlMode: MouseControlMode = ControlSettings.mouseControlMode.state,
+    enableMouseClick: Boolean = ControlSettings.enableMouseClick.state,
+    longPressTimeoutMillis: Long = ControlSettings.mouseLongPressDelay.state.toLong(),
+    requestPointerCapture: Boolean = !ControlSettings.physicalMouseMode.state,
+    hideMouseInClickMode: Boolean = ControlSettings.hideMouse.state,
     lastMousePosition: Offset? = null,
     onTap: (Offset) -> Unit = {},
     onLongPress: () -> Unit = {},
@@ -136,8 +134,8 @@ fun VirtualPointerLayout(
     isMoveOnlyPointer: (PointerId) -> Boolean = { false },
     onOccupiedPointer: (PointerId) -> Unit = {},
     onReleasePointer: (PointerId) -> Unit = {},
-    mouseSize: Dp = AllSettings.mouseSize.state.dp,
-    cursorSensitivity: Int = AllSettings.cursorSensitivity.state,
+    mouseSize: Dp = ControlSettings.mouseSize.state.dp,
+    cursorSensitivity: Int = ControlSettings.cursorSensitivity.state,
     requestFocusKey: Any? = null
 ) {
     val speedFactor = cursorSensitivity / 100f
@@ -145,6 +143,8 @@ fun VirtualPointerLayout(
     val windowSize = LocalWindowInfo.current.containerSize
     val screenWidth: Float = windowSize.width.toFloat()
     val screenHeight: Float = windowSize.height.toFloat()
+
+    val capturePointer = requestPointerCapture && !rememberTextInputActive()
 
     var showMousePointer by remember {
         mutableStateOf(requestPointerCapture)
@@ -196,7 +196,7 @@ fun VirtualPointerLayout(
             controlMode = controlMode,
             enableMouseClick = enableMouseClick,
             longPressTimeoutMillis = longPressTimeoutMillis,
-            requestPointerCapture = requestPointerCapture,
+            requestPointerCapture = capturePointer,
             pointerIcon = cursorShape.composeIcon,
             onTap = { fingerPos ->
                 onTap(
@@ -227,7 +227,7 @@ fun VirtualPointerLayout(
                 onPointerMove(pointerPosition)
             },
             onMouseMove = { offset ->
-                if (requestPointerCapture) {
+                if (capturePointer) {
                     updateMousePointer(true)
                     pointerPosition = Offset(
                         x = (pointerPosition.x + offset.x * speedFactor).coerceIn(0f, screenWidth),
@@ -267,14 +267,14 @@ fun Modifier.mouseFixedPosition(
         cursorShape
     ) {
         when (cursorShape) {
-            CursorShape.Arrow -> AllSettings.arrowMouseHotspot
-            CursorShape.IBeam -> AllSettings.iBeamMouseHotspot
-            CursorShape.Hand -> AllSettings.linkMouseHotspot
-            CursorShape.CrossHair -> AllSettings.crossHairMouseHotspot
-            CursorShape.ResizeNS -> AllSettings.resizeNSMouseHotspot
-            CursorShape.ResizeEW -> AllSettings.resizeEWMouseHotspot
-            CursorShape.ResizeAll -> AllSettings.resizeAllMouseHotspot
-            CursorShape.NotAllowed -> AllSettings.notAllowedMouseHotspot
+            CursorShape.Arrow -> ControlSettings.arrowMouseHotspot
+            CursorShape.IBeam -> ControlSettings.iBeamMouseHotspot
+            CursorShape.Hand -> ControlSettings.linkMouseHotspot
+            CursorShape.CrossHair -> ControlSettings.crossHairMouseHotspot
+            CursorShape.ResizeNS -> ControlSettings.resizeNSMouseHotspot
+            CursorShape.ResizeEW -> ControlSettings.resizeEWMouseHotspot
+            CursorShape.ResizeAll -> ControlSettings.resizeAllMouseHotspot
+            CursorShape.NotAllowed -> ControlSettings.notAllowedMouseHotspot
         }
     }
     val hotspot = hotspotUnit.state
@@ -314,7 +314,7 @@ fun getMouseFile(
 @Composable
 fun MousePointer(
     modifier: Modifier = Modifier,
-    mouseSize: Dp = AllSettings.mouseSize.state.dp,
+    mouseSize: Dp = ControlSettings.mouseSize.state.dp,
     cursorShape: CursorShape = CursorShape.Arrow,
     mouseFile: File?,
     centerIcon: Boolean = false,
@@ -322,15 +322,6 @@ fun MousePointer(
     crossfade: Boolean = false
 ) {
     val context = LocalContext.current
-    val loader = remember(triggerRefresh, crossfade, mouseSize) {
-        ImageLoader.Builder(context)
-            .components {
-                add(GifDecoder.Factory())
-                add(SvgDecoder.Factory())
-            }
-            .crossfade(crossfade)
-            .build()
-    }
 
     val fileExists by produceState(initialValue = false, triggerRefresh, mouseFile) {
         value = withContext(Dispatchers.IO) { mouseFile?.exists() == true }
@@ -346,15 +337,17 @@ fun MousePointer(
         CursorShape.NotAllowed -> R.drawable.img_mouse_pointer_not_allowed
     }
 
-    val model = remember(fileExists, triggerRefresh, cursorShape) {
-        if (fileExists && mouseFile != null) mouseFile else defaultRes
+    val model = remember(fileExists, triggerRefresh, cursorShape, crossfade) {
+        ImageRequest.Builder(context)
+            .data(if (fileExists && mouseFile != null) mouseFile else defaultRes)
+            .crossfade(crossfade)
+            .build()
     }
 
     val imageAlignment = if (centerIcon) Alignment.Center else Alignment.TopStart
 
     AsyncImage(
         model = model,
-        imageLoader = loader,
         contentDescription = null,
         alignment = imageAlignment,
         contentScale = ContentScale.Fit,

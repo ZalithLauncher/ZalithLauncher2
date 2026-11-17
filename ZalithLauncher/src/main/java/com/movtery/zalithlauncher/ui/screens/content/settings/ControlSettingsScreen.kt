@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Icon
@@ -45,7 +44,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CursorShape
@@ -53,9 +51,10 @@ import com.movtery.zalithlauncher.context.copyLocalFile
 import com.movtery.zalithlauncher.contract.MediaPickerContract
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.setting.enums.GestureActionType
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
+import com.movtery.zalithlauncher.setting.enums.MouseTouchBlockMode
 import com.movtery.zalithlauncher.setting.unit.ParcelableSettingUnit
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.ui.androidText
@@ -67,6 +66,7 @@ import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.TitleAndSummary
 import com.movtery.zalithlauncher.ui.components.TooltipIconButton
+import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.infiniteShimmer
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
 import com.movtery.zalithlauncher.ui.control.gyroscope.isGyroscopeAvailable
@@ -119,17 +119,17 @@ fun ControlSettingsScreen(
                 .verticalScrollWithBar(state = rememberScrollState())
                 .padding(all = 12.dp),
             isVisible = isVisible
-        ) { scope ->
-            AnimatedItem(scope) { yOffset ->
+        ) {
+            AnimatedItem { ctx ->
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                        .animated(ctx)
                 ) {
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
-                        unit = AllSettings.physicalMouseMode,
+                        unit = ControlSettings.physicalMouseMode,
                         title = stringResource(R.string.settings_control_mouse_physical_mouse_mode_title),
                         summary = stringResource(R.string.settings_control_mouse_physical_mouse_mode_summary),
                         trailingIcon = {
@@ -167,13 +167,13 @@ fun ControlSettingsScreen(
                 }
             }
 
-            AnimatedItem(scope) { yOffset ->
+            AnimatedItem { ctx ->
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                        .animated(ctx)
                 ) {
-                    val mouseSize = AllSettings.mouseSize.state
+                    val mouseSize = ControlSettings.mouseSize.state
 
                     var arrowMouseOperation by remember { mutableStateOf<MousePointerOperation>(MousePointerOperation.None) }
                     MousePointerCard(
@@ -184,7 +184,7 @@ fun ControlSettingsScreen(
                         mouseSize = mouseSize,
                         mousePointerFile = arrowPointerFile,
                         cursorShape = CursorShape.Arrow,
-                        hotspot = AllSettings.arrowMouseHotspot,
+                        hotspot = ControlSettings.arrowMouseHotspot,
                         mouseOperation = arrowMouseOperation,
                         changeOperation = { arrowMouseOperation = it },
                         submitError = submitError
@@ -199,7 +199,7 @@ fun ControlSettingsScreen(
                         mouseSize = mouseSize,
                         mousePointerFile = linkPointerFile,
                         cursorShape = CursorShape.Hand,
-                        hotspot = AllSettings.linkMouseHotspot,
+                        hotspot = ControlSettings.linkMouseHotspot,
                         mouseOperation = linkMouseOperation,
                         changeOperation = { linkMouseOperation = it },
                         submitError = submitError
@@ -214,7 +214,7 @@ fun ControlSettingsScreen(
                         mouseSize = mouseSize,
                         mousePointerFile = iBeamPointerFile,
                         cursorShape = CursorShape.IBeam,
-                        hotspot = AllSettings.iBeamMouseHotspot,
+                        hotspot = ControlSettings.iBeamMouseHotspot,
                         mouseOperation = ibeamMouseOperation,
                         changeOperation = { ibeamMouseOperation = it },
                         submitError = submitError
@@ -229,7 +229,7 @@ fun ControlSettingsScreen(
                         mouseSize = mouseSize,
                         mousePointerFile = crossHairPointerFile,
                         cursorShape = CursorShape.CrossHair,
-                        hotspot = AllSettings.crossHairMouseHotspot,
+                        hotspot = ControlSettings.crossHairMouseHotspot,
                         mouseOperation = crosshairMouseOperation,
                         changeOperation = { crosshairMouseOperation = it },
                         submitError = submitError
@@ -244,7 +244,7 @@ fun ControlSettingsScreen(
                         mouseSize = mouseSize,
                         mousePointerFile = resizeNSPointerFile,
                         cursorShape = CursorShape.ResizeNS,
-                        hotspot = AllSettings.resizeNSMouseHotspot,
+                        hotspot = ControlSettings.resizeNSMouseHotspot,
                         mouseOperation = resizeNSMouseOperation,
                         changeOperation = { resizeNSMouseOperation = it },
                         submitError = submitError
@@ -259,7 +259,7 @@ fun ControlSettingsScreen(
                         mouseSize = mouseSize,
                         mousePointerFile = resizeEWPointerFile,
                         cursorShape = CursorShape.ResizeEW,
-                        hotspot = AllSettings.resizeEWMouseHotspot,
+                        hotspot = ControlSettings.resizeEWMouseHotspot,
                         mouseOperation = resizeEWMouseOperation,
                         changeOperation = { resizeEWMouseOperation = it },
                         submitError = submitError
@@ -274,7 +274,7 @@ fun ControlSettingsScreen(
                         mouseSize = mouseSize,
                         mousePointerFile = resizeAllPointerFile,
                         cursorShape = CursorShape.ResizeAll,
-                        hotspot = AllSettings.resizeAllMouseHotspot,
+                        hotspot = ControlSettings.resizeAllMouseHotspot,
                         mouseOperation = resizeAllMouseOperation,
                         changeOperation = { resizeAllMouseOperation = it },
                         submitError = submitError
@@ -289,7 +289,7 @@ fun ControlSettingsScreen(
                         mouseSize = mouseSize,
                         mousePointerFile = notAllowedPointerFile,
                         cursorShape = CursorShape.NotAllowed,
-                        hotspot = AllSettings.notAllowedMouseHotspot,
+                        hotspot = ControlSettings.notAllowedMouseHotspot,
                         mouseOperation = notAllowedMouseOperation,
                         changeOperation = { notAllowedMouseOperation = it },
                         submitError = submitError
@@ -298,55 +298,65 @@ fun ControlSettingsScreen(
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.mouseSize,
+                        unit = ControlSettings.mouseSize,
                         title = stringResource(R.string.settings_control_mouse_size_title),
-                        valueRange = AllSettings.mouseSize.floatRange,
+                        valueRange = ControlSettings.mouseSize.floatRange,
                         suffix = "Dp",
                         fineTuningControl = true
                     )
                 }
             }
 
-            AnimatedItem(scope) { yOffset ->
+            AnimatedItem { ctx ->
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                        .animated(ctx)
                 ) {
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
-                        unit = AllSettings.hideMouse,
+                        unit = ControlSettings.hideMouse,
                         title = stringResource(R.string.settings_control_mouse_hide_title),
                         summary = stringResource(R.string.settings_control_mouse_hide_summary),
-                        enabled = AllSettings.mouseControlMode.state == MouseControlMode.CLICK //仅点击模式下可更改设置
+                        enabled = ControlSettings.mouseControlMode.state == MouseControlMode.CLICK //仅点击模式下可更改设置
                     )
 
                     SwitchSettingsCard(
-                        unit = AllSettings.enableMouseClick,
+                        unit = ControlSettings.enableMouseClick,
                         position = CardPosition.Middle,
                         title = stringResource(R.string.settings_control_mouse_enable_click_title),
                         summary = stringResource(R.string.settings_control_mouse_enable_click_summary),
-                        enabled = AllSettings.mouseControlMode.state == MouseControlMode.SLIDE //仅滑动模式下可更改设置
+                        enabled = ControlSettings.mouseControlMode.state == MouseControlMode.SLIDE //仅滑动模式下可更改设置
                     )
 
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.mouseControlMode,
+                        unit = ControlSettings.mouseControlMode,
                         items = MouseControlMode.entries,
                         title = stringResource(R.string.settings_control_mouse_control_mode_title),
                         summary = stringResource(R.string.settings_control_mouse_control_mode_summary),
                         getItemText = { stringResource(it.nameRes) }
                     )
 
+                    ListSettingsCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        position = CardPosition.Middle,
+                        unit = ControlSettings.mouseTouchBlockMode,
+                        items = MouseTouchBlockMode.entries,
+                        title = stringResource(R.string.settings_control_mouse_block_touch_title),
+                        summary = stringResource(R.string.settings_control_mouse_block_touch_summary),
+                        getItemText = { stringResource(it.nameRes) }
+                    )
+
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.cursorSensitivity,
+                        unit = ControlSettings.cursorSensitivity,
                         title = stringResource(R.string.settings_control_mouse_sensitivity_title),
                         summary = stringResource(R.string.settings_control_mouse_sensitivity_summary),
-                        valueRange = AllSettings.cursorSensitivity.floatRange,
+                        valueRange = ControlSettings.cursorSensitivity.floatRange,
                         suffix = "%",
                         fineTuningControl = true
                     )
@@ -354,10 +364,10 @@ fun ControlSettingsScreen(
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.mouseCaptureSensitivity,
+                        unit = ControlSettings.mouseCaptureSensitivity,
                         title = stringResource(R.string.settings_control_mouse_capture_sensitivity_title),
                         summary = stringResource(R.string.settings_control_mouse_capture_sensitivity_summary),
-                        valueRange = AllSettings.mouseCaptureSensitivity.floatRange,
+                        valueRange = ControlSettings.mouseCaptureSensitivity.floatRange,
                         suffix = "%",
                         fineTuningControl = true
                     )
@@ -365,26 +375,26 @@ fun ControlSettingsScreen(
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.mouseLongPressDelay,
+                        unit = ControlSettings.mouseLongPressDelay,
                         title = stringResource(R.string.settings_control_mouse_long_press_delay_title),
                         summary = stringResource(R.string.settings_control_mouse_long_press_delay_summary),
-                        valueRange = AllSettings.mouseLongPressDelay.floatRange,
+                        valueRange = ControlSettings.mouseLongPressDelay.floatRange,
                         suffix = "ms",
                         fineTuningControl = true
                     )
                 }
             }
 
-            AnimatedItem(scope) { yOffset ->
+            AnimatedItem { ctx ->
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                        .animated(ctx)
                 ) {
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
-                        unit = AllSettings.gestureControl,
+                        unit = ControlSettings.gestureControl,
                         title = stringResource(R.string.settings_control_gesture_control_title),
                         summary = stringResource(R.string.settings_control_gesture_control_summary)
                     )
@@ -392,44 +402,44 @@ fun ControlSettingsScreen(
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.gestureTapMouseAction,
+                        unit = ControlSettings.gestureTapMouseAction,
                         items = GestureActionType.entries,
                         title = stringResource(R.string.settings_control_gesture_tap_action_title),
                         summary = stringResource(R.string.settings_control_gesture_tap_action_summary),
                         getItemText = { stringResource(it.nameRes) },
-                        enabled = AllSettings.gestureControl.state
+                        enabled = ControlSettings.gestureControl.state
                     )
 
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.gestureLongPressMouseAction,
+                        unit = ControlSettings.gestureLongPressMouseAction,
                         items = GestureActionType.entries,
                         title = stringResource(R.string.settings_control_gesture_long_press_action_title),
                         summary = stringResource(R.string.settings_control_gesture_long_press_action_summary),
                         getItemText = { stringResource(it.nameRes) },
-                        enabled = AllSettings.gestureControl.state
+                        enabled = ControlSettings.gestureControl.state
                     )
 
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.gestureLongPressDelay,
+                        unit = ControlSettings.gestureLongPressDelay,
                         title = stringResource(R.string.settings_control_gesture_long_press_delay_title),
                         summary = stringResource(R.string.settings_control_mouse_long_press_delay_summary),
-                        valueRange = AllSettings.gestureLongPressDelay.floatRange,
+                        valueRange = ControlSettings.gestureLongPressDelay.floatRange,
                         suffix = "ms",
-                        enabled = AllSettings.gestureControl.state,
+                        enabled = ControlSettings.gestureControl.state,
                         fineTuningControl = true
                     )
                 }
             }
 
-            AnimatedItem(scope) { yOffset ->
+            AnimatedItem { ctx ->
                 SettingsCardColumn(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+                        .animated(ctx)
                 ) {
                     //检查陀螺仪是否可用
                     val context = LocalContext.current
@@ -440,7 +450,7 @@ fun ControlSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
-                        unit = AllSettings.gyroscopeControl,
+                        unit = ControlSettings.gyroscopeControl,
                         title = stringResource(R.string.settings_control_gyroscope_title),
                         summary = stringResource(R.string.settings_control_gyroscope_summary),
                         enabled = isGyroscopeAvailable,
@@ -466,61 +476,61 @@ fun ControlSettingsScreen(
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.gyroscopeSensitivity,
+                        unit = ControlSettings.gyroscopeSensitivity,
                         title = stringResource(R.string.settings_control_gyroscope_sensitivity_title),
-                        valueRange = AllSettings.gyroscopeSensitivity.floatRange,
+                        valueRange = ControlSettings.gyroscopeSensitivity.floatRange,
                         suffix = "%",
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state,
+                        enabled = isGyroscopeAvailable && ControlSettings.gyroscopeControl.state,
                         fineTuningControl = true
                     )
 
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.gyroscopeSampleRate,
+                        unit = ControlSettings.gyroscopeSampleRate,
                         title = stringResource(R.string.settings_control_gyroscope_sample_rate_title),
                         summary = stringResource(R.string.settings_control_gyroscope_sample_rate_summary),
-                        valueRange = AllSettings.gyroscopeSampleRate.floatRange,
+                        valueRange = ControlSettings.gyroscopeSampleRate.floatRange,
                         suffix = "ms",
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state,
+                        enabled = isGyroscopeAvailable && ControlSettings.gyroscopeControl.state,
                         fineTuningControl = true
                     )
 
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.gyroscopeSmoothing,
+                        unit = ControlSettings.gyroscopeSmoothing,
                         title = stringResource(R.string.settings_control_gyroscope_smoothing_title),
                         summary = stringResource(R.string.settings_control_gyroscope_smoothing_summary),
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state
+                        enabled = isGyroscopeAvailable && ControlSettings.gyroscopeControl.state
                     )
 
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.gyroscopeSmoothingWindow,
+                        unit = ControlSettings.gyroscopeSmoothingWindow,
                         title = stringResource(R.string.settings_control_gyroscope_smoothing_window_title),
                         summary = stringResource(R.string.settings_control_gyroscope_smoothing_window_summary),
-                        valueRange = AllSettings.gyroscopeSmoothingWindow.floatRange,
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state && AllSettings.gyroscopeSmoothing.state
+                        valueRange = ControlSettings.gyroscopeSmoothingWindow.floatRange,
+                        enabled = isGyroscopeAvailable && ControlSettings.gyroscopeControl.state && ControlSettings.gyroscopeSmoothing.state
                     )
 
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.gyroscopeInvertX,
+                        unit = ControlSettings.gyroscopeInvertX,
                         title = stringResource(R.string.settings_control_gyroscope_invert_x_title),
                         summary = stringResource(R.string.settings_control_gyroscope_invert_x_summary),
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state
+                        enabled = isGyroscopeAvailable && ControlSettings.gyroscopeControl.state
                     )
 
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.gyroscopeInvertY,
+                        unit = ControlSettings.gyroscopeInvertY,
                         title = stringResource(R.string.settings_control_gyroscope_invert_y_title),
                         summary = stringResource(R.string.settings_control_gyroscope_invert_y_summary),
-                        enabled = isGyroscopeAvailable && AllSettings.gyroscopeControl.state
+                        enabled = isGyroscopeAvailable && ControlSettings.gyroscopeControl.state
                     )
                 }
             }
@@ -563,7 +573,7 @@ private fun PhysicalKeyImeTrigger(
                             .filterIsInstance<EventViewModel.Event.Key.OnKeyDown>()
                             .collect { event ->
                                 changeOperation(PhysicalKeyOperation.None)
-                                AllSettings.physicalKeyImeCode.save(event.key.keyCode)
+                                ControlSettings.physicalKeyImeCode.save(event.key.keyCode)
                             }
                     }
 
@@ -596,7 +606,7 @@ private fun PhysicalKeyImeTrigger(
         Row(
             modifier = Modifier.padding(start = 8.dp)
         ) {
-            val code = AllSettings.physicalKeyImeCode.state
+            val code = ControlSettings.physicalKeyImeCode.state
             when {
                 code == null -> {
                     Text(
@@ -607,7 +617,7 @@ private fun PhysicalKeyImeTrigger(
                 }
                 else -> {
                     IconTextButton(
-                        onClick = { AllSettings.physicalKeyImeCode.save(null) },
+                        onClick = { ControlSettings.physicalKeyImeCode.save(null) },
                         painter = painterResource(R.drawable.ic_restart_alt),
                         contentDescription = stringResource(R.string.generic_reset),
                         text = stringResource(

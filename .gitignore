@@ -13,6 +13,8 @@ local.properties
 .store_password.txt
 .key_password.txt
 .curseforge_api.txt
+LWJGL/build/
+LWJGL/*/build/
 
 # AI agent
 .zcode/
@@ -27,5 +29,7 @@ local.properties
 .trae/
 .gemini/
 .ampersand/
+.awb/
 
 .vscode/
+

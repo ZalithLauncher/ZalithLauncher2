@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,13 +26,30 @@ object MurmurHash2Incremental {
     private const val R32 = 24
 
     fun computeHash(file: File, byteToSkip: List<Int> = emptyList(), seed: Int = 1): Long {
-        val totalLength = getFilteredLength(file, byteToSkip)
-        return computeHashInternal(file, byteToSkip, totalLength, seed)
+        val skipTable = skipTable(byteToSkip)
+        val totalLength = getFilteredLength(file, skipTable)
+        return computeHashInternal(file, skipTable, totalLength, seed)
     }
+
+    /**
+     * 已知过滤后长度时的哈希计算，避免为统计长度而重复扫描文件
+     */
+    fun computeHash(
+        file: File,
+        byteToSkip: List<Int>,
+        filteredLength: Int,
+        seed: Int = 1
+    ): Long = computeHashInternal(file, skipTable(byteToSkip), filteredLength, seed)
+
+    /**
+     * 跳过字节的 256 长度查找表，逐字节判断时避免装箱与线性查找
+     */
+    private fun skipTable(byteToSkip: List<Int>): BooleanArray =
+        BooleanArray(256).also { table -> byteToSkip.forEach { table[it] = true } }
 
     private fun getFilteredLength(
         file: File,
-        byteToSkip: List<Int>
+        skipTable: BooleanArray
     ): Int {
         var length = 0
         Files.newInputStream(file.toPath()).use { stream ->
@@ -40,8 +57,7 @@ object MurmurHash2Incremental {
             var bytesRead: Int
             while (stream.read(buf).also { bytesRead = it } != -1) {
                 for (i in 0 until bytesRead) {
-                    val value = buf[i].toInt() and 0xFF
-                    if (value !in byteToSkip) length++
+                    if (!skipTable[buf[i].toInt() and 0xFF]) length++
                 }
             }
         }
@@ -50,7 +66,7 @@ object MurmurHash2Incremental {
 
     private fun computeHashInternal(
         file: File,
-        byteToSkip: List<Int>,
+        skipTable: BooleanArray,
         totalLength: Int,
         seed: Int
     ): Long {
@@ -67,7 +83,7 @@ object MurmurHash2Incremental {
                     val value = b.toInt() and 0xFF
 
                     //跳过指定字节
-                    if (value in byteToSkip) continue
+                    if (skipTable[value]) continue
 
                     buffer[bufferIndex++] = b
 

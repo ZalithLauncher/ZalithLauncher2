@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,7 +31,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -65,7 +64,6 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
@@ -75,16 +73,19 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersions
 import com.movtery.zalithlauncher.game.versioninfo.models.isType
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.CheckChip
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SimpleTextInputField
+import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -92,7 +93,6 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
-import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.utils.classes.Quadruple
 import com.movtery.zalithlauncher.utils.formatDate
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -186,13 +186,29 @@ private class VersionsViewModel: ViewModel() {
     }
 }
 
+/**
+ * 选择 Minecraft 版本屏幕的宿主信息，提供可见性判定所需的导航层级
+ */
+sealed interface SelectGameVersionHost {
+    /** 下载游戏流程 */
+    data class Download(
+        val mainScreenKey: TitledNavKey?,
+        val downloadScreenKey: TitledNavKey?,
+        val downloadGameScreenKey: TitledNavKey?
+    ) : SelectGameVersionHost
+
+    /** 版本设置流程（修改版本） */
+    data class VersionSettings(
+        val mainScreenKey: TitledNavKey?,
+        val versionSettingsScreenKey: TitledNavKey?
+    ) : SelectGameVersionHost
+}
+
 @Composable
 fun SelectGameVersionScreen(
-    mainScreenKey: TitledNavKey?,
-    downloadScreenKey: TitledNavKey?,
-    downloadGameScreenKey: TitledNavKey?,
+    host: SelectGameVersionHost,
     eventViewModel: EventViewModel,
-    onVersionSelect: (String) -> Unit = {}
+    onVersionSelect: (MinecraftVersion) -> Unit = {}
 ) {
     val viewModel = viewModel(
         key = NormalNavKey.DownloadGame.SelectGameVersion.toString()
@@ -200,22 +216,57 @@ fun SelectGameVersionScreen(
         VersionsViewModel()
     }
 
-    BaseScreen(
-        levels1 = listOf(
-            Pair(NestedNavKey.Download::class.java, mainScreenKey),
-            Pair(NestedNavKey.DownloadGame::class.java, downloadScreenKey)
-        ),
-        Triple(NormalNavKey.DownloadGame.SelectGameVersion, downloadGameScreenKey, false)
-    ) { isVisible ->
-        val yOffset by swapAnimateDpAsState(
-            targetValue = (-40).dp,
-            swapIn = isVisible
-        )
+    when (host) {
+        is SelectGameVersionHost.Download -> BaseScreen(
+            levels1 = listOf(
+                Pair(NestedNavKey.Download::class.java, host.mainScreenKey),
+                Pair(NestedNavKey.DownloadGame::class.java, host.downloadScreenKey)
+            ),
+            Triple(NormalNavKey.DownloadGame.SelectGameVersion, host.downloadGameScreenKey, false)
+        ) { isVisible ->
+            SelectGameVersionContent(
+                isVisible = isVisible,
+                viewModel = viewModel,
+                eventViewModel = eventViewModel,
+                onVersionSelect = onVersionSelect
+            )
+        }
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .offset { IntOffset(x = 0, y = yOffset.roundToPx()) }
+        is SelectGameVersionHost.VersionSettings -> BaseScreen(
+            levels1 = listOf(
+                Pair(NestedNavKey.VersionSettings::class.java, host.mainScreenKey)
+            ),
+            Triple(NormalNavKey.Versions.ModifyVersion, host.versionSettingsScreenKey, false)
+        ) { isVisible ->
+            SelectGameVersionContent(
+                isVisible = isVisible,
+                viewModel = viewModel,
+                eventViewModel = eventViewModel,
+                onVersionSelect = onVersionSelect
+            )
+        }
+    }
+}
+
+@Composable
+private fun SelectGameVersionContent(
+    isVisible: Boolean,
+    viewModel: VersionsViewModel,
+    eventViewModel: EventViewModel,
+    onVersionSelect: (MinecraftVersion) -> Unit
+) {
+    val ctx = rememberAnimatedContext(isVisible = isVisible)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .animated(ctx)
+    ) {
+        PullToRefreshLayout(
+            modifier = Modifier.fillMaxSize(),
+            isRefreshing = false,
+            enabled = viewModel.versionState !is VersionState.Loading,
+            onRefresh = { viewModel.refresh(true) }
         ) {
             when (val state = viewModel.versionState) {
                 is VersionState.Loading -> {
@@ -416,7 +467,7 @@ private fun VersionTypeItem(
 private fun VersionList(
     modifier: Modifier = Modifier,
     versions: List<MinecraftVersion>,
-    onVersionSelect: (String) -> Unit,
+    onVersionSelect: (MinecraftVersion) -> Unit,
     openLink: (url: String) -> Unit
 ) {
     val scrollState = rememberLazyListState()
@@ -435,7 +486,7 @@ private fun VersionList(
                     .padding(vertical = 6.dp),
                 version = version,
                 onClick = {
-                    onVersionSelect(version.version.id)
+                    onVersionSelect(version)
                 },
                 onAccessWiki = { wikiUrl ->
                     openLink(wikiUrl)
@@ -455,7 +506,7 @@ private fun VersionItemLayout(
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
 ) {
     val scale = remember { Animatable(initialValue = 0.95f) }
     LaunchedEffect(Unit) {

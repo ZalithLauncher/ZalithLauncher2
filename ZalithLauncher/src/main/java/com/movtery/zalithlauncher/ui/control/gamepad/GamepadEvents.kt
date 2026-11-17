@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ import com.movtery.layer_controller.event.ClickEvent
 import com.movtery.zalithlauncher.game.keycodes.mapToControlEvent
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.sdl.handleGamepadMotionEvent
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.ui.control.event.LAUNCHER_EVENT_SCROLL_DOWN_SINGLE
 import com.movtery.zalithlauncher.ui.control.event.LAUNCHER_EVENT_SCROLL_UP_SINGLE
@@ -109,7 +109,7 @@ fun SimpleGamepadCapture(
 
     DisposableEffect(view, gamepadViewModel) {
         val motionListener = View.OnGenericMotionListener { motionView, event ->
-            if (event.isGamepadEvent() && AllSettings.gamepadControl.state && gamepadViewModel.checkModePrompt()) {
+            if (event.isGamepadEvent() && ControlSettings.gamepadControl.flow.value && gamepadViewModel.checkModePrompt()) {
                 //模式选择询问优先级最高
                 true
             } else if (isBinding()) {
@@ -118,7 +118,7 @@ fun SimpleGamepadCapture(
                 )
                 true
             } else if (event.isGamepadEvent() && event.action == MotionEvent.ACTION_MOVE) {
-                if (AllSettings.gamepadControl.state && AllSettings.gamepadInputMode.state == GamepadInputMode.SdlDirect) {
+                if (ControlSettings.gamepadControl.flow.value && ControlSettings.gamepadInputMode.flow.value == GamepadInputMode.SdlDirect) {
                     if (SdlBridge.sdlEnabled) {
                         gamepadViewModel.notifyActivity()
                         handleGamepadMotionEvent(event)
@@ -151,6 +151,7 @@ fun SimpleGamepadCapture(
 
     LaunchedEffect(gamepadViewModel.gamepadEngaged) {
         withContext(Dispatchers.Default) {
+            var lastPollTime = 0L
             while (true) {
                 try {
                     ensureActive()
@@ -160,7 +161,13 @@ fun SimpleGamepadCapture(
                     val pollLevel = gamepadViewModel.checkGamepadActive()
                     if (pollLevel == GamepadViewModel.PollLevel.Close) break
 
-                    gamepadViewModel.pollJoystick()
+                    // 按实际轮询间隔归一化本帧偏移量
+                    // 首轮询间隔记为0，避免重启循环后视角跳动
+                    val now = System.nanoTime()
+                    val deltaMs = if (lastPollTime == 0L) 0.0 else (now - lastPollTime) / 1_000_000.0
+                    lastPollTime = now
+
+                    gamepadViewModel.pollJoystick(deltaMs)
                     delay(pollLevel.delayMs.milliseconds)
                 } catch (_: CancellationException) {
                     break
@@ -305,7 +312,7 @@ fun GamepadStickCameraListener(
     onOffsetEvent: (Offset) -> Unit
 ) {
     val currentIsGrabbing by rememberUpdatedState(isGrabbing)
-    val joystickControlMode by rememberUpdatedState(AllSettings.joystickControlMode.state)
+    val joystickControlMode by rememberUpdatedState(ControlSettings.joystickControlMode.state)
     val onOffsetEvent1 by rememberUpdatedState(onOffsetEvent)
 
     GamepadEventListener(
@@ -340,7 +347,7 @@ fun GamepadStickMovementListener(
     onKeyEvent: (event: ClickEvent, pressed: Boolean) -> Unit
 ) {
     val currentIsGrabbing by rememberUpdatedState(isGrabbing)
-    val joystickControlMode by rememberUpdatedState(AllSettings.joystickControlMode.state)
+    val joystickControlMode by rememberUpdatedState(ControlSettings.joystickControlMode.state)
     val currentOnKeyEvent by rememberUpdatedState(onKeyEvent)
 
     //缓存已按下的事件，目的是当游戏进入菜单后，能够清除状态

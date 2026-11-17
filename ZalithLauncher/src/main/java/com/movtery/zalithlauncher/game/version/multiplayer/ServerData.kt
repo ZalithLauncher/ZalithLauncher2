@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,14 +90,14 @@ data class ServerData(
 
             val icon0 = result.status.favicon?.icon
             //检查远端返回的图标是否和本地保存的不同
-            val isDifferentIcon = icon0 != null && !icon0.contentEquals(icon)
-            //如果不同，则应用新的图标，并发起保存请求
+            val isDifferentIcon = !icon0.contentEquals(icon)
+            //如果不同，则应用新的图标或清空，并发起保存请求
             if (isDifferentIcon) {
                 icon = icon0
                 withContext(Dispatchers.Main) {
                     refreshUI++
                 }
-                requestSave("save new icon")
+                requestSave("save icon change")
             }
 
             withContext(Dispatchers.Main) {

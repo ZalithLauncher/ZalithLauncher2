@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,9 @@
 package com.movtery.zalithlauncher.ui.screens
 
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.game.download.assets.platform.Platform
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.platform.Platform
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.screens.content.FirstLoginMenu
@@ -34,8 +35,6 @@ sealed interface NormalNavKey : TitledNavKey {
     @Contextual override val title: AndroidStringText?
         get() = null
 
-    /** 解压依赖内容屏幕（启动屏幕） */
-    @Serializable data object UnpackDeps: NormalNavKey
     /** 启动器主页屏幕 */
     @Serializable data object LauncherMain : NormalNavKey
     /** 账号管理屏幕 */
@@ -43,10 +42,6 @@ sealed interface NormalNavKey : TitledNavKey {
         val loginMenu: FirstLoginMenu = FirstLoginMenu.NONE
     ) : NormalNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.page_title_account_list)
-    }
-    /** 自定义主页编辑器屏幕 */
-    @Serializable data object HomePageEditor : NormalNavKey {
-        @Contextual override val title: AndroidStringText = androidText(R.string.page_title_home_page_editor)
     }
     /** Web屏幕 */
     @Serializable data class WebScreen(val url: String) : NormalNavKey
@@ -59,7 +54,8 @@ sealed interface NormalNavKey : TitledNavKey {
         val startPath: String,
         val selectFile: Boolean,
         val saveKey: TitledNavKey,
-        val onSelected: (path: String) -> Unit
+        val onSelected: (path: String) -> Unit,
+        val canSelect: ((path: String) -> Boolean)? = null
     ) : NormalNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.page_title_select_files)
     }
@@ -121,9 +117,13 @@ sealed interface NormalNavKey : TitledNavKey {
         @Serializable data object Config : Versions {
             @Contextual override val title: AndroidStringText = androidText(R.string.versions_settings_config)
         }
-        /** 更新版本的模组加载器 */
-        @Serializable data object UpdateLoader : Versions {
-            @Contextual override var title: AndroidStringText = androidText(R.string.versions_update_loader)
+        /** 修改版本屏幕 */
+        @Serializable data object ModifyVersion : Versions {
+            @Contextual override val title: AndroidStringText = androidText(R.string.versions_modify_version)
+        }
+        /** 选择要修改的 Minecraft 版本屏幕 */
+        @Serializable data object SelectGameVersion : Versions {
+            @Contextual override val title: AndroidStringText = androidText(R.string.versions_modify_select_mc)
         }
         /** 模组管理屏幕 */
         @Serializable data object ModsManager : Versions {
@@ -166,7 +166,10 @@ sealed interface NormalNavKey : TitledNavKey {
         /** 选择游戏版本屏幕 */
         @Serializable data object SelectGameVersion : Versions
         /** 选择附加内容屏幕 */
-        @Serializable data class Addons(val gameVersion: String) : Versions
+        @Serializable data class Addons(
+            val gameVersion: String,
+            val type: MinecraftVersion.Type
+        ) : Versions
     }
 
     /** 搜索整合包屏幕 */
@@ -183,9 +186,13 @@ sealed interface NormalNavKey : TitledNavKey {
     @Serializable data object SearchId : NormalNavKey {
         @Contextual override val title: AndroidStringText = androidText(R.string.download_category_by_id)
     }
+    /** 收藏屏幕 */
+    @Serializable data object Favorites : NormalNavKey {
+        @Contextual override val title: AndroidStringText = androidText(R.string.download_category_favorites)
+    }
 
     /** 下载资源屏幕 */
-    @Serializable data class DownloadAssets(
+    @Serializable data class DownloadAddon(
         val platform: Platform,
         val projectId: String,
         val classes: PlatformClasses,

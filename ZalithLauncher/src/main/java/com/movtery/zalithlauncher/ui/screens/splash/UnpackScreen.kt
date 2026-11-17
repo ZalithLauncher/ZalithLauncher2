@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,27 +42,24 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.components.InstallableItem
 import com.movtery.zalithlauncher.ui.base.BaseScreen
+import com.movtery.zalithlauncher.ui.components.AnimatedDirection
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
-import com.movtery.zalithlauncher.ui.screens.NormalNavKey
+import com.movtery.zalithlauncher.ui.components.animated
+import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
-import com.movtery.zalithlauncher.utils.animation.swapAnimateDpAsState
 import com.movtery.zalithlauncher.viewmodel.SplashBackStackViewModel
 
 @Composable
@@ -73,28 +69,30 @@ fun UnpackScreen(
     onAgreeClick: () -> Unit = {}
 ) {
     BaseScreen(
-        screenKey = NormalNavKey.UnpackDeps,
+        screenKey = SplashOperation.Unpacking,
         currentKey = screenViewModel.splashScreen.currentKey
     ) { isVisible ->
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                .padding(all = 16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             UnpackTaskList(
-                isVisible = isVisible,
-                items = items,
                 modifier = Modifier
                     .weight(7f)
-                    .fillMaxHeight()
+                    .fillMaxHeight(),
+                isVisible = isVisible,
+                items = items,
+
             )
 
             ActionMenu(
-                isVisible = isVisible,
                 modifier = Modifier
                     .weight(3f)
                     .fillMaxHeight(),
+                isVisible = isVisible,
+                items = items,
                 onAgreeClick = onAgreeClick
             )
         }
@@ -104,19 +102,19 @@ fun UnpackScreen(
 @Composable
 private fun ActionMenu(
     isVisible: Boolean,
+    items: List<InstallableItem>,
     modifier: Modifier = Modifier,
     onAgreeClick: () -> Unit = {}
 ) {
-    var installing by remember { mutableStateOf(false) }
-
-    val xOffset by swapAnimateDpAsState(
-        targetValue = 40.dp,
-        swapIn = isVisible,
-        isHorizontal = true
-    )
+    val states = items.map { item ->
+        item.state.collectAsStateWithLifecycle().value
+    }
+    val installing = states.any { it == InstallableItem.State.RUNNING }
+    val hasFailed = states.any { it == InstallableItem.State.FAILED }
+    val ctx = rememberAnimatedContext(isVisible = isVisible)
 
     Column(
-        modifier = modifier.offset { IntOffset(x = xOffset.roundToPx(), y = 0) },
+        modifier = modifier.animated(ctx, from = AnimatedDirection.Right),
     ) {
         Column(
             modifier = Modifier
@@ -135,14 +133,19 @@ private fun ActionMenu(
         }
 
         ScalingActionButton(
-            enabled = !installing,
+            enabled = !installing && states.any {
+                it == InstallableItem.State.NOT_STARTED ||
+                it == InstallableItem.State.PENDING ||
+                it == InstallableItem.State.FAILED
+            },
             modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                installing = true
-                onAgreeClick()
-            }
+            onClick = onAgreeClick
         ) {
-            MarqueeText(text = stringResource(R.string.splash_screen_agree))
+            MarqueeText(
+                text = stringResource(
+                    if (hasFailed) R.string.generic_retry else R.string.splash_screen_agree
+                )
+            )
         }
     }
 }
@@ -153,13 +156,10 @@ private fun UnpackTaskList(
     items: List<InstallableItem>,
     modifier: Modifier = Modifier,
 ) {
-    val yOffset by swapAnimateDpAsState(
-        targetValue = (-40).dp,
-        swapIn = isVisible
-    )
+    val ctx = rememberAnimatedContext(isVisible = isVisible)
 
     BackgroundCard(
-        modifier = modifier.offset { IntOffset(x = 0, y = yOffset.roundToPx()) },
+        modifier = modifier.animated(ctx),
         influencedByBackground = false,
         shape = MaterialTheme.shapes.extraLarge
     ) {
@@ -215,7 +215,7 @@ private fun TaskItem(
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
-                if (state == InstallableItem.State.RUNNING) {
+                if (state == InstallableItem.State.RUNNING || state == InstallableItem.State.FAILED) {
                     message?.let { taskMessage ->
                         Text(
                             text = taskMessage,
@@ -255,6 +255,13 @@ private fun TaskItem(
                     Icon(
                         modifier = iconModifier,
                         painter = painterResource(R.drawable.ic_check),
+                        contentDescription = null
+                    )
+                }
+                InstallableItem.State.FAILED -> {
+                    Icon(
+                        modifier = iconModifier,
+                        painter = painterResource(R.drawable.ic_warning_filled),
                         contentDescription = null
                     )
                 }

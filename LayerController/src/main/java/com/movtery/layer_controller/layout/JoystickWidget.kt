@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +52,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
@@ -154,11 +155,29 @@ internal fun JoystickWidgetRenderer(
         themeConfig.joystickSize.coerceIn(0.0f, 1.0f)
     }
 
-    //使用这个标记来判断是否渲染摇杆组件，未完全初始化时，可能导致组件闪烁
-    var initialized by remember { mutableStateOf(false) }
-
     // 当大小变化时重新初始化
     var currentSize by remember { mutableStateOf(IntSize.Zero) }
+
+    // 缓存绘制对象，拖动摇杆导致的连续重绘不再重复创建轮廓与路径
+    val drawCache = remember(
+        backgroundShape, joystickShape, currentSize,
+        borderWidthRatio, joystickSizeRatio, layoutDirection, density
+    ) {
+        if (currentSize == IntSize.Zero) null
+        else {
+            val sizePx = Size(currentSize.width.toFloat(), currentSize.height.toFloat())
+            val minSide = minOf(sizePx.width, sizePx.height)
+            createDrawCache(
+                backgroundShape = backgroundShape,
+                joystickShape = joystickShape,
+                sizePx = sizePx,
+                knobSizePx = minSide * joystickSizeRatio,
+                borderWidthPx = (minSide * borderWidthRatio).coerceAtLeast(0f),
+                layoutDirection = layoutDirection,
+                density = density
+            )
+        }
+    }
 
     // 当形状变化时重新计算区域
     LaunchedEffect(backgroundShape) {
@@ -186,7 +205,6 @@ internal fun JoystickWidgetRenderer(
                             layoutDirection = layoutDirection
                         )
                         data.knobOffset = Offset.Zero
-                        initialized = true
                     }
                 }
                 .buttonSize(data, screenSize)
@@ -221,46 +239,38 @@ internal fun JoystickWidgetRenderer(
             contentAlignment = Alignment.Center
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
-                if (initialized) {
-                    val minSide = minOf(size.width, size.height)
-                    val bgCenter = Offset(size.width / 2f, size.height / 2f)
+                val cache = drawCache ?: return@Canvas
+                val bgCenter = Offset(size.width / 2f, size.height / 2f)
 
-                    // 背景层
-                    drawBackgroundLayer(
-                        layoutDirection = layoutDirection,
-                        size = Size(size.width, size.height),
-                        shape = backgroundShape,
-                        backgroundColor = currentBackgroundColor,
-                        borderColor = currentBorderColor,
-                        borderWidthPx = (minSide * borderWidthRatio).coerceAtLeast(0f)
-                    )
+                // 背景层
+                drawBackgroundLayer(
+                    cache = cache,
+                    backgroundColor = currentBackgroundColor,
+                    borderColor = currentBorderColor
+                )
 
-                    // 摇杆头
-                    val knobSize = minSide * joystickSizeRatio
-                    val knobCenter = Offset(
+                // 摇杆头
+                drawJoystick(
+                    outline = cache.knobOutline,
+                    color = when {
+                        data.isLocked -> currentJoystickLockedColor
+                        data.canLockState -> currentJoystickCanLockColor
+                        else -> currentJoystickColor
+                    },
+                    center = Offset(
                         bgCenter.x + data.knobOffset.x,
                         bgCenter.y + data.knobOffset.y
-                    )
-                    drawJoystick(
-                        layoutDirection = layoutDirection,
-                        color = when {
-                            data.isLocked -> currentJoystickLockedColor
-                            data.canLockState -> currentJoystickCanLockColor
-                            else -> currentJoystickColor
-                        },
-                        center = knobCenter,
-                        size = knobSize,
-                        shape = joystickShape
-                    )
+                    ),
+                    size = cache.knobSize
+                )
 
-                    // 绘制锁定标记
-                    if (data.isLocked) {
-                        drawCircle(
-                            color = currentLockMarkColor,
-                            center = Offset(bgCenter.x, 0f),
-                            radius = 4f
-                        )
-                    }
+                // 绘制锁定标记
+                if (data.isLocked) {
+                    drawCircle(
+                        color = currentLockMarkColor,
+                        center = Offset(bgCenter.x, 0f),
+                        radius = 4f
+                    )
                 }
             }
 
@@ -286,40 +296,21 @@ internal fun JoystickWidgetRenderer(
  * 绘制背景层
  */
 private fun DrawScope.drawBackgroundLayer(
-    layoutDirection: LayoutDirection,
-    size: Size,
-    shape: Shape,
+    cache: DrawCache,
     backgroundColor: Color,
-    borderColor: Color,
-    borderWidthPx: Float
+    borderColor: Color
 ) {
-    val outline = shape.createOutline(
-        size = size,
-        layoutDirection = layoutDirection,
-        density = this
-    )
-
-    val clipPath = when (outline) {
-        is Outline.Generic -> outline.path
-        is Outline.Rounded -> Path().apply {
-            addRoundRect(outline.roundRect)
-        }
-        is Outline.Rectangle -> Path().apply {
-            addRect(outline.rect)
-        }
-    }
-
-    clipPath(clipPath) {
+    clipPath(cache.backgroundClipPath) {
         drawOutline(
-            outline = outline,
+            outline = cache.backgroundOutline,
             color = backgroundColor
         )
 
-        if (borderWidthPx > 0f) {
+        cache.borderStroke?.let { stroke ->
             drawOutline(
-                outline = outline,
+                outline = cache.backgroundOutline,
                 color = borderColor,
-                style = Stroke(width = borderWidthPx)
+                style = stroke
             )
         }
     }
@@ -329,31 +320,69 @@ private fun DrawScope.drawBackgroundLayer(
  * 绘制摇杆层
  */
 private fun DrawScope.drawJoystick(
-    layoutDirection: LayoutDirection,
+    outline: Outline,
     color: Color,
     center: Offset,
-    size: Float,
-    shape: Shape
+    size: Float
 ) {
-    val halfSize = size / 2
-    val topLeftX = center.x - halfSize
-    val topLeftY = center.y - halfSize
-
-    val outline = shape.createOutline(
-        size = Size(size, size),
-        layoutDirection = layoutDirection,
-        density = this
-    )
-
     translate(
-        left = topLeftX,
-        top = topLeftY
+        left = center.x - size / 2f,
+        top = center.y - size / 2f
     ) {
         drawOutline(
             outline = outline,
             color = color
         )
     }
+}
+
+/**
+ * 缓存的绘制对象
+ */
+private class DrawCache(
+    val backgroundOutline: Outline,
+    val backgroundClipPath: Path,
+    val borderStroke: Stroke?,
+    val knobOutline: Outline,
+    val knobSize: Float
+)
+
+private fun Outline.toClipPath(): Path = when (this) {
+    is Outline.Generic -> path
+    is Outline.Rounded -> Path().apply {
+        addRoundRect(roundRect)
+    }
+    is Outline.Rectangle -> Path().apply {
+        addRect(rect)
+    }
+}
+
+private fun createDrawCache(
+    backgroundShape: Shape,
+    joystickShape: Shape,
+    sizePx: Size,
+    knobSizePx: Float,
+    borderWidthPx: Float,
+    layoutDirection: LayoutDirection,
+    density: Density
+): DrawCache {
+    val outline = backgroundShape.createOutline(
+        size = sizePx,
+        layoutDirection = layoutDirection,
+        density = density
+    )
+
+    return DrawCache(
+        backgroundOutline = outline,
+        backgroundClipPath = outline.toClipPath(),
+        borderStroke = if (borderWidthPx > 0f) Stroke(width = borderWidthPx) else null,
+        knobOutline = joystickShape.createOutline(
+            size = Size(knobSizePx, knobSizePx),
+            layoutDirection = layoutDirection,
+            density = density
+        ),
+        knobSize = knobSizePx
+    )
 }
 
 private fun Color.applyAlpha(multiplier: Float): Color {
@@ -401,6 +430,21 @@ fun JoystickStyleWidget(
 
     val joystickSizePx = remember(backgroundSizePx, theme.joystickSize) {
         backgroundSizePx * theme.joystickSize.coerceIn(0.0f, 1.0f)
+    }
+
+    val drawCache = remember(
+        backgroundShape, joystickShape, backgroundSizePx, joystickSizePx,
+        borderWidthRatio, layoutDirection, density
+    ) {
+        createDrawCache(
+            backgroundShape = backgroundShape,
+            joystickShape = joystickShape,
+            sizePx = Size(backgroundSizePx, backgroundSizePx),
+            knobSizePx = joystickSizePx,
+            borderWidthPx = (backgroundSizePx * borderWidthRatio).coerceAtLeast(0f),
+            layoutDirection = layoutDirection,
+            density = density
+        )
     }
 
     val centerPoint = remember(backgroundSizePx) {
@@ -498,27 +542,21 @@ fun JoystickStyleWidget(
                     )
                 }
         ) {
-            val canvasSize = this.size
-
             drawBackgroundLayer(
-                layoutDirection = layoutDirection,
-                size = canvasSize,
-                shape = backgroundShape,
+                cache = drawCache,
                 backgroundColor = currentBackgroundColor,
-                borderColor = currentBorderColor,
-                borderWidthPx = (minOf(canvasSize.width, canvasSize.height) * borderWidthRatio).coerceAtLeast(0f)
+                borderColor = currentBorderColor
             )
 
             drawJoystick(
-                layoutDirection = layoutDirection,
+                outline = drawCache.knobOutline,
                 color = when {
                     isLocked -> currentJoystickLockedColor
                     internalCanLock -> currentJoystickCanLockColor
                     else -> currentJoystickColor
                 },
                 center = joystickPosition,
-                size = joystickSizePx,
-                shape = joystickShape
+                size = drawCache.knobSize
             )
 
             if (isLocked) {

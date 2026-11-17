@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -113,36 +113,6 @@ data class MultiMCConfiguration(
         notes = Optional.ofNullable<String?>(readValue(properties, "notes")).orElse(""),
         iconKey = readValue(properties, "iconKey")
     )
-
-    fun toProperties(): Properties {
-        val p = Properties()
-        if (instanceType != null) p.setProperty("InstanceType", instanceType)
-        p.setProperty("AutoCloseConsole", isAutoCloseConsole.toString())
-        if (gameVersion != null) p.setProperty("IntendedVersion", gameVersion)
-        if (javaPath != null) p.setProperty("JavaPath", javaPath)
-        if (jvmArgs != null) p.setProperty("JvmArgs", jvmArgs)
-        p.setProperty("LaunchMaximized", isFullscreen.toString())
-        if (maxMemory != null) p.setProperty("MaxMemAlloc", maxMemory.toString())
-        if (minMemory != null) p.setProperty("MinMemAlloc", minMemory.toString())
-        if (height != null) p.setProperty("MinecraftWinHeight", height.toString())
-        if (width != null) p.setProperty("MinecraftWinWidth", width.toString())
-        p.setProperty("OverrideCommands", isOverrideCommands.toString())
-        p.setProperty("OverrideConsole", isOverrideConsole.toString())
-        p.setProperty("OverrideJavaArgs", isOverrideJavaArgs.toString())
-        p.setProperty("OverrideJavaLocation", isOverrideJavaLocation.toString())
-        p.setProperty("OverrideMemory", isOverrideMemory.toString())
-        p.setProperty("OverrideWindow", isOverrideWindow.toString())
-        if (permGen != null) p.setProperty("PermGen", permGen.toString())
-        if (postExitCommand != null) p.setProperty("PostExitCommand", postExitCommand)
-        if (preLaunchCommand != null) p.setProperty("PreLaunchCommand", preLaunchCommand)
-        p.setProperty("ShowConsole", isShowConsole.toString())
-        p.setProperty("ShowConsoleOnError", isShowConsoleOnError.toString())
-        if (wrapperCommand != null) p.setProperty("WrapperCommand", wrapperCommand)
-        if (name != null) p.setProperty("name", name)
-        if (notes != null) p.setProperty("notes", notes)
-        if (iconKey != null) p.setProperty("iconKey", iconKey)
-        return p
-    }
 }
 
 private fun readValue(properties: Properties, key: String?): String? {

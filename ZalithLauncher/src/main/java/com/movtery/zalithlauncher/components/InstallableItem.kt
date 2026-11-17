@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,12 +42,14 @@ class InstallableItem(
     enum class State {
         /** 未安装 */
         NOT_STARTED,
-        /** 需要更新 */
+        /** 需要更新或修复 */
         PENDING,
         /** 安装中 */
         RUNNING,
         /** 已完成/已安装 */
         FINISHED,
+        /** 校验或安装失败，可重试 */
+        FAILED,
         /** 资源不存在，不可安装 */
         NOT_EXISTS
     }

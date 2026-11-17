@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -714,7 +714,7 @@ public class GameManifest {
             if (rules == null || rules.isEmpty()) return true; // always allow
 
             for (Rule rule : rules) {
-                if (rule.action == Action.ALLOW && rule.os != null && rule.os.name.equals("osx")) {
+                if (rule.action == Action.ALLOW && rule.os != null && "osx".equals(rule.os.name)) {
                     return false; //disallow
                 }
             }

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.game.version.installed
 import android.os.Parcelable
 import androidx.annotation.Keep
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
+import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import kotlinx.parcelize.Parcelize
 
 @Keep
@@ -28,20 +29,54 @@ import kotlinx.parcelize.Parcelize
 class VersionInfo(
     val minecraftVersion: String,
     val quickPlay: QuickPlay,
-    val loaderInfo: LoaderInfo?
+    val loaderInfos: List<LoaderInfo>,
+    val type: MinecraftVersion.Type,
 ): Parcelable {
     /**
-     * 拼接Minecraft的版本信息，包括ModLoader信息
+     * 主加载器
+     */
+    val primaryLoader: LoaderInfo?
+        get() = PRIMARY_PRIORITY.firstNotNullOfOrNull { loader -> getLoader(loader) }
+
+    /**
+     * 获取指定类型的加载器信息
+     */
+    fun getLoader(loader: ModLoader): LoaderInfo? {
+        return loaderInfos.firstOrNull { it.loader == loader }
+    }
+
+    /**
+     * 是否安装了指定类型的加载器
+     */
+    fun hasLoader(loader: ModLoader): Boolean {
+        return getLoader(loader) != null
+    }
+
+    /**
+     * 拼接Minecraft的版本信息，包括全部ModLoader信息
      * @return 用", "分割的信息字符串
      */
     fun getInfoString(): String {
         val infoList = mutableListOf<String>().apply {
             add(minecraftVersion)
-            loaderInfo?.takeIf { it.version.isNotBlank() }?.let { info ->
-                add("${info.loader.displayName} - ${info.version}")
+            loaderInfos.forEach { info ->
+                info.takeIf { it.version.isNotBlank() }?.let {
+                    add("${it.loader.displayName} - ${it.version}")
+                }
             }
         }
         return infoList.joinToString(", ")
+    }
+
+    companion object {
+        /**
+         * 主加载器的判定优先级
+         */
+        val PRIMARY_PRIORITY = listOf(
+            ModLoader.FORGE, ModLoader.NEOFORGE,
+            ModLoader.FABRIC, ModLoader.QUILT, ModLoader.LEGACY_FABRIC, ModLoader.BABRIC,
+            ModLoader.OPTIFINE, ModLoader.LITE_LOADER
+        )
     }
 
     @Keep
@@ -66,7 +101,6 @@ class VersionInfo(
 
                 ModLoader.QUILT -> "INST_QUILT"
                 ModLoader.LITE_LOADER -> "INST_LITELOADER"
-                ModLoader.CLEANROOM -> "INST_CLEANROOM"
                 else -> null
             }
         }

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@ import android.content.Context
 import android.util.Log
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.utils.file.zipDirectory
 import com.movtery.zalithlauncher.utils.printLauncherInfo
 import kotlinx.coroutines.CoroutineScope
@@ -58,7 +58,7 @@ object Logger : CoroutineScope {
     private val channel = Channel<LogMessage>(Channel.UNLIMITED)
 
     private val logRetentionDays: Int
-        get() = AllSettings.launcherLogRetentionDays.getValue()
+        get() = LauncherSettings.launcherLogRetentionDays.getValue()
 
     private var currentLogFile: File? = null
     private var logWriter: PrintWriter? = null

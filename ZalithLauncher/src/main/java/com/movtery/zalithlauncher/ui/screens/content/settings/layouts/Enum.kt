@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -142,7 +142,7 @@ fun <E: Enum<E>> EnumSettingsCard(
     summaryStyle = summaryStyle,
     onRadioClick = { enum ->
         onRadioClick(enum)
-        if (unit.state == enum) return@EnumSettingsCard
+        if (unit.flow.value == enum) return@EnumSettingsCard
         unit.save(enum)
         onValueChange(enum)
     },

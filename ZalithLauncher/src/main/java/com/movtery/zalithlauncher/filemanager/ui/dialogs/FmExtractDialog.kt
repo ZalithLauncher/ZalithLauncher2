@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,9 +39,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.filemanager.ui.components.FmAlertDialog
 import com.movtery.zalithlauncher.filemanager.ui.components.FmEditDialog
 import com.movtery.zalithlauncher.filemanager.ui.theme.fmErrorColor
+import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 
 /**
  * 解压设置对话框。
@@ -57,7 +57,7 @@ fun FmExtractDialog(
 ) {
     var independent by remember { mutableStateOf(true) }
 
-    FmAlertDialog(
+    SimpleAlertDialog(
         title = stringResource(R.string.fm_extract),
         text = {
             Column(
@@ -84,7 +84,8 @@ fun FmExtractDialog(
         },
         confirmText = stringResource(R.string.fm_extract),
         onConfirm = { onConfirm(independent) },
-        onDismiss = onDismiss
+        onCancel = onDismiss,
+        onDismissRequest = onDismiss
     )
 }
 

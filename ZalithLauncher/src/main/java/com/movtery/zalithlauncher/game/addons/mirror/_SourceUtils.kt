@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 package com.movtery.zalithlauncher.game.addons.mirror
 
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
@@ -63,11 +63,11 @@ suspend fun <T> runMirrorable(
 }
 
 /**
- * 把官方在前、镜像在后的规范源列表按“游戏内容镜像源”设置重排；
- * 自动档下大陆用户镜像优先
+ * 把官方在前、镜像在后的规范源列表按“游戏内容下载源”设置重排；
+ * 自动档下大陆用户镜像优先，官方档仅保留官方源
  */
 fun <T> List<MirrorSource<T>>.orderedByGameSourcePreference(): List<MirrorSource<T>> =
-    when (resolveMirrorPriority(AllSettings.gameDownloadSource.getValue(), mainland = true)) {
-        MirrorPriority.OFFICIAL_FIRST -> this
+    when (resolveMirrorPriority(LauncherSettings.gameDownloadSource.getValue(), mainland = true)) {
+        MirrorPriority.OFFICIAL -> filter { it.type == SourceType.OFFICIAL }
         MirrorPriority.MIRROR_FIRST -> reversed()
     }

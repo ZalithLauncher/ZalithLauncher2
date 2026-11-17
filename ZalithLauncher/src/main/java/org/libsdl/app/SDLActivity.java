@@ -42,6 +42,8 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputConnection;
 import android.webkit.MimeTypeMap;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Keep;
@@ -49,7 +51,9 @@ import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.movtery.zalithlauncher.bridge.ZLNativeInvoker;
 import com.movtery.zalithlauncher.game.sdl.SdlBridge;
+import com.movtery.zalithlauncher.ui.theme.NativeThemeUtilsKt;
 import com.movtery.zalithlauncher.utils.logging.Logger;
 
 import java.io.FileNotFoundException;
@@ -1454,7 +1458,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
     }
 
     /**
-     * VMActivity 的 TextureView/SurfaceView 的 IME 可见性上报入口
+     * VMActivity 的 TextureView 的 IME 可见性上报入口
      */
     public static void notifyImeVisibilityChanged(boolean visible) {
         SdlImeController.notifyVisibilityChanged(visible);
@@ -1486,6 +1490,18 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
 
     public static boolean handleKeyEvent(View v, int keyCode, KeyEvent event, InputConnection ic) {
         if (!SdlBridge.getSdlEnabled()) return false;
+        //输入法（软键盘）合成的可打印字符事件不代表游戏按键：
+        //不生成 SDL 按键事件，仅在文本通道可接收时转为文本提交
+        if ((event.getFlags() & KeyEvent.FLAG_SOFT_KEYBOARD) != 0 && isTextInputEvent(event)) {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && SdlImeController.isInputAccepted()) {
+                if (ic != null) {
+                    ic.commitText(String.valueOf((char) event.getUnicodeChar()), 1);
+                } else {
+                    SDLInputConnection.nativeCommitText(String.valueOf((char) event.getUnicodeChar()), 1);
+                }
+            }
+            return true;
+        }
         int deviceId = event.getDeviceId();
         int source = event.getSource();
 
@@ -1543,8 +1559,8 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
         if (event.getAction() == KeyEvent.ACTION_DOWN) {
             onNativeKeyDown(keyCode);
 
-            //仅当 SDL 文本输入通道激活时才合成文本，通道关闭时按键按事件原样上交
-            if (isTextInputEvent(event) && SdlImeController.isTextInputActive()) {
+            //仅当 SDL 文本输入通道可接收输入时才合成文本，通道关闭时按键按事件原样上交
+            if (isTextInputEvent(event) && SdlImeController.isInputAccepted()) {
                 if (ic != null) {
                     ic.commitText(String.valueOf((char) event.getUnicodeChar()), 1);
                 } else {
@@ -1626,7 +1642,28 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
             try {
                 final MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(host).setCancelable(false);
                 if (title != null) builder.setTitle(title);
-                if (message != null) builder.setTitle(message);
+
+                final ArrayList<MaterialButton> extraButtons = new ArrayList<>();
+                if (buttonIds.length > 3) {
+                    LinearLayout customView = new LinearLayout(host);
+                    customView.setOrientation(LinearLayout.VERTICAL);
+                    if (message != null) {
+                        ScrollView messageScroll = new ScrollView(host);
+                        TextView messageView = new TextView(host);
+                        messageView.setText(message);
+                        messageScroll.addView(messageView);
+                        customView.addView(messageScroll);
+                    }
+                    for (int i = 3; i < buttonIds.length; ++i) {
+                        MaterialButton button = new MaterialButton(host);
+                        button.setText(buttonTexts[i]);
+                        customView.addView(button);
+                        extraButtons.add(button);
+                    }
+                    builder.setView(customView);
+                } else if (message != null) {
+                    builder.setMessage(message);
+                }
 
                 final int slotCount = Math.min(buttonIds.length, 3);
                 for (int i = 0; i < slotCount; ++i) {
@@ -1644,20 +1681,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
                     }
                 }
 
-                final ArrayList<MaterialButton> extraButtons = new ArrayList<>();
-                if (buttonIds.length > 3) {
-                    LinearLayout extraButtonsRow = new LinearLayout(host);
-                    extraButtonsRow.setOrientation(LinearLayout.VERTICAL);
-                    for (int i = 3; i < buttonIds.length; ++i) {
-                        MaterialButton button = new MaterialButton(host);
-                        button.setText(buttonTexts[i]);
-                        extraButtonsRow.addView(button);
-                        extraButtons.add(button);
-                    }
-                    builder.setView(extraButtonsRow);
-                }
-
-                AlertDialog dialog = builder.create();
+                AlertDialog dialog = NativeThemeUtilsKt.createThemed(builder);
                 dialog.setOnDismissListener(unused -> latch.countDown());
                 for (int i = 3; i < buttonIds.length; ++i) {
                     final int id = buttonIds[i];
@@ -1908,15 +1932,7 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
     public static boolean openURL(String url)
     {
         try {
-            Intent i = new Intent(Intent.ACTION_VIEW);
-            i.setData(Uri.parse(url));
-
-            int flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-                      | Intent.FLAG_ACTIVITY_MULTIPLE_TASK
-                      | Intent.FLAG_ACTIVITY_NEW_DOCUMENT;
-            i.addFlags(flags);
-
-            mSingleton.startActivity(i);
+            ZLNativeInvoker.openLink(url);
         } catch (Exception ex) {
             return false;
         }

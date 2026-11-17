@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,8 @@ package com.movtery.zalithlauncher.ui.base
 import android.os.Build
 import android.os.Build.VERSION_CODES
 import android.os.Bundle
+import android.view.InputDevice
+import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnSystemUiVisibilityChangeListener
 import android.view.WindowManager
@@ -28,8 +30,12 @@ import androidx.activity.compose.LocalActivity
 import androidx.annotation.CallSuper
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import kotlin.math.abs
 
 abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
+    /** 当前手势的 raw 坐标与局部坐标是否分属不同坐标系，需要重建事件 */
+    private var correctTouchCoordinates = false
+
     /**
      * @return 决定是否忽略前置摄像头区域
      */
@@ -45,6 +51,90 @@ abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
     override fun onPostResume() {
         super.onPostResume()
         applyFullscreen()
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (!event.isFromSource(InputDevice.SOURCE_TOUCHSCREEN)) {
+            return super.dispatchTouchEvent(event)
+        }
+
+        val action = event.actionMasked
+        if (action == MotionEvent.ACTION_DOWN) {
+            correctTouchCoordinates = hasCoordinateSpaceMismatch(event)
+        } else if (!correctTouchCoordinates &&
+            action == MotionEvent.ACTION_POINTER_DOWN && hasCoordinateSpaceMismatch(event)) {
+            // 窗口位置可能在首指按下后才稳定，此时再次判断。
+            correctTouchCoordinates = true
+        }
+
+        val handled = if (correctTouchCoordinates) {
+            val corrected = event.copyWithConsistentCoordinates()
+            try {
+                super.dispatchTouchEvent(corrected)
+            } finally {
+                corrected.recycle()
+            }
+        } else {
+            super.dispatchTouchEvent(event)
+        }
+
+        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
+            correctTouchCoordinates = false
+        }
+        return handled
+    }
+
+    /**
+     * 检测事件中各指针的 raw 坐标是否偏离“窗口局部坐标 + 窗口在屏幕上的起点”。
+     * 正常情况下两者相等；厂商缩放窗口却未同步 raw 坐标时会不相等。
+     */
+    private fun hasCoordinateSpaceMismatch(event: MotionEvent): Boolean {
+        val origin = IntArray(2)
+        window.decorView.getLocationOnScreen(origin)
+        if (abs(event.rawX - (event.x + origin[0])) > 1f) return true
+        if (abs(event.rawY - (event.y + origin[1])) > 1f) return true
+        if (Build.VERSION.SDK_INT >= VERSION_CODES.Q) {
+            // getRawX(index)/getRawY(index) 需要 Q 以上，首指已用无参版本检查过
+            for (index in 1 until event.pointerCount) {
+                if (abs(event.getRawX(index) - (event.getX(index) + origin[0])) > 1f) return true
+                if (abs(event.getRawY(index) - (event.getY(index) + origin[1])) > 1f) return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * 以“窗口局部坐标 + 窗口在屏幕上的起点”重建触摸事件，统一 raw 坐标与局部坐标的坐标系。
+     */
+    private fun MotionEvent.copyWithConsistentCoordinates(): MotionEvent {
+        val origin = IntArray(2)
+        window.decorView.getLocationOnScreen(origin)
+        val properties = Array(pointerCount) { MotionEvent.PointerProperties() }
+        val coordinates = Array(pointerCount) { MotionEvent.PointerCoords() }
+        for (index in 0 until pointerCount) {
+            getPointerProperties(index, properties[index])
+            getPointerCoords(index, coordinates[index])
+            // obtain 创建的事件 raw 坐标恒等于局部坐标；
+            // offsetLocation 只平移局部坐标、不影响 raw 坐标，因此必须预先移位
+            coordinates[index].x += origin[0]
+            coordinates[index].y += origin[1]
+        }
+        return MotionEvent.obtain(
+            downTime,
+            eventTime,
+            action,
+            pointerCount,
+            properties,
+            coordinates,
+            metaState,
+            buttonState,
+            xPrecision,
+            yPrecision,
+            deviceId,
+            edgeFlags,
+            source,
+            flags,
+        )
     }
 
     /**

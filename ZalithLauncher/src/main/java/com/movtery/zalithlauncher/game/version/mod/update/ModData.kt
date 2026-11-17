@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,16 +19,16 @@
 package com.movtery.zalithlauncher.game.version.mod.update
 
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
-import com.movtery.zalithlauncher.game.download.assets.platform.PlatformVersion
-import com.movtery.zalithlauncher.game.download.assets.platform.getVersions
-import com.movtery.zalithlauncher.game.download.assets.utils.ModTranslations
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.getVersions
 import com.movtery.zalithlauncher.game.version.mod.ModFile
 import com.movtery.zalithlauncher.game.version.mod.ModProject
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.initAll
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.initAll
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.parseInstant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.jackhuang.hmcl.addon.AddonProjectInfo
 import java.io.File
 
 private const val TAG = "ModData"
@@ -43,7 +43,7 @@ data class ModData(
     val file: File,
     val modFile: ModFile,
     val project: ModProject,
-    val mcMod: ModTranslations.McMod?
+    val mcMod: AddonProjectInfo?
 ) {
     /**
      * 当前模组的版本号，用于新旧对比
@@ -62,7 +62,6 @@ data class ModData(
     ): PlatformVersion? {
         return withContext(Dispatchers.IO) {
             runCatching {
-                val datePublished = parseInstant(modFile.datePublished)
                 val projectId = project.id
                 val currentLoaderName = modLoader.displayName.lowercase()
                 val currentFileLoaders = modFile.loaders
@@ -91,24 +90,35 @@ data class ModData(
                     projectId,
                     project.platform
                 ).initAll(projectId)
-                    .filter { version ->
-                        if (version.platformId() == modFile.id) {
-                            // 当前版本，设置版本号
-                            currentVersion = version.platformVersion()
-                        }
-                        val loaderNames = version.platformLoaders()
-                            .map { it.getDisplayName().lowercase() }
-                            .toSet()
-                        // 是否支持当前MC版本
-                        minecraftVer in version.platformGameVersion() &&
-                        // 是否匹配目标加载器（当前加载器，或当前文件自身的加载器）
-                        loaderNames.any { it in targetLoaders } &&
-                        // 是否比当前版本更新
-                        version.platformDatePublished() > datePublished
-                    }
+
+                // 基准日期优先取实时列表中当前版本自身的发布日期
+                val currentEntry = versions.firstOrNull { it.platformId() == modFile.id }
+                if (currentEntry != null) {
+                    // 当前版本，设置版本号
+                    currentVersion = currentEntry.platformVersion()
+                }
+                val datePublished = currentEntry?.platformDatePublished() ?: run {
+                    Logger.debug(
+                        TAG,
+                        "Installed version ${modFile.id} not found in the fetched list of ${file.name}, falling back to the cached date"
+                    )
+                    parseInstant(modFile.datePublished)
+                }
+
+                val candidates = versions.filter { version ->
+                    val loaderNames = version.platformLoaders()
+                        .map { it.getDisplayName().lowercase() }
+                        .toSet()
+                    // 是否支持当前MC版本
+                    minecraftVer in version.platformGameVersion() &&
+                    // 是否匹配目标加载器（当前加载器，或当前文件自身的加载器）
+                    loaderNames.any { it in targetLoaders } &&
+                    // 是否比当前版本更新
+                    version.platformDatePublished() > datePublished
+                }
 
                 // 获取最新的版本
-                versions.firstOrNull()?.also { version ->
+                candidates.firstOrNull()?.also { version ->
                     Logger.info(TAG, "Detected update for mod ${file.name}: $currentVersion -> ${version.platformVersion()}")
                 }
             }.onFailure { th ->

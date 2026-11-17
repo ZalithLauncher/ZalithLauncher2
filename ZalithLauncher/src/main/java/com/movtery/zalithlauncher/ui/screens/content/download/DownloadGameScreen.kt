@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,13 +42,12 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
-import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.ui.NavDisplay
 import com.google.gson.JsonSyntaxException
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.download.game.GameDownloadInfo
 import com.movtery.zalithlauncher.game.download.game.GameInstaller
 import com.movtery.zalithlauncher.game.download.game.optifine.CantFetchingOptiFineUrlException
+import com.movtery.zalithlauncher.game.download.game.optifine.OptiFineForge17IncompatibleException
 import com.movtery.zalithlauncher.game.download.jvm_server.JvmCrashException
 import com.movtery.zalithlauncher.game.download.jvm_server.isProcessStartRefused
 import com.movtery.zalithlauncher.game.version.download.DownloadFailedException
@@ -59,10 +58,12 @@ import com.movtery.zalithlauncher.ui.components.NotificationCheck
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
+import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.download.game.DownloadGameWithAddonScreen
+import com.movtery.zalithlauncher.ui.screens.content.download.game.SelectGameVersionHost
 import com.movtery.zalithlauncher.ui.screens.content.download.game.SelectGameVersionScreen
 import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialog
 import com.movtery.zalithlauncher.ui.screens.navigateTo
@@ -95,7 +96,7 @@ private sealed interface GameInstallOperation {
     data object Success : GameInstallOperation
 }
 
-private class GameDownloadViewModel(): ViewModel() {
+private class GameDownloadViewModel: ViewModel() {
     /**
      * 用于刷新游戏下载页面版本名称的检查
      */
@@ -213,14 +214,14 @@ fun DownloadGameScreen(
     )
 
     if (backStack.isNotEmpty()) {
-        NavDisplay(
+        NestedNavDisplay(
+            ownerKey = key,
             backStack = backStack,
             modifier = Modifier.fillMaxSize(),
             onBack = {
                 onBack(backStack)
             },
-            entryDecorators = listOf(
-                rememberSaveableStateHolderNavEntryDecorator(),
+            extraDecorators = listOf(
                 rememberViewModelStoreNavEntryDecorator()
             ),
             transitionSpec = rememberTransitionSpec(),
@@ -228,13 +229,18 @@ fun DownloadGameScreen(
             entryProvider = entryProvider {
                 entry<NormalNavKey.DownloadGame.SelectGameVersion> {
                     SelectGameVersionScreen(
-                        mainScreenKey = mainScreenKey,
-                        downloadScreenKey = downloadScreenKey,
-                        downloadGameScreenKey = downloadGameScreenKey,
+                        host = SelectGameVersionHost.Download(
+                            mainScreenKey = mainScreenKey,
+                            downloadScreenKey = downloadScreenKey,
+                            downloadGameScreenKey = downloadGameScreenKey
+                        ),
                         eventViewModel = eventViewModel,
-                    ) { versionString ->
+                    ) { version ->
                         backStack.navigateTo(
-                            NormalNavKey.DownloadGame.Addons(versionString)
+                            NormalNavKey.DownloadGame.Addons(
+                                gameVersion = version.version.id,
+                                type = version.type,
+                            )
                         )
                     }
                 }
@@ -323,6 +329,7 @@ private fun GameInstallOperation(
         is GameInstallOperation.Install -> {
             if (installer != null) {
                 val installGame = installer.tasksFlow.collectAsStateWithLifecycle()
+                val installLog = installer.logOutput.collectAsStateWithLifecycle()
                 if (installGame.value.isNotEmpty()) {
                     //安装游戏流程对话框
                     TitleTaskFlowDialog(
@@ -331,7 +338,8 @@ private fun GameInstallOperation(
                         onCancel = {
                             onCancel()
                             updateOperation(GameInstallOperation.None)
-                        }
+                        },
+                        logOutput = installLog.value
                     )
                 }
             }
@@ -345,6 +353,7 @@ private fun GameInstallOperation(
                 is ConnectException -> stringResource(R.string.error_connection_failed)
                 is SerializationException, is JsonSyntaxException -> stringResource(R.string.error_parse_failed)
                 is CantFetchingOptiFineUrlException -> stringResource(R.string.download_install_error_cant_fetch_optifine_download_url)
+                is OptiFineForge17IncompatibleException -> stringResource(R.string.download_install_error_optifine_forge17_incompatible, th.buildof)
                 is JvmCrashException -> stringResource(R.string.download_install_error_jvm_crash, th.code)
                 is DownloadFailedException -> stringResource(R.string.download_install_error_download_failed)
                 else -> when {

@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,11 +18,11 @@
 
 package com.movtery.zalithlauncher.game.addons.modloader.modlike
 
-import com.movtery.zalithlauncher.game.download.assets.platform.mirroredModrinthSource
-import com.movtery.zalithlauncher.game.download.assets.platform.mirroredPlatformSearcher
-import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.ModrinthVersion
-import com.movtery.zalithlauncher.game.download.assets.platform.modrinth.models.getPrimary
-import com.movtery.zalithlauncher.ui.screens.content.download.assets.elements.initAllGeneric
+import com.movtery.zalithlauncher.game.download.addon.platform.mirroredModrinthSource
+import com.movtery.zalithlauncher.game.download.addon.platform.mirroredPlatformSearcher
+import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthVersion
+import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.getPrimary
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.initAllGeneric
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.CancellationException
 

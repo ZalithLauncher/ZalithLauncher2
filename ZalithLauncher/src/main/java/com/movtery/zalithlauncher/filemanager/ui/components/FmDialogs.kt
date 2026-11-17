@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuAnchorType
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -143,133 +142,6 @@ internal fun FmDialogButtons(
     }
 }
 
-
-/** 显示带确认与取消按钮的提示对话框 */
-@Composable
-fun FmAlertDialog(
-    title: String,
-    text: String,
-    confirmText: String = stringResource(R.string.generic_confirm),
-    dismissText: String = stringResource(R.string.generic_cancel),
-    dismissByDialog: Boolean = true,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    FmAlertDialog(
-        title = title,
-        text = {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        },
-        confirmText = confirmText,
-        dismissText = dismissText,
-        dismissByDialog = dismissByDialog,
-        onConfirm = onConfirm,
-        onDismiss = onDismiss
-    )
-}
-
-/** 显示仅带确认按钮的提示对话框 */
-@Composable
-fun FmAlertDialog(
-    title: String,
-    text: String,
-    confirmText: String = stringResource(R.string.generic_confirm),
-    dismissByDialog: Boolean = true,
-    onDismiss: () -> Unit
-) {
-    FmAlertDialog(
-        title = title,
-        text = {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        },
-        confirmText = confirmText,
-        dismissByDialog = dismissByDialog,
-        onDismiss = onDismiss
-    )
-}
-
-/** 显示带确认与取消按钮的提示对话框，内容为自定义组件 */
-@Composable
-fun FmAlertDialog(
-    title: String,
-    text: @Composable ColumnScope.() -> Unit = {},
-    confirmText: String = stringResource(R.string.generic_confirm),
-    dismissText: String = stringResource(R.string.generic_cancel),
-    dismissByDialog: Boolean = true,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    FmDialogSurface(
-        onDismissRequest = { if (dismissByDialog) onDismiss() }
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        val scrollState = rememberScrollState()
-        Column(
-            modifier = Modifier
-                .fadeEdge(state = scrollState)
-                .weight(1f, fill = false)
-                .verticalScrollWithBar(state = scrollState)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            text()
-        }
-
-        FmDialogButtons(
-            confirmText = confirmText,
-            dismissText = dismissText,
-            onConfirm = onConfirm,
-            onDismiss = onDismiss
-        )
-    }
-}
-
-/** 显示仅带确认按钮的提示对话框，内容为自定义组件 */
-@Composable
-fun FmAlertDialog(
-    title: String,
-    text: @Composable ColumnScope.() -> Unit = {},
-    confirmText: String = stringResource(R.string.generic_confirm),
-    dismissByDialog: Boolean = true,
-    onDismiss: () -> Unit
-) {
-    FmDialogSurface(
-        onDismissRequest = { if (dismissByDialog) onDismiss() }
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium
-        )
-
-        val scrollState = rememberScrollState()
-        Column(
-            modifier = Modifier
-                .fadeEdge(state = scrollState)
-                .weight(1f, fill = false)
-                .verticalScrollWithBar(state = scrollState)
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            content = text,
-        )
-
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onDismiss
-        ) {
-            MarqueeText(text = confirmText)
-        }
-    }
-}
 
 /** 显示带文本输入框的编辑对话框 */
 @Composable
@@ -514,7 +386,6 @@ fun FmCheckEditDialog(
 
 
 /** 通用下拉选择框 */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun <T> ExposedDropdown(
     selectedText: String,
@@ -546,7 +417,9 @@ fun <T> ExposedDropdown(
 
         ExposedDropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            shape = MaterialTheme.shapes.large,
+            shadowElevation = 3.dp
         ) {
             options.forEach { option ->
                 DropdownMenuItem(

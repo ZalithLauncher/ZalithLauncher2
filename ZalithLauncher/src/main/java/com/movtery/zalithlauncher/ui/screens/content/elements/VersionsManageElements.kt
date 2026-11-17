@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -66,7 +65,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -74,10 +72,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil3.ImageLoader
 import coil3.compose.AsyncImage
-import coil3.gif.GifDecoder
-import coil3.svg.SvgDecoder
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.path.GamePath
@@ -86,6 +81,8 @@ import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.version.installed.cleanup.CleanFailedException
 import com.movtery.zalithlauncher.game.version.installed.cleanup.GameAssetCleaner
+import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -96,6 +93,8 @@ import com.movtery.zalithlauncher.ui.components.SimpleTaskDialog
 import com.movtery.zalithlauncher.ui.components.TextRailItem
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
+import com.movtery.zalithlauncher.ui.screens.content.home.version.VersionCardDir
+import com.movtery.zalithlauncher.ui.screens.content.home.version.VersionCardManager
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
@@ -104,6 +103,7 @@ import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 
 private const val TAG = "VersionsManageElements"
 
@@ -390,6 +390,11 @@ fun VersionsOperation(
                             title = R.string.versions_manage_rename_version,
                             task = {
                                 VersionsManager.renameVersion(versionsOperation.version, it)
+                                VersionCardManager.onVersionRenamed(
+                                    gameHome = versionsOperation.version.getGameHome(),
+                                    oldName = versionsOperation.version.getVersionName(),
+                                    newName = it
+                                )
                             }
                         )
                     )
@@ -671,15 +676,16 @@ fun CleanupOperation(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VersionItemLayout(
     version: Version,
     selected: Boolean,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
     modifier: Modifier = Modifier,
-    color: Color = cardColor(),
+    influencedByBackground: Boolean = true,
+    color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
+    blur: Int = LauncherSettings.backgroundBlur.state,
     onSelected: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onRenameClick: () -> Unit = {},
@@ -706,6 +712,7 @@ fun VersionItemLayout(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(shape = MaterialTheme.shapes.large)
+                .backgroundGlass(blur, color, influencedByBackground)
                 .padding(all = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -826,6 +833,32 @@ fun VersionItemLayout(
                             menuExpanded = false
                         }
                     )
+                    //添加卡片到主界面
+                    val cardExists by remember(version) {
+                        VersionCardManager.cards.map { states ->
+                            states.any {
+                                it.record.versionName == version.getVersionName() &&
+                                        it.record.dir == VersionCardDir.fromGameHome(version.getGameHome())
+                            }
+                        }
+                    }.collectAsStateWithLifecycle(
+                        VersionCardManager.hasCard(version.getVersionName(), version.getGameHome())
+                    )
+                    DropdownMenuItem(
+                        text = { Text(text = stringResource(R.string.home_add_version_card)) },
+                        leadingIcon = {
+                            Icon(
+                                modifier = Modifier.size(20.dp),
+                                painter = painterResource(R.drawable.ic_add_box_filled),
+                                contentDescription = stringResource(R.string.home_add_version_card)
+                            )
+                        },
+                        enabled = version.isValid() && !cardExists,
+                        onClick = {
+                            VersionCardManager.addCard(version)
+                            menuExpanded = false
+                        }
+                    )
                     DropdownMenuItem(
                         text = { Text(text = stringResource(R.string.generic_delete)) },
                         leadingIcon = {
@@ -907,7 +940,7 @@ fun CommonVersionInfoLayout(
                             text = versionInfo.minecraftVersion,
                             style = MaterialTheme.typography.labelSmall,
                         )
-                        versionInfo.loaderInfo?.let { loaderInfo ->
+                        versionInfo.loaderInfos.forEach { loaderInfo ->
                             Text(
                                 text = loaderInfo.loader.displayName,
                                 style = MaterialTheme.typography.labelSmall
@@ -931,23 +964,19 @@ fun VersionIconImage(
     refreshKey: Any? = null
 ) {
     val defaultIconRes = remember(version) {
-        version?.let { getLoaderIconRes(it.getVersionInfo()?.loaderInfo?.loader) } ?: R.drawable.img_minecraft
+        version?.getVersionInfo()?.let { info ->
+            when (val loader = info.primaryLoader?.loader) {
+                null -> getGameVersionIconRes(info.type)
+                ModLoader.OPTIFINE -> R.drawable.img_loader_optifine
+                else -> getLoaderIconRes(loader)
+            }
+        } ?: R.drawable.img_minecraft
     }
     val defaultIcon = painterResource(defaultIconRes)
 
-    val context = LocalContext.current
-    val loader = remember(version, refreshKey) {
-        ImageLoader.Builder(context)
-            .components {
-                add(GifDecoder.Factory())
-                add(SvgDecoder.Factory())
-            }
-            .build()
-    }
-
     val model = remember(version, refreshKey) {
         version?.let {
-            val iconFile = VersionsManager.getVersionIconFile(it)
+            val iconFile = it.getVersionIconFile()
             if (iconFile.exists()) iconFile
             else null
         } ?: defaultIcon
@@ -965,7 +994,6 @@ fun VersionIconImage(
         else -> {
             AsyncImage(
                 model = model,
-                imageLoader = loader,
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
                 modifier = modifier
@@ -1015,7 +1043,17 @@ private fun getLoaderIconRes(
         ModLoader.NEOFORGE -> R.drawable.img_loader_neoforge
         ModLoader.OPTIFINE -> R.drawable.img_loader_optifine
         ModLoader.LITE_LOADER -> R.drawable.img_chicken_old
-        ModLoader.CLEANROOM -> R.drawable.img_loader_cleanroom
         else -> defaultIcon
+    }
+}
+
+@DrawableRes
+fun getGameVersionIconRes(type: MinecraftVersion.Type): Int {
+    return when (type) {
+        MinecraftVersion.Type.Snapshot -> R.drawable.img_command_block
+        MinecraftVersion.Type.OldBeta -> R.drawable.img_old_cobblestone
+        MinecraftVersion.Type.OldAlpha -> R.drawable.img_old_grass_block
+        MinecraftVersion.Type.AprilFools -> R.drawable.img_diamond_block
+        else -> R.drawable.img_minecraft
     }
 }

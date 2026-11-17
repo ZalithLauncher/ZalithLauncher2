@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,7 @@ import com.movtery.zalithlauncher.filemanager.logic.compress.CompressOptions
 import com.movtery.zalithlauncher.filemanager.logic.entry.FmEntry
 import com.movtery.zalithlauncher.filemanager.logic.ops.ConflictResolution
 import com.movtery.zalithlauncher.filemanager.logic.task.TaskManager
+import com.movtery.zalithlauncher.filemanager.logic.task.TaskProgress
 import com.movtery.zalithlauncher.filemanager.logic.task.TaskState
 import com.movtery.zalithlauncher.filemanager.logic.trash.TrashItem
 import com.movtery.zalithlauncher.filemanager.os.FmLog
@@ -45,6 +46,7 @@ import com.movtery.zalithlauncher.filemanager.viewmodel.controllers.PasteControl
 import com.movtery.zalithlauncher.filemanager.viewmodel.controllers.SearchController
 import com.movtery.zalithlauncher.filemanager.viewmodel.controllers.SelectionController
 import com.movtery.zalithlauncher.filemanager.viewmodel.controllers.TrashController
+import com.movtery.zalithlauncher.utils.file.shareFile
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +54,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import javax.inject.Inject
@@ -113,6 +116,10 @@ class FileManagerViewModel @Inject constructor(
     val dirScan: StateFlow<DirScanUiState?> get() = store.dirScan
     val editorUi: StateFlow<EditorUiState> get() = store.editorUi
     val errorEvents: SharedFlow<String> get() = store.errorEvents
+
+    private val _taskProgress = MutableStateFlow<TaskProgress?>(null)
+    /** 当前任务进度 */
+    val taskProgress: StateFlow<TaskProgress?> = _taskProgress.asStateFlow()
 
     fun initialize() {
         if (_initState.value != FmInitState.Pending) return
@@ -334,6 +341,12 @@ class FileManagerViewModel @Inject constructor(
     /** 是否存在未保存的修改 */
     fun editorHasDirty(): Boolean = editorCtr.hasDirty()
 
+    /** 通过系统分享唤起其他文件管理器应用浏览当前目录 */
+    fun browseInExternalManager() {
+        val dir = store.stateValue().currentDir?.toString() ?: return
+        shareFile(context, File(dir))
+    }
+
     // ---------------- 对话框 / Snackbar ----------------
 
     fun dismissDialog() = store.dismissDialog()
@@ -351,7 +364,7 @@ class FileManagerViewModel @Inject constructor(
         }
         viewModelScope.launch {
             taskManager.progress.collect { p ->
-                store.updateState { it.copy(taskProgress = p) }
+                _taskProgress.value = p
             }
         }
     }

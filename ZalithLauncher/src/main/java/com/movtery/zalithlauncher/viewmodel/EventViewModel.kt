@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@ import androidx.lifecycle.viewModelScope
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.control.input.TextInputMode
-import com.movtery.zalithlauncher.ui.screens.main.custom_home.MarkdownBlock
+import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
@@ -85,6 +85,8 @@ class EventViewModel : ViewModel() {
         }
         /** 检查更新 */
         data object CheckUpdate : Event
+        /** 查看当月赞助者 */
+        data object ShowSponsors : Event
         /** 在浏览器访问链接 */
         data class OpenLink(val url: String) : Event
         /** 让 MainActivity 防止熄屏 */
@@ -111,17 +113,8 @@ class EventViewModel : ViewModel() {
         sealed interface LogShare : Event {
             data class ShareGameLog(val logFile: File) : LogShare
         }
-        /** 启动器主页相关 */
-        sealed interface HomePage: Event {
-            /** 重载启动器主页 */
-            data object Reload: HomePage
-            /** 生成文档主页 */
-            data object GenDocPage: HomePage
-            /** 主页触发的事件 */
-            data class Event(val event: MarkdownBlock.Button.Event): HomePage
-        }
         /** 设备 Vulkan 检查 */
-        data object VulkanCheck: Event
+        data class VulkanCheck(val version: Version): Event
 
         /** 在 MainActivity 中显示 Toast */
         data class ShowToast(
@@ -134,6 +127,13 @@ class EventViewModel : ViewModel() {
             val rootPath: String,
             val currentPath: String? = null,
         ) : Event
+
+        sealed interface Guide : Event {
+            /** 启动一组引导 */
+            data class StartGuide(val group: GuideKeys.Keys) : Guide
+            /** 仅启动一组引导一次 */
+            data class StartGuideOnce(val group: GuideKeys.Keys) : Guide
+        }
     }
 }
 

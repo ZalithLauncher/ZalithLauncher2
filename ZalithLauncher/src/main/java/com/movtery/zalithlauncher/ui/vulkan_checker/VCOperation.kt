@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
 
 package com.movtery.zalithlauncher.ui.vulkan_checker
 
+import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.utils.device.VulkanCapabilities
 
 /**
@@ -29,7 +30,7 @@ sealed interface VCOperation {
     /**
      * Vulkan 检查提示对话框
      */
-    data object Tip: VCOperation
+    data class Tip(val version: Version): VCOperation
 
     /**
      * @param data 检查结果

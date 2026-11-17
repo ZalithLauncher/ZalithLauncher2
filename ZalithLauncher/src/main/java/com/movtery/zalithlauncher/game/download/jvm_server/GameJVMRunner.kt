@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.game.download.jvm_server
 import android.content.Intent
 import com.movtery.zalithlauncher.components.jre.Jre
 import com.movtery.zalithlauncher.context.GlobalContext
+import com.movtery.zalithlauncher.coroutine.TaskLogOutput
 import com.movtery.zalithlauncher.notification.NoticeProgress
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.CancellationException
@@ -57,6 +58,7 @@ private val POST_PROCESS_EXIT_COOLDOWN: Duration = 1.seconds
  * 运行一个简易的JVM环境，安装ModLoader，同时在jvm退出时，尝试使用其他的Java环境重试
  * @param logId 记录日志的 tag
  * @param start 刚开始启动会调用的回调
+ * @param logOutput 安装 JVM 的实时日志输出
  */
 suspend fun runJvmRetryRuntimes(
     logId: String,
@@ -66,7 +68,8 @@ suspend fun runJvmRetryRuntimes(
     userHome: String,
     postSummary: String? = null,
     postProgress: NoticeProgress? = null,
-    start: () -> Unit = {}
+    start: () -> Unit = {},
+    logOutput: TaskLogOutput? = null
 ): Unit = withContext(Dispatchers.Default) {
     waitForJvmExclusiveProcessesStopped(logId)
 
@@ -81,7 +84,8 @@ suspend fun runJvmRetryRuntimes(
         jreName = jre.jreName,
         userHome = userHome,
         postSummary = postSummary,
-        postProgress = postProgress
+        postProgress = postProgress,
+        logOutput = logOutput
     )
 
     if (exitCode != 0) {
@@ -100,7 +104,8 @@ suspend fun runJvmRetryRuntimes(
                 jre = jre,
                 userHome = userHome,
                 postSummary = postSummary,
-                postProgress = postProgress
+                postProgress = postProgress,
+                logOutput = logOutput
             )
         } ?: throw JvmCrashException(exitCode)
     }
@@ -160,8 +165,13 @@ suspend fun startJvmServiceAndWaitExit(
     userHome: String? = null,
     postSummary: String? = null,
     postProgress: NoticeProgress? = null,
+    logOutput: TaskLogOutput? = null,
 ): Int = withContext(Dispatchers.IO) {
     val doneSignal = CompletableDeferred<Unit>()
+
+    val tailerJob = logOutput?.let {
+        ProcessLogTailer(LATEST_PROCESS_LOG_FILE, it).launch(this)
+    }
 
     try {
         // 先起接收端再拉起服务
@@ -215,6 +225,7 @@ suspend fun startJvmServiceAndWaitExit(
         // 无论成败、取消还是超时都收掉接收端
         // 单例状态跨轮残留会毒化下一次运行
         JVMSocketServer.stop()
+        tailerJob?.cancel()
     }
 
     val code = JVMSocketServer.receiveMsg?.toIntOrNull()

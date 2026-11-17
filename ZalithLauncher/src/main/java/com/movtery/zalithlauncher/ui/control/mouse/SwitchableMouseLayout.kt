@@ -1,6 +1,6 @@
 /*
  * Zalith Launcher 2
- * Copyright (C) 2025 MovTery <movtery228@qq.com> and contributors
+ * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -36,8 +36,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.CURSOR_ENABLED
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.setting.enums.MouseControlMode
+import com.movtery.zalithlauncher.setting.enums.MouseTouchBlockMode
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadStickCameraListener
 import com.movtery.zalithlauncher.utils.device.PhysicalMouseChecker
 import com.movtery.zalithlauncher.utils.file.ifExists
@@ -52,6 +53,7 @@ typealias CursorMode = Int
  * 可根据指针抓取模式，自切换的虚拟指针模拟层
  * @param cursorMode                当前指针抓取模式
  * @param controlMode               控制模式：SLIDE（滑动控制）、CLICK（点击控制）
+ * @param touchBlockMode            半屏触摸阻止模式
  * @param enableMouseClick          是否开启虚拟鼠标点击操作（仅适用于滑动控制）
  * @param longPressTimeoutMillis    长按触发检测时长
  * @param requestPointerCapture     是否使用鼠标抓取方案
@@ -72,6 +74,8 @@ typealias CursorMode = Int
  * @param isMoveOnlyPointer         指针是否被父级标记为仅可滑动指针
  * @param onOccupiedPointer         占用指针回调
  * @param onReleasePointer          释放指针回调
+ * @param enableScrollGesture       是否启用双指滑动滚动手势
+ * @param onScrollGesture           双指滑动滚动回调，参数为滚轮滚动的偏移量
  * @param mouseSize                 指针大小
  * @param cursorSensitivity         指针灵敏度（滑动模式生效）
  */
@@ -80,11 +84,12 @@ fun SwitchableMouseLayout(
     modifier: Modifier = Modifier,
     screenSize: IntSize,
     cursorMode: CursorMode,
-    controlMode: MouseControlMode = AllSettings.mouseControlMode.state,
-    enableMouseClick: Boolean = AllSettings.enableMouseClick.state,
-    longPressTimeoutMillis: Long = AllSettings.mouseLongPressDelay.state.toLong(),
-    requestPointerCapture: Boolean = !AllSettings.physicalMouseMode.state,
-    hideMouseInClickMode: Boolean = AllSettings.hideMouse.state,
+    controlMode: MouseControlMode = ControlSettings.mouseControlMode.state,
+    touchBlockMode: MouseTouchBlockMode = ControlSettings.mouseTouchBlockMode.state,
+    enableMouseClick: Boolean = ControlSettings.enableMouseClick.state,
+    longPressTimeoutMillis: Long = ControlSettings.mouseLongPressDelay.state.toLong(),
+    requestPointerCapture: Boolean = !ControlSettings.physicalMouseMode.state,
+    hideMouseInClickMode: Boolean = ControlSettings.hideMouse.state,
     gamepadViewModel: GamepadViewModel? = null,
     onTouch: () -> Unit = {},
     onMouse: () -> Unit = {},
@@ -101,10 +106,12 @@ fun SwitchableMouseLayout(
     isMoveOnlyPointer: (PointerId) -> Boolean = { false },
     onOccupiedPointer: (PointerId) -> Unit = {},
     onReleasePointer: (PointerId) -> Unit = {},
-    mouseSize: Dp = AllSettings.mouseSize.state.dp,
-    cursorSensitivity: Int = AllSettings.cursorSensitivity.state,
-    gamepadCursorSensitivity: Int = AllSettings.gamepadCursorSensitivity.state,
-    gamepadCameraSensitivity: Int = AllSettings.gamepadCameraSensitivity.state
+    enableScrollGesture: Boolean = false,
+    onScrollGesture: (Offset) -> Unit = {},
+    mouseSize: Dp = ControlSettings.mouseSize.state.dp,
+    cursorSensitivity: Int = ControlSettings.cursorSensitivity.state,
+    gamepadCursorSensitivity: Int = ControlSettings.gamepadCursorSensitivity.state,
+    gamepadCameraSensitivity: Int = ControlSettings.gamepadCameraSensitivity.state
 ) {
     val screenWidth: Float = screenSize.width.toFloat()
     val screenHeight: Float = screenSize.height.toFloat()
@@ -166,6 +173,9 @@ fun SwitchableMouseLayout(
             else requestPointerCapture
         )
     }
+
+    val textInputActive = rememberTextInputActive()
+    val capturePointer = isCaptured || (requestPointerCapture1 && !textInputActive)
 
     fun updatePointerPos(pos: Offset) {
         lastVirtualMousePos.value = pos
@@ -235,9 +245,11 @@ fun SwitchableMouseLayout(
                 //捕获模式下，只有滑动控制模式才能获取到滑动偏移量
                 MouseControlMode.SLIDE
             },
+            touchBlockMode = touchBlockMode,
+            cursorMode = cursorMode,
             enableMouseClick = enableMouseClick,
             longPressTimeoutMillis = longPressTimeoutMillis,
-            requestPointerCapture = requestPointerCapture1,
+            requestPointerCapture = capturePointer,
             pointerIcon = cursorShape.composeIcon,
             onTouch = {
                 onTouch()
@@ -315,7 +327,7 @@ fun SwitchableMouseLayout(
                         onCapturedMove(offset)
                     }
                     CURSOR_ENABLED -> {
-                        if (requestPointerCapture) {
+                        if (capturePointer) {
                             updateMousePointer(true)
                             pointerPosition = Offset(
                                 x = (pointerPosition.x + offset.x * speedFactor).coerceIn(0f, screenWidth),
@@ -336,6 +348,8 @@ fun SwitchableMouseLayout(
             isMoveOnlyPointer = isMoveOnlyPointer,
             onOccupiedPointer = onOccupiedPointer,
             onReleasePointer = onReleasePointer,
+            enableScrollGesture = enableScrollGesture && cursorMode == CURSOR_ENABLED,
+            onScrollGesture = onScrollGesture,
             requestFocusKey = cursorMode
         )
     }

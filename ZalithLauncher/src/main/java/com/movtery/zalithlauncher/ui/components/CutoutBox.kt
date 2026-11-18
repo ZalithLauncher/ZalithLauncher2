@@ -34,7 +34,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathOperation
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
@@ -111,23 +110,18 @@ fun CutoutBox(
     SubcomposeLayout(modifier = modifier) { constraints ->
         val looseConstraints = constraints.copy(minWidth = 0, minHeight = 0)
 
-        val contentMeasurables = subcompose(CutoutContentSlot) {
-            Box(modifier = Modifier.clip(shape = shape), content = content)
-        }
-
-        val overlayMeasurables = subcompose(CutoutOverlaySlot) {
+        val measuredOverlay = subcompose(CutoutOverlaySlot) {
             Box(content = overlay)
-        }
+        }.single().measure(looseConstraints)
 
-        val measuredContent = contentMeasurables.single().measure(looseConstraints)
-        val measuredOverlay = overlayMeasurables.single().measure(looseConstraints)
+        val measuredContent = subcompose(CutoutContentSlot) {
+            Box(modifier = Modifier.clip(shape = shape), content = content)
+        }.single().measure(constraints)
 
         val width = maxOf(measuredContent.width, measuredOverlay.width)
             .coerceIn(constraints.minWidth, constraints.maxWidth)
         val height = maxOf(measuredContent.height, measuredOverlay.height)
             .coerceIn(constraints.minHeight, constraints.maxHeight)
-
-        val content = contentMeasurables.single().measure(Constraints.fixed(width, height))
 
         val overlayOffset = overlayAlignment.align(
             size = IntSize(measuredOverlay.width, measuredOverlay.height),
@@ -143,7 +137,7 @@ fun CutoutBox(
         )
 
         layout(width = width, height = height) {
-            content.place(IntOffset.Zero)
+            measuredContent.place(IntOffset.Zero)
             measuredOverlay.placeRelative(x = overlayOffset.x, y = overlayOffset.y)
         }
     }

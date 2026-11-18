@@ -65,6 +65,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -78,6 +79,8 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.legal.AvailableAgreement
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
+import com.movtery.zalithlauncher.ui.components.ScreenType
+import com.movtery.zalithlauncher.ui.components.ScreenTypeLayout
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.swapAnimateAlphaProgressAsState
 import com.movtery.zalithlauncher.ui.components.swapAnimateProgressAsState
@@ -114,50 +117,15 @@ fun WelcomeScreen(
             }
         }
 
-        BoxWithConstraints(
+        ScreenTypeLayout(
             modifier = modifier.background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
-        ) {
-            if (maxWidth >= 800.dp && maxHeight >= 500.dp) {
-                // 平板布局
-                TabletWelcomeScreen(
-                    isVisible = isVisible,
-                    started = started,
-                    onStart = onStart,
-                    availableAgreement = availableAgreement,
-                    agreementRequired = agreementRequired,
-                    agreementChecked = agreementChecked,
-                    onAgreementCheckedChange = { agreementChecked = it },
-                    onAgreementRequiredChange = { agreementRequired = it },
-                    modifier = Modifier.fillMaxSize()
-                )
-            } else {
-                // 手机横板布局
-                val availableWidth = minOf(maxWidth, 1280.dp) - 60.dp
-                val terminalWidth = availableWidth * (1.35f / 2.35f) - 20.dp
-
-                Row(
-                    modifier = Modifier
-                        .widthIn(max = 1280.dp)
-                        .fillMaxSize()
-                        .padding(all = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(20.dp)
-                ) {
-                    // 终端卡片布局
-                    WelcomeTerminal(
+        ) { screenType ->
+            when (screenType) {
+                ScreenType.Watch -> {
+                    // 手表等方形或略宽的极小屏布局
+                    WatchWelcomeScreen(
                         isVisible = isVisible,
-                        modifier = Modifier
-                            .width(terminalWidth)
-                            .fillMaxHeight()
-                            .welcomeEntrance(isVisible = isVisible)
-                    )
-
-                    WelcomeInformation(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
-                            .welcomeEntrance(isVisible = isVisible, delayMillis = 300)
-                            .padding(vertical = 4.dp),
                         started = started,
                         onStart = onStart,
                         availableAgreement = availableAgreement,
@@ -165,7 +133,59 @@ fun WelcomeScreen(
                         agreementChecked = agreementChecked,
                         onAgreementCheckedChange = { agreementChecked = it },
                         onAgreementRequiredChange = { agreementRequired = it },
+                        modifier = Modifier.fillMaxSize()
                     )
+                }
+                ScreenType.Tablet -> {
+                    // 平板布局
+                    TabletWelcomeScreen(
+                        isVisible = isVisible,
+                        started = started,
+                        onStart = onStart,
+                        availableAgreement = availableAgreement,
+                        agreementRequired = agreementRequired,
+                        agreementChecked = agreementChecked,
+                        onAgreementCheckedChange = { agreementChecked = it },
+                        onAgreementRequiredChange = { agreementRequired = it },
+                        modifier = Modifier.fillMaxSize()
+                    )
+                }
+                ScreenType.Phone -> {
+                    // 手机横板布局
+                    val availableWidth = minOf(maxWidth, 1280.dp) - 60.dp
+                    val terminalWidth = availableWidth * (1.35f / 2.35f) - 20.dp
+
+                    Row(
+                        modifier = Modifier
+                            .widthIn(max = 1280.dp)
+                            .fillMaxSize()
+                            .padding(all = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(20.dp)
+                    ) {
+                        // 终端卡片布局
+                        WelcomeTerminal(
+                            isVisible = isVisible,
+                            modifier = Modifier
+                                .width(terminalWidth)
+                                .fillMaxHeight()
+                                .welcomeEntrance(isVisible = isVisible)
+                        )
+
+                        WelcomeInformation(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight()
+                                .welcomeEntrance(isVisible = isVisible, delayMillis = 300)
+                                .padding(vertical = 4.dp),
+                            started = started,
+                            onStart = onStart,
+                            availableAgreement = availableAgreement,
+                            agreementRequired = agreementRequired,
+                            agreementChecked = agreementChecked,
+                            onAgreementCheckedChange = { agreementChecked = it },
+                            onAgreementRequiredChange = { agreementRequired = it },
+                        )
+                    }
                 }
             }
         }
@@ -222,7 +242,8 @@ private fun Modifier.welcomeEntrance(
 @Composable
 private fun WelcomeTerminal(
     isVisible: Boolean,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
 ) {
     var welcomeText by remember { mutableStateOf("") }
     var welcomeFinished by remember { mutableStateOf(false) }
@@ -264,29 +285,42 @@ private fun WelcomeTerminal(
         welcomeFinished = true
     }
 
+    val contentPadding = if (compact) 14.dp else 28.dp
+
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(36.dp),
+        shape = RoundedCornerShape(if (compact) 22.dp else 36.dp),
         color = MaterialTheme.colorScheme.primaryContainer,
         contentColor = MaterialTheme.colorScheme.onPrimaryContainer
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val titleWidth = (maxWidth - contentPadding * 2).coerceAtLeast(0.dp)
+            val titleFontSize = with(LocalDensity.current) {
+                (titleWidth.toPx() / 6f).toSp().value
+            }.coerceIn(12f, if (compact) 30f else 56f).sp
+
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .offset(x = 32.dp, y = (-36).dp)
-                    .size(156.dp)
+                    .offset(
+                        x = if (compact) 16.dp else 32.dp,
+                        y = if (compact) (-20).dp else (-36).dp
+                    )
+                    .size(if (compact) 80.dp else 156.dp)
                     .rotate(18f)
                     .background(
                         color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.16f),
-                        shape = RoundedCornerShape(44.dp)
+                        shape = RoundedCornerShape(if (compact) 24.dp else 44.dp)
                     )
             )
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .offset(x = (-30).dp, y = 30.dp)
-                    .size(116.dp)
+                    .offset(
+                        x = if (compact) (-16).dp else (-30).dp,
+                        y = if (compact) 16.dp else 30.dp
+                    )
+                    .size(if (compact) 64.dp else 116.dp)
                     .background(
                         color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.14f),
                         shape = CircleShape
@@ -296,7 +330,7 @@ private fun WelcomeTerminal(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(all = 28.dp)
+                    .padding(all = contentPadding)
             ) {
                 // 左上角标签
                 Surface(
@@ -304,11 +338,14 @@ private fun WelcomeTerminal(
                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
                 ) {
                     Text(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
+                        modifier = Modifier.padding(
+                            horizontal = if (compact) 8.dp else 12.dp,
+                            vertical = if (compact) 4.dp else 7.dp
+                        ),
                         text = "♥ MADE WITH HEART ♥",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        letterSpacing = 1.4.sp
+                        letterSpacing = if (compact) 0.6.sp else 1.4.sp
                     )
                 }
 
@@ -322,8 +359,8 @@ private fun WelcomeTerminal(
                         style = MaterialTheme.typography.displayLarge,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Black,
-                        fontSize = 56.sp,
-                        letterSpacing = (-2).sp,
+                        fontSize = titleFontSize,
+                        letterSpacing = if (compact) (-1).sp else (-2).sp,
                         maxLines = 1
                     )
                     // 模拟终端指针
@@ -334,12 +371,12 @@ private fun WelcomeTerminal(
                         color = MaterialTheme.colorScheme.primary,
                         fontFamily = FontFamily.Monospace,
                         fontWeight = FontWeight.Black,
-                        fontSize = 56.sp,
+                        fontSize = titleFontSize,
                         maxLines = 1
                     )
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(if (compact) 4.dp else 8.dp))
 
                 Text(
                     modifier = Modifier.welcomeEntrance(
@@ -347,16 +384,99 @@ private fun WelcomeTerminal(
                         durationMillis = 2000,
                         enter = welcomeFinished,
                         offsetX = 0.dp,
-                        offsetY = 48.dp
+                        offsetY = if (compact) 0.dp else 48.dp
                     ),
                     text = stringResource(R.string.welcome_screen_subtitle),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = if (compact) {
+                        MaterialTheme.typography.bodySmall
+                    } else {
+                        MaterialTheme.typography.titleMedium
+                    },
                     color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.72f),
                     fontWeight = FontWeight.SemiBold
                 )
 
                 Spacer(modifier = Modifier.weight(1f))
             }
+        }
+    }
+}
+
+@Composable
+private fun WatchWelcomeScreen(
+    isVisible: Boolean,
+    started: Boolean,
+    onStart: () -> Unit,
+    availableAgreement: StateFlow<AvailableAgreement?>,
+    agreementRequired: Boolean,
+    agreementChecked: Boolean,
+    onAgreementCheckedChange: (Boolean) -> Unit,
+    onAgreementRequiredChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    BoxWithConstraints(modifier = modifier) {
+        val terminalHeight = (maxHeight * 0.36f).coerceIn(144.dp, 160.dp)
+
+        Box(modifier = Modifier.fillMaxSize()) {
+            val listState = rememberScrollState()
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .fadeEdge(listState)
+                    .verticalScrollWithBar(listState)
+                    .padding(start = 12.dp, end = 12.dp, top = 12.dp, bottom = 80.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ProductBanner(
+                    compact = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .welcomeEntrance(
+                            isVisible = isVisible,
+                            delayMillis = 300,
+                            offsetX = 32.dp
+                        )
+                )
+
+                WelcomeTerminal(
+                    isVisible = isVisible,
+                    compact = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(terminalHeight)
+                        .welcomeEntrance(isVisible = isVisible, offsetX = 32.dp)
+                )
+
+                WelcomeIntroduction(
+                    availableAgreement = availableAgreement,
+                    agreementChecked = agreementChecked,
+                    onAgreementCheckedChange = onAgreementCheckedChange,
+                    onAgreementRequiredChange = onAgreementRequiredChange,
+                    compact = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .welcomeEntrance(
+                            isVisible = isVisible,
+                            delayMillis = 300,
+                            offsetX = 32.dp
+                        )
+                )
+            }
+
+            StartButton(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(12.dp)
+                    .welcomeEntrance(
+                        isVisible = isVisible,
+                        delayMillis = 300,
+                        offsetX = 32.dp
+                    ),
+                started = started,
+                onStart = onStart,
+                canStart = !agreementRequired || agreementChecked,
+            )
         }
     }
 }
@@ -477,22 +597,30 @@ private fun WelcomeInformation(
 /** 产品横幅 */
 @Composable
 private fun ProductBanner(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
 ) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(
+            space = if (compact) 10.dp else 16.dp,
+            alignment = if (compact) Alignment.CenterHorizontally else Alignment.Start
+        )
     ) {
         Image(
-            modifier = Modifier.size(52.dp),
+            modifier = Modifier.size(if (compact) 36.dp else 52.dp),
             painter = painterResource(R.drawable.img_launcher),
             contentDescription = null
         )
 
         Text(
             text = BuildKeys.LAUNCHER_NAME,
-            style = MaterialTheme.typography.headlineSmall,
+            style = if (compact) {
+                MaterialTheme.typography.titleSmall
+            } else {
+                MaterialTheme.typography.headlineSmall
+            },
             fontWeight = FontWeight.Bold
         )
     }
@@ -504,7 +632,8 @@ private fun WelcomeIntroduction(
     agreementChecked: Boolean,
     onAgreementCheckedChange: (Boolean) -> Unit,
     onAgreementRequiredChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
 ) {
     val agreement by availableAgreement.collectAsStateWithLifecycle()
 
@@ -541,22 +670,26 @@ private fun WelcomeIntroduction(
     }
 
     CompositionLocalProvider(
-        LocalTextStyle provides MaterialTheme.typography.bodyMedium
+        LocalTextStyle provides (if (compact) {
+            MaterialTheme.typography.bodySmall
+        } else {
+            MaterialTheme.typography.bodyMedium
+        })
     ) {
         Column(
             modifier = modifier,
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(if (compact) 10.dp else 16.dp),
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     text = stringResource(R.string.welcome_screen_intro_primary, BuildKeys.LAUNCHER_NAME),
-                    lineHeight = 26.sp
+                    lineHeight = if (compact) 20.sp else 26.sp
                 )
                 Text(
                     text = stringResource(R.string.welcome_screen_intro_core),
-                    lineHeight = 26.sp
+                    lineHeight = if (compact) 20.sp else 26.sp
                 )
             }
 
@@ -564,7 +697,7 @@ private fun WelcomeIntroduction(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(if (compact) 8.dp else 12.dp),
                     ) {
                         Text(
                             text = stringResource(R.string.welcome_screen_agreement_title),

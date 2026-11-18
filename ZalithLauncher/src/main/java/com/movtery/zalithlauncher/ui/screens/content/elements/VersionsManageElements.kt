@@ -22,7 +22,6 @@ import androidx.annotation.DrawableRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -82,7 +81,7 @@ import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.version.installed.cleanup.CleanFailedException
 import com.movtery.zalithlauncher.game.version.installed.cleanup.GameAssetCleaner
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -166,17 +165,13 @@ fun GamePathItemLayout(
                     .padding(top = 4.dp, bottom = 4.dp)
                     .alpha(if (enabled) 1f else DisabledAlpha)
             ) {
-                Text(
-                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                MarqueeText(
                     text = if (notDefault) item.title else stringResource(R.string.versions_manage_game_path_default),
                     style = MaterialTheme.typography.labelMedium,
-                    maxLines = 1
                 )
-                Text(
-                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                MarqueeText(
                     text = item.path,
                     style = MaterialTheme.typography.labelSmall,
-                    maxLines = 1
                 )
             }
         },
@@ -685,7 +680,7 @@ fun VersionItemLayout(
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
     onSelected: () -> Unit = {},
     onSettingsClick: () -> Unit = {},
     onRenameClick: () -> Unit = {},
@@ -903,9 +898,7 @@ fun CommonVersionInfoLayout(
             modifier = Modifier.weight(1f)
         ) {
             //版本名称
-            Text(
-                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                maxLines = 1,
+            MarqueeText(
                 text = versionName,
                 style = MaterialTheme.typography.labelLarge
             )
@@ -915,9 +908,7 @@ fun CommonVersionInfoLayout(
                     version.getVersionSummary()
                 }
 
-                Text(
-                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                    maxLines = 1,
+                MarqueeText(
                     text = versionSummary,
                     style = MaterialTheme.typography.labelMedium
                 )

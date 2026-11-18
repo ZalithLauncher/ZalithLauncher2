@@ -30,7 +30,7 @@ import com.movtery.zalithlauncher.game.multirt.RuntimesManager
 import com.movtery.zalithlauncher.game.path.GamePathManager
 import com.movtery.zalithlauncher.game.path.getGameHome
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
 import com.movtery.zalithlauncher.ui.activities.runJar
 import com.movtery.zalithlauncher.ui.theme.showThemed
 import com.movtery.zalithlauncher.utils.logging.Logger
@@ -73,7 +73,7 @@ open class JvmLauncher(
             jvmArgs = argList,
             userHome = jvmLaunchInfo.userHome ?: GamePathManager.getUserPath(),
             userArgs = if (jvmLaunchInfo.useUserJvm) {
-                AllSettings.jvmArgs.getValue()
+                GameSettings.jvmArgs.getValue()
             } else {
                 ""
             },
@@ -98,7 +98,7 @@ open class JvmLauncher(
         val runtime = jvmLaunchInfo.jreName?.let { jreName ->
             RuntimesManager.forceReload(jreName)
         } ?: run {
-            RuntimesManager.forceReload(AllSettings.javaRuntime.getValue())
+            RuntimesManager.forceReload(GameSettings.javaRuntime.getValue())
         }
 
         val argList: MutableList<String> = ArrayList(

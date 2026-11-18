@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.components.Components
 import com.movtery.zalithlauncher.components.InstallableItem
@@ -41,7 +42,7 @@ import com.movtery.zalithlauncher.components.jre.UnpackJreTask
 import com.movtery.zalithlauncher.context.readAssetFile
 import com.movtery.zalithlauncher.legal.AvailableAgreement
 import com.movtery.zalithlauncher.path.GLOBAL_JSON
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
 import com.movtery.zalithlauncher.setting.launcherMMKV
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.screens.navigateOnce
@@ -51,6 +52,7 @@ import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
 import com.movtery.zalithlauncher.ui.theme.backgroundColor
 import com.movtery.zalithlauncher.ui.theme.onBackgroundColor
 import com.movtery.zalithlauncher.ui.theme.showThemed
+import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.SplashBackStackViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -148,6 +150,7 @@ class SplashActivity : BaseAppCompatActivity() {
                             switchScreen(SplashOperation.Loading)
                             checkTasksToMain()
                         },
+                        onExitClick = { finishAffinity() },
                         availableAgreement = availableAgreement,
                         unpackItems = unpackItems,
                         screenViewModel = backStackViewModel
@@ -158,6 +161,12 @@ class SplashActivity : BaseAppCompatActivity() {
 
         lifecycleScope.launch(Dispatchers.Main) {
             switchScreen(SplashOperation.Loading)
+
+            // 检查安装包架构与设备不匹配
+            if (!Architecture.isBuildArchCompatible(BuildKeys.BUILD_ARCH, Architecture.getDeviceArchitecture())) {
+                switchScreen(SplashOperation.ArchMismatch)
+                return@launch
+            }
 
             withContext(Dispatchers.IO) {
                 checkAllTask()
@@ -305,7 +314,7 @@ class SplashActivity : BaseAppCompatActivity() {
                 }
             jobs.joinAll()
             if (areAllTasksFinished()) {
-                AllSettings.javaRuntime.apply {
+                GameSettings.javaRuntime.apply {
                     //检查并设置默认的Java环境
                     if (getValue().isEmpty()) save(Jre.JRE_8.jreName)
                 }

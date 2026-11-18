@@ -18,7 +18,6 @@
 
 package com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_widget
 
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
@@ -235,9 +234,7 @@ private fun SelectLayerListItem(
                 }
             }
         )
-        Text(
-            modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-            maxLines = 1,
+        MarqueeText(
             text = layer.name.orUnspecified(),
             style = MaterialTheme.typography.labelLarge
         )

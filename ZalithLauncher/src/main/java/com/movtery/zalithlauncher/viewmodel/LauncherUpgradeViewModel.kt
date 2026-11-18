@@ -43,7 +43,6 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
 import com.movtery.zalithlauncher.path.GLOBAL_JSON
 import com.movtery.zalithlauncher.path.URL_PROJECT_INFO
-import com.movtery.zalithlauncher.setting.AllSettings
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleListDialog
 import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
@@ -52,6 +51,7 @@ import com.movtery.zalithlauncher.ui.upgrade.UpgradeFilesDialog
 import com.movtery.zalithlauncher.upgrade.GithubContentApi
 import com.movtery.zalithlauncher.upgrade.RemoteData
 import com.movtery.zalithlauncher.upgrade.TooFrequentOperationException
+import com.movtery.zalithlauncher.upgrade.UpgradePrefs
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.safeBodyAsJson
 import com.movtery.zalithlauncher.utils.network.withRetry
@@ -114,7 +114,7 @@ class LauncherUpgradeViewModel: ViewModel() {
      * 更新最后一次检查的时间
      */
     private fun updateLastCheckTime() {
-        AllSettings.lastUpgradeCheck.save(System.currentTimeMillis())
+        UpgradePrefs.lastUpgradeCheck = System.currentTimeMillis()
     }
 
     /**
@@ -127,7 +127,7 @@ class LauncherUpgradeViewModel: ViewModel() {
             if (
                 isWithinRateLimit(
                     time = TimeUnit.HOURS.toMillis(1L),
-                    lastCheckTime = AllSettings.lastUpgradeCheck.getValue()
+                    lastCheckTime = UpgradePrefs.lastUpgradeCheck
                 )
             ) {
                 Logger.info(TAG, "App start check: Within rate limit, skipping")
@@ -138,7 +138,7 @@ class LauncherUpgradeViewModel: ViewModel() {
             if (data != null) {
                 checkForUpgrade(
                     data = data,
-                    lastIgnored = AllSettings.lastIgnoredVersion.getValue(),
+                    lastIgnored = UpgradePrefs.lastIgnoredVersion,
                     ignoreDismissedVersions = true, //启动时检查忽略用户已忽略的版本
                     onUpgrade = { data ->
                         operation = LauncherUpgradeOperation.Upgrade(data)
@@ -163,7 +163,7 @@ class LauncherUpgradeViewModel: ViewModel() {
             if (
                 isWithinRateLimit(
                     time = TimeUnit.SECONDS.toMillis(5L),
-                    lastCheckTime = AllSettings.lastUpgradeCheck.getValue()
+                    lastCheckTime = UpgradePrefs.lastUpgradeCheck
                 )
             ) throw TooFrequentOperationException()
 
@@ -173,7 +173,7 @@ class LauncherUpgradeViewModel: ViewModel() {
             if (data != null) {
                 checkForUpgrade(
                     data = data,
-                    lastIgnored = AllSettings.lastIgnoredVersion.getValue(),
+                    lastIgnored = UpgradePrefs.lastIgnoredVersion,
                     ignoreDismissedVersions = false,
                     onUpgrade = { data ->
                         operation = LauncherUpgradeOperation.Upgrade(data)

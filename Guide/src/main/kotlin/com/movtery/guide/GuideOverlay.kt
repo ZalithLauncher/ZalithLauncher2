@@ -24,6 +24,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -36,14 +37,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -111,6 +114,7 @@ internal fun GuideOverlay(
     }
 
     var contentRect by remember { mutableStateOf<Rect?>(null) }
+    val sideState = remember { mutableStateOf<GuideSide?>(null) }
     val density = LocalDensity.current
     val gapPx = with(density) { GuideDefaults.contentGap.toPx() }
     val paddingPx = with(density) { GuideDefaults.screenPadding.toPx() }
@@ -121,7 +125,7 @@ internal fun GuideOverlay(
         HoleTarget(
             rect = node.bounds,
             style = HoleStyle(
-                radiusPx = with(density) { (node.holeRadius ?: controller.holeRadius).toPx() },
+                shape = node.holeShape ?: controller.holeShape,
                 borderWidthPx = with(density) { (node.holeBorderWidth ?: controller.holeBorderWidth).toPx() },
                 borderColor = node.holeBorderColor ?: GuideDefaults.holeBorder
             )
@@ -150,6 +154,40 @@ internal fun GuideOverlay(
             )
         }
 
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = fadeAlpha }
+        ) {
+            val containerSize = IntSize(constraints.maxWidth, constraints.maxHeight)
+            AnimatedContent(
+                targetState = entry,
+                modifier = Modifier.fillMaxSize(),
+                transitionSpec = {
+                    val spec: FiniteAnimationSpec<Float> = if (animations.enabled) {
+                        spring(
+                            dampingRatio = animations.fadeSpring.dampingRatio,
+                            stiffness = animations.fadeSpring.stiffness
+                        )
+                    } else {
+                        snap()
+                    }
+                    fadeIn(spec) togetherWith fadeOut(spec)
+                },
+                label = "guideCustomOverlay",
+            ) { stepEntry ->
+                val overlay = stepEntry.overlay
+                if (overlay != null) {
+                    val stepNodes = remember(stepEntry.key, version) { registry.nodesFor(stepEntry.key) }
+                    val stepAnchors = stepNodes.map(GuideNode::bounds)
+                    val scope = remember(stepAnchors, containerSize, controller) {
+                        GuideScope(stepAnchors, containerSize, sideState, controller, animations)
+                    }
+                    if (stepEntry.isIntro || stepAnchors.isNotEmpty()) overlay(scope)
+                }
+            }
+        }
+
         GuideCardContainer(
             controller = controller,
             state = state,
@@ -164,6 +202,7 @@ internal fun GuideOverlay(
             paddingPx = paddingPx,
             shape = contentShape,
             contentRect = contentRect,
+            sideState = sideState,
             arbiter = arbiter,
             onGateArm = { armedForNext = true },
             onPlaced = { rect -> if (contentRect != rect) contentRect = rect }
@@ -259,7 +298,7 @@ private fun Scrim(
                     style = animateHoleStyle(target.style, holeSpec, colorSpec)
                 )
             } else {
-                HoleFrame(Rect.Zero, HoleStyle(0f, 0f, Color.Transparent))
+                HoleFrame(Rect.Zero, HoleStyle(RectangleShape, 0f, Color.Transparent))
             }
         }
     }
@@ -275,22 +314,20 @@ private fun Scrim(
                 if (currentReady) {
                     currentAnimatedHoles.forEach { hole ->
                         val style = hole.style
-                        drawRoundRect(
-                            color = Color.Black,
-                            topLeft = hole.rect.topLeft,
-                            size = hole.rect.size,
-                            cornerRadius = CornerRadius(style.radiusPx),
-                            blendMode = BlendMode.Clear
-                        )
-                        if (style.borderWidthPx > 0f) {
-                            // 描边整体落在镂空外侧，不侵入被引导组件
-                            val border = hole.rect.inflate(style.borderWidthPx / 2f)
-                            drawRoundRect(
-                                color = style.borderColor,
-                                topLeft = border.topLeft,
-                                size = border.size,
-                                cornerRadius = CornerRadius(style.radiusPx + style.borderWidthPx / 2f),
-                                style = Stroke(width = style.borderWidthPx)
+                        val outline = style.shape.createOutline(hole.rect.size, layoutDirection, this)
+                        translate(hole.rect.left, hole.rect.top) {
+                            if (style.borderWidthPx > 0f) {
+                                // 描边整体落在镂空外侧，不侵入被引导组件
+                                drawOutline(
+                                    outline = outline,
+                                    color = style.borderColor,
+                                    style = Stroke(width = style.borderWidthPx)
+                                )
+                            }
+                            drawOutline(
+                                outline = outline,
+                                color = Color.Black,
+                                blendMode = BlendMode.Clear
                             )
                         }
                     }
@@ -361,17 +398,16 @@ private fun animateHoleStyle(
     spec: FiniteAnimationSpec<Float>,
     colorSpec: FiniteAnimationSpec<Color>
 ): HoleStyle {
-    val radiusPx by animateFloatAsState(target.radiusPx, spec, label = "holeRadius")
     val borderWidthPx by animateFloatAsState(target.borderWidthPx, spec, label = "holeBorderWidth")
     val borderColor by animateColorAsState(target.borderColor, colorSpec, label = "holeBorderColor")
-    return HoleStyle(radiusPx, borderWidthPx, borderColor)
+    return HoleStyle(target.shape, borderWidthPx, borderColor)
 }
 
 /**
- * 单个镂空的绘制样式，像素已解析
+ * 单个镂空的绘制样式
  */
 private data class HoleStyle(
-    val radiusPx: Float,
+    val shape: Shape,
     val borderWidthPx: Float,
     val borderColor: Color
 )
@@ -514,12 +550,12 @@ private fun GuideCardContainer(
     paddingPx: Float,
     shape: Shape,
     contentRect: Rect?,
+    sideState: MutableState<GuideSide?>,
     arbiter: GuideEventArbiter,
     onGateArm: () -> Unit,
     onPlaced: (Rect) -> Unit
 ) {
     val entry = state.entry
-    val sideState = remember { mutableStateOf<GuideSide?>(null) }
     // 首次求解前为 null，此时直接摆放求解结果，避免内容从原点飞入
     val targetState = remember { mutableStateOf<IntOffset?>(null) }
 
@@ -562,7 +598,7 @@ private fun GuideCardContainer(
         }
 
         val scope = remember(anchors, containerSize, controller) {
-            GuideScope(anchors, containerSize, sideState, controller)
+            GuideScope(anchors, containerSize, sideState, controller, animations)
         }
         val animatedOffset = targetState.value?.let { target ->
             animateIntOffsetAsState(

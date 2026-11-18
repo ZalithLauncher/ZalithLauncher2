@@ -41,7 +41,8 @@ import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 import com.movtery.zalithlauncher.setting.unit.getOrMin
 import com.movtery.zalithlauncher.utils.device.Architecture
 import com.movtery.zalithlauncher.utils.device.Architecture.ARCH_X86
@@ -323,7 +324,7 @@ abstract class Launcher(
      */
     protected open fun progressFinalUserArgs(
         args: MutableList<String>,
-        ramAllocation: Int = AllSettings.ramAllocation.getOrMin()
+        ramAllocation: Int = GameSettings.ramAllocation.getOrMin()
     ) {
         args.purgeArg("-Xms")
         args.purgeArg("-Xmx")
@@ -500,9 +501,9 @@ abstract class Launcher(
             map["DALVIK_APPLICATION"] = ZLBridge.jObjectToString(GlobalContext.applicationContext)
             map["ALSOFT_DRIVERS"] = "opensl"
 
-            if (AllSettings.dumpShaders.getValue()) map["LIBGL_VGPU_DUMP"] = "1"
-            if (AllSettings.zinkPreferSystemDriver.getValue()) map["POJAV_ZINK_PREFER_SYSTEM_DRIVER"] = "1"
-            if (AllSettings.vsyncInZink.getValue()) map["POJAV_VSYNC_IN_ZINK"] = "1"
+            if (RendererSettings.dumpShaders.getValue()) map["LIBGL_VGPU_DUMP"] = "1"
+            if (RendererSettings.zinkPreferSystemDriver.getValue()) map["POJAV_ZINK_PREFER_SYSTEM_DRIVER"] = "1"
+            if (RendererSettings.vsyncInZink.getValue()) map["POJAV_VSYNC_IN_ZINK"] = "1"
 
             if (FFmpegPluginManager.isAvailable) map["POJAV_FFMPEG_PATH"] = FFmpegPluginManager.executablePath!!
         }

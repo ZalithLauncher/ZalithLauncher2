@@ -78,7 +78,7 @@ import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.version.mod.InstalledMod
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
@@ -228,7 +228,7 @@ fun AddonVersionItemLayout(
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
     installedChecker: ((PlatformVersion) -> InstalledMod?)? = null,
     onItemClicked: (PlatformVersion) -> Unit = {}
 ) {

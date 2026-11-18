@@ -70,7 +70,7 @@ import com.movtery.zalithlauncher.game.launch.executeJarWithUri
 import com.movtery.zalithlauncher.game.multirt.Runtime
 import com.movtery.zalithlauncher.game.multirt.RuntimesManager
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
@@ -211,7 +211,9 @@ fun JavaManageScreen(
                                         return@ImportSingleFileButton
                                     }
                                     (context as? Activity)?.let { activity ->
-                                        val jreName = AllSettings.javaRuntime.takeIf { AllSettings.autoPickJavaRuntime.getValue() }?.getValue()
+                                        val jreName = GameSettings.javaRuntime.takeIf {
+                                            GameSettings.autoPickJavaRuntime.getValue()
+                                        }?.getValue()
                                         executeJarWithUri(activity, uri, jreName)
                                     }
                                 }

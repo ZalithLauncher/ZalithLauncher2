@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.game.renderer.config
 import com.movtery.zalithlauncher.game.renderer.renderers.MobileGluesRenderer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -206,11 +207,50 @@ class OrderedChoiceEntryTest {
 
         assertEquals(expected, exception.value)
         exception.saveEnabled(true)
+        assertNull(store.getValue("renderer", exception.entry.id))
+
+        session.save()
         assertEquals(expected, store.getValue("renderer", exception.entry.id))
 
         global.saveValue(ConfigScalar.StringValue("unroll,native,compute"))
+        session.save()
+        assertEquals(global.value, store.getValue("renderer", global.entry.id))
+
         exception.reload()
         assertEquals(expected, exception.value)
+    }
+
+    @Test
+    fun enablingAfterEditingKeepsPendingOrder() {
+        val store = MemoryRendererConfigStore()
+        val entry = globalEntry.copy(defaultEnabled = false)
+        val session = RendererConfigSession("renderer", RendererConfigSpec(listOf(entry)), store, store)
+        val state = session.states.single()
+        val newOrder = ConfigScalar.StringValue("compute,native")
+
+        state.saveValue(newOrder)
+        state.saveEnabled(true)
+
+        assertEquals(entry.coerce(newOrder), state.value)
+        session.save()
+        assertEquals(entry.coerce(newOrder), store.getValue("renderer", entry.id))
+        assertEquals(true, store.getEnabled("renderer", entry.id))
+    }
+
+    @Test
+    fun returningToStoredValueSkipsSave() {
+        val store = MemoryRendererConfigStore()
+        store.putValue("renderer", globalEntry.id, globalEntry.defaultValue)
+        val session = RendererConfigSession("renderer", RendererConfigSpec(listOf(globalEntry)), store, store)
+        val state = session.states.single()
+
+        state.saveValue(ConfigScalar.StringValue("compute,native"))
+        assertTrue(session.isModified())
+        state.saveValue(globalEntry.defaultValue)
+
+        assertFalse(session.isModified())
+        session.save()
+        assertEquals(globalEntry.defaultValue, store.getValue("renderer", globalEntry.id))
     }
 
     private fun orderedEntry(vararg values: String) = OrderedChoiceEntry(

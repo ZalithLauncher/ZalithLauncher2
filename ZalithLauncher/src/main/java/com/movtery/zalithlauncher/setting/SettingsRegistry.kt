@@ -38,7 +38,9 @@ import com.movtery.zalithlauncher.setting.unit.parcelableSettingUnit
 abstract class SettingsRegistry {
     protected val refreshableList = mutableListOf<AbstractSettingUnit<*>>()
 
-    fun reloadAll() = refreshableList.forEach { it.init() }
+    fun reloadAll() = refreshableList.forEach { unit ->
+        if (unit.isMaterialized) unit.init()
+    }
 
     protected fun boolSetting(key: String, def: Boolean) =
         BooleanSettingUnit(key, def).also { refreshableList.add(it) }

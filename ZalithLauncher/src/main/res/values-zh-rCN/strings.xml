@@ -60,6 +60,7 @@
     <string name="generic_follow_system">跟随系统</string>
     <string name="generic_edit">编辑</string>
     <string name="generic_view">查看</string>
+    <string name="generic_plugin">插件</string>
     <!--  页面标题  -->
     <string name="page_title_version_list">版本列表</string>
     <string name="page_title_version_manage">管理版本</string>
@@ -153,6 +154,12 @@
     <string name="splash_screen_unpack_desc">启动器需要安装这些内容，才能够确保 Minecraft 能够正常启动。这些内容已经包含在应用中，需要解压之后才能正常使用，点击下方按钮，开始解压并更新这些内容。</string>
     <string name="splash_screen_installing">启动器正在解压这些内容，解压完成后将自动进入主界面，请耐心等待。</string>
     <string name="splash_screen_agree">同意并安装</string>
+    <string name="splash_arch_mismatch_title">你似乎安装了错误的版本！</string>
+    <string name="splash_arch_mismatch_package_arch">当前安装的启动器的构建架构为：%s</string>
+    <string name="splash_arch_mismatch_device_arch">你的设备的架构为：%s</string>
+    <string name="splash_arch_mismatch_desc1">安装包内的运行环境与你的设备不匹配，无法用于启动游戏</string>
+    <string name="splash_arch_mismatch_desc2">请前往官方渠道下载适用于 %s 设备的安装包，覆盖安装即可</string>
+    <string name="splash_arch_mismatch_footer">架构信息来自安装包构建配置与系统返还结果，仅供参考</string>
     <!--  通知  -->
     <string name="notification_title">检查通知权限</string>
     <string name="notification_request">申请权限</string>
@@ -422,6 +429,7 @@
     <string name="game_loading">游戏正在运行，等待游戏画面出现中…</string>
     <string name="game_loading_version_name">游戏版本：%s</string>
     <string name="game_loading_version_info">游戏信息：%s</string>
+    <string name="game_loading_renderer">渲染器：%s</string>
     <string name="game_menu_title">游戏菜单</string>
     <string name="game_menu_option_force_close_text">强制关闭正在运行的游戏可能导致存档损坏或设置无法保存，除特殊情况外请避免此操作。</string>
     <string name="game_menu_option_switch_log">日志输出</string>
@@ -901,7 +909,6 @@
     <string name="minecraft_download_failed_notfound">某些依赖文件无法下载，如果多次尝试仍失败，可能是游戏缺少必要的库文件，建议重新安装游戏。</string>
     <!--  设置  -->
     <string name="settings_title_blur">模糊效果</string>
-    <string name="settings_element_selected">当前选择项：%s</string>
     <string name="settings_label_ignore_if_blank">留白则忽略此设置</string>
     <string name="settings_tab_renderer">渲染设置</string>
     <string name="settings_tab_game">游戏设置</string>
@@ -1550,6 +1557,9 @@
     <string name="guide_main_welcome_text">我们来简单看看主界面的功能吧~</string>
     <string name="guide_main_account">点击此处可进入账号管理页面，你可以添加或管理 Minecraft 账号</string>
     <string name="guide_main_version_list">点击这里可打开版本列表，你将来安装的所有游戏版本都会在这里列举出来哦</string>
+    <string name="guide_main_version_icon_title">版本图标与设置入口</string>
+    <string name="guide_main_version_icon_text">点击这里可进入当前版本的设置，调整该版本的专属选项</string>
+    <string name="guide_main_version_launch">右侧的启动游戏按钮会直接启动当前版本</string>
     <string name="guide_main_card_drag_title">不太喜欢操作栏的位置？</string>
     <string name="guide_main_card_drag_text">你可以长按卡片提起它，拖动并让它停靠到另一侧哦</string>
     <string name="guide_main_card_tip_title">这里太空旷了？</string>

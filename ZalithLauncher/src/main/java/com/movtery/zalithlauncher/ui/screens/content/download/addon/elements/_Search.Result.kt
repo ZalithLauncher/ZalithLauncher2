@@ -25,7 +25,6 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -53,7 +52,6 @@ import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -86,12 +84,14 @@ import com.movtery.zalithlauncher.game.download.addon.platform.PlatformFilterCod
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformSearchData
 import com.movtery.zalithlauncher.game.download.addon.utils.getMcmodTitle
 import com.movtery.zalithlauncher.game.version.mod.InstalledMod
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SmallOutlinedEditField
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -127,7 +127,7 @@ fun ResultListLayout(
     swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> },
     installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null
 ) {
-    PullToRefreshBox(
+    PullToRefreshLayout(
         modifier = modifier,
         isRefreshing = false,
         enabled = searchState !is SearchAddonState.Searching,
@@ -240,7 +240,7 @@ private fun PageController(
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
     onPreviousPage: () -> Unit,
     onNextPage: () -> Unit,
     onNavigatePage: (Int) -> Unit
@@ -446,7 +446,7 @@ fun ResultProjectLayout(
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
     onClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -569,7 +569,7 @@ fun ResultProjectLayout(
                     Row(
                         modifier = Modifier
                             .weight(1f)
-                            .basicMarquee(Int.MAX_VALUE)
+                            .marquee()
                             .alpha(0.7f),
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -626,9 +626,7 @@ fun ProjectTitleHead(
     ) {
         //标题栏
         MarqueeText(
-            modifier = Modifier
-                .weight(1f)
-                .basicMarquee(iterations = Int.MAX_VALUE),
+            modifier = Modifier.weight(1f),
             text = title,
             style = MaterialTheme.typography.titleSmall,
         )

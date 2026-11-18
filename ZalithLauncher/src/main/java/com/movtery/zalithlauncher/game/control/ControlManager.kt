@@ -28,7 +28,7 @@ import com.movtery.layer_controller.utils.newRandomFileName
 import com.movtery.layer_controller.utils.saveToFile
 import com.movtery.zalithlauncher.context.copyAssetFile
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.utils.file.readString
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.CoroutineScope
@@ -134,14 +134,14 @@ object ControlManager {
      * 检查并更新设置
      */
     private fun checkSettings() {
-        val setting = AllSettings.controlLayout.getValue()
+        val setting = ControlSettings.controlLayout.getValue()
 
         val layout = _dataList.value.find { it.file.name == setting && it.isSupport }
             ?: dataList.value.firstOrNull { it.isSupport }
-                ?.also { AllSettings.controlLayout.save(it.file.name) }
+                ?.also { ControlSettings.controlLayout.save(it.file.name) }
 
         if (layout == null) {
-            AllSettings.controlLayout.reset()
+            ControlSettings.controlLayout.reset()
         }
 
         _selectedLayout.update { layout }
@@ -166,7 +166,7 @@ object ControlManager {
      */
     fun selectControl(data: ControlData) {
         if (!data.file.exists() || !data.isSupport) return
-        AllSettings.controlLayout.save(data.file.name)
+        ControlSettings.controlLayout.save(data.file.name)
         _selectedLayout.update { data }
     }
 

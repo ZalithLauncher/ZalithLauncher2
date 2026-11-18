@@ -21,7 +21,7 @@ package com.movtery.zalithlauncher.game.download.addon.platform.mcim
 import com.movtery.zalithlauncher.game.addons.mirror.MirrorPriority
 import com.movtery.zalithlauncher.game.addons.mirror.orderCandidates
 import com.movtery.zalithlauncher.game.addons.mirror.resolveMirrorPriority
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.utils.isChinaMainland
 
 private const val ROOT = "https://mod.mcimirror.top"
@@ -34,7 +34,7 @@ private val REPLACE_MIRROR_HOLDERS = listOf(
 )
 
 private fun assetPlatformPriority(): MirrorPriority =
-    resolveMirrorPriority(AllSettings.addonPlatformSource.getValue(), mainland = true)
+    resolveMirrorPriority(LauncherSettings.addonPlatformSource.getValue(), mainland = true)
 
 /**
  * 按是否中国大陆决定是否启用 MCIM 镜像，并按偏好生成有序候选链接

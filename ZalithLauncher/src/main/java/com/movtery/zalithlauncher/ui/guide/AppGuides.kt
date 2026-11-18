@@ -46,6 +46,7 @@ import com.movtery.guide.NodeClickMode
 import com.movtery.guide.rememberGuide
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.guide.overlays.MainVersionGuideOverlay
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 
@@ -115,7 +116,7 @@ fun rememberAppGuides(
 }
 
 @Composable
-private fun rememberMainGuides() = rememberGuide(holeRadius = 28.dp) {
+private fun rememberMainGuides() = rememberGuide(holeShape = MaterialTheme.shapes.extraLarge) {
     intro {
         GuideCard {
             Text(stringResource(R.string.guide_main_welcome_title, BuildKeys.LAUNCHER_NAME))
@@ -127,11 +128,13 @@ private fun rememberMainGuides() = rememberGuide(holeRadius = 28.dp) {
             Text(stringResource(R.string.guide_main_account))
         }
     }
-    entry(GuideKeys.Main.Step.VersionList) {
-        GuideCard {
-            Text(stringResource(R.string.guide_main_version_list))
-        }
-    }
+    entry(
+        key = GuideKeys.Main.Step.VersionList,
+        overlay = { scope ->
+            MainVersionGuideOverlay(scope)
+        },
+        content = {}
+    )
     entry(GuideKeys.Main.Step.CardDrag) {
         GuideCard {
             Text(stringResource(R.string.guide_main_card_drag_title))

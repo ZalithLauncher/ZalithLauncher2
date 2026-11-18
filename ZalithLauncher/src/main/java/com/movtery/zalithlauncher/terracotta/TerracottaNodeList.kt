@@ -20,7 +20,7 @@ package com.movtery.zalithlauncher.terracotta
 
 import com.google.gson.JsonParseException
 import com.movtery.zalithlauncher.path.GLOBAL_CLIENT
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.utils.isChinaMainland
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.safeBodyAsJson
@@ -70,9 +70,9 @@ suspend fun fetchNodes(): List<URI> {
     return fetchMutex.withLock {
         nodeList?.let { return it }
 
-        if (AllSettings.enableTerracottaNodes.getValue()) {
+        if (MiscSettings.enableTerracottaNodes.getValue()) {
             // 使用自定义的 EasyTier 服务器节点
-            val url = AllSettings.terracottaNodes.getValue()
+            val url = MiscSettings.terracottaNodes.getValue()
             if (url.isNotEmptyOrBlank()) {
                 val tempList = listOf(URI(url))
                 nodeList = tempList

@@ -62,7 +62,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -108,6 +107,7 @@ import com.movtery.zalithlauncher.filemanager.viewmodel.TrashItemView
 import com.movtery.zalithlauncher.filemanager.viewmodel.TrashListView
 import com.movtery.zalithlauncher.filemanager.viewmodel.TrashSortConfig
 import com.movtery.zalithlauncher.filemanager.viewmodel.TrashViewState
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.utils.file.formatFileSize
 import com.movtery.zalithlauncher.utils.formatDate
@@ -275,7 +275,7 @@ private fun TrashContent(
 
     val contentState = if (list.loading) null else list.items
 
-    PullToRefreshBox(
+    PullToRefreshLayout(
         modifier = Modifier
             .fillMaxSize()
             .graphicsLayer { alpha = contentAlpha.value },

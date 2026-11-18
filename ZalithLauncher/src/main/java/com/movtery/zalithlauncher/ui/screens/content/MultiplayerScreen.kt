@@ -52,8 +52,10 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.notification.NotificationManager
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.path.URL_EASYTIER
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.terracotta.Terracotta
+import com.movtery.zalithlauncher.terracotta.TerracottaPrefs
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedDirection
@@ -181,7 +183,7 @@ private fun MainMenu(
         operation = operation,
         onChange = { operation = it },
         onNoticeRead = {
-            AllSettings.terracottaNoticeVer.save(Terracotta.TERRACOTTA_USER_NOTICE_VERSION)
+            TerracottaPrefs.noticeVersion = Terracotta.TERRACOTTA_USER_NOTICE_VERSION
             operation = if (!NotificationManager.checkNotificationEnabled(context)) {
                 MultiplayerOperation.WarningNotification
             } else {
@@ -189,7 +191,7 @@ private fun MainMenu(
             }
         },
         onNoticeRefused = {
-            AllSettings.enableTerracotta.save(false)
+            MiscSettings.enableTerracotta.save(false)
             operation = MultiplayerOperation.None
         }
     )
@@ -224,13 +226,13 @@ private fun MainMenu(
             SwitchSettingsCard(
                 modifier = Modifier.fillMaxWidth(),
                 position = CardPosition.Top,
-                unit = AllSettings.enableTerracotta,
+                unit = MiscSettings.enableTerracotta,
                 title = stringResource(R.string.terracotta_enable),
                 verticalAlignment = Alignment.CenterVertically,
                 onCheckedChange = { value ->
                     if (value) {
                         when {
-                            AllSettings.terracottaNoticeVer.getValue() < Terracotta.TERRACOTTA_USER_NOTICE_VERSION -> {
+                            TerracottaPrefs.noticeVersion < Terracotta.TERRACOTTA_USER_NOTICE_VERSION -> {
                                 //未阅读公告
                                 operation = MultiplayerOperation.Notice
                             }
@@ -246,19 +248,19 @@ private fun MainMenu(
             SwitchSettingsCard(
                 modifier = Modifier.fillMaxWidth(),
                 position = CardPosition.Middle,
-                unit = AllSettings.enableTerracottaNodes,
+                unit = MiscSettings.enableTerracottaNodes,
                 title = stringResource(R.string.terracotta_custom_note_list),
                 verticalAlignment = Alignment.CenterVertically,
-                enabled = AllSettings.enableTerracotta.state,
+                enabled = MiscSettings.enableTerracotta.state,
                 columnLayout = {
                     AnimatedVisibility(
-                        visible = AllSettings.enableTerracotta.state && AllSettings.enableTerracottaNodes.state,
+                        visible = MiscSettings.enableTerracotta.state && MiscSettings.enableTerracottaNodes.state,
                     ) {
                         OwnOutlinedTextField(
                             modifier = Modifier.fillMaxWidth(),
-                            value = AllSettings.terracottaNodes.state,
+                            value = MiscSettings.terracottaNodes.state,
                             onValueChange = { value ->
-                                AllSettings.terracottaNodes.save(value)
+                                MiscSettings.terracottaNodes.save(value)
                             },
                             label = {
                                 Text(text = stringResource(R.string.terracotta_custom_note_list_hint))
@@ -271,7 +273,7 @@ private fun MainMenu(
                 }
             )
 
-            val terracottaEnabled = AllSettings.enableTerracotta.state
+            val terracottaEnabled = MiscSettings.enableTerracotta.state
 
             //分享联机核心日志
             SettingsCard(
@@ -337,7 +339,7 @@ private fun TutorialMenu(
         SecondaryTabRow(
             containerColor = influencedByBackgroundColor(
                 color = cardTitleColor(),
-                influencedAlpha = 0.5f * (AllSettings.launcherBackgroundOpacity.state.toFloat() / 100f)
+                influencedAlpha = 0.5f * (LauncherSettings.launcherBackgroundOpacity.state.toFloat() / 100f)
             ),
             selectedTabIndex = selectedTabIndex
         ) {

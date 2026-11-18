@@ -93,6 +93,12 @@
     <string name="generic_got_it">Entendido</string>
     <string name="generic_input_failed_to_number">El valor no es un número</string>
     <string name="splash_screen_agree">Instalar</string>
+    <string name="splash_arch_mismatch_title">¡Parece que has instalado la versión incorrecta!</string>
+    <string name="splash_arch_mismatch_package_arch">Arquitectura de compilación del launcher instalado: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Arquitectura de tu dispositivo: %s</string>
+    <string name="splash_arch_mismatch_desc1">Los runtimes incluidos en el APK no coinciden con tu dispositivo y no se pueden usar para iniciar el juego.</string>
+    <string name="splash_arch_mismatch_desc2">Descarga el APK para dispositivos %s desde el canal oficial e instálalo sobre el existente.</string>
+    <string name="splash_arch_mismatch_footer">La información de arquitectura proviene de la configuración de compilación del APK y del sistema, y es solo de referencia.</string>
     <string name="notification_title">Verificar permiso de notificación</string>
     <string name="notification_request">Solicitar permiso</string>
     <string name="notification_data_jvm_service_message">Para asegurar una instalación fluida, el launcher necesita ejecutar el instalador en primer plano. Intentaremos iniciar un servicio en primer plano para mantener la estabilidad, pero esto requiere permisos de notificación. ¿Podrías activar los permisos de notificación? Esto ayudará a evitar que la instalación se interrumpa.</string>
@@ -665,7 +671,6 @@
     <string name="minecraft_download_verifying_and_repairing_files">Verificando archivos \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">Ocurrió un error al descargar Minecraft</string>
     <string name="minecraft_download_failed_notfound">Algunos archivos de dependencia no se pudieron descargar. Si el problema persiste después de múltiples intentos, es posible que al juego le falten archivos de biblioteca requeridos. Se recomienda reinstalar el juego.</string>
-    <string name="settings_element_selected">Seleccionado: %s</string>
     <string name="settings_label_ignore_if_blank">Dejar vacío para ignorar</string>
     <string name="settings_tab_renderer">Renderizador</string>
     <string name="settings_tab_game">Juego</string>
@@ -1004,6 +1009,9 @@
     <string name="guide_main_welcome_text">Echemos un vistazo rápido a las funciones de la pantalla principal.</string>
     <string name="guide_main_account">Toca aquí para abrir la gestión de cuentas, donde puedes agregar o administrar tus cuentas de Minecraft</string>
     <string name="guide_main_version_list">Toca aquí para abrir la lista de versiones: todas las versiones del juego que instales se mostrarán aquí</string>
+    <string name="guide_main_version_icon_title">Icono de versión y acceso a ajustes</string>
+    <string name="guide_main_version_icon_text">Toca aquí para abrir los ajustes de la versión actual y configurar sus opciones específicas</string>
+    <string name="guide_main_version_launch">El botón de iniciar juego de la derecha inicia directamente la versión actual</string>
     <string name="guide_main_card_drag_title">¿No te gusta dónde está el menú de acciones?</string>
     <string name="guide_main_card_drag_text">Mantén pulsada la tarjeta para levantarla, arrástrala y suéltala para acoplarla en el otro lado</string>
     <string name="guide_main_card_tip_title">¿Se ve un poco vacío aquí?</string>

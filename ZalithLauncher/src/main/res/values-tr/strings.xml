@@ -93,6 +93,12 @@
     <string name="splash_screen_unpack_desc">Başlatıcı, Minecraft\'ın düzgün çalışmasını sağlamak için bu dosyaları yüklemelidir. Dosyalar uygulamaya dahil edilmiştir ve önce çıkarılmaları gerekir. Çıkarmayı ve güncellemeyi başlatmak için aşağıdaki düğmeye tıklayın.</string>
     <string name="splash_screen_installing">Başlatıcı bu içerikleri çıkarıyor; çıkarma tamamlandıktan sonra otomatik olarak ana ekrana geçilecektir. Lütfen sabırlı olun.</string>
     <string name="splash_screen_agree">Kur</string>
+    <string name="splash_arch_mismatch_title">Yanlış sürümü kurmuş olabilirsiniz!</string>
+    <string name="splash_arch_mismatch_package_arch">Kurulu başlatıcının derleme mimarisi: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Cihazınızın mimarisi: %s</string>
+    <string name="splash_arch_mismatch_desc1">APK\'daki çalışma zamanları cihazınızla uyuşmuyor ve oyunu başlatmak için kullanılamaz.</string>
+    <string name="splash_arch_mismatch_desc2">Lütfen resmî kanaldan %s cihazları için APK\'yı indirin ve mevcut olanın üzerine kurun.</string>
+    <string name="splash_arch_mismatch_footer">Mimari bilgisi APK derleme yapılandırmasından ve sistemden gelir, yalnızca referans içindir.</string>
     <string name="notification_title">Bildirim İzni Kontrolü</string>
     <string name="notification_request">İzin İste</string>
     <string name="notification_data_jvm_service_message">Sorunsuz bir kurulum sağlamak için başlatıcının yükleyiciyi ön planda çalıştırması gerekir. Kararlılığı sağlamak için ön planda bir hizmet başlatmayı deneyeceğiz, ancak bunun için bildirim izinlerine ihtiyacımız var. Bildirim izinlerini etkinleştirmemize yardımcı olabilir misiniz? Bu, kurulum kesintilerini önlemeye yardımcı olacaktır!</string>
@@ -465,7 +471,6 @@
     <string name="minecraft_download_verifying_and_repairing_files">Dosyalar doğrulanıyor \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">Minecraft indirilirken bir hata oluştu</string>
     <string name="minecraft_download_failed_notfound">Bazı bağımlılık dosyaları indirilemedi. Birden fazla denemeden sonra sorun devam ederse, oyun gerekli kütüphanelerden yoksun olabilir. Oyunu yeniden yüklemenizi öneririz.</string>
-    <string name="settings_element_selected">Seçili: %s</string>
     <string name="settings_label_ignore_if_blank">Boş bırakılırsa görmezden gelinir</string>
     <string name="settings_tab_renderer">İşleyici</string>
     <string name="settings_tab_game">Oyun</string>
@@ -1185,6 +1190,9 @@
     <string name="guide_main_welcome_text">Ana ekranın işlevlerine hızlıca bir göz atalım.</string>
     <string name="guide_main_account">Hesap yöneticisini açmak için buraya dokunun; Minecraft hesaplarınızı buradan ekleyebilir veya yönetebilirsiniz</string>
     <string name="guide_main_version_list">Sürüm listesini açmak için buraya dokunun, kurduğunuz tüm oyun sürümleri burada listelenecek</string>
+    <string name="guide_main_version_icon_title">Sürüm simgesi ve ayarlar girişi</string>
+    <string name="guide_main_version_icon_text">Geçerli sürümün ayarlarını açmak ve bu sürüme özel seçenekleri düzenlemek için buraya dokunun</string>
+    <string name="guide_main_version_launch">Sağdaki oyunu başlat düğmesi geçerli sürümü doğrudan başlatır</string>
     <string name="guide_main_card_drag_title">İşlem menüsünün konumu hoşunuza gitmiyor mu?</string>
     <string name="guide_main_card_drag_text">Kartı kaldırmak için uzun basın, ardından diğer tarafa yuvalamak için sürükleyip bırakın</string>
     <string name="guide_main_card_tip_title">Burası biraz boş mu görünüyor?</string>

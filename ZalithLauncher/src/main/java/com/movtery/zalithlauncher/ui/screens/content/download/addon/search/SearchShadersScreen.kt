@@ -25,7 +25,7 @@ import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeShadersCategory
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthFeatures
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthShadersCategory
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 
@@ -38,7 +38,7 @@ fun SearchShadersScreen(
     swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
 ) {
     val initialPlatform = remember {
-        AllSettings.searchShadersPlatform.getValue()
+        MiscSettings.searchShadersPlatform.getValue()
     }
     SearchAddonScreen(
         mainScreenKey = mainScreenKey,
@@ -49,7 +49,7 @@ fun SearchShadersScreen(
         platformClasses = PlatformClasses.SHADERS,
         initialPlatform = initialPlatform,
         onPlatformChange = {
-            AllSettings.searchShadersPlatform.save(it)
+            MiscSettings.searchShadersPlatform.save(it)
         },
         getCategories = { platform ->
             when (platform) {

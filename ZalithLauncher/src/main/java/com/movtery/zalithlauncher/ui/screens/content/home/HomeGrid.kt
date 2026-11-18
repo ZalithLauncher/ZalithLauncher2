@@ -70,7 +70,7 @@ import com.movtery.cardgrid.state.CardSeed
 import com.movtery.cardgrid.ui.CardGrid
 import com.movtery.cardgrid.ui.CardGridAutoScroll
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.screens.content.home.server.ServerCardManager
 import com.movtery.zalithlauncher.ui.screens.content.home.server.ServerCardSettingsHost
@@ -233,7 +233,7 @@ fun HomeGrid(
                 contentColor = onCardColor(),
                 cardBackground = { base ->
                     base.backgroundGlass(
-                        blur = AllSettings.backgroundBlur.state,
+                        blur = LauncherSettings.backgroundBlur.state,
                         color = cardColor(),
                         enabled = true
                     )

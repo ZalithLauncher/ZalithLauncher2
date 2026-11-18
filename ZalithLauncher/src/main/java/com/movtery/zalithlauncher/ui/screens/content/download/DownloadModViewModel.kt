@@ -31,7 +31,7 @@ import com.movtery.zalithlauncher.game.version.mod.InstalledMod
 import com.movtery.zalithlauncher.game.version.mod.ModFingerprints
 import com.movtery.zalithlauncher.game.version.mod.matchInstalledMods
 import com.movtery.zalithlauncher.game.version.mod.scanModFingerprints
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -42,7 +42,7 @@ private const val TAG = "DownloadModViewModel"
 /** 下载模组屏幕的本地模组安装信息状态 */
 class DownloadModViewModel : ViewModel() {
     /** 当前匹配的目标平台 */
-    var currentPlatform: Platform = AllSettings.searchModPlatform.getValue()
+    var currentPlatform: Platform = MiscSettings.searchModPlatform.getValue()
         private set
 
     /** 是否正在进行本地扫描或平台匹配 */

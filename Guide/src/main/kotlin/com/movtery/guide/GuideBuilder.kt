@@ -17,6 +17,7 @@ class GuideBuilder internal constructor() {
      * 声明一个引导步骤，声明顺序即步骤顺序
      * @param showNextTip 是否显示下一步提示
      * @param waitForNextNode 门控推进，仅在锚点点击放行模式下默认开启
+     * @param overlay 全屏自定义引导层，可通过 [GuideScope.anchors] 精确覆盖锚点
      */
     fun entry(
         key: GuideKey,
@@ -25,6 +26,7 @@ class GuideBuilder internal constructor() {
         advanceOnScrimClick: Boolean = true,
         placement: GuidePlacement = GuidePlacement.Auto,
         showNextTip: Boolean = true,
+        overlay: (@Composable (GuideScope) -> Unit)? = null,
         content: @Composable (GuideScope) -> Unit
     ) {
         entries += GuideEntry(
@@ -34,6 +36,7 @@ class GuideBuilder internal constructor() {
             advanceOnScrimClick = advanceOnScrimClick,
             placement = placement,
             showNextTip = showNextTip,
+            overlay = overlay,
             content = content
         )
     }
@@ -49,6 +52,7 @@ class GuideBuilder internal constructor() {
             advanceOnScrimClick = true,
             placement = GuidePlacement.Fixed(Alignment.Center),
             showNextTip = showNextTip,
+            overlay = null,
             content = content,
             isIntro = true
         )
@@ -59,19 +63,19 @@ class GuideBuilder internal constructor() {
  * 构建并记住一条引导流
  *
  * @param colors 引导层配色：遮罩、内容默认色
- * @param holeRadius 锚点未声明镂空圆角时的全局默认值
+ * @param holeShape 锚点未声明镂空形状时的全局默认值
  * @param holeBorderWidth 锚点未声明镂空描边时的全局默认值，0 表示无边框
  * @param shape 锚点未声明内容裁剪形状时的全局默认值
  */
 @Composable
 fun rememberGuide(
     colors: GuideColors = GuideDefaults.colors,
-    holeRadius: Dp = GuideDefaults.holeRadius,
+    holeShape: Shape = GuideDefaults.holeShape,
     holeBorderWidth: Dp = 0.dp,
     shape: Shape = GuideDefaults.contentShape,
     backBehavior: GuideBack = GuideBack.Block,
     builder: GuideBuilder.() -> Unit
-): GuideController = remember(colors, holeRadius, holeBorderWidth, shape, backBehavior) {
+): GuideController = remember(colors, holeShape, holeBorderWidth, shape, backBehavior) {
     val result = GuideBuilder().apply(builder)
-    GuideController(result.entries.toList(), colors, holeRadius, holeBorderWidth, shape, backBehavior)
+    GuideController(result.entries.toList(), colors, holeShape, holeBorderWidth, shape, backBehavior)
 }

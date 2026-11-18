@@ -25,13 +25,13 @@ class NullableIntSettingUnit(
     defaultValue: Int?,
     val valueRange: IntRange
 ) : AbstractSettingUnit<Int?>(key, defaultValue) {
-    override fun getValue(): Int? {
+    override fun readValue(): Int? {
         val mmkv = launcherMMKV()
         return if (mmkv.containsKey(key)) {
             mmkv.getInt(key, 0)
         } else {
             defaultValue
-        }.also { state = it }
+        }
     }
 
     override fun saveValue(v: Int?): Int? {
@@ -47,6 +47,6 @@ class NullableIntSettingUnit(
     }
 
     override fun updateState(value: Int?) {
-        this.state = value?.coerceIn(valueRange)
+        super.updateState(value?.coerceIn(valueRange))
     }
 }

@@ -53,7 +53,8 @@ import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.game.version.installed.SettingState
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionConfig
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 import com.movtery.zalithlauncher.setting.unit.floatRange
 import com.movtery.zalithlauncher.setting.unit.getOrMin
 import com.movtery.zalithlauncher.ui.AndroidStringText
@@ -208,7 +209,7 @@ private fun VersionConfigs(
 
         val renderers = Renderers.getRenderers()
         val renderersIdList = getIDList(renderers) { IDItem(it.getUniqueIdentifier(), it.getRendererName()) }
-        val effectiveRendererId = stateful.renderer.ifEmpty { AllSettings.renderer.state }
+        val effectiveRendererId = stateful.renderer.ifEmpty { RendererSettings.renderer.state }
         val effectiveRenderer = remember(effectiveRendererId) {
             renderers.find { it.getUniqueIdentifier() == effectiveRendererId }
         }
@@ -258,7 +259,7 @@ private fun VersionConfigs(
         }
 
         val sfpewPluginLayerEnabled = when (stateful.sfpewPluginLayer) {
-            SettingState.FOLLOW_GLOBAL -> AllSettings.sfpewPluginLayer.state
+            SettingState.FOLLOW_GLOBAL -> RendererSettings.sfpewPluginLayer.state
             SettingState.ENABLE -> true
             SettingState.DISABLE -> false
         }
@@ -384,8 +385,8 @@ private fun GameConfigs(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Middle,
             currentValue = stateful.ramAllocation,
-            valueRange = AllSettings.ramAllocation.floatRange.start..getMaxMemoryForSettings(LocalContext.current).toFloat(),
-            defaultValue = AllSettings.ramAllocation.getOrMin(),
+            valueRange = GameSettings.ramAllocation.floatRange.start..getMaxMemoryForSettings(LocalContext.current).toFloat(),
+            defaultValue = GameSettings.ramAllocation.getOrMin(),
             title = stringResource(R.string.settings_game_java_memory_title),
             summary = stringResource(R.string.settings_game_java_memory_summary),
             suffix = "MB",

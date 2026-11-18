@@ -75,7 +75,7 @@ import com.movtery.zalithlauncher.contract.MediaPickerContract
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
 import com.movtery.zalithlauncher.path.PathManager
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.AppLanguage
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.setting.enums.DarkMode
@@ -165,7 +165,7 @@ fun LauncherSettingsScreen(
                     EnumSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
-                        unit = AllSettings.launcherColorTheme,
+                        unit = LauncherSettings.launcherColorTheme,
                         title = stringResource(R.string.settings_launcher_color_theme_title),
                         summary = stringResource(R.string.settings_launcher_color_theme_summary),
                         entries = ColorThemeType.entries,
@@ -194,7 +194,7 @@ fun LauncherSettingsScreen(
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.launcherDarkMode,
+                        unit = LauncherSettings.launcherDarkMode,
                         items = DarkMode.entries,
                         title = stringResource(R.string.settings_launcher_dark_mode_title),
                         getItemText = { stringResource(it.textRes) }
@@ -203,7 +203,7 @@ fun LauncherSettingsScreen(
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.launcherLanguage,
+                        unit = LauncherSettings.launcherLanguage,
                         items = AppLanguage.entries,
                         title = systemLocaleStringResource(R.string.settings_launcher_language),
                         getItemText = {
@@ -218,7 +218,7 @@ fun LauncherSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Middle,
-                        unit = AllSettings.launcherFestivalEffects,
+                        unit = LauncherSettings.launcherFestivalEffects,
                         title = stringResource(R.string.settings_launcher_festivals_effects_title),
                         summary = stringResource(R.string.settings_launcher_festivals_effects_summary)
                     )
@@ -226,7 +226,7 @@ fun LauncherSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.launcherFullScreen,
+                        unit = LauncherSettings.launcherFullScreen,
                         title = stringResource(R.string.settings_launcher_full_screen_title),
                         summary = stringResource(R.string.settings_launcher_full_screen_summary)
                     )
@@ -255,10 +255,10 @@ fun LauncherSettingsScreen(
                         IntSliderSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Middle,
-                            unit = AllSettings.launcherBackgroundOpacity,
+                            unit = LauncherSettings.launcherBackgroundOpacity,
                             title = stringResource(R.string.settings_launcher_background_opacity_title),
                             summary = stringResource(R.string.settings_launcher_background_opacity_summary),
-                            valueRange = AllSettings.launcherBackgroundOpacity.floatRange,
+                            valueRange = LauncherSettings.launcherBackgroundOpacity.floatRange,
                             suffix = "%",
                             enabled = backgroundViewModel.isValid,
                             fineTuningControl = true
@@ -267,10 +267,10 @@ fun LauncherSettingsScreen(
                         IntSliderSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Middle,
-                            unit = AllSettings.videoBackgroundVolume,
+                            unit = LauncherSettings.videoBackgroundVolume,
                             title = stringResource(R.string.settings_launcher_background_video_volume_title),
                             summary = stringResource(R.string.settings_launcher_background_video_volume_summary),
-                            valueRange = AllSettings.videoBackgroundVolume.floatRange,
+                            valueRange = LauncherSettings.videoBackgroundVolume.floatRange,
                             suffix = "%",
                             enabled = backgroundViewModel.isValid && backgroundViewModel.isVideo,
                             fineTuningControl = true
@@ -279,15 +279,15 @@ fun LauncherSettingsScreen(
                         IntSliderSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Bottom,
-                            unit = AllSettings.backgroundBlur,
+                            unit = LauncherSettings.backgroundBlur,
                             title = stringResource(R.string.settings_title_blur),
                             summary = stringResource(R.string.settings_launcher_background_blur_summary),
-                            valueRange = AllSettings.backgroundBlur.floatRange,
+                            valueRange = LauncherSettings.backgroundBlur.floatRange,
                             suffix = "Dp",
                             enabled = backgroundViewModel.isValid,
                             fineTuningControl = true,
                             appendContent = {
-                                val unit = AllSettings.backgroundBlurType
+                                val unit = LauncherSettings.backgroundBlurType
                                 val state = unit.state
                                 IconButton(
                                     modifier = Modifier
@@ -333,7 +333,7 @@ fun LauncherSettingsScreen(
                     SwitchSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
-                        unit = AllSettings.launcherSwapAnimEnabled,
+                        unit = LauncherSettings.launcherSwapAnimEnabled,
                         title = stringResource(R.string.settings_launcher_swap_anim_enabled_title),
                         summary = stringResource(R.string.settings_launcher_swap_anim_enabled_summary)
                     )
@@ -341,12 +341,12 @@ fun LauncherSettingsScreen(
                     IntSliderSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Bottom,
-                        unit = AllSettings.launcherAnimateSpeedLevel,
+                        unit = LauncherSettings.launcherAnimateSpeedLevel,
                         title = stringResource(R.string.settings_launcher_animate_speed_title),
                         summary = stringResource(R.string.settings_launcher_animate_speed_summary),
-                        valueRange = AllSettings.launcherAnimateSpeedLevel.floatRange,
+                        valueRange = LauncherSettings.launcherAnimateSpeedLevel.floatRange,
                         valueText = { value -> "×" + (value / 10f) },
-                        enabled = AllSettings.launcherSwapAnimEnabled.state,
+                        enabled = LauncherSettings.launcherSwapAnimEnabled.state,
                     )
                 }
             }
@@ -365,7 +365,7 @@ fun LauncherSettingsScreen(
                         ListSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Top,
-                            unit = AllSettings.gameDownloadSource,
+                            unit = LauncherSettings.gameDownloadSource,
                             items = MirrorSourceType.entries,
                             title = stringResource(R.string.settings_launcher_mirror_game_source_title),
                             getItemText = { stringResource(it.textRes) }
@@ -374,7 +374,7 @@ fun LauncherSettingsScreen(
                         ListSettingsCard(
                             modifier = Modifier.fillMaxWidth(),
                             position = CardPosition.Middle,
-                            unit = AllSettings.addonPlatformSource,
+                            unit = LauncherSettings.addonPlatformSource,
                             items = MirrorSourceType.entries,
                             title = stringResource(R.string.settings_launcher_mirror_addon_platform_source_title),
                             getItemText = { stringResource(it.textRes) }
@@ -388,10 +388,10 @@ fun LauncherSettingsScreen(
                         } else {
                             CardPosition.Top
                         },
-                        unit = AllSettings.launcherLogRetentionDays,
+                        unit = LauncherSettings.launcherLogRetentionDays,
                         title = stringResource(R.string.settings_launcher_log_retention_days_title),
                         summary = stringResource(R.string.settings_launcher_log_retention_days_summary),
-                        valueRange = AllSettings.launcherLogRetentionDays.floatRange,
+                        valueRange = LauncherSettings.launcherLogRetentionDays.floatRange,
                         suffix = stringResource(R.string.unit_day)
                     )
 
@@ -439,10 +439,10 @@ private fun CustomColorOperation(
         is CustomColorOperation.None -> {}
         is CustomColorOperation.Dialog -> {
             var tempColor by remember {
-                mutableStateOf(Color(AllSettings.launcherCustomColor.getValue()))
+                mutableStateOf(Color(LauncherSettings.launcherCustomColor.getValue()))
             }
             //配色主题临时状态
-            val originalStyle = remember { AllSettings.launcherCustomPaletteStyle.getValue() }
+            val originalStyle = remember { LauncherSettings.launcherCustomPaletteStyle.getValue() }
             var paletteStyle by remember {
                 mutableStateOf(originalStyle)
             }
@@ -455,20 +455,20 @@ private fun CustomColorOperation(
                 paletteStyle = paletteStyle,
                 onPaletteStyleChange = { style ->
                     paletteStyle = style
-                    AllSettings.launcherCustomPaletteStyle.updateState(style)
+                    LauncherSettings.launcherCustomPaletteStyle.updateState(style)
                 },
                 onChangeFinished = {
-                    AllSettings.launcherCustomColor.updateState(currentColor.toArgb())
+                    LauncherSettings.launcherCustomColor.updateState(currentColor.toArgb())
                 },
                 onCancel = {
                     //还原颜色、配色主题
-                    AllSettings.launcherCustomColor.updateState(colorController.getOriginalColor().toArgb())
-                    AllSettings.launcherCustomPaletteStyle.updateState(originalStyle)
+                    LauncherSettings.launcherCustomColor.updateState(colorController.getOriginalColor().toArgb())
+                    LauncherSettings.launcherCustomPaletteStyle.updateState(originalStyle)
                     updateOperation(CustomColorOperation.None)
                 },
                 onConfirm = { selectedColor ->
-                    AllSettings.launcherCustomColor.save(selectedColor.toArgb())
-                    AllSettings.launcherCustomPaletteStyle.save(paletteStyle)
+                    LauncherSettings.launcherCustomColor.save(selectedColor.toArgb())
+                    LauncherSettings.launcherCustomPaletteStyle.save(paletteStyle)
                     updateOperation(CustomColorOperation.None)
                 },
             )

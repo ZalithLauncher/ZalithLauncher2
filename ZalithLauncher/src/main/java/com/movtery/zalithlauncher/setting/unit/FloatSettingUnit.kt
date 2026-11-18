@@ -25,9 +25,8 @@ class FloatSettingUnit(
     defaultValue: Float,
     val valueRange: ClosedFloatingPointRange<Float>
 ) : AbstractSettingUnit<Float>(key, defaultValue) {
-    override fun getValue(): Float {
+    override fun readValue(): Float {
         return launcherMMKV().getFloat(key, defaultValue)
-            .also { state = it }
     }
 
     override fun saveValue(v: Float): Float {
@@ -37,6 +36,6 @@ class FloatSettingUnit(
     }
 
     override fun updateState(value: Float) {
-        this.state = value.coerceIn(valueRange)
+        super.updateState(value.coerceIn(valueRange))
     }
 }

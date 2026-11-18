@@ -18,18 +18,45 @@
 
 package com.movtery.zalithlauncher.setting.unit
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 
 abstract class AbstractSettingUnit<V>(
     val key: String,
     val defaultValue: V
 ) {
+    private val _flow: Lazy<MutableStateFlow<V>> = lazy {
+        MutableStateFlow(runCatching { readValue() }.getOrDefault(defaultValue))
+    }
+
     /**
-     * @return 获取当前的设置值
+     * 状态是否已从存储中实际读取过
      */
-    abstract fun getValue(): V
+    val isMaterialized: Boolean
+        get() = _flow.isInitialized()
+
+    /**
+     * 可观察的状态流
+     */
+    val flow: StateFlow<V>
+        get() = _flow.value
+
+    /**
+     * 可观察的状态
+     */
+    val state: V
+        @Composable get() = _flow.value.collectAsStateWithLifecycle().value
+
+    private fun setStateInternal(value: V) {
+        _flow.value.value = value
+    }
+
+    /**
+     * @return 从存储中读取当前的设置值
+     */
+    protected abstract fun readValue(): V
 
     /**
      * 保存设置值
@@ -37,40 +64,49 @@ abstract class AbstractSettingUnit<V>(
     protected abstract fun saveValue(v: V): V
 
     /**
-     * 可观察的状态
+     * 刷新处理：从存储中重新读取实际值同步到状态
      */
-    var state by mutableStateOf(defaultValue)
-        protected set
-
     fun init() {
         getValue()
+    }
+
+    /**
+     * @return 每次都从存储中直读当前的设置值，并同步到状态
+     */
+    fun getValue(): V {
+        if (!_flow.isInitialized()) {
+            return _flow.value.value
+        }
+        val flow = _flow.value
+        flow.value = readValue()
+        return flow.value
     }
 
     /**
      * 保存当前状态值
      */
     fun save() {
-        saveValue(this.state)
+        saveValue(_flow.value.value)
     }
 
     /**
      * 存入值
      */
     fun save(value: V) {
-        this.state = saveValue(value)
+        setStateInternal(saveValue(value))
     }
 
     /**
      * **仅更新状态**，不保存值
      */
     open fun updateState(value: V) {
-        this.state = value
+        setStateInternal(value)
     }
 
     /**
      * 重置当前设置单元为默认值
      */
     fun reset() {
-        this.state = saveValue(defaultValue)
+        setStateInternal(saveValue(defaultValue))
     }
 }

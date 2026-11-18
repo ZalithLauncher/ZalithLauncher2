@@ -73,7 +73,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
 import com.movtery.zalithlauncher.game.keycodes.mapToKeycode
 import com.movtery.zalithlauncher.game.launch.MCOptions
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameUiSettings
 import com.movtery.zalithlauncher.utils.rememberGameRenderSize
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -212,12 +212,12 @@ fun BoxScope.MinecraftHotbar(
                         slotCount = hotbarList.size,
                         hotbarSize = hotbarSize,
                         density = density,
-                        longClickDelay = AllSettings.hotbarLongClickDelay.state.toLong(),
+                        longClickDelay = GameUiSettings.hotbarLongClickDelay.state.toLong(),
                         onClick = { index ->
                             val keycode = calculateSlotKeycode(index)
                             sendKeycode(keycode)
                         },
-                        enableDoubleClick = AllSettings.hotbarDoubleClick.state,
+                        enableDoubleClick = GameUiSettings.hotbarDoubleClick.state,
                         onDoubleClick = {
                             //发送切换副手按键键值
                             val swapKeycode = getKeycode(
@@ -227,7 +227,7 @@ fun BoxScope.MinecraftHotbar(
                             )
                             sendKeycode(swapKeycode)
                         },
-                        enableLongClick = AllSettings.hotbarLongClick.state,
+                        enableLongClick = GameUiSettings.hotbarLongClick.state,
                         onLongClick = {
                             //发送丢弃按键键值
                             val dropKeycode = getKeycode(

@@ -29,7 +29,7 @@ import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.MCIM_MOD
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.ModrinthSearcher
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthVersion
 import com.movtery.zalithlauncher.game.download.addon.utils.localizedModSearchKeywords
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.DownloadAddonState
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.SearchAddonState
 import com.movtery.zalithlauncher.utils.isChinaMainland
@@ -112,7 +112,7 @@ suspend fun <E: AbstractPlatformSearcher, T> mirroredPlatformSearcher(
 fun mirroredCurseForgeSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<CurseForgeSearcher> {
-    val source = resolveMirrorPriority(AllSettings.addonPlatformSource.getValue(), mainland = enabledMirror)
+    val source = resolveMirrorPriority(LauncherSettings.addonPlatformSource.getValue(), mainland = enabledMirror)
     val mirrorSource = mirrorCurseForgeSearcher.takeIf { enabledMirror }
     return when (source) {
         MirrorPriority.OFFICIAL -> listOf(curseForgeSearcher)
@@ -127,7 +127,7 @@ fun mirroredCurseForgeSource(
 fun mirroredModrinthSource(
     enabledMirror: Boolean = isChinaMainland()
 ): List<ModrinthSearcher> {
-    val source = resolveMirrorPriority(AllSettings.addonPlatformSource.getValue(), mainland = enabledMirror)
+    val source = resolveMirrorPriority(LauncherSettings.addonPlatformSource.getValue(), mainland = enabledMirror)
     val mirrorSource = mirrorModrinthSearcher.takeIf { enabledMirror }
     return when (source) {
         MirrorPriority.OFFICIAL -> listOf(modrinthSearcher)

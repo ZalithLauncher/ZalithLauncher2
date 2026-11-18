@@ -84,7 +84,6 @@ class FileManagerActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        loadAllSettings(this, true)
         initializeFromIntent()
 
         setContent {
@@ -106,7 +105,6 @@ class FileManagerActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        loadAllSettings(this, true)
         initializeFromIntent()
     }
 

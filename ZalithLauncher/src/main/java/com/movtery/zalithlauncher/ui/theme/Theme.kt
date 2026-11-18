@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.theme
 
 import android.os.Build
+import androidx.compose.foundation.LocalOverscrollFactory
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MotionScheme
@@ -37,13 +38,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamicColorScheme
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.ui.theme.components.activeMaskView
 import com.movtery.zalithlauncher.utils.festival.Festival
 import com.movtery.zalithlauncher.utils.festival.LocalFestivals
 import com.movtery.zalithlauncher.viewmodel.BackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
+import top.yukonga.miuix.kmp.utils.MiuixOverscrollFactory
 
 private val embermireLight = lightColorScheme(
     primary = primaryLight.embermire,
@@ -608,10 +610,10 @@ fun ZalithLauncherTheme(
     festivals: List<Festival> = emptyList(),
     content: @Composable () -> Unit
 ) {
-    val colorTheme = AllSettings.launcherColorTheme.state
-    val customColorInt = AllSettings.launcherCustomColor.state
+    val colorTheme = LauncherSettings.launcherColorTheme.state
+    val customColorInt = LauncherSettings.launcherCustomColor.state
     val customColor = Color(customColorInt)
-    val customPaletteStyle = AllSettings.launcherCustomPaletteStyle.state
+    val customPaletteStyle = LauncherSettings.launcherCustomPaletteStyle.state
 
     val context = LocalContext.current
 
@@ -675,7 +677,8 @@ fun ZalithLauncherTheme(
 
     CompositionLocalProvider(
         LocalBackgroundViewModel provides backgroundViewModel,
-        LocalFestivals provides festivals
+        LocalFestivals provides festivals,
+        LocalOverscrollFactory provides MiuixOverscrollFactory,
     ) {
         MaterialExpressiveTheme(
             colorScheme = currentDisplayScheme,

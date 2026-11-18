@@ -21,7 +21,6 @@ package com.movtery.zalithlauncher.ui.screens.content.home.server
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -290,9 +289,7 @@ private fun HeaderRow(card: ServerCardState?, iconSize: Dp) {
                 verticalArrangement = Arrangement.spacedBy(DetailItemGap)
             ) {
                 card?.record?.name?.let { name ->
-                    Text(
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                        maxLines = 1,
+                    MarqueeText(
                         text = name,
                         style = MaterialTheme.typography.labelLarge
                     )
@@ -328,9 +325,7 @@ private fun RowContent(
             verticalArrangement = Arrangement.spacedBy(DetailItemGap)
         ) {
             card?.record?.name?.let { name ->
-                Text(
-                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                    maxLines = 1,
+                MarqueeText(
                     text = name,
                     style = MaterialTheme.typography.labelLarge
                 )

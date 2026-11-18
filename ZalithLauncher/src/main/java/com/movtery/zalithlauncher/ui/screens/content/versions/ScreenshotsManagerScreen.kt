@@ -31,7 +31,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
@@ -65,7 +64,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -94,15 +92,18 @@ import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
+import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.CardTitleLayout
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleTextInputField
 import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.fadeEdge
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
@@ -166,10 +167,6 @@ class ScreenshotsManageViewModel @Inject constructor(
     var allScreenshots by mutableStateOf<List<ScreenshotInfo>>(emptyList())
         private set
     var filteredScreenshots by mutableStateOf<List<ScreenshotInfo>?>(null)
-        private set
-    var sortByEnum by mutableStateOf(SortByEnum.Name)
-        private set
-    var isAscending by mutableStateOf(false)
         private set
     var listState by mutableStateOf<LoadingState>(LoadingState.None)
         private set
@@ -369,12 +366,13 @@ class ScreenshotsManageViewModel @Inject constructor(
     }
 
     fun updateSortBy(sortByEnum: SortByEnum) {
-        this.sortByEnum = sortByEnum
+        MiscSettings.screenshotsSortBy.save(sortByEnum)
         applyFilterAndSort()
     }
 
     fun updateSortOrder() {
-        this.isAscending = !this.isAscending
+        val ascending = MiscSettings.screenshotsSortAscending
+        ascending.save(!ascending.flow.value)
         applyFilterAndSort()
     }
 
@@ -387,6 +385,8 @@ class ScreenshotsManageViewModel @Inject constructor(
     private fun applyFilterAndSort() {
         filterJob?.cancel()
         filterJob = viewModelScope.launch(Dispatchers.Default) {
+            val sortByEnum = MiscSettings.screenshotsSortBy.flow.value
+            val isAscending = MiscSettings.screenshotsSortAscending.flow.value
             val result = allScreenshots
                 .takeIf { it.isNotEmpty() }
                 ?.filter { info ->
@@ -486,73 +486,73 @@ fun ScreenshotsManagerScreen(
                 .animated(ctx),
             paddingValues = PaddingValues()
         ) {
-            PullToRefreshBox(
-                modifier = Modifier.fillMaxSize(),
-                isRefreshing = false,
-                enabled = viewModel.listState !is LoadingState.Loading,
-                onRefresh = viewModel::refresh,
-            ) {
-                when (viewModel.listState) {
-                    is LoadingState.None -> {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            Column(modifier = Modifier.fillMaxSize()) {
-                                ScreenshotHeader(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    filter = viewModel.filter,
-                                    changeFilter = { viewModel.updateFilter(it) },
-                                    supportedSortByEnums = viewModel.supportedSortByEnums,
-                                    sortByEnum = viewModel.sortByEnum,
-                                    onSortByChanged = { viewModel.updateSortBy(it) },
-                                    isAscending = viewModel.isAscending,
-                                    onToggleSortOrder = { viewModel.updateSortOrder() },
-                                    onDeleteAll = { viewModel.requestDeleteSelected() },
-                                    isFilesSelected = viewModel.selectedShots.isNotEmpty(),
-                                    onSelectAll = { viewModel.selectAllFiles() },
-                                    onClearFilesSelected = { viewModel.clearSelected() },
-                                    onRefresh = { viewModel.refresh() }
-                                )
+            Box(modifier = Modifier.fillMaxSize()) {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    ScreenshotHeader(
+                        modifier = Modifier.fillMaxWidth(),
+                        filter = viewModel.filter,
+                        changeFilter = { viewModel.updateFilter(it) },
+                        supportedSortByEnums = viewModel.supportedSortByEnums,
+                        sortByEnum = MiscSettings.screenshotsSortBy.state,
+                        onSortByChanged = { viewModel.updateSortBy(it) },
+                        isAscending = MiscSettings.screenshotsSortAscending.state,
+                        onToggleSortOrder = { viewModel.updateSortOrder() },
+                        onDeleteAll = { viewModel.requestDeleteSelected() },
+                        isFilesSelected = viewModel.selectedShots.isNotEmpty(),
+                        onSelectAll = { viewModel.selectAllFiles() },
+                        onClearFilesSelected = { viewModel.clearSelected() },
+                        onRefresh = { viewModel.refresh() },
+                        enabled = viewModel.listState is LoadingState.None,
+                    )
 
+                    PullToRefreshLayout(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        isRefreshing = false,
+                        enabled = viewModel.listState !is LoadingState.Loading,
+                        onRefresh = viewModel::refresh,
+                    ) {
+                        when (viewModel.listState) {
+                            is LoadingState.None -> {
                                 ScreenshotGrid(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f),
+                                    modifier = Modifier.fillMaxSize(),
                                     list = viewModel.filteredScreenshots,
                                     selected = viewModel.selectedShots,
                                     removeFromSelected = { viewModel.selectedShots.remove(it) },
                                     addToSelected = { viewModel.selectedShots.add(it) }
                                 )
                             }
-
-                            //导出图片悬浮按钮
-                            if (viewModel.allScreenshots.isNotEmpty()) {
-                                FloatingActionButton(
-                                    onClick = {
-                                        if (viewModel.listState != LoadingState.Loading) {
-                                            viewModel.exportOperation = ExportOperation.Ask
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .align(Alignment.BottomEnd)
-                                        .padding(16.dp),
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                            is LoadingState.Loading -> {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
                                 ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.ic_file_export_outlined),
-                                        contentDescription = stringResource(R.string.screenshots_manage_export)
-                                    )
+                                    LoadingIndicator()
                                 }
                             }
                         }
                     }
+                }
 
-                    is LoadingState.Loading -> {
-                        Box(
-                            Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            LoadingIndicator()
-                        }
+                //导出图片悬浮按钮
+                if (viewModel.allScreenshots.isNotEmpty()) {
+                    FloatingActionButton(
+                        onClick = {
+                            if (viewModel.listState != LoadingState.Loading) {
+                                viewModel.exportOperation = ExportOperation.Ask
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(16.dp),
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_file_export_outlined),
+                            contentDescription = stringResource(R.string.screenshots_manage_export)
+                        )
                     }
                 }
             }
@@ -611,7 +611,8 @@ private fun ScreenshotHeader(
     onClearFilesSelected: () -> Unit,
     onRefresh: () -> Unit,
     inputFieldColor: Color = itemColor(),
-    inputFieldContentColor: Color = onItemColor()
+    inputFieldContentColor: Color = onItemColor(),
+    enabled: Boolean = true,
 ) {
     CardTitleLayout(modifier = modifier) {
         BoxWithConstraints(
@@ -623,7 +624,10 @@ private fun ScreenshotHeader(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box {
                     var expanded by remember { mutableStateOf(false) }
-                    IconButton(onClick = { expanded = !expanded }) {
+                    IconButton(
+                        onClick = { expanded = !expanded },
+                        enabled = enabled,
+                    ) {
                         Icon(
                             painter = painterResource(R.drawable.ic_sort),
                             contentDescription = stringResource(R.string.sort_by)
@@ -636,7 +640,8 @@ private fun ScreenshotHeader(
                         currentEnum = sortByEnum,
                         onEnumChanged = onSortByChanged,
                         isAscending = isAscending,
-                        onToggleSortOrder = onToggleSortOrder
+                        onToggleSortOrder = onToggleSortOrder,
+                        enabled = enabled,
                     )
                 }
 
@@ -654,7 +659,8 @@ private fun ScreenshotHeader(
                     },
                     color = inputFieldColor,
                     contentColor = inputFieldContentColor,
-                    singleLine = true
+                    singleLine = true,
+                    enabled = enabled,
                 )
 
                 val scrollState = rememberScrollState()
@@ -673,19 +679,28 @@ private fun ScreenshotHeader(
                             .horizontalScroll(scrollState),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = onDeleteAll) {
+                        IconButton(
+                            onClick = onDeleteAll,
+                            enabled = enabled,
+                        ) {
                             Icon(
                                 painterResource(R.drawable.ic_delete_outlined),
                                 contentDescription = null
                             )
                         }
-                        IconButton(onClick = onSelectAll) {
+                        IconButton(
+                            onClick = onSelectAll,
+                            enabled = enabled,
+                        ) {
                             Icon(
                                 painterResource(R.drawable.ic_select_all),
                                 contentDescription = null
                             )
                         }
-                        IconButton(onClick = { if (isFilesSelected) onClearFilesSelected() }) {
+                        IconButton(
+                            onClick = { if (isFilesSelected) onClearFilesSelected() },
+                            enabled = enabled,
+                        ) {
                             Icon(painterResource(R.drawable.ic_deselect), contentDescription = null)
                         }
                         Spacer(modifier = Modifier.width(6.dp))
@@ -699,7 +714,10 @@ private fun ScreenshotHeader(
                     }
                 }
 
-                IconButton(onClick = onRefresh) {
+                IconButton(
+                    onClick = onRefresh,
+                    enabled = enabled,
+                ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_refresh),
                         contentDescription = stringResource(R.string.generic_refresh)
@@ -841,7 +859,7 @@ private fun ScreenshotItemLayout(
                     .padding(horizontal = 8.dp, vertical = 6.dp)
             ) {
                 MinecraftColorTextNormal(
-                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                    modifier = Modifier.marquee(),
                     inputText = info.name,
                     style = MaterialTheme.typography.labelMedium.copy(color = Color.White),
                     maxLines = 1

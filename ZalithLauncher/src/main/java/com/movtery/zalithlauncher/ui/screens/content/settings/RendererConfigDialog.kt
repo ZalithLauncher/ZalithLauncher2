@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.ui.screens.content.settings
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeOut
@@ -38,6 +39,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
@@ -49,7 +51,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.nonInteractiveScrollbar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -57,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -81,6 +86,7 @@ import com.movtery.zalithlauncher.game.renderer.config.TextEntry
 import com.movtery.zalithlauncher.game.renderer.config.VersionRendererConfigStore
 import com.movtery.zalithlauncher.ui.components.DefaultSwitch
 import com.movtery.zalithlauncher.ui.components.ImePanContainer
+import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
@@ -98,6 +104,7 @@ import com.movtery.zalithlauncher.ui.theme.onItemColor
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import sh.calvin.reorderable.ReorderableColumn
 import java.io.File
 
 /**
@@ -125,6 +132,14 @@ fun RendererConfigDialog(
     }
     val session = sessionState.value ?: return
     var showResetDialog by remember { mutableStateOf(false) }
+
+    DisposableEffect(session) {
+        onDispose {
+            if (session.isModified()) {
+                session.save()
+            }
+        }
+    }
 
     Dialog(
         onDismissRequest = onDismissRequest,
@@ -337,13 +352,10 @@ private fun ChoiceConfigItem(state: ConfigEntryState, position: CardPosition) {
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 EntryHeader(state)
-                Text(
-                    modifier = Modifier.alpha(if (enabled) 0.7f else 0.38f),
-                    text = stringResource(
-                        R.string.settings_element_selected,
-                        selected?.label?.resolve() ?: state.value.asString()
-                    ),
-                    style = MaterialTheme.typography.labelSmall
+                LittleTextLabel(
+                    modifier = Modifier.alpha(if (enabled) 1f else 0.38f),
+                    text = selected?.label?.resolve() ?: state.value.asString(),
+                    textStyle = MaterialTheme.typography.labelSmall,
                 )
             }
 
@@ -400,7 +412,11 @@ private fun OrderedChoiceConfigItem(state: ConfigEntryState, position: CardPosit
     val enabled = !hasCheckbox || state.enabled == true
     var expanded by remember { mutableStateOf(false) }
     val options = entry.options.associateBy { it.value.asString() }
-    val orderedOptions = state.value.asString().split(',').mapNotNull(options::get)
+    // 按值字符串记住列表实例，避免重组时重建 ReorderableColumn 的拖动状态
+    val orderedValue = state.value.asString()
+    val orderedOptions = remember(orderedValue) {
+        orderedValue.split(',').mapNotNull(options::get)
+    }
 
     DialogItemLayout(position) {
         Row(
@@ -449,66 +465,71 @@ private fun OrderedChoiceConfigItem(state: ConfigEntryState, position: CardPosit
                     .fillMaxWidth()
                     .padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
             ) {
-                orderedOptions.forEachIndexed { index, option ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            modifier = Modifier.padding(horizontal = 8.dp),
-                            text = "${index + 1}.",
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = option.label?.resolve() ?: option.value.asString(),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            option.description?.let {
-                                Text(
-                                    text = it.resolve(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.alpha(0.7f)
-                                )
+                ReorderableColumn(
+                    list = orderedOptions,
+                    onSettle = { fromIndex, toIndex ->
+                        val keys = orderedOptions.map { it.value.asString() }.toMutableList()
+                        keys.add(toIndex, keys.removeAt(fromIndex))
+                        state.saveValue(ConfigScalar.StringValue(keys.joinToString(",")))
+                    }
+                ) { index, option, isDragging ->
+                    key(option.value.asString()) {
+                        ReorderableItem(
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
+                            Surface(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium,
+                                color = itemColor(false),
+                                contentColor = onItemColor(),
+                                shadowElevation = elevation,
+                            ) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        modifier = Modifier.padding(horizontal = 8.dp),
+                                        text = "${index + 1}.",
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = option.label?.resolve() ?: option.value.asString(),
+                                            style = MaterialTheme.typography.bodyMedium
+                                        )
+                                        option.description?.let {
+                                            Text(
+                                                text = it.resolve(),
+                                                style = MaterialTheme.typography.labelSmall,
+                                                modifier = Modifier.alpha(0.7f)
+                                            )
+                                        }
+                                    }
+
+                                    Row(
+                                        modifier = Modifier
+                                            .draggableHandle()
+                                            .fillMaxHeight()
+                                            .clip(CircleShape),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            modifier = Modifier.padding(all = 4.dp),
+                                            painter = painterResource(R.drawable.ic_drag_handle),
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
                             }
-                        }
-                        IconButton(
-                            enabled = index > 0,
-                            onClick = { moveOrderedChoice(state, orderedOptions, index, -1) }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_arrow_upward),
-                                contentDescription = stringResource(R.string.generic_move_up)
-                            )
-                        }
-                        IconButton(
-                            enabled = index < orderedOptions.lastIndex,
-                            onClick = { moveOrderedChoice(state, orderedOptions, index, 1) }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_arrow_downward),
-                                contentDescription = stringResource(R.string.generic_move_down)
-                            )
                         }
                     }
                 }
             }
         }
     }
-}
-
-private fun moveOrderedChoice(
-    state: ConfigEntryState,
-    options: List<com.movtery.zalithlauncher.game.renderer.config.ChoiceOption>,
-    index: Int,
-    offset: Int
-) {
-    val targetIndex = index + offset
-    if (targetIndex !in options.indices) return
-    val keys = options.map { it.value.asString() }.toMutableList()
-    val key = keys.removeAt(index)
-    keys.add(targetIndex, key)
-    state.saveValue(ConfigScalar.StringValue(keys.joinToString(",")))
 }
 
 @Composable

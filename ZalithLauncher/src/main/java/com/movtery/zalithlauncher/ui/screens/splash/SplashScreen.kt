@@ -50,6 +50,7 @@ import kotlinx.coroutines.flow.StateFlow
 /**
  * @param startAllTask 开启全部的解压任务
  * @param onWelcomeFinished 完成欢迎页
+ * @param onExitClick 架构不匹配屏幕的退出按钮
  * @param availableAgreement 完整的可用协议数据
  * @param unpackItems 解压任务列表
  */
@@ -57,6 +58,7 @@ import kotlinx.coroutines.flow.StateFlow
 fun SplashScreen(
     startAllTask: () -> Unit,
     onWelcomeFinished: () -> Unit,
+    onExitClick: () -> Unit = {},
     availableAgreement: StateFlow<AvailableAgreement?>,
     unpackItems: List<InstallableItem>,
     screenViewModel: SplashBackStackViewModel
@@ -66,6 +68,7 @@ fun SplashScreen(
             modifier = Modifier.fillMaxSize(),
             startAllTask = startAllTask,
             onWelcomeFinished = onWelcomeFinished,
+            onExitClick = onExitClick,
             availableAgreement = availableAgreement,
             unpackItems = unpackItems,
             screenViewModel = screenViewModel
@@ -78,6 +81,7 @@ private fun NavigationUI(
     modifier: Modifier = Modifier,
     startAllTask: () -> Unit,
     onWelcomeFinished: () -> Unit,
+    onExitClick: () -> Unit = {},
     availableAgreement: StateFlow<AvailableAgreement?>,
     unpackItems: List<InstallableItem>,
     screenViewModel: SplashBackStackViewModel
@@ -114,6 +118,12 @@ private fun NavigationUI(
                         items = unpackItems,
                         screenViewModel = screenViewModel,
                         onAgreeClick = startAllTask
+                    )
+                }
+                entry<SplashOperation.ArchMismatch> {
+                    ArchMismatchScreen(
+                        screenViewModel = screenViewModel,
+                        onExitClick = onExitClick,
                     )
                 }
             }

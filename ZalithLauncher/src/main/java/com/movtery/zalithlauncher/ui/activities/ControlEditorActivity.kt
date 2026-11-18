@@ -31,7 +31,7 @@ import androidx.compose.ui.Modifier
 import com.movtery.layer_controller.layout.ControlLayout
 import com.movtery.layer_controller.layout.loadLayoutFromFile
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 import com.movtery.zalithlauncher.ui.base.BaseAppCompatActivity
 import com.movtery.zalithlauncher.ui.screens.content.elements.Background
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
@@ -47,7 +47,7 @@ private const val BUNDLE_CONTROL = "BUNDLE_CONTROL"
 
 @AndroidEntryPoint
 class ControlEditorActivity : BaseAppCompatActivity() {
-    override fun isIgnoreNotch(): Boolean = AllSettings.gameFullScreen.getValue()
+    override fun isIgnoreNotch(): Boolean = RendererSettings.gameFullScreen.getValue()
 
     override fun getTaskDescriptionTitle(): String = getString(R.string.control_manage_info_edit)
 

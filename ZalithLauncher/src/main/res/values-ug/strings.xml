@@ -98,6 +98,9 @@
     <string name="guide_main_welcome_text">باش بەتتىكى ئىقتىدارلارنى قىسقىچە كۆرۈپ چىقايلى.</string>
     <string name="guide_main_account">بۇ يەرنى بېسىپ ھېسابات باشقۇرۇش بېتىنى ئېچىڭ، Minecraft ھېساباتىڭىزنى قوشالايسىز ياكى باشقۇرالايسىز</string>
     <string name="guide_main_version_list">بۇ يەرنى بېسىپ نەشرىيات تىزىملىكىنى ئېچىڭ، قاچىلىغان بارلىق ئويۇن نەشرىياتلىرى مۇشۇ يەردە كۆرۈنىدۇ</string>
+    <string name="guide_main_version_icon_title">نەشر سىنبەلگىسى ۋە تەڭشەك كىرىش ئېغىزى</string>
+    <string name="guide_main_version_icon_text">بۇ يەرنى بېسىپ نۆۋەتتىكى نەشرىنىڭ تەڭشىكىنى ئېچىپ، بۇ نەشرىگە خاس تاللاشلارنى تەڭشەڭ</string>
+    <string name="guide_main_version_launch">ئوڭ تەرەپتىكى ئويۇن باشلاش كۇنۇپكىسى نۆۋەتتىكى نەشرىنى بىۋاسىتە باشلايدۇ</string>
     <string name="guide_main_card_drag_title">مەشغۇلات تىزىملىكىنىڭ ئورنى ياقمىدىمۇ؟</string>
     <string name="guide_main_card_drag_text">كارتىنى ئۇزۇن بېسىپ كۆتۈرۈڭ، ئاندىن سۆرەپ يەنە بىر تەرەپكە قويۇڭ</string>
     <string name="guide_main_card_tip_title">بۇ يەر بەك بوشمۇ؟</string>
@@ -148,4 +151,10 @@
     <string name="guide_joystick_events_events_text1">قوزغىتىلىدىغان ھادىسىلەر ئادەتتىكى توپچىلار بىلەن ئوخشاش، ئەركىنلىكى يۇقىرى</string>
     <string name="guide_joystick_events_events_text2">پەقەت ئويۇننى كونترول قىلماقچى بولسىڭىز، «كۇنۇپكا» بۆلىكىدىكى ئەمەلىي كۇنۇپكا باغلىنىشىنى تەھرىرلىسىڭىزلا بولىدۇ</string>
     <string name="about_acknowledgements_modrinth_text">%s Modrinthدىن ئويۇنچى مودېلى ھەرىكەت ئۈلگىلىرىنى كۆچۈرۈپ ئىشلەتكەن</string>
+    <string name="splash_arch_mismatch_title">خاتا نەشرىنى قاچىلىغاندەك قىلىسىز!</string>
+    <string name="splash_arch_mismatch_package_arch">قاچىلانغان قوزغاتقۇچنىڭ بىنا قىلىش ئارخىتېكتورىسى: %s</string>
+    <string name="splash_arch_mismatch_device_arch">ئۈسكۈنىڭىزنىڭ ئارخىتېكتورىسى: %s</string>
+    <string name="splash_arch_mismatch_desc1">APK ئىچىدىكى ئىجرا مۇھىتلىرى ئۈسكۈنىڭىزگە ماس كەلمەيدۇ، ئويۇننى قوزغىتىشقا ئىشلەتكىلى بولمايدۇ.</string>
+    <string name="splash_arch_mismatch_desc2">رەسمىي يولدىن %s ئۈسكۈنىسى ئۈچۈن APK چۈشۈرۈپ، ئەسلىدىكىنىڭ ئۈستىگە قاچىلاڭ.</string>
+    <string name="splash_arch_mismatch_footer">ئارخىتېكتورا ئۇچۇرى APK بىنا قىلىش سەپلىمىسى ۋە سىستېما نەتىجىسىدىن كېلىدۇ، پەقەت پايدىلىنىشقا.</string>
 </resources>

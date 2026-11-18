@@ -53,7 +53,7 @@ import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.LoggerBridge
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameSettings
 import com.movtery.zalithlauncher.ui.screens.game.elements.log_parser.LogHighlighter
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -98,7 +98,7 @@ fun LogBox(
     val config = remember {
         object {
             /** 缓冲区刷新间隔，单位：ms */
-            val BUFFER_FLUSH_INTERVAL: Long = AllSettings.logBufferFlushInterval.getValue().toLong()
+            val BUFFER_FLUSH_INTERVAL: Long = GameSettings.logBufferFlushInterval.getValue().toLong()
         }
     }
 
@@ -184,7 +184,7 @@ fun LogBox(
                     state = scrollState
                 ) {
                     items(logList, key = { it.id }) { line ->
-                        val textSize = AllSettings.logTextSize.state
+                        val textSize = GameSettings.logTextSize.state
                         val fontSize = remember(textSize) {
                             TextUnit(textSize.toFloat(), TextUnitType.Sp)
                         }

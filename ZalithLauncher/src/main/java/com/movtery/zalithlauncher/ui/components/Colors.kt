@@ -21,7 +21,7 @@ package com.movtery.zalithlauncher.ui.components
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.viewmodel.influencedByBackground
 
 /**
@@ -41,7 +41,7 @@ fun Color.desaturate(factor: Float): Color {
 @Composable
 fun influencedByBackgroundColor(
     color: Color,
-    influencedAlpha: Float = AllSettings.launcherBackgroundOpacity.state.toFloat() / 100f,
+    influencedAlpha: Float = LauncherSettings.launcherBackgroundOpacity.state.toFloat() / 100f,
     enabled: Boolean = true
 ): Color {
     return influencedByBackground(

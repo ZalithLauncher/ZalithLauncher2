@@ -24,7 +24,7 @@ import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.plugin.ApkPlugin
 import com.movtery.zalithlauncher.game.plugin.ApkPluginManager
 import com.movtery.zalithlauncher.game.plugin.cacheAppIcon
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.RendererSettings
 
 /**
  * FCL 驱动器插件
@@ -46,7 +46,7 @@ object DriverPluginManager: ApkPluginManager() {
         val applicationInfo = context.applicationInfo
         driverList.add(
             Driver(
-                id = AllSettings.vulkanDriver.defaultValue,
+                id = RendererSettings.vulkanDriver.defaultValue,
                 appName = "",
                 appVersion = "",
                 name = "Turnip",

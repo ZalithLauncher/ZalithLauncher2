@@ -36,6 +36,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -67,7 +68,7 @@ import com.movtery.layer_controller.utils.snap.SnapMode
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.CURSOR_ENABLED
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.GameUiSettings
 import com.movtery.zalithlauncher.ui.components.DualMenuSubscreen
 import com.movtery.zalithlauncher.ui.components.FloatingBall
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -81,6 +82,7 @@ import com.movtery.zalithlauncher.ui.guide.GuideKeys
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
+import kotlinx.coroutines.CancellationException
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -311,7 +313,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.AddButtons,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 enabled = isPreviewMode.not(),
@@ -328,7 +330,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.AddButtons,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 enabled = isPreviewMode.not(),
@@ -345,7 +347,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.AddButtons,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 enabled = isPreviewMode.not(),
@@ -366,7 +368,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.AddStyles,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_edit_style_config),
@@ -386,7 +388,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.AddStyles,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_edit_joystick_style_list),
@@ -406,7 +408,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.StyleCabinet,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_style_cabinet),
@@ -430,7 +432,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.Preview,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_preview_mode),
@@ -447,7 +449,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.Preview,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 title = stringResource(R.string.control_editor_menu_preview_mode_scenario),
@@ -469,7 +471,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.Preview,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_preview_is_mouse),
@@ -492,7 +494,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.Preview,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_preview_is_gamepad),
@@ -518,8 +520,8 @@ private fun EditorMenuContent(
             MenuSwitchButton(
                 modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_widget_snap),
-                switch = AllSettings.editorEnableWidgetSnap.state,
-                onSwitch = { AllSettings.editorEnableWidgetSnap.save(it) },
+                switch = GameUiSettings.editorEnableWidgetSnap.state,
+                onSwitch = { GameUiSettings.editorEnableWidgetSnap.save(it) },
                 color = color,
                 contentColor = contentColor,
             )
@@ -530,8 +532,8 @@ private fun EditorMenuContent(
             MenuSwitchButton(
                 modifier = Modifier.fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_widget_snap_all_layers),
-                switch = AllSettings.editorSnapInAllLayers.state,
-                onSwitch = { AllSettings.editorSnapInAllLayers.save(it) },
+                switch = GameUiSettings.editorSnapInAllLayers.state,
+                onSwitch = { GameUiSettings.editorSnapInAllLayers.save(it) },
                 color = color,
                 contentColor = contentColor,
             )
@@ -543,8 +545,8 @@ private fun EditorMenuContent(
                 modifier = Modifier.fillMaxWidth(),
                 title = stringResource(R.string.control_editor_menu_widget_snap_mode),
                 items = SnapMode.entries,
-                currentItem = AllSettings.editorWidgetSnapMode.state,
-                onItemChange = { AllSettings.editorWidgetSnapMode.save(it) },
+                currentItem = GameUiSettings.editorWidgetSnapMode.state,
+                onItemChange = { GameUiSettings.editorWidgetSnapMode.save(it) },
                 getItemText = { mode ->
                     val textRes = when (mode) {
                         SnapMode.FullScreen -> R.string.control_editor_menu_widget_snap_mode_fullscreen
@@ -567,7 +569,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.Save,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 text = stringResource(R.string.generic_save),
@@ -583,7 +585,7 @@ private fun EditorMenuContent(
                 modifier = Modifier
                     .guideNode(
                         key = GuideKeys.Editor.Step.Save,
-                        holeRadius = 16.dp
+                        holeShape = MaterialTheme.shapes.large
                     )
                     .fillMaxWidth(),
                 text = stringResource(R.string.control_editor_menu_save_and_exit),
@@ -633,6 +635,8 @@ private fun ColumnScope.ControlLayerMenu(
             if (index >= 0 && index < layers.size) {
                 lazyListState.animateScrollToItem(index)
             }
+        }.onFailure { e ->
+            if (e is CancellationException) throw e
         }
     }
 
@@ -644,6 +648,8 @@ private fun ColumnScope.ControlLayerMenu(
             if (currentSize - previousSize > 0) {
                 runCatching {
                     lazyListState.animateScrollToItem(0)
+                }.onFailure { e ->
+                    if (e is CancellationException) throw e
                 }
             }
             previousSize = currentSize
@@ -695,7 +701,7 @@ private fun ColumnScope.ControlLayerMenu(
         modifier = Modifier
             .guideNode(
                 key = GuideKeys.Editor.Step.CreateLayer,
-                holeRadius = 50.dp
+                holeShape = ButtonDefaults.shape
             )
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .fillMaxWidth(),

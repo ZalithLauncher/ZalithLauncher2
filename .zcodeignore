@@ -29,6 +29,7 @@ LWJGL/*/build/
 .trae/
 .gemini/
 .ampersand/
+.awb/
 
 .vscode/
 

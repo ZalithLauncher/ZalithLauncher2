@@ -160,7 +160,7 @@ fun IntSliderSettingsCard(
             unit.updateState(it)
             onValueChange(it)
         },
-        onValueChangeFinished = { unit.save(unit.state) },
+        onValueChangeFinished = { unit.save(unit.flow.value) },
         enabled = enabled,
         shorter = shorter,
         fineTuningControl = fineTuningControl,
@@ -209,7 +209,7 @@ fun IntSliderSettingsCard(
             unit.updateState(it)
             onValueChange(it)
         },
-        onValueChangeFinished = { unit.save(unit.state) },
+        onValueChangeFinished = { unit.save(unit.flow.value) },
         enabled = enabled,
         shorter = shorter,
         fineTuningControl = fineTuningControl,

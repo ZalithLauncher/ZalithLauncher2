@@ -74,6 +74,20 @@ object Architecture {
         else -> "UNSUPPORTED_ARCH"
     }
 
+    /** @return 是否与设备架构匹配 */
+    fun isBuildArchCompatible(buildArch: String, deviceArch: Int): Boolean {
+        return buildArch == "all" || buildArch == archAsString(deviceArch)
+    }
+
+    /** Android ABI 目录名 */
+    fun archAsStringAndroid(buildArch: String) = when (buildArch) {
+        "arm64" -> "arm64-v8a"
+        "arm" -> "armeabi-v7a"
+        "x86_64" -> "x86_64"
+        "x86" -> "x86"
+        else -> "universal"
+    }
+
     /** Android ABI 目录名 */
     fun archAsStringAndroid(arch: Int): String = when (arch) {
         ARCH_ARM64 -> "arm64-v8a"

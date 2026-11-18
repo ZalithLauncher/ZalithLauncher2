@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -61,7 +60,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
@@ -71,7 +69,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.ui.screens.content.elements.DisabledAlpha
@@ -115,20 +112,40 @@ fun ScalingActionButton(
 }
 
 @Composable
-fun MarqueeText(
+fun ScalingIconButton(
+    onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    text: String,
-    color: Color = Color.Unspecified,
-    style: TextStyle = LocalTextStyle.current,
-    textAlign: TextAlign? = null
+    enabled: Boolean = true,
+    size: Dp = 40.dp,
+    colors: ButtonColors = ButtonDefaults.buttonColors(),
+    elevation: ButtonElevation? = ButtonDefaults.buttonElevation(),
+    border: BorderStroke? = null,
+    content: @Composable () -> Unit
 ) {
-    Text(
-        modifier = modifier.basicMarquee(Int.MAX_VALUE),
-        text = text,
-        color = color,
-        style = style,
-        maxLines = 1,
-        textAlign = textAlign
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale = animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1f,
+        animationSpec = MaterialTheme.motionScheme.fastSpatialSpec(),
+        label = "ButtonScale"
+    )
+
+    Button(
+        onClick = onClick,
+        modifier = modifier
+            .size(size)
+            .graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            },
+        enabled = enabled,
+        shape = CircleShape,
+        colors = colors,
+        elevation = elevation,
+        border = border,
+        contentPadding = PaddingValues(0.dp),
+        interactionSource = interactionSource,
+        content = { content() }
     )
 }
 

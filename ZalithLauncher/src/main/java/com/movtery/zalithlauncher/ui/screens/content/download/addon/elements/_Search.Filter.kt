@@ -78,7 +78,7 @@ import com.movtery.zalithlauncher.game.download.addon.platform.Platform
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformDisplayLabel
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformFilterCode
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformSortField
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
@@ -370,7 +370,7 @@ fun BaseFilterLayout(
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
     contentColor: Color = onCardColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
     onClick: (() -> Unit)? = null,
     content: @Composable () -> Unit
 ) {

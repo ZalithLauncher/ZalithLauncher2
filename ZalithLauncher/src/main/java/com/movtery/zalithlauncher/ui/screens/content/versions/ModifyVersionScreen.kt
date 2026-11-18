@@ -70,7 +70,7 @@ import com.movtery.zalithlauncher.game.download.game.GameDownloadInfo
 import com.movtery.zalithlauncher.game.download.game.models.LaunchFor
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfo
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedLazyColumn
 import com.movtery.zalithlauncher.ui.components.TextTransition
@@ -820,7 +820,7 @@ private fun ModifyTipItem(
     ) {
         Row(
             modifier = Modifier
-                .backgroundGlass(AllSettings.backgroundBlur.state, color)
+                .backgroundGlass(LauncherSettings.backgroundBlur.state, color)
                 .padding(horizontal = 16.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

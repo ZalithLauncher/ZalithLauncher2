@@ -25,9 +25,9 @@ class OffsetSettingUnit(
     key: String,
     defaultValue: Offset
 ) : AbstractSettingUnit<Offset>(key, defaultValue) {
-    override fun getValue(): Offset {
+    override fun readValue(): Offset {
         val long = launcherMMKV().getLong(key, defaultValue.packedValue)
-        return Offset(long).also { state = it }
+        return Offset(long)
     }
 
     override fun saveValue(v: Offset): Offset {

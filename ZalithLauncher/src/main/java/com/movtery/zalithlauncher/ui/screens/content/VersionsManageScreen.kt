@@ -43,7 +43,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.nonInteractiveScrollbar
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -83,13 +82,14 @@ import com.movtery.zalithlauncher.game.version.installed.VersionComparator
 import com.movtery.zalithlauncher.game.version.installed.VersionType
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.version.installed.cleanup.GameAssetCleaner
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.activities.MainActivity
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.components.AnimatedDirection
 import com.movtery.zalithlauncher.ui.components.EdgeDirection
 import com.movtery.zalithlauncher.ui.components.IconTextButton
 import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
 import com.movtery.zalithlauncher.ui.components.ScalingActionButton
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.animated
@@ -279,7 +279,8 @@ fun VersionsManageScreen(
                     backScreenViewModel.mainScreen.backStack.navigateToFileSelector(
                         startPath = path,
                         selectFile = false,
-                        saveKey = NormalNavKey.VersionsManager
+                        saveKey = NormalNavKey.VersionsManager,
+                        canSelect = { !GamePathManager.isForbiddenGamePath(it) }
                     ) { path ->
                         viewModel.gamePathOperation = GamePathOperation.AddNewPath(path)
                     }
@@ -464,7 +465,7 @@ private fun VersionsLayout(
 ) {
     val ctx = rememberAnimatedContext(isVisible = isVisible)
 
-    PullToRefreshBox(
+    PullToRefreshLayout(
         modifier = modifier.animated(ctx),
         isRefreshing = false,
         enabled = !isRefreshing,
@@ -598,7 +599,7 @@ private fun VersionsLayout(
                             .padding(all = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        val blur = AllSettings.backgroundBlur.state
+                        val blur = LauncherSettings.backgroundBlur.state
                         val cardColor = cardColor()
 
                         Surface(

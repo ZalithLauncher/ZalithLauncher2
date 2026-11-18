@@ -17,9 +17,9 @@ object GuideDefaults {
      */
     val colors = GuideColors()
     /**
-     * 镂空圆角半径
+     * 镂空形状
      */
-    val holeRadius: Dp = 8.dp
+    val holeShape: Shape = RoundedCornerShape(8.dp)
     /**
      * 镂空描边默认颜色
      */
@@ -40,6 +40,26 @@ object GuideDefaults {
      * 引导内容与屏幕边缘的最小留白
      */
     val screenPadding: Dp = 16.dp
+    /**
+     * 标注文本与目标部件的间距
+     */
+    val calloutGap: Dp = 20.dp
+    /**
+     * 多张标注文本之间的最小间距
+     */
+    val calloutLabelSpacing: Dp = 12.dp
+    /**
+     * 标注文本的最大宽度
+     */
+    val calloutLabelMaxWidth: Dp = 320.dp
+    /**
+     * 标注引线宽度
+     */
+    val calloutLineWidth: Dp = 1.5.dp
+    /**
+     * 标注引线端点半径
+     */
+    val calloutPointRadius: Dp = 2.5.dp
     /**
      * 引导内容的默认裁剪形状
      */

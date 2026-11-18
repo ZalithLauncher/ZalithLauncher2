@@ -26,12 +26,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.core.util.set
 import androidx.lifecycle.ViewModel
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
 import com.movtery.zalithlauncher.ui.control.gamepad.DpadDirection
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadMap
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadMapping
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadMappingList
+import com.movtery.zalithlauncher.ui.control.gamepad.GamepadPrefs
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadRemap
 import com.movtery.zalithlauncher.ui.control.gamepad.Joystick
 import com.movtery.zalithlauncher.ui.control.gamepad.JoystickType
@@ -127,13 +128,18 @@ class GamepadViewModel : ViewModel() {
     var modePromptVisible by mutableStateOf(false)
         private set
 
+    private var modePromptCompleted = false
+
     /**
      * 手柄活动上报：尚未完成选择询问时弹出对话框
      * @return true 表示询问未完成，调用方应吞掉本次手柄输入，
      * 保证选择确认前映射、SDL 直通、绑定向导均不响应手柄
      */
     fun checkModePrompt(): Boolean {
-        if (AllSettings.gamepadInputModePrompted.state) return false
+        if (modePromptCompleted || GamepadPrefs.inputModePrompted) {
+            modePromptCompleted = true
+            return false
+        }
         modePromptVisible = true
         return true
     }
@@ -142,8 +148,9 @@ class GamepadViewModel : ViewModel() {
      * 用户确认了模式选择，保存并关闭
      */
     fun confirmModePrompt(selected: GamepadInputMode) {
-        AllSettings.gamepadInputMode.save(selected)
-        AllSettings.gamepadInputModePrompted.save(true)
+        ControlSettings.gamepadInputMode.save(selected)
+        GamepadPrefs.inputModePrompted = true
+        modePromptCompleted = true
         modePromptVisible = false
     }
 
@@ -212,13 +219,13 @@ class GamepadViewModel : ViewModel() {
 
             mappingLists.add(list)
             movedOldData = true
-            AllSettings.gamepadMappingConfig.save(defaultName)
+            ControlSettings.gamepadMappingConfig.save(defaultName)
         }
 
         if (!movedOldData && listMMKV.count() == 0L) {
             //当前没有任何的配置
             val list = createDefaultMapping(defaultName)
-            AllSettings.gamepadMappingConfig.save(defaultName)
+            ControlSettings.gamepadMappingConfig.save(defaultName)
             listMMKV.encode(defaultName, list)
             mappingLists.add(list)
         } else {
@@ -241,11 +248,11 @@ class GamepadViewModel : ViewModel() {
     }
 
     private fun loadCurrentConfig(): GamepadMappingList? {
-        val config = AllSettings.gamepadMappingConfig.getValue()
+        val config = ControlSettings.gamepadMappingConfig.getValue()
         return mappingLists.find {
             it.name == config
         } ?: mappingLists.firstOrNull()?.also { config ->
-            AllSettings.gamepadMappingConfig.save(config.name)
+            ControlSettings.gamepadMappingConfig.save(config.name)
         }
     }
 
@@ -277,7 +284,7 @@ class GamepadViewModel : ViewModel() {
         mappingLists.add(list)
         listMMKV.encode(name0, list)
 
-        AllSettings.gamepadMappingConfig.save(name0)
+        ControlSettings.gamepadMappingConfig.save(name0)
         refreshLists()
 
         onFinished()

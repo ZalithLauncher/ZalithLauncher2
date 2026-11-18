@@ -165,7 +165,8 @@ fun SortByDropdownMenu(
     currentEnum: SortByEnum,
     onEnumChanged: (SortByEnum) -> Unit,
     isAscending: Boolean,
-    onToggleSortOrder: () -> Unit
+    onToggleSortOrder: () -> Unit,
+    enabled: Boolean = true,
 ) {
     DropdownMenu(
         expanded = expanded,
@@ -178,6 +179,7 @@ fun SortByDropdownMenu(
                 onClick = {
                     onEnumChanged(item)
                 },
+                enabled = enabled,
                 trailingIcon = if (item == currentEnum) {
                     {
                         IconButton(
@@ -272,7 +274,8 @@ fun ImportMultipleFileButton(
     progressUris: (uris: List<Uri>) -> Unit,
     modifier: Modifier = Modifier,
     painter: Painter = painterResource(R.drawable.ic_add),
-    text: String = stringResource(R.string.generic_import)
+    text: String = stringResource(R.string.generic_import),
+    enabled: Boolean = true,
 ) {
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetMultipleContents()
@@ -288,7 +291,8 @@ fun ImportMultipleFileButton(
             launcher.launch(extension.extensionToMimeType())
         },
         painter = painter,
-        text = text
+        text = text,
+        enabled = enabled,
     )
 }
 

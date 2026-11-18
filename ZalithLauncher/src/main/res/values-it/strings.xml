@@ -98,6 +98,12 @@
     <string name="splash_screen_unpack_desc">Il launcher deve installare questi file per garantire il corretto funzionamento di Minecraft. Sono inclusi nell\'app e devono essere estratti prima. Clicca sul pulsante qui sotto per avviare l\'estrazione e l\'aggiornamento.</string>
     <string name="splash_screen_installing">Il launcher sta estraendo questi file. Quando finito, si avvierà automaticamente la schermata principale. Si prega di attendere pazientemente.</string>
     <string name="splash_screen_agree">Installa</string>
+    <string name="splash_arch_mismatch_title">Sembra che tu abbia installato la versione sbagliata!</string>
+    <string name="splash_arch_mismatch_package_arch">Architettura di build del launcher installato: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Architettura del tuo dispositivo: %s</string>
+    <string name="splash_arch_mismatch_desc1">I runtime inclusi nell\'APK non corrispondono al tuo dispositivo e non possono essere usati per avviare il gioco.</string>
+    <string name="splash_arch_mismatch_desc2">Scarica l\'APK per dispositivi %s dal canale ufficiale e installalo sopra quello esistente.</string>
+    <string name="splash_arch_mismatch_footer">Le informazioni sull\'architettura provengono dalla configurazione di build dell\'APK e dal sistema, sono solo un riferimento.</string>
     <string name="notification_title">Controlla Permesso di Notifiche</string>
     <string name="notification_request">Richiedi Permesso</string>
     <string name="notification_data_jvm_service_message">Per garantire un\'installazione fluida, il launcher deve eseguire il programma di installazione in primo piano. Cercheremo di avviare un servizio in primo piano per mantenere la stabilità, ma questo richiede autorizzazioni di notifica. Potresti abilitare le autorizzazioni di notifica? Questo aiuterà a prevenire interruzioni dell\'installazione!</string>
@@ -181,6 +187,9 @@
     <string name="guide_main_welcome_text">Diamo una rapida occhiata alle funzioni della schermata principale.</string>
     <string name="guide_main_account">Tocca qui per aprire la gestione degli account, dove puoi aggiungere o gestire i tuoi account Minecraft</string>
     <string name="guide_main_version_list">Tocca qui per aprire l\'elenco delle versioni: tutte le versioni del gioco che installerai saranno elencate qui</string>
+    <string name="guide_main_version_icon_title">Icona della versione e accesso alle impostazioni</string>
+    <string name="guide_main_version_icon_text">Tocca qui per aprire le impostazioni della versione corrente e modificare le opzioni specifiche</string>
+    <string name="guide_main_version_launch">Il pulsante Avvia gioco a destra avvia direttamente la versione corrente</string>
     <string name="guide_main_card_drag_title">Non ti piace la posizione del menu azioni?</string>
     <string name="guide_main_card_drag_text">Tieni premuta la scheda per sollevarla, poi trascinala e rilasciala per ancorarla sul lato opposto</string>
     <string name="guide_main_card_tip_title">Qui sembra un po\' vuoto?</string>

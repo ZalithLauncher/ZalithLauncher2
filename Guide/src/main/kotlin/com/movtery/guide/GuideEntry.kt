@@ -47,6 +47,7 @@ class GuideEntry internal constructor(
     val advanceOnScrimClick: Boolean,
     val placement: GuidePlacement,
     val showNextTip: Boolean,
+    val overlay: (@Composable (GuideScope) -> Unit)? = null,
     val content: @Composable (GuideScope) -> Unit,
     internal val isIntro: Boolean = false
 )

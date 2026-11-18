@@ -80,6 +80,7 @@
     <string name="generic_follow_system">Follow System</string>
     <string name="generic_edit">Edit</string>
     <string name="generic_view">View</string>
+    <string name="generic_plugin">Plugin</string>
     <!-- Title of the version list page -->
     <string name="page_title_version_list">Version List</string>
     <!-- Title of the manage versions page -->
@@ -248,6 +249,18 @@
     <string name="splash_screen_installing">The launcher is extracting these files. Once done, it will automatically enter the main screen. Please wait patiently.</string>
     <!-- Button on the first run screen to start extracting and installing -->
     <string name="splash_screen_agree">Install</string>
+    <!-- Title on the architecture mismatch screen shown when the APK arch does not match the device -->
+    <string name="splash_arch_mismatch_title">It seems you have installed the wrong version!</string>
+    <!-- Text on the architecture mismatch screen showing the build architecture of the installed APK -->
+    <string name="splash_arch_mismatch_package_arch">The installed launcher is built for: %s</string>
+    <!-- Text on the architecture mismatch screen showing the device architecture -->
+    <string name="splash_arch_mismatch_device_arch">Your device architecture: %s</string>
+    <!-- Text on the architecture mismatch screen: bundled runtimes cannot launch the game -->
+    <string name="splash_arch_mismatch_desc1">The runtimes bundled in the APK do not match your device and cannot be used to launch the game.</string>
+    <!-- Text on the architecture mismatch screen telling users to download the matching APK -->
+    <string name="splash_arch_mismatch_desc2">Please download the APK for %s devices from the official channel and install it over the existing one.</string>
+    <!-- Footer note on the architecture mismatch screen about the source of the arch info -->
+    <string name="splash_arch_mismatch_footer">Architecture info comes from the APK build configuration and the system result, for reference only.</string>
     <!-- Title of the dialog asking the user to grant notification permission -->
     <string name="notification_title">Check Notification Permission</string>
     <!-- Confirm button in the notification permission dialog -->
@@ -766,6 +779,8 @@
     <string name="game_loading_version_name">Game Version: %s</string>
     <!-- Line on the game launching overlay; %s is extra info about the version being started -->
     <string name="game_loading_version_info">Game Info: %s</string>
+    <!-- Line on the game launching overlay; %s is the name of the renderer being used -->
+    <string name="game_loading_renderer">Renderer: %s</string>
     <!-- Title of the in-game menu overlay -->
     <string name="game_menu_title">Game Menu</string>
     <!-- Warning message in the dialog confirming force close from the in-game menu -->
@@ -1705,8 +1720,6 @@
     <string name="minecraft_download_failed_notfound">Some dependency files could not be downloaded. If the issue persists after multiple attempts, the game may be missing required libraries. We recommend reinstalling the game.</string>
     <!-- Slider title in the Launcher settings tab for the background blur radius -->
     <string name="settings_title_blur">Blur Effect</string>
-    <!-- Text under list-type settings items showing the current choice; %s is the selected item name -->
-    <string name="settings_element_selected">Selected: %s</string>
     <!-- Default label of optional text fields in settings; an empty value is simply ignored -->
     <string name="settings_label_ignore_if_blank">Leave blank to ignore</string>
     <!-- Name of the Renderer category on the settings screen and the title of its page -->
@@ -3006,6 +3019,12 @@
     <string name="guide_main_account">Tap here to open the account manager, where you can add or manage your Minecraft accounts</string>
     <!-- Guide text next to the version entry on the action menu card; tapping it opens the version list -->
     <string name="guide_main_version_list">Tap here to open the version list, where every game version you install will be listed</string>
+    <!-- Title of the callout pointing to the version icon and its settings shortcut -->
+    <string name="guide_main_version_icon_title">Version icon and settings shortcut</string>
+    <!-- Body of the version-icon callout; tapping opens settings specific to the current game version -->
+    <string name="guide_main_version_icon_text">Tap here to open the current version\'s settings and adjust its version-specific options</string>
+    <!-- Body of the version-list callout explaining that the right-side button launches the current version -->
+    <string name="guide_main_version_launch">The launch button on the right directly starts the current version</string>
     <!-- Title of the guide card for the draggable action menu card -->
     <string name="guide_main_card_drag_title">Not happy with where the action menu is?</string>
     <!-- Body of the guide card explaining how to move the action menu card to the other side -->

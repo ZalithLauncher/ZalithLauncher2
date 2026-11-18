@@ -58,7 +58,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.activities.CrashType
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -165,7 +165,7 @@ private fun ErrorScreenLandscape(
         modifier = Modifier.fillMaxSize(),
         containerColor = backgroundColor(),
         contentColor = onBackgroundColor(),
-        contentWindowInsets = if (AllSettings.launcherFullScreen.state) {
+        contentWindowInsets = if (LauncherSettings.launcherFullScreen.state) {
             WindowInsets()
         } else {
             WindowInsets.safeContent.only(WindowInsetsSides.Horizontal)

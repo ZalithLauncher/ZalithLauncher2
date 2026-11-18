@@ -34,6 +34,12 @@
     <string name="crash_restart">Reiniciar</string>
     <string name="crash_exit">Sair</string>
     <string name="splash_screen_agree">Instalar</string>
+    <string name="splash_arch_mismatch_title">Parece que instalou a versão errada!</string>
+    <string name="splash_arch_mismatch_package_arch">Arquitetura de compilação do launcher instalado: %s</string>
+    <string name="splash_arch_mismatch_device_arch">Arquitetura do seu dispositivo: %s</string>
+    <string name="splash_arch_mismatch_desc1">Os runtimes incluídos no APK não correspondem ao seu dispositivo e não podem ser usados para iniciar o jogo.</string>
+    <string name="splash_arch_mismatch_desc2">Transfira o APK para dispositivos %s no canal oficial e instale-o sobre o existente.</string>
+    <string name="splash_arch_mismatch_footer">As informações de arquitetura vêm da configuração de compilação do APK e do sistema, apenas para referência.</string>
     <string name="main_launch_game">Iniciar</string>
     <string name="download_category_game">Jogo</string>
     <string name="download_category_modpack">Modpack</string>
@@ -529,7 +535,6 @@
     <string name="minecraft_download_verifying_and_repairing_files">Verificando arquivos \n(%1$d/%2$d, %3$s/%4$s)</string>
     <string name="minecraft_download_failed">Ocorreu um erro durante o download do Minecraft</string>
     <string name="minecraft_download_failed_notfound">Alguns ficheiros de dependência não puderam ser descarregados. Se o problema persistir após várias tentativas, o jogo pode estar sem as bibliotecas necessárias. Recomendamos reinstalar o jogo.</string>
-    <string name="settings_element_selected">Selecionado: %s</string>
     <string name="settings_label_ignore_if_blank">Deixe em branco para ignorar</string>
     <string name="settings_tab_renderer">Renderizador</string>
     <string name="settings_tab_game">Jogo</string>
@@ -1177,6 +1182,9 @@
     <string name="guide_main_welcome_text">Vamos dar uma vista de olhos rápida às funções do ecrã principal.</string>
     <string name="guide_main_account">Toque aqui para abrir o gestor de contas, onde pode adicionar ou gerir as suas contas do Minecraft</string>
     <string name="guide_main_version_list">Toque aqui para abrir a lista de versões, onde todas as versões do jogo que instalar serão listadas</string>
+    <string name="guide_main_version_icon_title">Ícone da versão e acesso às definições</string>
+    <string name="guide_main_version_icon_text">Toque aqui para abrir as definições da versão atual e ajustar as opções específicas desta versão</string>
+    <string name="guide_main_version_launch">O botão Iniciar jogo à direita inicia diretamente a versão atual</string>
     <string name="guide_main_card_drag_title">Não gosta de onde o menu de ações está?</string>
     <string name="guide_main_card_drag_text">Mantenha o cartão premido para o levantar, depois arraste e largue para o encaixar do outro lado</string>
     <string name="guide_main_card_tip_title">Parece um pouco vazio por aqui?</string>

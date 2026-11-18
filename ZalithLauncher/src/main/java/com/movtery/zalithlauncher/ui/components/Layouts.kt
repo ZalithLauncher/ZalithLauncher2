@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.ui.components
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -55,7 +54,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
-import com.movtery.zalithlauncher.setting.AllSettings
+import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.itemColor
 import com.movtery.zalithlauncher.ui.theme.onItemColor
@@ -69,7 +68,7 @@ fun ScalingLabel(
     shape: Shape = MaterialTheme.shapes.extraLarge,
     color: Color = itemColor(influencedByBackground),
     contentColor: Color = onItemColor(),
-    blur: Int = AllSettings.backgroundBlur.state,
+    blur: Int = LauncherSettings.backgroundBlur.state,
 ) {
     val scale = remember { Animatable(initialValue = 0.95f) }
     LaunchedEffect(Unit) {
@@ -160,10 +159,7 @@ fun LittleTextLabel(
     ) {
         Text(
             modifier = Modifier
-                .then(
-                    if (singleLine) Modifier.basicMarquee(Int.MAX_VALUE)
-                    else Modifier
-                )
+                .let { if (singleLine) it.marquee() else it }
                 .padding(horizontal = 4.dp, vertical = 2.dp),
             text = text,
             style = textStyle,

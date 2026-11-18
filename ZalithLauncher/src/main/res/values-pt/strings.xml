@@ -1182,6 +1182,9 @@
     <string name="guide_main_welcome_text">Vamos dar uma vista de olhos rápida às funções do ecrã principal.</string>
     <string name="guide_main_account">Toque aqui para abrir o gestor de contas, onde pode adicionar ou gerir as suas contas do Minecraft</string>
     <string name="guide_main_version_list">Toque aqui para abrir a lista de versões, onde todas as versões do jogo que instalar serão listadas</string>
+    <string name="guide_main_version_icon_title">Ícone da versão e acesso às definições</string>
+    <string name="guide_main_version_icon_text">Toque aqui para abrir as definições da versão atual e ajustar as opções específicas desta versão</string>
+    <string name="guide_main_version_launch">O botão Iniciar jogo à direita inicia diretamente a versão atual</string>
     <string name="guide_main_card_drag_title">Não gosta de onde o menu de ações está?</string>
     <string name="guide_main_card_drag_text">Mantenha o cartão premido para o levantar, depois arraste e largue para o encaixar do outro lado</string>
     <string name="guide_main_card_tip_title">Parece um pouco vazio por aqui?</string>

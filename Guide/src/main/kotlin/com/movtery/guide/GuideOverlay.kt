@@ -24,6 +24,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -113,6 +114,7 @@ internal fun GuideOverlay(
     }
 
     var contentRect by remember { mutableStateOf<Rect?>(null) }
+    val sideState = remember { mutableStateOf<GuideSide?>(null) }
     val density = LocalDensity.current
     val gapPx = with(density) { GuideDefaults.contentGap.toPx() }
     val paddingPx = with(density) { GuideDefaults.screenPadding.toPx() }
@@ -152,6 +154,40 @@ internal fun GuideOverlay(
             )
         }
 
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer { alpha = fadeAlpha }
+        ) {
+            val containerSize = IntSize(constraints.maxWidth, constraints.maxHeight)
+            AnimatedContent(
+                targetState = entry,
+                modifier = Modifier.fillMaxSize(),
+                transitionSpec = {
+                    val spec: FiniteAnimationSpec<Float> = if (animations.enabled) {
+                        spring(
+                            dampingRatio = animations.fadeSpring.dampingRatio,
+                            stiffness = animations.fadeSpring.stiffness
+                        )
+                    } else {
+                        snap()
+                    }
+                    fadeIn(spec) togetherWith fadeOut(spec)
+                },
+                label = "guideCustomOverlay",
+            ) { stepEntry ->
+                val overlay = stepEntry.overlay
+                if (overlay != null) {
+                    val stepNodes = remember(stepEntry.key, version) { registry.nodesFor(stepEntry.key) }
+                    val stepAnchors = stepNodes.map(GuideNode::bounds)
+                    val scope = remember(stepAnchors, containerSize, controller) {
+                        GuideScope(stepAnchors, containerSize, sideState, controller, animations)
+                    }
+                    if (stepEntry.isIntro || stepAnchors.isNotEmpty()) overlay(scope)
+                }
+            }
+        }
+
         GuideCardContainer(
             controller = controller,
             state = state,
@@ -166,6 +202,7 @@ internal fun GuideOverlay(
             paddingPx = paddingPx,
             shape = contentShape,
             contentRect = contentRect,
+            sideState = sideState,
             arbiter = arbiter,
             onGateArm = { armedForNext = true },
             onPlaced = { rect -> if (contentRect != rect) contentRect = rect }
@@ -513,12 +550,12 @@ private fun GuideCardContainer(
     paddingPx: Float,
     shape: Shape,
     contentRect: Rect?,
+    sideState: MutableState<GuideSide?>,
     arbiter: GuideEventArbiter,
     onGateArm: () -> Unit,
     onPlaced: (Rect) -> Unit
 ) {
     val entry = state.entry
-    val sideState = remember { mutableStateOf<GuideSide?>(null) }
     // 首次求解前为 null，此时直接摆放求解结果，避免内容从原点飞入
     val targetState = remember { mutableStateOf<IntOffset?>(null) }
 
@@ -561,7 +598,7 @@ private fun GuideCardContainer(
         }
 
         val scope = remember(anchors, containerSize, controller) {
-            GuideScope(anchors, containerSize, sideState, controller)
+            GuideScope(anchors, containerSize, sideState, controller, animations)
         }
         val animatedOffset = targetState.value?.let { target ->
             animateIntOffsetAsState(

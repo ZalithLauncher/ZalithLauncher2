@@ -1200,6 +1200,9 @@
     <string name="guide_main_welcome_text">Cùng xem nhanh các tính năng của màn hình chính nhé.</string>
     <string name="guide_main_account">Chạm vào đây để mở trình quản lý tài khoản, nơi bạn có thể thêm hoặc quản lý tài khoản Minecraft</string>
     <string name="guide_main_version_list">Chạm vào đây để mở danh sách phiên bản, nơi mọi phiên bản game bạn cài đặt sẽ được liệt kê</string>
+    <string name="guide_main_version_icon_title">Biểu tượng phiên bản và mục cài đặt</string>
+    <string name="guide_main_version_icon_text">Chạm vào đây để mở cài đặt của phiên bản hiện tại và điều chỉnh các tùy chọn riêng cho phiên bản này</string>
+    <string name="guide_main_version_launch">Nút khởi chạy game ở bên phải sẽ khởi chạy trực tiếp phiên bản hiện tại</string>
     <string name="guide_main_card_drag_title">Không thích vị trí của menu thao tác à?</string>
     <string name="guide_main_card_drag_text">Nhấn giữ thẻ để nhấc nó lên, sau đó kéo và thả để ghim sang phía bên kia</string>
     <string name="guide_main_card_tip_title">Chỗ này trông hơi trống trải?</string>

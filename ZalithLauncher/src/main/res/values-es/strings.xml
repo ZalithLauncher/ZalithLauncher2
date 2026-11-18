@@ -71,9 +71,9 @@
     <string name="crash_exit_message">JVM se cerró con el codigo %d.</string>
     <string name="crash_singnal_message">JVM abortada por señal fatal %d.</string>
     <string name="crash_exit_note">Revisa el archivo de registro para conocer los detalles de la causa. Si no puedes resolver el problema por tu cuenta, envía el archivo a alguien que pueda analizarlo para ayudarte a diagnosticar y solucionar el error. No envíes capturas de pantalla de la pantalla actual, ya que no suelen proporcionar información suficiente para resolver el problema.</string>
-    <string name="crash_type">Tipo de cierre inesperado: %s</string>
-    <string name="crash_type_launcher">Cierre inesperado del launcher</string>
-    <string name="crash_type_game">Cierre inesperado del juego</string>
+    <string name="crash_type">Tipo de cierre anómalo: %s</string>
+    <string name="crash_type_launcher">Cierre anómalo del iniciador</string>
+    <string name="crash_type_game">Cierre anómalo del juego</string>
     <string name="crash_share_logs">Compartir registros</string>
     <string name="crash_restart">Reiniciar</string>
     <string name="crash_exit">Salir</string>
@@ -678,7 +678,7 @@
     <string name="settings_tab_gamepad">Gamepad</string>
     <string name="settings_tab_launcher">Launcher</string>
     <string name="settings_tab_java_manage">Java</string>
-    <string name="settings_tab_control_manage">Lista de controles</string>
+    <string name="settings_tab_control_manage">Controles</string>
     <string name="settings_tab_info_about">Acerca de</string>
     <string name="settings_renderer_global_renderer_title">Renderizador global</string>
     <string name="settings_renderer_global_renderer_summary">El renderizador predeterminado global utiliza una capa de traducción de biblioteca dinámica para asegurar que el juego funcione sin problemas en dispositivos móviles</string>
@@ -686,7 +686,6 @@
     <string name="settings_renderer_from_plugins">Del plugin %s</string>
     <string name="settings_renderer_resolution_scale_title">Escala de resolución</string>
     <string name="settings_renderer_resolution_scale_summary">Los valores más bajos mejoran el rendimiento; los valores más altos mejoran la calidad gráfica. Ajusta según tus necesidades</string>
-
     <string name="settings_renderer_resolution_rule_title">Regla de resolución</string>
     <string name="settings_renderer_resolution_rule_summary">Elige cómo se calcula la resolución de la ventana del juego</string>
     <string name="settings_renderer_resolution_rule_percentage">Porcentaje</string>
@@ -1004,7 +1003,6 @@
     <string name="crash_link_share_failed_link_not_found">No se encontró un enlace disponible. Por favor, inténtelo de nuevo más tarde.</string>
     <string name="error_bad_request">(%s) El servidor no pudo entender la petición</string>
     <string name="error_forbidden">(%s) No tienes permisos para acceder a este recurso</string>
-
     <string name="guide_main_welcome_title">¡Bienvenido a %s!</string>
     <string name="guide_main_welcome_text">Echemos un vistazo rápido a las funciones de la pantalla principal.</string>
     <string name="guide_main_account">Toca aquí para abrir la gestión de cuentas, donde puedes agregar o administrar tus cuentas de Minecraft</string>
@@ -1043,7 +1041,6 @@
     <string name="control_editor_style_cabinet_conflict_overwrite">Sobrescribir el existente</string>
     <string name="control_editor_style_cabinet_conflict_independent">Guardar como copia independiente</string>
     <string name="control_editor_style_cabinet_delete">¿Seguro que deseas eliminar el estilo guardado %s?</string>
-
     <string name="guide_editor_style_cabinet_title">¡También puedes añadir tus estilos favoritos a la colección de estilos compartida!</string>
     <string name="guide_editor_style_cabinet_text">La colección de estilos es global: estés editando el diseño de controles que estés, siempre verás los estilos que hay dentro~</string>
     <string name="guide_editor_style_cabinet_note">Aquí puedes añadir los estilos guardados al diseño de controles actual para usarlos~</string>
@@ -1061,4 +1058,34 @@
     <string name="guide_joystick_events_lock_text4">Toca el botón para editar sus eventos de activación</string>
     <string name="guide_joystick_events_events_text1">Los eventos activables son los mismos que los de los botones normales, así que hay mucha libertad</string>
     <string name="guide_joystick_events_events_text2">Si solo quieres controlar el juego, edita las asignaciones de teclas reales en la sección “Tecla”</string>
+    <string name="generic_retry">Reintentar</string>
+    <string name="generic_move_up">Subir</string>
+    <string name="generic_move_down">Bajar</string>
+    <string name="generic_plugin">Complemento</string>
+    <string name="page_title_version_list">Lista de versiones</string>
+    <string name="page_title_account_list">Lista de cuentas</string>
+    <string name="page_title_select_files">Seleccionar ruta</string>
+    <string name="files_browse_folder">Examinar carpeta</string>
+    <string name="files_delete_file">¿Confirma que quiere eliminar %s?</string>
+    <string name="agreement_content_unavailable">Este documento no está disponible.</string>
+    <string name="duration_format">%s días, %s horas y %s minutos</string>
+    <string name="favorites_sort_title">Nombre del proyecto</string>
+    <string name="fm_new_name">Nombre</string>
+    <string name="fm_editor_read_only">Solo lectura</string>
+    <string name="fm_compress_format">Formato</string>
+    <string name="fm_progress_kind_compress">Comprimiendo…</string>
+    <string name="fm_progress_kind_import">Importando…</string>
+    <string name="fm_archive">Comprimir</string>
+    <string name="fm_sort_ascending">Ascendente</string>
+    <string name="fm_new_file">Archivo</string>
+    <string name="fm_editor_undo">Deshacer</string>
+    <string name="fm_progress_kind_extract">Extrayendo…</string>
+    <string name="screenshots_manage_export">Exportar</string>
+    <string name="game_vulkan_check_features">Funcionalidades:</string>
+    <string name="fm_extract">Extraer</string>
+    <string name="fm_trash_purge">Purgar</string>
+    <string name="fm_progress_kind_delete">Eliminando…</string>
+    <string name="servers_list">Servidores</string>
+    <string name="renderer_config_mg_fsr1_quality">Calidad</string>
+    <string name="game_vulkan_check_dep_optional">Opcional:</string>
 </resources>

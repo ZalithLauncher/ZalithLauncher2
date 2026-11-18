@@ -390,6 +390,9 @@
     <string name="guide_main_welcome_text">มาดูฟีเจอร์ของหน้าหลักกันสั้น ๆ นะ</string>
     <string name="guide_main_account">แตะตรงนี้เพื่อเปิดหน้าจัดการบัญชี คุณสามารถเพิ่มหรือจัดการบัญชี Minecraft ได้</string>
     <string name="guide_main_version_list">แตะตรงนี้เพื่อเปิดรายการเวอร์ชัน ทุกเวอร์ชันของเกมที่คุณติดตั้งจะแสดงอยู่ที่นี่</string>
+    <string name="guide_main_version_icon_title">ไอคอนเวอร์ชันและจุดเข้าตั้งค่า</string>
+    <string name="guide_main_version_icon_text">แตะที่นี่เพื่อเปิดการตั้งค่าของเวอร์ชันปัจจุบันและปรับตัวเลือกเฉพาะสำหรับเวอร์ชันนี้</string>
+    <string name="guide_main_version_launch">ปุ่มเริ่มเกมทางขวาจะเริ่มเวอร์ชันปัจจุบันโดยตรง</string>
     <string name="guide_main_card_drag_title">ไม่ชอบตำแหน่งของแถบเมนูใช่ไหม</string>
     <string name="guide_main_card_drag_text">กดค้างที่การ์ดเพื่อยกขึ้น แล้วลากไปวางเพื่อหยุดพักที่อีกฝั่งได้เลย</string>
     <string name="guide_main_card_tip_title">รู้สึกว่าตรงนี้ว่างเปล่าไปหน่อยใช่ไหม</string>

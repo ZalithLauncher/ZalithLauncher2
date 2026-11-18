@@ -1009,6 +1009,9 @@
     <string name="guide_main_welcome_text">Echemos un vistazo rápido a las funciones de la pantalla principal.</string>
     <string name="guide_main_account">Toca aquí para abrir la gestión de cuentas, donde puedes agregar o administrar tus cuentas de Minecraft</string>
     <string name="guide_main_version_list">Toca aquí para abrir la lista de versiones: todas las versiones del juego que instales se mostrarán aquí</string>
+    <string name="guide_main_version_icon_title">Icono de versión y acceso a ajustes</string>
+    <string name="guide_main_version_icon_text">Toca aquí para abrir los ajustes de la versión actual y configurar sus opciones específicas</string>
+    <string name="guide_main_version_launch">El botón de iniciar juego de la derecha inicia directamente la versión actual</string>
     <string name="guide_main_card_drag_title">¿No te gusta dónde está el menú de acciones?</string>
     <string name="guide_main_card_drag_text">Mantén pulsada la tarjeta para levantarla, arrástrala y suéltala para acoplarla en el otro lado</string>
     <string name="guide_main_card_tip_title">¿Se ve un poco vacío aquí?</string>

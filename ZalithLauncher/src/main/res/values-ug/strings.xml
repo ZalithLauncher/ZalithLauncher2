@@ -98,6 +98,9 @@
     <string name="guide_main_welcome_text">باش بەتتىكى ئىقتىدارلارنى قىسقىچە كۆرۈپ چىقايلى.</string>
     <string name="guide_main_account">بۇ يەرنى بېسىپ ھېسابات باشقۇرۇش بېتىنى ئېچىڭ، Minecraft ھېساباتىڭىزنى قوشالايسىز ياكى باشقۇرالايسىز</string>
     <string name="guide_main_version_list">بۇ يەرنى بېسىپ نەشرىيات تىزىملىكىنى ئېچىڭ، قاچىلىغان بارلىق ئويۇن نەشرىياتلىرى مۇشۇ يەردە كۆرۈنىدۇ</string>
+    <string name="guide_main_version_icon_title">نەشر سىنبەلگىسى ۋە تەڭشەك كىرىش ئېغىزى</string>
+    <string name="guide_main_version_icon_text">بۇ يەرنى بېسىپ نۆۋەتتىكى نەشرىنىڭ تەڭشىكىنى ئېچىپ، بۇ نەشرىگە خاس تاللاشلارنى تەڭشەڭ</string>
+    <string name="guide_main_version_launch">ئوڭ تەرەپتىكى ئويۇن باشلاش كۇنۇپكىسى نۆۋەتتىكى نەشرىنى بىۋاسىتە باشلايدۇ</string>
     <string name="guide_main_card_drag_title">مەشغۇلات تىزىملىكىنىڭ ئورنى ياقمىدىمۇ؟</string>
     <string name="guide_main_card_drag_text">كارتىنى ئۇزۇن بېسىپ كۆتۈرۈڭ، ئاندىن سۆرەپ يەنە بىر تەرەپكە قويۇڭ</string>
     <string name="guide_main_card_tip_title">بۇ يەر بەك بوشمۇ؟</string>

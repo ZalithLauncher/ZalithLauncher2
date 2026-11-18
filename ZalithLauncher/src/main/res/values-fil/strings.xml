@@ -264,6 +264,9 @@
     <string name="guide_main_welcome_text">Tingnan natin nang mabilis ang mga feature ng main screen.</string>
     <string name="guide_main_account">I-tap dito para buksan ang account manager, kung saan maaari mong idagdag o ipamahala ang mga Minecraft account</string>
     <string name="guide_main_version_list">I-tap dito para buksan ang listahan ng bersyon, doon makikita ang lahat ng game version na iyong i-install</string>
+    <string name="guide_main_version_icon_title">Icon ng bersyon at pasok sa mga setting</string>
+    <string name="guide_main_version_icon_text">I-tap dito para buksan ang mga setting ng kasalukuyang bersyon at ayusin ang mga opsyong para lamang sa bersyong ito</string>
+    <string name="guide_main_version_launch">Direktong pinapatakbo ng button sa kanan ang kasalukuyang bersyon</string>
     <string name="guide_main_card_drag_title">Ayaw mo ba ang lokasyon ng action menu?</string>
     <string name="guide_main_card_drag_text">Pindutin nang matagal ang card para itaas ito, saka i-drag at i-drop para ilagay sa kabilang gilid</string>
     <string name="guide_main_card_tip_title">Mukhang medyo walang laman dito?</string>

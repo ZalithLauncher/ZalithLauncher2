@@ -1148,6 +1148,9 @@
     <string name="guide_main_welcome_text">メイン画面の機能を簡単に見ていきましょう。</string>
     <string name="guide_main_account">タップするとアカウント管理画面を開けます。Minecraft アカウントの追加や管理ができます</string>
     <string name="guide_main_version_list">タップするとバージョンリストが開きます。インストールしたゲームバージョンはすべてここに表示されます</string>
+    <string name="guide_main_version_icon_title">バージョンアイコンと設定入口</string>
+    <string name="guide_main_version_icon_text">タップすると現在のバージョンの設定を開き、このバージョン専用のオプションを調整できます</string>
+    <string name="guide_main_version_launch">右側のゲーム起動ボタンをタップすると、現在のバージョンを直接起動します</string>
     <string name="guide_main_card_drag_title">操作メニューの場所が気に入らない？</string>
     <string name="guide_main_card_drag_text">カードを長押しして持ち上げ、ドラッグ＆ドロップで反対側にドッキングできます</string>
     <string name="guide_main_card_tip_title">ここ、少し寂しくない？</string>

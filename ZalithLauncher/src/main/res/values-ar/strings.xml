@@ -533,6 +533,9 @@
     <string name="guide_main_welcome_text">دعنا نلقي نظرة سريعة على ميزات الشاشة الرئيسية.</string>
     <string name="guide_main_account">اضغط هنا لفتح إدارة الحسابات، حيث يمكنك إضافة حسابات Minecraft أو إدارتها</string>
     <string name="guide_main_version_list">اضغط هنا لفتح قائمة الإصدارات، حيث ستُدرج جميع إصدارات اللعبة التي ثبّتها</string>
+    <string name="guide_main_version_icon_title">أيقونة الإصدار ومدخل الإعدادات</string>
+    <string name="guide_main_version_icon_text">اضغط هنا لفتح إعدادات الإصدار الحالي وتعديل الخيارات الخاصة بهذا الإصدار</string>
+    <string name="guide_main_version_launch">زر بدء اللعبة على اليمين يشغّل الإصدار الحالي مباشرة</string>
     <string name="guide_main_card_drag_title">لا يعجبك موضع قائمة الإجراءات؟</string>
     <string name="guide_main_card_drag_text">اضغط مطولًا على البطاقة لرفعها، ثم اسحبها وأفلتها لتثبيتها في الجهة الأخرى</string>
     <string name="guide_main_card_tip_title">يبدو هذا المكان فارغًا قليلًا؟</string>

@@ -1547,6 +1547,9 @@
     <string name="guide_main_welcome_text">我們來簡單看看主畫面的功能吧～</string>
     <string name="guide_main_account">點擊此處可進入帳號管理頁面，你可以新增或管理 Minecraft 帳號</string>
     <string name="guide_main_version_list">點擊這裡可開啟版本清單，你將來安裝的所有遊戲版本都會在這裡列出來喔</string>
+    <string name="guide_main_version_icon_title">版本圖示與設定入口</string>
+    <string name="guide_main_version_icon_text">點擊這裡可進入目前版本的設定，調整該版本的專屬選項</string>
+    <string name="guide_main_version_launch">右側的啟動遊戲按鈕會直接啟動目前版本</string>
     <string name="guide_main_card_drag_title">不太喜歡操作選單的位置？</string>
     <string name="guide_main_card_drag_text">你可以長按卡片提起它，拖曳並讓它停靠到另一側喔</string>
     <string name="guide_main_card_tip_title">這裡太空曠了？</string>

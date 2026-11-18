@@ -3019,6 +3019,12 @@
     <string name="guide_main_account">Tap here to open the account manager, where you can add or manage your Minecraft accounts</string>
     <!-- Guide text next to the version entry on the action menu card; tapping it opens the version list -->
     <string name="guide_main_version_list">Tap here to open the version list, where every game version you install will be listed</string>
+    <!-- Title of the callout pointing to the version icon and its settings shortcut -->
+    <string name="guide_main_version_icon_title">Version icon and settings shortcut</string>
+    <!-- Body of the version-icon callout; tapping opens settings specific to the current game version -->
+    <string name="guide_main_version_icon_text">Tap here to open the current version\'s settings and adjust its version-specific options</string>
+    <!-- Body of the version-list callout explaining that the right-side button launches the current version -->
+    <string name="guide_main_version_launch">The launch button on the right directly starts the current version</string>
     <!-- Title of the guide card for the draggable action menu card -->
     <string name="guide_main_card_drag_title">Not happy with where the action menu is?</string>
     <!-- Body of the guide card explaining how to move the action menu card to the other side -->

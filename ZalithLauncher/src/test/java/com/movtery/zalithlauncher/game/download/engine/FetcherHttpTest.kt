@@ -249,6 +249,23 @@ class FetcherHttpTest {
     }
 
     @Test
+    fun `falls back to the mirror when the official source is unreachable`() = runBlocking<Unit> {
+        val healthy = ScriptedSource { _, _ -> scriptedResponse(200, payload) }
+        val server = startServer(healthy)
+        val dir = newWorkDir()
+        val target = File(dir, "out.bin")
+        val deadUrl = "http://127.0.0.1:${closedPort()}/assets/ab/abcdef"
+
+        Fetcher.downloadFile(listOf(deadUrl, server.url("/assets/ab/abcdef").toString()), target)
+
+        assertArrayEquals(payload, target.readBytes())
+        assertEquals(1, healthy.requests.size)
+    }
+
+    /** 取一个刚释放的端口，连接必然被拒绝 */
+    private fun closedPort(): Int = java.net.ServerSocket(0).use { it.localPort }
+
+    @Test
     fun `cancellation cleans temp files`() = runBlocking<Unit> {
         val source = ScriptedSource { _, _ ->
             MockResponse.Builder()

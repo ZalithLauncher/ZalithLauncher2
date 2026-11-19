@@ -1,4 +1,0 @@
-[submodule "third_party/starling"]
-	path = third_party/starling
-	url = https://github.com/starling-client/starling.git
-	branch = starling

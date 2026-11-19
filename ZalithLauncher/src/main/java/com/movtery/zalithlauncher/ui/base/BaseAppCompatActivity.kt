@@ -53,7 +53,7 @@ open class BaseAppCompatActivity : FullScreenAppCompatActivity() {
     protected open fun getTaskDescriptionTitle(): String? = null
 
     @Suppress("DEPRECATION")
-    private fun refreshTaskDescription() {
+    protected fun refreshTaskDescription() {
         val title = getTaskDescriptionTitle() ?: BuildKeys.LAUNCHER_NAME
         setTaskDescription(ActivityManager.TaskDescription(title))
     }

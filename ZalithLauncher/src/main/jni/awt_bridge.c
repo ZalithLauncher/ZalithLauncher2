@@ -77,21 +77,19 @@ JNIEXPORT void JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_sendInput
     );
 }
 
-// TODO: check for memory leaks
-// int printed = 0;
 int threadAttached = 0;
-JNIEXPORT jintArray JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_renderAWTScreenFrame(JNIEnv* env, jclass clazz /*, jobject canvas, jint width, jint height */) {
+JNIEXPORT jint JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_renderAWTScreenFrame(JNIEnv* env, jclass clazz, jintArray outArray) {
+    if (outArray == NULL) {
+        return -1;
+    }
     if (runtimeJNIEnvPtr_GRAPHICS == NULL) {
         if (runtimeJavaVMPtr == NULL) {
-            return NULL;
+            return -1;
         } else {
             (*runtimeJavaVMPtr)->AttachCurrentThread(runtimeJavaVMPtr, &runtimeJNIEnvPtr_GRAPHICS, NULL);
         }
     }
 
-    int *rgbArray;
-    jintArray jreRgbArray, androidRgbArray;
-  
     if (method_GetRGB == NULL) {
         class_CTCScreen = (*runtimeJNIEnvPtr_GRAPHICS)->FindClass(runtimeJNIEnvPtr_GRAPHICS, "net/java/openjdk/cacio/ctc/CTCScreen");
         if ((*runtimeJNIEnvPtr_GRAPHICS)->ExceptionCheck(runtimeJNIEnvPtr_GRAPHICS) == JNI_TRUE) {
@@ -102,26 +100,29 @@ JNIEXPORT jintArray JNICALL Java_com_movtery_zalithlauncher_bridge_ZLBridge_rend
         method_GetRGB = (*runtimeJNIEnvPtr_GRAPHICS)->GetStaticMethodID(runtimeJNIEnvPtr_GRAPHICS, class_CTCScreen, "getCurrentScreenRGB", "()[I");
         assert(method_GetRGB != NULL);
     }
-    jreRgbArray = (jintArray) (*runtimeJNIEnvPtr_GRAPHICS)->CallStaticObjectMethod(
+    jintArray jreRgbArray = (jintArray) (*runtimeJNIEnvPtr_GRAPHICS)->CallStaticObjectMethod(
         runtimeJNIEnvPtr_GRAPHICS,
         class_CTCScreen,
         method_GetRGB
     );
     if (jreRgbArray == NULL) {
-        return NULL;
+        return -1;
     }
-    
-    // Copy JRE RGB array memory to Android.
-    int arrayLength = (*runtimeJNIEnvPtr_GRAPHICS)->GetArrayLength(runtimeJNIEnvPtr_GRAPHICS, jreRgbArray);
-    rgbArray = (*runtimeJNIEnvPtr_GRAPHICS)->GetIntArrayElements(runtimeJNIEnvPtr_GRAPHICS, jreRgbArray, 0);
-    androidRgbArray = (*env)->NewIntArray(env, arrayLength);
-    (*env)->SetIntArrayRegion(env, androidRgbArray, 0, arrayLength, rgbArray);
 
-    (*runtimeJNIEnvPtr_GRAPHICS)->ReleaseIntArrayElements(runtimeJNIEnvPtr_GRAPHICS, jreRgbArray, rgbArray, NULL);
-    // (*env)->DeleteLocalRef(env, androidRgbArray);
-    // free(rgbArray);
-    
-    return androidRgbArray;
+    // jreRgbArray 在 JVM 堆、outArray 在 ART 堆，二者必须用各自的 JNIEnv 操作
+    jint frameLength = (*runtimeJNIEnvPtr_GRAPHICS)->GetArrayLength(runtimeJNIEnvPtr_GRAPHICS, jreRgbArray);
+    jint outLength = (*env)->GetArrayLength(env, outArray);
+    if (frameLength > outLength) {
+        (*runtimeJNIEnvPtr_GRAPHICS)->DeleteLocalRef(runtimeJNIEnvPtr_GRAPHICS, jreRgbArray);
+        return frameLength; // 缓冲区过小，未写入数据，由调用方重建后再取
+    }
+
+    jint *rgbArray = (*runtimeJNIEnvPtr_GRAPHICS)->GetIntArrayElements(runtimeJNIEnvPtr_GRAPHICS, jreRgbArray, 0);
+    (*env)->SetIntArrayRegion(env, outArray, 0, frameLength, rgbArray);
+    (*runtimeJNIEnvPtr_GRAPHICS)->ReleaseIntArrayElements(runtimeJNIEnvPtr_GRAPHICS, jreRgbArray, rgbArray, JNI_ABORT);
+    (*runtimeJNIEnvPtr_GRAPHICS)->DeleteLocalRef(runtimeJNIEnvPtr_GRAPHICS, jreRgbArray);
+
+    return frameLength;
 }
 
 JNIEXPORT void JNICALL Java_net_java_openjdk_cacio_ctc_CTCClipboard_nQuerySystemClipboard(JNIEnv *env, jclass clazz) {

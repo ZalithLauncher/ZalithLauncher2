@@ -113,6 +113,7 @@
             android:configChanges="orientation|keyboardHidden|screenSize|uiMode|smallestScreenSize|screenLayout|keyboard|density"
             android:exported="false"
             android:launchMode="singleTask"
+            android:process=":horizon"
             android:screenOrientation="sensorLandscape">
             <meta-data
                 android:name="android.app.lib_name"

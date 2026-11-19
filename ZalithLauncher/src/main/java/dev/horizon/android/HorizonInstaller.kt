@@ -58,31 +58,30 @@ object HorizonInstaller {
         }
     }
 
-    fun isReady(context: Context): Boolean {
-        if (!libraryLoaded) return false
-        return try {
-            copyEngineData(context)
-            nativeIsReady(context.filesDir.absolutePath)
-        } catch (error: Throwable) {
-            Log.e(TAG, "Starling readiness check failed", error)
-            false
-        }
-    }
-
+    /**
+     * Copies the bundled data and performs the first install away from the UI thread.
+     * The callback is invoked by the native installer when its work completes.
+     */
     fun install(context: Context, callback: HorizonInstallCallback) {
-        if (!libraryLoaded) {
-            callback.onComplete(false, "Starling's native library is unavailable in this build.")
-            return
-        }
-        try {
-            copyEngineData(context)
-            getHorizonHomeDir(context).mkdirs()
-            if (!nativeInstall(context.filesDir.absolutePath, callback)) {
-                callback.onComplete(false, "Starling could not start its first-time installation.")
+        Thread {
+            if (!libraryLoaded) {
+                callback.onComplete(false, "Starling's native library is unavailable in this build.")
+                return@Thread
             }
-        } catch (error: Throwable) {
-            Log.e(TAG, "Starling installation failed", error)
-            callback.onComplete(false, error.message ?: "Unknown installation error")
-        }
+            try {
+                copyEngineData(context)
+                getHorizonHomeDir(context).mkdirs()
+                if (nativeIsReady(context.filesDir.absolutePath)) {
+                    callback.onComplete(true, null)
+                    return@Thread
+                }
+                if (!nativeInstall(context.filesDir.absolutePath, callback)) {
+                    callback.onComplete(false, "Starling could not start its first-time installation.")
+                }
+            } catch (error: Throwable) {
+                Log.e(TAG, "Starling installation failed", error)
+                callback.onComplete(false, error.message ?: "Unknown installation error")
+            }
+        }.start()
     }
-}
+}}

@@ -20,11 +20,6 @@ object HorizonEngine {
             Toast.makeText(activity, "Rust Edition currently requires a 64-bit ARM device.", Toast.LENGTH_LONG).show()
             return
         }
-        if (HorizonInstaller.isReady(activity)) {
-            startGame(activity, onStatus)
-            return
-        }
-
         onStatus("Preparing Rust Edition…")
         HorizonInstaller.install(activity, object : HorizonInstallCallback {
             override fun onProgress(stage: Int, currentBytes: Long, totalBytes: Long) {

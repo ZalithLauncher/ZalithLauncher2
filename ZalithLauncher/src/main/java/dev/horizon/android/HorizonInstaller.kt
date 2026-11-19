@@ -84,4 +84,4 @@ object HorizonInstaller {
             }
         }.start()
     }
-}}
+}

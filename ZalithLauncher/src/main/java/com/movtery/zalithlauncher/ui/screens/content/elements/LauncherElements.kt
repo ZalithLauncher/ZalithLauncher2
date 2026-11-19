@@ -78,9 +78,7 @@ import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
 import com.movtery.zalithlauncher.game.renderer.Renderers
-import com.movtery.zalithlauncher.game.renderer.isSfpewConfiguredFor
 import com.movtery.zalithlauncher.game.version.installed.Version
-import com.movtery.zalithlauncher.game.version.installed.hasVulkanBackend
 import com.movtery.zalithlauncher.game.version.installed.utils.isBiggerVer
 import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.setting.LauncherSettings
@@ -141,12 +139,11 @@ sealed interface LaunchGameOperation {
         val quickPlay: QuickPlay?
     ) : LaunchGameOperation
 
-    /** 当前渲染器不支持选中版本 */
+    /** 当前渲染器不支持选中版本，等待用户选择是否忽略风险继续启动 */
     data class UnsupportedRenderer(
         val renderer: RendererInterface,
-        val version: Version,
-        val quickPlay: QuickPlay?
-    ): LaunchGameOperation
+        val version: Version
+    ) : LaunchGameOperation
 
     /** 当前已加载的插件不支持选中的版本 */
     data class UnsupportedPlugins(
@@ -249,18 +246,18 @@ fun LaunchGameOperation(
             }
         }
         is LaunchGameOperation.UnsupportedRenderer -> {
-            val renderer = operation.renderer
-            val version = operation.version
-            val quickPlay = operation.quickPlay
             SimpleAlertDialog(
                 title = stringResource(R.string.generic_warning),
-                text = stringResource(R.string.renderer_version_unsupported_warning, renderer.getRendererName()),
+                text = stringResource(
+                    R.string.renderer_version_unsupported_warning,
+                    operation.renderer.getRendererName()
+                ),
                 confirmText = stringResource(R.string.generic_anyway),
                 onConfirm = {
-                    launchGameViewModel.updateOperation(LaunchGameOperation.RealLaunch(version, quickPlay))
+                    launchGameViewModel.confirmUnsupportedRenderer()
                 },
                 onDismiss = {
-                    launchGameViewModel.updateOperation(LaunchGameOperation.None)
+                    launchGameViewModel.dismissUnsupportedRenderer()
                 }
             )
         }
@@ -304,22 +301,6 @@ fun LaunchGameOperation(
                 val currentRenderer = Renderers.setCurrentRenderer(version.getRenderer())
 
                 val mcVer = version.getVersionInfo()!!.minecraftVersion
-
-                // 设备完全支持 Vulkan 时跳过渲染器的版本支持检查
-                if (!version.hasVulkanBackend() || !ensureVulkanSupported(version)) {
-                    val supportedMin = currentRenderer.getMinMCVersion()?.let { verStr ->
-                        !isSfpewConfiguredFor(currentRenderer, version) && mcVer.isLowerVer(verStr)
-                    } ?: false
-                    val supportedMax = currentRenderer.getMaxMCVersion()?.let { verStr ->
-                        mcVer.isBiggerVer(verStr)
-                    } ?: false
-                    val isRendererUnsupported = supportedMin || supportedMax
-
-                    if (isRendererUnsupported) {
-                        launchGameViewModel.updateOperation(LaunchGameOperation.UnsupportedRenderer(currentRenderer, version, quickPlay))
-                        return@LaunchedEffect
-                    }
-                }
 
                 val unsupportedPlugins = NativePluginManager.getCheckedPlugins().filter { plugin ->
                     (plugin.minMCVer?.let { mcVer.isLowerVer(it) } ?: false) ||
@@ -473,7 +454,8 @@ fun LaunchGameOperation(
                     exitActivity = exitActivity,
                     submitError = submitError,
                     quickPlay = quickPlay,
-                    skipAccountRefresh = operation.skipAccountRefresh
+                    skipAccountRefresh = operation.skipAccountRefresh,
+                    ensureVulkanSupported = ensureVulkanSupported
                 )
                 launchGameViewModel.updateOperation(LaunchGameOperation.None)
             }

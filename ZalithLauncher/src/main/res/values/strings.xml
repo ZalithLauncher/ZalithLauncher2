@@ -306,7 +306,7 @@
     <!-- Launch button on the home screen; also the title of the final launch step -->
     <string name="main_launch_game">Launch</string>
     <!-- Title of the launch step that scans the installed mods -->
-    <string name="launch_check_mods">Checking mods</string>
+    <string name="launch_check_environment">Checking game environment</string>
     <!-- Title of the side panel listing running download and install tasks -->
     <string name="main_task_menu">Task Menu</string>
     <!-- Category on the download page that opens the game version downloads -->

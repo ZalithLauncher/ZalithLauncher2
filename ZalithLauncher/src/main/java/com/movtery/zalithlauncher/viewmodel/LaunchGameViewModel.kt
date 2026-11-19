@@ -22,6 +22,7 @@ import android.app.Activity
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.movtery.zalithlauncher.game.launch.GameLaunchFlow
+import com.movtery.zalithlauncher.game.renderer.RendererInterface
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.ui.screens.content.elements.LaunchGameOperation
@@ -29,6 +30,9 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.QuickPlay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
 
 class LaunchGameViewModel : ViewModel() {
     private val _launchFlow = MutableStateFlow<GameLaunchFlow?>(null)
@@ -43,13 +47,17 @@ class LaunchGameViewModel : ViewModel() {
      */
     val launchGameOperation = _launchGameOperation.asStateFlow()
 
+    /** 渲染器不兼容确认框的挂起续接 */
+    private var rendererUnsupportedCont: Continuation<Boolean>? = null
+
     fun start(
         activity: Activity,
         version: Version,
         exitActivity: () -> Unit,
         submitError: (ErrorViewModel.ThrowableMessage) -> Unit,
         quickPlay: QuickPlay?,
-        skipAccountRefresh: Boolean
+        skipAccountRefresh: Boolean,
+        ensureVulkanSupported: suspend (Version) -> Boolean = { true }
     ) {
         _launchFlow.update {
             GameLaunchFlow(viewModelScope).also {
@@ -57,6 +65,9 @@ class LaunchGameViewModel : ViewModel() {
                     context = activity,
                     version = version,
                     exitActivity = exitActivity,
+                    ensureVulkanSupported = ensureVulkanSupported,
+                    onRendererUnsupported = ::waitForRendererConfirmation,
+                    onRendererDeclined = ::cancel,
                     onError = { message ->
                         submitError(message)
                         cancel()
@@ -153,5 +164,33 @@ class LaunchGameViewModel : ViewModel() {
 
     fun updateOperation(operation: LaunchGameOperation) {
         this._launchGameOperation.update { operation }
+    }
+
+    /**
+     * 挂起展示渲染器不兼容确认框，等待用户选择
+     * @return 用户选择忽略风险继续启动时为 `true`
+     */
+    suspend fun waitForRendererConfirmation(renderer: RendererInterface, version: Version): Boolean {
+        return suspendCancellableCoroutine { continuation ->
+            rendererUnsupportedCont = continuation
+            updateOperation(LaunchGameOperation.UnsupportedRenderer(renderer, version))
+
+            continuation.invokeOnCancellation {
+                rendererUnsupportedCont = null
+                updateOperation(LaunchGameOperation.None)
+            }
+        }
+    }
+
+    /** 用户在渲染器不兼容确认框选择忽略风险，继续启动 */
+    fun confirmUnsupportedRenderer() = resumeRendererUnsupported(true)
+
+    /** 用户在渲染器不兼容确认框选择取消，中止启动 */
+    fun dismissUnsupportedRenderer() = resumeRendererUnsupported(false)
+
+    private fun resumeRendererUnsupported(result: Boolean) {
+        rendererUnsupportedCont?.resume(result)
+        rendererUnsupportedCont = null
+        updateOperation(LaunchGameOperation.None)
     }
 }

@@ -32,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -47,7 +48,10 @@ import com.movtery.zalithlauncher.game.multirt.RuntimesManager
 import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.renderer.ConfigurableRenderer
+import com.movtery.zalithlauncher.game.renderer.LoadedRenderer
 import com.movtery.zalithlauncher.game.renderer.Renderers
+import com.movtery.zalithlauncher.game.renderer.config.RendererConfigChanges
+import com.movtery.zalithlauncher.game.renderer.loadRenderer
 import com.movtery.zalithlauncher.game.support.touch_controller.VibrationHandler
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.game.version.installed.SettingState
@@ -91,6 +95,7 @@ import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
@@ -222,6 +227,20 @@ private fun VersionConfigs(
         }
         var showConfigDialog by remember { mutableStateOf(false) }
 
+        //配置变更后重新解析各渲染器（含该版本的独立覆盖），支持版本区间随 SFPEW 兼容层等开关动态变化
+        val configRevision = RendererConfigChanges.revision
+        val loadedRenderers by produceState(
+            initialValue = emptyMap(),
+            key1 = configRevision,
+            key2 = stateful.versionPath
+        ) {
+            value = withContext(Dispatchers.IO) {
+                renderers.associateBy({ it.getUniqueIdentifier() }) { renderer ->
+                    loadRenderer(renderer, stateful.versionPath)
+                }
+            }
+        }
+
         ListSettingsCard(
             modifier = Modifier.fillMaxWidth(),
             position = CardPosition.Middle,
@@ -232,7 +251,7 @@ private fun VersionConfigs(
             getItemText = { it.title },
             getItemId = { it.id },
             getItemSummary = { item ->
-                renderers.find { it.getUniqueIdentifier() == item.id }?.let { renderer ->
+                loadedRenderers[item.id]?.let { renderer ->
                     RendererSummaryLayout(renderer)
                 }
             },

@@ -1446,7 +1446,7 @@
     <string name="guide_joystick_events_events_text2">Jika hanya ingin mengontrol game, cukup edit pengikatan tombol sebenarnya di bagian “Input”</string>
     <string name="festivals_halloween">Selamat Halloween!</string>
     <string name="festivals_valentines">Selamat Hari Valentine!</string>
-    <string name="launch_check_mods">Mengecek Mod</string>
+    <string name="launch_check_environment">Mengecek lingkungan game</string>
     <string name="cape_name_twisted">Twisted</string>
     <string name="cape_name_hero">Hero</string>
     <string name="cape_name_aurora">Aurora</string>

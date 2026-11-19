@@ -99,10 +99,19 @@ class GameLauncher(
         config.account
     }
 
-    init {
+    /**
+     * 初始化渲染器设置、自定义配置
+     */
+    suspend fun initRendererConfig() {
         if (!Renderers.isCurrentRendererValid()) {
             val renderer = Renderers.setCurrentRenderer(version.getRenderer())
             version.setRendererInfo(renderer.getRendererName(), renderer is Plugin)
+        }
+
+        configuredRenderer = withContext(Dispatchers.IO) {
+            (Renderers.getCurrentRenderer() as? ConfigurableRenderer)?.let { renderer ->
+                prepareRendererLaunchConfig(renderer, version)
+            }
         }
     }
 
@@ -111,12 +120,6 @@ class GameLauncher(
     }
 
     override suspend fun launch(screenSize: IntSize): Int {
-        configuredRenderer = withContext(Dispatchers.IO) {
-            (Renderers.getCurrentRenderer() as? ConfigurableRenderer)?.let { renderer ->
-                prepareRendererLaunchConfig(renderer, version)
-            }
-        }
-
         val manifest = GSON.fromJson(File(version.getVersionPath(), "${version.getVersionName()}.json").readText(), GameManifest::class.java)
         val clientJar = manifest.inheritsFrom?.let { inheritsFrom ->
             //FIXME: 依赖的是一个原版ID的版本，但这个版本可能是用户自行安装的，只是版本名称与ID一致，不保证客户端真的是对应版本

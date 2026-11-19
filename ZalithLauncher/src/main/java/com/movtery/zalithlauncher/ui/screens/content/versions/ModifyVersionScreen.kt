@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.ui.screens.content.versions
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -751,13 +750,12 @@ private fun MCVersionRow(
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
+        onClick = onClick,
         color = cardColor(),
         contentColor = onCardColor()
     ) {
         Row(
-            modifier = Modifier
-                .clickable(onClick = onClick)
-                .padding(vertical = 4.dp),
+            modifier = Modifier.padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Spacer(modifier = Modifier.width(16.dp))

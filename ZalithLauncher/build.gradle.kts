@@ -3,6 +3,8 @@ import com.android.build.api.variant.impl.VariantOutputImpl
 import com.android.build.gradle.tasks.MergeSourceSetFolders
 import groovy.json.JsonOutput
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.net.HttpURLConnection
+import java.net.URL
 import java.security.MessageDigest
 
 plugins {
@@ -44,6 +46,19 @@ fun getKeyFromLocal(envKey: String, fileName: String? = null, default: String? =
 
 fun File.sha1Hex(): String {
     val digest = MessageDigest.getInstance("SHA-1")
+    inputStream().use { stream ->
+        val buffer = ByteArray(8192)
+        while (true) {
+            val count = stream.read(buffer)
+            if (count < 0) break
+            digest.update(buffer, 0, count)
+        }
+    }
+    return digest.digest().joinToString("") { "%02x".format(it) }
+}
+
+fun File.sha256Hex(): String {
+    val digest = MessageDigest.getInstance("SHA-256")
     inputStream().use { stream ->
         val buffer = ByteArray(8192)
         while (true) {
@@ -102,6 +117,94 @@ fun writeComponentAssetManifests(assetsDir: File) {
         ?.forEach { componentPaths += "app_runtime/lwjgl/${it.name}" }
     componentPaths.forEach {
         writeAssetManifest(assetsDir, it)
+    }
+}
+
+
+val legalDocsRepo = project.findProperty("legal_docs_repo") as? String ?: "ZalithLauncher/legal-docs"
+val legalDocsRef = (project.findProperty("legal_docs_ref") as? String)?.takeIf { it.isNotBlank() }
+val legalDocsToken = System.getenv("LEGAL_DOCS_TOKEN")?.takeIf { it.isNotBlank() }
+val legalDocsLocalDir = (project.findProperty("legal_docs_local_dir") as? String)?.takeIf { it.isNotBlank() }
+val legalDocsManifest = file("legal-docs.sha256")
+
+fun downloadLegalDoc(url: URL, target: File, token: String) {
+    val connection = url.openConnection() as HttpURLConnection
+    connection.requestMethod = "GET"
+    connection.connectTimeout = 15000
+    connection.readTimeout = 30000
+    connection.setRequestProperty("Authorization", "Bearer $token")
+    connection.setRequestProperty("User-Agent", "ZalithLauncher2-legal-docs-fetch")
+    if (connection.responseCode !in 200..299) {
+        throw GradleException("Legal doc download failed (HTTP ${connection.responseCode}): $url")
+    }
+    connection.inputStream.use { input ->
+        target.outputStream().use { output -> input.copyTo(output) }
+    }
+}
+
+val fetchLegalDocs by tasks.registering {
+    group = "build"
+    description = "Injects the proprietary legal documents into the APK assets."
+    doLast {
+        // localDir 相对路径以仓库根目录解析
+        val localRoot = legalDocsLocalDir?.let { dir -> File(dir).takeIf(File::isAbsolute) ?: rootProject.file(dir) }
+        val ref = legalDocsRef
+        val token = legalDocsToken
+        val outputDir = layout.buildDirectory.dir("legalAssets/legal").get().asFile
+
+        // 远端来源需要同时具备固定 commit 与密钥；两者缺一则按无协议构建处理
+        if (localRoot == null && (ref == null || token == null)) {
+            outputDir.deleteRecursively()
+            logger.warn("BUILD: legal docs source not configured; APK will not bundle the legal documents.")
+            return@doLast
+        }
+
+        require(legalDocsManifest.isFile) { "Missing legal docs manifest: $legalDocsManifest" }
+        outputDir.deleteRecursively()
+
+        legalDocsManifest.readLines()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() && !it.startsWith("#") }
+            .forEach { line ->
+                val fields = line.split(Regex("\\s+"), limit = 2)
+                val expectedSha256 = fields.getOrNull(0) ?: error("Invalid legal docs manifest line: $line")
+                val path = fields.getOrNull(1) ?: error("Invalid legal docs manifest line: $line")
+
+                val target = File(outputDir, path)
+                target.parentFile.mkdirs()
+                val localDoc = localRoot?.let { root -> File(root, path) }
+                if (localDoc != null) {
+                    require(localDoc.isFile) { "Legal doc not found in local dir: $localDoc" }
+                    localDoc.copyTo(target, overwrite = true)
+                } else {
+                    // 走到此处必然处于远端下载路径，ref 与 token 已在入口判空
+                    val remoteToken = token ?: throw GradleException("LEGAL_DOCS_TOKEN is required to fetch legal docs.")
+                    val remoteRef = ref ?: throw GradleException("legal_docs_ref is required to fetch legal docs.")
+                    downloadLegalDoc(
+                        URL("https://raw.githubusercontent.com/$legalDocsRepo/$remoteRef/$path"),
+                        target,
+                        remoteToken
+                    )
+                }
+
+                val actualSha256 = target.sha256Hex()
+                if (!actualSha256.equals(expectedSha256, ignoreCase = true)) {
+                    throw GradleException(
+                        "Legal doc checksum mismatch: $path (expected $expectedSha256, actual $actualSha256)"
+                    )
+                }
+            }
+    }
+}
+
+tasks.named("preBuild") { dependsOn(fetchLegalDocs) }
+
+androidComponents {
+    onVariants { variant ->
+        // 协议文件由 fetchLegalDocs 注入 build/legalAssets（fork/无密钥构建时该目录为空）
+        variant.sources.assets?.addStaticSourceDirectory(
+            layout.buildDirectory.dir("legalAssets").get().asFile.absolutePath
+        )
     }
 }
 

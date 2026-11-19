@@ -77,8 +77,6 @@ const val IMPORT_TYPE_MODPACK = "modpack"
 const val IMPORT_TYPE_CONTROLS = "controls"
 const val IMPORT_TYPE_UNKNOWN = "unknown"
 
-private const val WELCOME_VERSION_KEY = "welcomeVersionKey"
-private const val WELCOME_VERSION_VALUE = 1
 private const val AGREEMENT_DATA_PATH = "legal/data.json"
 private const val ACCEPTED_AGREEMENT_VERSION_KEY = "acceptedAgreementVersion"
 
@@ -145,7 +143,6 @@ class SplashActivity : BaseAppCompatActivity() {
                     SplashScreen(
                         startAllTask = { startAllTask() },
                         onWelcomeFinished = {
-                            launcherMMKV().putInt(WELCOME_VERSION_KEY, WELCOME_VERSION_VALUE).apply()
                             acceptCurrentAgreement()
                             switchScreen(SplashOperation.Loading)
                             checkTasksToMain()
@@ -176,14 +173,10 @@ class SplashActivity : BaseAppCompatActivity() {
 
             // 检查协议同意情况
             val acceptedAgreementVersion = launcherMMKV().getString(ACCEPTED_AGREEMENT_VERSION_KEY, null)
-            val agreementConsentRequired = requiresAgreementConsent()
-            if (
-                agreementConsentRequired ||
-                launcherMMKV().getInt(WELCOME_VERSION_KEY, 0) < WELCOME_VERSION_VALUE
-            ) {
+            if (requiresAgreementConsent()) {
                 switchScreen(SplashOperation.Welcome)
                 // 曾同意过旧版的协议，发布对话框提醒
-                if (acceptedAgreementVersion != null && agreementConsentRequired) {
+                if (acceptedAgreementVersion != null) {
                     showAgreementUpdateDialog()
                 }
             } else {

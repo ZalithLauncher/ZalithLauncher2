@@ -1445,7 +1445,7 @@
     <string name="guide_joystick_events_events_text2">Se você só quer controlar o jogo, edite os mapeamentos de teclas reais na seção “Tecla”</string>
     <string name="festivals_halloween">Feliz dia das bruxas!</string>
     <string name="festivals_valentines">Feliz Dia dos Namorados!</string>
-    <string name="launch_check_mods">Verificando mods</string>
+    <string name="launch_check_environment">Verificando o ambiente do jogo</string>
     <string name="cape_name_hero">Herói</string>
     <string name="cape_name_twisted">Torcido</string>
     <string name="cape_name_aurora">Aurora</string>

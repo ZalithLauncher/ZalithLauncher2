@@ -1255,7 +1255,7 @@
     <string name="duration_format">%s Ngày %s Giờ %s Phút</string>
     <string name="notification_task_service_name">Dịch vụ giữ cho tiến trình sống sót</string>
     <string name="notification_task_service_running">Các nhiệm vụ đang chạy nền. Hãy giữ cho launcher chạy.</string>
-    <string name="launch_check_mods">Đang kiểm tra các bản mod</string>
+    <string name="launch_check_environment">Đang kiểm tra môi trường trò chơi</string>
     <string name="download_category_favorites">Yêu thích</string>
     <string name="download_install_error_optifine_forge17_incompatible">Phiên bản Optifine (build %s) này không tương thích với Forge 1.17+. Yêu cầu Optifine H1 Pre2 (20210924–190833) hoặc mới hơn.</string>
     <string name="favorite_add">Yêu thích</string>

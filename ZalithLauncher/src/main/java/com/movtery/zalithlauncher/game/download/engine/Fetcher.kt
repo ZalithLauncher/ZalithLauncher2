@@ -30,8 +30,13 @@ import java.io.File
 import java.io.IOException
 import java.io.InputStream
 import java.io.InterruptedIOException
+import java.net.ConnectException
 import java.net.HttpURLConnection
+import java.net.NoRouteToHostException
+import java.net.SocketTimeoutException
 import java.net.URL
+import java.net.UnknownHostException
+import java.util.concurrent.ConcurrentHashMap
 import java.util.zip.GZIPInputStream
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -189,6 +194,12 @@ object Fetcher {
     private const val RETRY_BACKOFF_MILLIS = 200L
     private const val BUFFER_SIZE = 32 * 1024
 
+    /** 源不可达的标记有效期 */
+    private const val UNREACHABLE_TTL_MILLIS = 300_000L
+
+    /** 记录连不通的源，避免每个文件都先吃一次连接超时 */
+    private val unreachableSources = ConcurrentHashMap<String, Long>()
+
     /**
      * 按候选源顺序下载文件；全部候选耗尽后抛 [AllSourcesFailedException]，
      * message 内含每个源，因果链保留最后一次失败。
@@ -207,7 +218,9 @@ object Fetcher {
         require(retry > 0) { "Retry count must be greater than 0" }
 
         val failures = mutableListOf<DownloadException>()
-        for (candidate in urls) {
+        //已知连不通的源排到最后，避免每个文件都先等一次连接超时
+        val candidates = urls.sortedBy { if (isUnreachable(it)) 1 else 0 }
+        for (candidate in candidates) {
             val url = try {
                 URL(candidate)
             } catch (e: Exception) {
@@ -216,11 +229,13 @@ object Fetcher {
             }
             try {
                 downloadCandidate(url, targetFile, sha1, retry, onBytes)
+                unreachableSources.remove(originOf(candidate))
                 return
             } catch (e: CancellationException) {
                 throw e
             } catch (e: DownloadException) {
                 Logger.warning(TAG, "Candidate source failed: $candidate", e)
+                if (e.isUnreachable()) markUnreachable(candidate)
                 failures += e
             }
         }
@@ -229,6 +244,40 @@ object Fetcher {
         failures.forEach { last.addSuppressed(it) }
         val detail = urls.joinToString(separator = "\n") { "- $it" }
         throw AllSourcesFailedException("All ${urls.size} candidate source(s) failed:\n$detail", last)
+    }
+
+    private fun originOf(url: String): String = try {
+        val parsed = URL(url)
+        "${parsed.protocol}://${parsed.host}:${parsed.port}"
+    } catch (e: Exception) {
+        url
+    }
+
+    private fun isUnreachable(url: String): Boolean {
+        val origin = originOf(url)
+        val markedAt = unreachableSources[origin] ?: return false
+        if (System.currentTimeMillis() - markedAt > UNREACHABLE_TTL_MILLIS) {
+            unreachableSources.remove(origin)
+            return false
+        }
+        return true
+    }
+
+    private fun markUnreachable(url: String) {
+        unreachableSources[originOf(url)] = System.currentTimeMillis()
+    }
+
+    /** 连接层失败（连不上、域名解析不了），重试同一源没有意义 */
+    private fun Throwable.isUnreachable(): Boolean {
+        var current: Throwable? = this
+        while (current != null) {
+            when (current) {
+                is ConnectException, is UnknownHostException, is NoRouteToHostException -> return true
+                is SocketTimeoutException -> if (current.message?.contains("connect", ignoreCase = true) == true) return true
+            }
+            current = current.cause?.takeIf { it !== current }
+        }
+        return false
     }
 
     /** 单个候选源的跨尝试状态：落盘上下文与续传资格在重试间延续 */
@@ -304,6 +353,8 @@ object Fetcher {
                     if (attempt < retryLimit - 1) delay(RETRY_BACKOFF_MILLIS.milliseconds)
                 } catch (e: Exception) {
                     Logger.warning(TAG, "Download failed: $url", e)
+                    //连不上就不在这个源上继续重试，直接换源
+                    if (e.isUnreachable()) throw DownloadException(url.toString(), e)
                     exceptions += e
                     if (attempt < retryLimit - 1) delay(RETRY_BACKOFF_MILLIS.milliseconds)
                 }

@@ -87,6 +87,14 @@ fun String.mapBMCLMirrorUrls(
         replaceFirst(origin, mirror)
     }
 
+    //assets 在镜像策略下仍以官方源优先，连不通再回退镜像
+    if (priority == MirrorPriority.MIRROR_FIRST &&
+        mirrorUrl != null && mirrorUrl != this &&
+        mirrorUrl.startsWith(BMCLAPI.ASSETS.url)
+    ) {
+        return listOf(this, mirrorUrl) + listOfNotNull(neoForgeCDNUrl)
+    }
+
     return orderCandidates(
         official = this,
         mirror = mirrorUrl,

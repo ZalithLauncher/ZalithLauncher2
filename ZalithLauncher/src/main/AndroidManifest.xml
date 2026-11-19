@@ -107,6 +107,18 @@
             </intent-filter>
         </activity-alias>
 
+        <!-- Starling native Rust engine hosted inside Voxium. -->
+        <activity
+            android:name="dev.horizon.android.HorizonActivity"
+            android:configChanges="orientation|keyboardHidden|screenSize|uiMode|smallestScreenSize|screenLayout|keyboard|density"
+            android:exported="false"
+            android:launchMode="singleTask"
+            android:screenOrientation="sensorLandscape">
+            <meta-data
+                android:name="android.app.lib_name"
+                android:value="horizon_android" />
+        </activity>
+
         <activity
             android:name=".ui.activities.MainActivity"
             android:launchMode="singleTop"

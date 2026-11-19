@@ -76,6 +76,7 @@ import com.movtery.zalithlauncher.ui.screens.content.elements.TitleTaskFlowDialo
 import com.movtery.zalithlauncher.ui.screens.content.navigateToLogView
 import com.movtery.zalithlauncher.ui.screens.content.navigateToWeb
 import com.movtery.zalithlauncher.ui.screens.main.MainScreen
+import com.movtery.zalithlauncher.ui.screens.main.RustEngineLauncherOverlay
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenu
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.LogShareMenuOperation
 import com.movtery.zalithlauncher.ui.screens.main.crashlogs.ShareLinkOperation
@@ -359,6 +360,8 @@ class MainActivity : BaseAppCompatActivity() {
                             errorViewModel.showError(it)
                         }
                     )
+
+                    RustEngineLauncherOverlay(this@MainActivity)
 
                     //节日彩蛋效果层
                     FestivalEffects(

@@ -83,6 +83,21 @@ jobs:
           test -f "$ndk/source.properties"
           echo "ANDROID_NDK_HOME=$ndk" >> "$GITHUB_ENV"
 
+      - name: Prepare Starling Rust engine (arm64)
+        if: matrix.arch == 'all' || matrix.arch == 'arm64'
+        shell: bash
+        run: |
+          set -euo pipefail
+          base="https://raw.githubusercontent.com/ashmeet-op/Hyper_Launcher_v3/f42251572a3f6dd55904f111a284af565e5c5853/Hyper_Launcher_v3"
+          mkdir -p ZalithLauncher/src/main/jniLibs/arm64-v8a ZalithLauncher/src/main/assets
+          curl --fail --location --retry 3 "$base/libs/libhorizon_android.aar" -o /tmp/libhorizon_android.aar
+          test "$(git hash-object /tmp/libhorizon_android.aar)" = "7b2fb2e6365291d565d9766467fad8d29d8bfbb5"
+          unzip -p /tmp/libhorizon_android.aar jni/arm64-v8a/libhorizon_android.so > ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android.so
+          test -s ZalithLauncher/src/main/jniLibs/arm64-v8a/libhorizon_android.so
+          curl --fail --location --retry 3 "$base/src/main/assets/engine-data.zip" -o ZalithLauncher/src/main/assets/engine-data.zip
+          test "$(git hash-object ZalithLauncher/src/main/assets/engine-data.zip)" = "0adcfcf390ed1ede64ec724d592fe3f4a7701a60"
+          echo "Starling arm64 native runtime and engine data are ready."
+
       - name: Build APK for ${{ matrix.arch }}
         run: |
           chmod +x gradlew

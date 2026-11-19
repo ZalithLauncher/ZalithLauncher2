@@ -48,8 +48,10 @@ import com.movtery.zalithlauncher.game.renderer.getSfpewLibraryPath
 import com.movtery.zalithlauncher.game.renderer.isSfpewEnabledFor
 import com.movtery.zalithlauncher.game.renderer.prepareRendererLaunchConfig
 import com.movtery.zalithlauncher.game.support.touch_controller.ControllerProxy
+import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
+import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.path.PathManager
@@ -253,9 +255,15 @@ class GameLauncher(
 
         disableSplash(gameDirPath)
 
-        if (version.getVersionInfo()?.hasLoader(ModLoader.NEOFORGE) == true) {
-            // 关闭NeoForge 12早期加载屏动画
-            disableFmlEarlyWindow(gameDirPath)
+        version.getVersionInfo()?.let { versionInfo ->
+            if (
+                versionInfo.hasLoader(ModLoader.NEOFORGE) &&
+                !versionInfo.minecraftVersion.isLowerVer("26.2") &&
+                version.getGraphicsApi() != GraphicsApi.OPENGL
+            ) {
+                // Vulkan 与 FML 早期窗口的交接尚不兼容
+                disableFmlEarlyWindow(gameDirPath)
+            }
         }
 
         //初始化运行环境
@@ -390,11 +398,7 @@ class GameLauncher(
     }
 
     /**
-     * 关闭 FML 的早期加载屏
-     *
-     * NeoForge 12（MC 26.3+）移除了 -Dfml.earlyprogresswindow 属性通道，仅读取 config/fml.toml
-     * 早期加载屏的渲染会在启动扫描期反复分配 gralloc 缓冲，与启动器 UI 互相阻塞导致界面冻结直至无响应，
-     * 写入 earlyWindowControl = false 关闭
+     * 在可能使用 Vulkan 后端时关闭 FML 的早期加载窗口
      */
     private fun disableFmlEarlyWindow(dir: File) {
         File(dir, "config").let { configDir ->

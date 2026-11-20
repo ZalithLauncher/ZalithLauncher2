@@ -2599,7 +2599,7 @@
     <string name="about_launcher_author_movtery_text">Author of %s</string>
     <!-- Button on the About page opening the project website -->
     <string name="about_launcher_project_link">Project Link</string>
-    <!-- Button on the About page opening the sponsorship page; also the title of the sponsorship dialog -->
+    <string name="about_launcher_official_website">Official Website</string>
     <string name="about_sponsor">Sponsorship Support</string>
     <!-- Item title on the About page opening the monthly sponsors dialog -->
     <string name="about_sponsors_title">Launcher Sponsors</string>

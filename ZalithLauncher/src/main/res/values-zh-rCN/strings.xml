@@ -1350,6 +1350,7 @@
     <string name="about_launcher_author_movtery_title">墨北Mov</string>
     <string name="about_launcher_author_movtery_text">%s 的作者</string>
     <string name="about_launcher_project_link">项目地址</string>
+    <string name="about_launcher_official_website">官网地址</string>
     <string name="about_sponsor">赞助支持</string>
     <string name="about_sponsors_title">启动器赞助者</string>
     <string name="about_sponsors_summary">感谢所有支持 %s 的赞助者们</string>

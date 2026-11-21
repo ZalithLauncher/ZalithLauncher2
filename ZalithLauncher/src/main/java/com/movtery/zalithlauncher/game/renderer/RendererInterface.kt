@@ -18,6 +18,8 @@
 
 package com.movtery.zalithlauncher.game.renderer
 
+import com.movtery.zalithlauncher.game.renderer.config.ResolvedRendererConfig
+
 /**
  * 启动器渲染器实现
  */
@@ -63,9 +65,19 @@ interface RendererInterface {
     fun getMinMCVersion(): String? = null
 
     /**
+     * 获取渲染器最低兼容版本，可根据已解析的渲染器配置调整边界；无配置上下文时回退静态值
+     */
+    fun getMinMCVersion(config: ResolvedRendererConfig?): String? = getMinMCVersion()
+
+    /**
      * 获取渲染器最高兼容版本
      */
     fun getMaxMCVersion(): String? = null
+
+    /**
+     * 获取渲染器最高兼容版本，可根据已解析的渲染器配置调整边界；无配置上下文时回退静态值
+     */
+    fun getMaxMCVersion(config: ResolvedRendererConfig?): String? = getMaxMCVersion()
 
     /**
      * 获取渲染器最低兼容版本的展示用版本号
@@ -73,9 +85,19 @@ interface RendererInterface {
     fun getDisplayMinMCVersion(): String? = getMinMCVersion()
 
     /**
+     * 获取渲染器最低兼容版本的展示用版本号，跟随配置感知的版本边界
+     */
+    fun getDisplayMinMCVersion(config: ResolvedRendererConfig?): String? = getMinMCVersion(config)
+
+    /**
      * 获取渲染器最高兼容版本的展示用版本号
      */
     fun getDisplayMaxMCVersion(): String? = getMaxMCVersion()
+
+    /**
+     * 获取渲染器最高兼容版本的展示用版本号，跟随配置感知的版本边界
+     */
+    fun getDisplayMaxMCVersion(config: ResolvedRendererConfig?): String? = getMaxMCVersion(config)
 
     /**
      * 获取渲染器的环境变量

@@ -158,6 +158,7 @@ fun FavoriteProjectLayout(
                                 // 作者
                                 authors?.let {
                                     Row(
+                                        modifier = Modifier.weight(1f, fill = false),
                                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {

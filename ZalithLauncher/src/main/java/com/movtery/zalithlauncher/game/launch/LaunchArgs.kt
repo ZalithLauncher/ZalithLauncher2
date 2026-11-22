@@ -23,6 +23,7 @@ import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.bridge.LoggerBridge
 import com.movtery.zalithlauncher.game.account.Account
+import com.movtery.zalithlauncher.game.account.getPassportServerId
 import com.movtery.zalithlauncher.game.account.isAuthServerAccount
 import com.movtery.zalithlauncher.game.account.isLocalAccount
 import com.movtery.zalithlauncher.game.account.offline.OfflineYggdrasilServer
@@ -204,11 +205,13 @@ class LaunchArgs(
                 }
             }
         } else if (account.isAuthServerAccount()) {
-            if (account.otherBaseUrl!!.contains("auth.mc-user.com")) {
-                argsList.add("-javaagent:${LibPath.NIDE_8_AUTH.absolutePath}=${account.otherBaseUrl!!.replace("https://auth.mc-user.com:233/", "")}")
+            val baseUrl = account.otherBaseUrl!!
+            if (baseUrl.contains("auth.mc-user.com")) {
+                val serverId = getPassportServerId(baseUrl)
+                argsList.add("-javaagent:${LibPath.NIDE_8_AUTH.absolutePath}=$serverId")
                 argsList.add("-Dnide8auth.client=true")
             } else {
-                argsList.add("-javaagent:${LibPath.AUTHLIB_INJECTOR.absolutePath}=${account.otherBaseUrl}")
+                argsList.add("-javaagent:${LibPath.AUTHLIB_INJECTOR.absolutePath}=$baseUrl")
                 argsList.add("-Dauthlibinjector.side=client")
             }
         }

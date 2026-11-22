@@ -106,6 +106,9 @@ class BackgroundViewModel: ViewModel() {
      */
     val blurredBackground: ImageBitmap? get() = glassBlur.blurredBackground
 
+    /** 同一次读取同时取得位图与预合成标记，避免发布切换时混用两帧的元数据 */
+    internal val blurredBackgroundFrame: BlurredBackgroundFrame? get() = glassBlur.blurredBackgroundFrame
+
     fun updateBackgroundBounds(coordinates: LayoutCoordinates) {
         val position = coordinates.positionOnScreen()
         if (!position.isSpecified) return

@@ -27,6 +27,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -48,15 +50,39 @@ import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.roundToInt
+import androidx.compose.ui.graphics.Canvas as ComposeCanvas
+import androidx.compose.ui.graphics.Paint as ComposePaint
 
 private const val TAG = "BackgroundGlassBlur"
 private const val STATIC_SAMPLING_MAX_DIM = 512
 private const val STATIC_MAX_SAMPLED_BLUR_RADIUS = 24f
 
+internal data class BlurredBackgroundFrame(
+    val image: ImageBitmap,
+    val whiteOverlayApplied: Boolean
+)
+
 /** 每次静态发布都创建独立位图，调用方不得再修改返回对象。 */
-internal fun createStaticBlurResultBitmap(pixels: IntArray, width: Int, height: Int): Bitmap =
+internal fun createStaticBlurResultBitmap(
+    pixels: IntArray,
+    width: Int,
+    height: Int,
+    whiteOverlayAlpha: Float = 0f
+): Bitmap =
     createBitmap(width, height).also { result ->
         result.setPixels(pixels, 0, width, 0, 0, width, height)
+        if (whiteOverlayAlpha > 0f) {
+            ComposeCanvas(result.asImageBitmap()).drawRect(
+                left = 0f,
+                top = 0f,
+                right = width.toFloat(),
+                bottom = height.toFloat(),
+                paint = ComposePaint().apply {
+                    color = Color.White.copy(alpha = whiteOverlayAlpha)
+                    blendMode = BlendMode.Softlight
+                }
+            )
+        }
     }
 
 /**
@@ -71,8 +97,10 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
         private set
 
     //动态双缓冲在取消/重试后可能再次发布同一 Bitmap，必须始终通知 Compose 重绘。
-    var blurredBackground by mutableStateOf<ImageBitmap?>(null, neverEqualPolicy())
-        private set
+    private var backgroundFrame by mutableStateOf<BlurredBackgroundFrame?>(null, neverEqualPolicy())
+
+    internal val blurredBackgroundFrame: BlurredBackgroundFrame? get() = backgroundFrame
+    val blurredBackground: ImageBitmap? get() = backgroundFrame?.image
 
     private var sampleResultA: Bitmap? = null
     private var sampleResultB: Bitmap? = null
@@ -104,13 +132,13 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
     }
 
     fun clearBlurredBackground() {
-        blurredBackground = null
+        backgroundFrame = null
     }
 
     /** 媒体文件变化后使解码源与尚未完成的静态请求失效。 */
     fun invalidateStaticCache() {
         staticCacheEpoch.incrementAndGet()
-        blurredBackground = null
+        backgroundFrame = null
     }
 
     /**
@@ -140,7 +168,7 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
                 null
             }
         }
-        if (result != null) blurredBackground = result
+        if (result != null) backgroundFrame = BlurredBackgroundFrame(result, whiteOverlayApplied = false)
     }
 
     /**
@@ -166,7 +194,7 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
                     val result = regenerateStaticBitmap(request, context) ?: return@withLock
                     context.ensureActive()
                     ensureStaticEpoch(epoch)
-                    blurredBackground = result.asImageBitmap()
+                    backgroundFrame = BlurredBackgroundFrame(result.asImageBitmap(), whiteOverlayApplied = true)
                     staticResultRequest = request
                 } catch (c: CancellationException) {
                     throw c
@@ -244,7 +272,12 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
         )
 
         //已发布的 ImageBitmap 必须视为不可变；静态预览始终用新对象替换旧图。
-        return createStaticBlurResultBitmap(pixels, plan.width, plan.height)
+        return createStaticBlurResultBitmap(
+            pixels = pixels,
+            width = plan.width,
+            height = plan.height,
+            whiteOverlayAlpha = whiteOverlayAlpha(request.blur)
+        )
     }
 
     private fun decodeStaticSource(request: StaticRequest): Bitmap? {

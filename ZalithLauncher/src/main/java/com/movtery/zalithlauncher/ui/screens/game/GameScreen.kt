@@ -676,12 +676,13 @@ fun GameScreen(
             }
 
             //控制布局层
+            val controlsOpacity by GameUiSettings.controlsOpacity.flow.collectAsStateWithLifecycle()
             ControlBoxLayout(
                 modifier = Modifier.fillMaxSize(),
                 observedLayout = viewModel.observableLayout,
                 eventHandler = viewModel.eventHandler,
                 checkOccupiedPointers = { viewModel.occupiedPointers.contains(it) },
-                opacity = { (GameUiSettings.controlsOpacity.flow.value.toFloat() / 100f).coerceIn(0f, 1f) },
+                opacity = { (controlsOpacity.toFloat() / 100f).coerceIn(0f, 1f) },
                 markPointerAsMoveOnly = { viewModel.moveOnlyPointers.add(it) },
                 onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) },

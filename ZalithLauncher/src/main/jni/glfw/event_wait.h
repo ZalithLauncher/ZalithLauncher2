@@ -18,6 +18,8 @@ struct gw_event_wait {
     _Atomic uint32_t consumed;
     _Atomic bool active;
     uint32_t pumping;
+    /* Accessed only by the waiting thread: EWMA of futex wake-up delay (ns). */
+    int64_t oversleep_ewma;
 };
 
 void gw_events_reset(struct gw_event_wait *events);

@@ -21,10 +21,11 @@ package com.movtery.zalithlauncher.viewmodel
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
-import android.graphics.RectF
-import android.os.Build
+import android.graphics.Paint
+import android.graphics.Rect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.neverEqualPolicy
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
@@ -32,21 +33,35 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.layer.GraphicsLayer
 import androidx.core.graphics.createBitmap
 import com.movtery.zalithlauncher.context.GlobalContext
-import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.util.concurrent.atomic.AtomicLong
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.log2
 import kotlin.math.max
 import kotlin.math.pow
 import kotlin.math.roundToInt
 
 private const val TAG = "BackgroundGlassBlur"
+private const val STATIC_SAMPLING_MAX_DIM = 512
+private const val STATIC_MAX_SAMPLED_BLUR_RADIUS = 24f
+
+/** 每次静态发布都创建独立位图，调用方不得再修改返回对象。 */
+internal fun createStaticBlurResultBitmap(pixels: IntArray, width: Int, height: Int): Bitmap =
+    createBitmap(width, height).also { result ->
+        result.setPixels(pixels, 0, width, 0, 0, width, height)
+    }
 
 /**
- * 背景玻璃模糊管线
+ * 背景玻璃模糊管线。
+ * 静态图片按请求缓存，动态内容只处理已经降采样的捕获层。
  */
 class BackgroundGlassBlur(private val backgroundFile: File) {
     var glassLayer by mutableStateOf<GraphicsLayer?>(null)
@@ -55,15 +70,30 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
     var captureLayer by mutableStateOf<GraphicsLayer?>(null)
         private set
 
-    var blurredBackground by mutableStateOf<ImageBitmap?>(null)
+    //动态双缓冲在取消/重试后可能再次发布同一 Bitmap，必须始终通知 Compose 重绘。
+    var blurredBackground by mutableStateOf<ImageBitmap?>(null, neverEqualPolicy())
         private set
 
-    private var sampleFrame: Bitmap? = null
     private var sampleResultA: Bitmap? = null
     private var sampleResultB: Bitmap? = null
     private var sampleResultUseA = false
     private var samplePixels: IntArray? = null
     private var sampleTemp: IntArray? = null
+    private var sampleWorkspace: IntArray? = null
+
+    private val staticMutex = Mutex()
+    private val staticCacheEpoch = AtomicLong()
+    private var staticSource: Bitmap? = null
+    private var staticSourceKey: StaticSourceKey? = null
+    private var staticResultRequest: StaticRequest? = null
+    private var staticFrame: Bitmap? = null
+    private var staticCanvas: Canvas? = null
+    private var staticPixels: IntArray? = null
+    private var staticTemp: IntArray? = null
+    private var staticWorkspace: IntArray? = null
+    private val staticSrcRect = Rect()
+    private val staticDstRect = Rect()
+    private val staticPaint = Paint(Paint.FILTER_BITMAP_FLAG)
 
     fun attachGlassLayer(layer: GraphicsLayer?) {
         glassLayer = layer
@@ -77,97 +107,204 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
         blurredBackground = null
     }
 
-    suspend fun captureFrame() {
+    /** 媒体文件变化后使解码源与尚未完成的静态请求失效。 */
+    fun invalidateStaticCache() {
+        staticCacheEpoch.incrementAndGet()
+        blurredBackground = null
+    }
+
+    /**
+     * 捕获当前低分辨率捕获层的一帧。
+     * @param sampledRadiusPx 已在捕获层降采样时同步缩小的模糊半径
+     */
+    suspend fun captureFrame(sampledRadiusPx: Float) {
         val layer = captureLayer ?: return
-        //层尚未完成首次录制时尺寸为零，跳过本帧
         if (layer.size.width < 1 || layer.size.height < 1) return
-        val snapshot = runCatching { layer.toImageBitmap() }
-            .onFailure {
-                if (it is CancellationException) throw it
-                logSampleFailure(it)
+        val snapshot = try {
+            layer.toImageBitmap()
+        } catch (c: CancellationException) {
+            throw c
+        } catch (t: Throwable) {
+            logSampleFailure(t)
+            return
+        }
+
+        val context = currentCoroutineContext()
+        val result = withContext(Dispatchers.Default) {
+            try {
+                blurSnapshot(snapshot, sampledRadiusPx, context)
+            } catch (c: CancellationException) {
+                throw c
+            } catch (t: Throwable) {
+                logSampleFailure(t)
+                null
             }
-            .getOrNull() ?: return
-        blurredBackground = withContext(Dispatchers.Default) {
-            runCatching { downscaleAndBlurSnapshot(snapshot) }
-                .onFailure { logSampleFailure(it) }
-                .getOrNull()
+        }
+        if (result != null) blurredBackground = result
+    }
+
+    /**
+     * 生成静态显示位图。相同请求直接命中缓存，新请求完成前保留上一张结果供实时预览。
+     */
+    suspend fun refreshStaticDisplayBitmap(blur: Int, targetWidth: Int, targetHeight: Int) {
+        if (targetWidth <= 0 || targetHeight <= 0) return
+        withContext(Dispatchers.IO) {
+            staticMutex.withLock {
+                val epoch = staticCacheEpoch.get()
+                val request = StaticRequest(
+                    blur = blur,
+                    targetWidth = targetWidth,
+                    targetHeight = targetHeight,
+                    epoch = epoch,
+                    lastModified = backgroundFile.lastModified(),
+                    fileLength = backgroundFile.length()
+                )
+                if (blurredBackground != null && staticResultRequest == request) return@withLock
+
+                val context = currentCoroutineContext()
+                try {
+                    val result = regenerateStaticBitmap(request, context) ?: return@withLock
+                    context.ensureActive()
+                    ensureStaticEpoch(epoch)
+                    blurredBackground = result.asImageBitmap()
+                    staticResultRequest = request
+                } catch (c: CancellationException) {
+                    throw c
+                } catch (t: Throwable) {
+                    logSampleFailure(t)
+                }
+            }
         }
     }
 
-    private var sampleFailureLogged = false
-
-    private fun logSampleFailure(t: Throwable) {
-        if (sampleFailureLogged) return
-        sampleFailureLogged = true
-        Logger.warning(TAG, "background glass sampling failed, subsequent failed frames will be skipped", t)
-    }
-
-    suspend fun refreshStaticDisplayBitmap(blur: Int) {
-        blurredBackground = withContext(Dispatchers.IO) {
-            runCatching { regenerateStaticBitmap(blur) }
-                .onFailure { if (it is CancellationException) throw it }
-                .getOrNull()
-        }
-    }
-
-    private fun downscaleAndBlurSnapshot(snapshot: ImageBitmap): ImageBitmap {
+    private fun blurSnapshot(
+        snapshot: ImageBitmap,
+        sampledRadiusPx: Float,
+        context: CoroutineContext
+    ): ImageBitmap {
         val androidBitmap = snapshot.asAndroidBitmap()
-        val source = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+        // API 28+ 的层快照通常是 HARDWARE，CPU 读取前只需转换硬件位图。
+        val source = if (androidBitmap.config == Bitmap.Config.HARDWARE) {
             androidBitmap.copy(Bitmap.Config.ARGB_8888, false) ?: androidBitmap
         } else {
             androidBitmap
         }
-        val scale = SAMPLING_MAX_DIM / max(source.width, source.height).coerceAtLeast(1)
-        val width = (source.width * scale).roundToInt().coerceAtLeast(1)
-        val height = (source.height * scale).roundToInt().coerceAtLeast(1)
-        val frame = ensureSampleFrame(width, height)
-        frame.eraseColor(0)
-        val canvas = Canvas(frame)
-        canvas.drawBitmap(source, null, RectF(0f, 0f, width.toFloat(), height.toFloat()), null)
-        return blurSampledFrame(frame, frameRadius(scale)).asImageBitmap()
+        //捕获层已经按当前模糊半径采样，这里不再进行第二次降分辨率。
+        return blurSampledFrame(source, sampledRadiusPx, context).asImageBitmap()
     }
 
-    private suspend fun regenerateStaticBitmap(blur: Int): ImageBitmap? = withContext(Dispatchers.IO) {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeFile(backgroundFile.absolutePath, bounds)
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@withContext null
+    private fun regenerateStaticBitmap(request: StaticRequest, context: CoroutineContext): Bitmap? {
+        val source = decodeStaticSource(request) ?: return null
+        context.ensureActive()
+        ensureStaticEpoch(request.epoch)
 
         val density = GlobalContext.resources.displayMetrics.density
-        val radiusPx = blur * density
-        val maxDim = max(bounds.outWidth, bounds.outHeight).toFloat()
-        val factor = downscaleFactor(radiusPx, maxDim).toInt().coerceAtLeast(1)
+        val plan = calculateBlurSamplingPlan(
+            sourceWidth = request.targetWidth,
+            sourceHeight = request.targetHeight,
+            blurRadiusPx = request.blur * density,
+            maxDimension = STATIC_SAMPLING_MAX_DIM,
+            maxSampledRadius = STATIC_MAX_SAMPLED_BLUR_RADIUS
+        )
+        val crop = calculateCenterCrop(
+            sourceWidth = source.width,
+            sourceHeight = source.height,
+            targetWidth = request.targetWidth,
+            targetHeight = request.targetHeight
+        )
+        val frame = staticFrame?.takeIf { it.width == plan.width && it.height == plan.height }
+            ?: createBitmap(plan.width, plan.height).also { staticFrame = it }
+        frame.eraseColor(0)
+        val canvas = staticCanvas ?: Canvas().also { staticCanvas = it }
+        canvas.setBitmap(frame)
+        staticSrcRect.set(crop.left, crop.top, crop.left + crop.width, crop.top + crop.height)
+        staticDstRect.set(0, 0, plan.width, plan.height)
+        canvas.drawBitmap(source, staticSrcRect, staticDstRect, staticPaint)
 
-        val bitmap = BitmapFactory.decodeFile(
-            backgroundFile.absolutePath,
-            BitmapFactory.Options().apply { inSampleSize = factor }
-        ) ?: return@withContext null
+        val size = plan.width * plan.height
+        val pixels = staticPixels?.takeIf { it.size == size }
+            ?: IntArray(size).also { staticPixels = it }
+        val temp = staticTemp?.takeIf { it.size == size }
+            ?: IntArray(size).also { staticTemp = it }
+        frame.getPixels(pixels, 0, plan.width, 0, 0, plan.width, plan.height)
+        val workspaceSize = TripleBoxBlur.workspaceSize(plan.width, plan.height, plan.blurRadiusPx)
+        val workspace = staticWorkspace?.takeIf { it.size >= workspaceSize }
+            ?: IntArray(workspaceSize).also { staticWorkspace = it }
+        TripleBoxBlur.blurInPlace(
+            pixels = pixels,
+            temp = temp,
+            width = plan.width,
+            height = plan.height,
+            radiusPx = plan.blurRadiusPx,
+            workspace = workspace,
+            checkpoint = {
+                context.ensureActive()
+                ensureStaticEpoch(request.epoch)
+            }
+        )
 
-        blurBitmap(bitmap, (radiusPx / factor).coerceIn(0.5f, 25f)).asImageBitmap()
+        //已发布的 ImageBitmap 必须视为不可变；静态预览始终用新对象替换旧图。
+        return createStaticBlurResultBitmap(pixels, plan.width, plan.height)
     }
 
-    private fun ensureSampleFrame(width: Int, height: Int): Bitmap =
-        sampleFrame?.takeIf { it.width == width && it.height == height }
-            ?: createBitmap(width, height).also { sampleFrame = it }
+    private fun decodeStaticSource(request: StaticRequest): Bitmap? {
+        //拖动滑杆时媒体与代次均未变化，直接复用解码源，连 bounds 头也不重复读取
+        staticSource?.let { source ->
+            val key = staticSourceKey
+            if (key != null && key.epoch == request.epoch &&
+                key.lastModified == request.lastModified && key.fileLength == request.fileLength
+            ) {
+                return source
+            }
+        }
 
-    private fun blurSampledFrame(source: Bitmap, radiusPx: Float): Bitmap {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeFile(backgroundFile.absolutePath, bounds)
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+
+        val sampleSize = downscaleFactor(max(bounds.outWidth, bounds.outHeight).toFloat())
+        val key = StaticSourceKey(
+            epoch = request.epoch,
+            lastModified = request.lastModified,
+            fileLength = request.fileLength,
+            sampleSize = sampleSize
+        )
+        staticSource?.takeIf { staticSourceKey == key }?.let { return it }
+
+        val decoded = BitmapFactory.decodeFile(
+            backgroundFile.absolutePath,
+            BitmapFactory.Options().apply { inSampleSize = sampleSize }
+        ) ?: return null
+        ensureStaticEpoch(request.epoch)
+        staticSource = decoded
+        staticSourceKey = key
+        return decoded
+    }
+
+    private fun ensureStaticEpoch(epoch: Long) {
+        if (staticCacheEpoch.get() != epoch) {
+            throw CancellationException("Background changed while generating static blur")
+        }
+    }
+
+    private fun blurSampledFrame(
+        source: Bitmap,
+        radiusPx: Float,
+        context: CoroutineContext
+    ): Bitmap {
         val width = source.width
         val height = source.height
         val size = width * height
-        val radius = radiusPx.roundToInt()
-            .coerceIn(1, 25)
-            .coerceAtMost(minOf(width, height) - 1)
-
         val pixels = samplePixels?.takeIf { it.size == size }
             ?: IntArray(size).also { samplePixels = it }
         val temp = sampleTemp?.takeIf { it.size == size }
             ?: IntArray(size).also { sampleTemp = it }
+        val workspaceSize = TripleBoxBlur.workspaceSize(width, height, radiusPx)
+        val workspace = sampleWorkspace?.takeIf { it.size >= workspaceSize }
+            ?: IntArray(workspaceSize).also { sampleWorkspace = it }
         source.getPixels(pixels, 0, width, 0, 0, width, height)
-
-        if (radius >= 1) {
-            repeat(3) {
-                boxBlur(pixels, temp, width, height, radius, horizontal = true)
-                boxBlur(temp, pixels, width, height, radius, horizontal = false)
-            }
+        TripleBoxBlur.blurInPlace(pixels, temp, width, height, radiusPx, workspace) {
+            context.ensureActive()
         }
 
         sampleResultUseA = !sampleResultUseA
@@ -180,102 +317,33 @@ class BackgroundGlassBlur(private val backgroundFile: File) {
         return result
     }
 
-    private fun frameRadius(scale: Float): Float =
-        (LauncherSettings.backgroundBlur.flow.value * GlobalContext.resources.displayMetrics.density * scale)
-            .coerceIn(0.5f, 25f)
+    private var sampleFailureLogged = false
 
-    private fun downscaleFactor(radiusPx: Float, maxDim: Float): Float {
-        val target = max(radiusPx / 20f, maxDim / 512f)
-        if (target <= 1f) return 1f
-        return 2f.pow(log2(target).roundToInt()).coerceIn(1f, 64f)
+    private fun logSampleFailure(t: Throwable) {
+        if (sampleFailureLogged) return
+        sampleFailureLogged = true
+        Logger.warning(TAG, "background glass sampling failed, subsequent failed frames will be skipped", t)
     }
 
-    private fun blurBitmap(source: Bitmap, radiusPx: Float): Bitmap {
-        val width = source.width
-        val height = source.height
-        val radius = radiusPx.roundToInt()
-            .coerceIn(1, 25)
-            .coerceAtMost(minOf(width, height) - 1)
-        if (radius < 1) return source
-
-        val pixels = IntArray(width * height)
-        source.getPixels(pixels, 0, width, 0, 0, width, height)
-
-        val temp = IntArray(pixels.size)
-        repeat(3) {
-            boxBlur(pixels, temp, width, height, radius, horizontal = true)
-            boxBlur(temp, pixels, width, height, radius, horizontal = false)
-        }
-
-        val result = createBitmap(width, height)
-        result.setPixels(pixels, 0, width, 0, 0, width, height)
-        return result
-    }
-
-    private fun boxBlur(
-        src: IntArray,
-        dst: IntArray,
-        width: Int,
-        height: Int,
-        radius: Int,
-        horizontal: Boolean
-    ) {
-        val window = radius * 2 + 1
-        if (horizontal) {
-            for (y in 0 until height) {
-                val row = y * width
-                var sumA = 0
-                var sumR = 0
-                var sumG = 0
-                var sumB = 0
-                for (i in -radius..radius) {
-                    val p = src[row + i.coerceIn(0, width - 1)]
-                    sumA += p ushr 24 and 0xFF
-                    sumR += p ushr 16 and 0xFF
-                    sumG += p ushr 8 and 0xFF
-                    sumB += p and 0xFF
-                }
-                for (x in 0 until width) {
-                    dst[row + x] = (sumA / window shl 24) or
-                        (sumR / window shl 16) or
-                        (sumG / window shl 8) or
-                        (sumB / window)
-                    val outP = src[row + (x - radius).coerceIn(0, width - 1)]
-                    val inP = src[row + (x + radius + 1).coerceIn(0, width - 1)]
-                    sumA += (inP ushr 24 and 0xFF) - (outP ushr 24 and 0xFF)
-                    sumR += (inP ushr 16 and 0xFF) - (outP ushr 16 and 0xFF)
-                    sumG += (inP ushr 8 and 0xFF) - (outP ushr 8 and 0xFF)
-                    sumB += (inP and 0xFF) - (outP and 0xFF)
-                }
-            }
-        } else {
-            for (x in 0 until width) {
-                var sumA = 0
-                var sumR = 0
-                var sumG = 0
-                var sumB = 0
-                for (i in -radius..radius) {
-                    val p = src[i.coerceIn(0, height - 1) * width + x]
-                    sumA += p ushr 24 and 0xFF
-                    sumR += p ushr 16 and 0xFF
-                    sumG += p ushr 8 and 0xFF
-                    sumB += p and 0xFF
-                }
-                for (y in 0 until height) {
-                    dst[y * width + x] = (sumA / window shl 24) or
-                        (sumR / window shl 16) or
-                        (sumG / window shl 8) or
-                        (sumB / window)
-                    val outP = src[(y - radius).coerceIn(0, height - 1) * width + x]
-                    val inP = src[(y + radius + 1).coerceIn(0, height - 1) * width + x]
-                    sumA += (inP ushr 24 and 0xFF) - (outP ushr 24 and 0xFF)
-                    sumR += (inP ushr 16 and 0xFF) - (outP ushr 16 and 0xFF)
-                    sumG += (inP ushr 8 and 0xFF) - (outP ushr 8 and 0xFF)
-                    sumB += (inP and 0xFF) - (outP and 0xFF)
-                }
-            }
-        }
+    private fun downscaleFactor(maxDim: Float): Int {
+        val target = maxDim / STATIC_SAMPLING_MAX_DIM.toFloat()
+        if (target <= 1f) return 1
+        return 2f.pow(log2(target).roundToInt()).toInt().coerceIn(1, 64)
     }
 }
 
-private const val SAMPLING_MAX_DIM = 384f
+private data class StaticSourceKey(
+    val epoch: Long,
+    val lastModified: Long,
+    val fileLength: Long,
+    val sampleSize: Int
+)
+
+private data class StaticRequest(
+    val blur: Int,
+    val targetWidth: Int,
+    val targetHeight: Int,
+    val epoch: Long,
+    val lastModified: Long,
+    val fileLength: Long
+)

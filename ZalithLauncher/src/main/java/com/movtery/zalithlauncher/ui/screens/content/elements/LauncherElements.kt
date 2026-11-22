@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.ui.screens.content.elements
 
 import android.app.Activity
 import android.net.Uri
-import android.os.Build
 import android.os.Parcelable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -50,7 +49,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -100,11 +98,12 @@ import com.movtery.zalithlauncher.utils.checkStoragePermissions
 import com.movtery.zalithlauncher.utils.file.InvalidFilenameException
 import com.movtery.zalithlauncher.utils.file.checkFilenameValidity
 import com.movtery.zalithlauncher.utils.hasStoragePermission
-import com.movtery.zalithlauncher.utils.image.isGifFile
+import com.movtery.zalithlauncher.viewmodel.BackgroundContentKind
 import com.movtery.zalithlauncher.viewmodel.BackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.LaunchGameViewModel
+import com.movtery.zalithlauncher.viewmodel.resolveBackgroundBlur
 import com.movtery.zalithlauncher.viewmodel.sendToast
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
@@ -560,22 +559,23 @@ fun Background(
     val blur = LauncherSettings.backgroundBlur.state
     val opacity = LauncherSettings.launcherBackgroundOpacity.state
     val backgroundMode = LauncherSettings.backgroundBlurType.state == BackgroundBlur.Background
-    val backgroundBlurEnabled = backgroundMode && blur > 0 && opacity < 100
-    val layerCapture = !backgroundMode && blur > 0 && opacity < 100 && viewModel.isValid
+    val contentKind = when {
+        !viewModel.isValid -> BackgroundContentKind.NONE
+        viewModel.isVideo && allowVideo -> BackgroundContentKind.VIDEO
+        viewModel.isImage && viewModel.isAnimatedImage -> BackgroundContentKind.ANIMATED_IMAGE
+        viewModel.isImage -> BackgroundContentKind.STATIC_IMAGE
+        else -> BackgroundContentKind.NONE
+    }
+    val blurDecision = resolveBackgroundBlur(contentKind, blur, opacity)
+    val backgroundBlurEnabled = backgroundMode && blurDecision.enabled
     val density = LocalDensity.current
 
     Box(
         modifier = modifier
-            .then(
-                if (backgroundBlurEnabled && Build.VERSION.SDK_INT >= 31) {
-                    Modifier.blur(blur.dp)
-                } else {
-                    Modifier
-                }
-            )
             .backgroundCapture(
                 store = viewModel,
-                recordContent = layerCapture,
+                recordContent = blurDecision.captureFrames,
+                displayBlurred = backgroundBlurEnabled && blurDecision.captureFrames,
                 blurRadiusPx = blur * density.density,
                 whiteOverlayAlpha = if (backgroundBlurEnabled) whiteOverlayAlpha(blur) else 0f
             )
@@ -592,7 +592,7 @@ fun Background(
                 }
                 viewModel.isImage -> {
                     val blurred = viewModel.blurredBackground
-                    if (backgroundBlurEnabled && Build.VERSION.SDK_INT < 31 && blurred != null) {
+                    if (backgroundBlurEnabled && blurDecision.cacheStaticImage && blurred != null) {
                         Image(
                             bitmap = blurred,
                             contentDescription = null,
@@ -603,7 +603,8 @@ fun Background(
                         BackgroundImage(
                             modifier = Modifier.fillMaxSize(),
                             imageFile = viewModel.backgroundFile,
-                            refreshTrigger = viewModel.refreshTrigger
+                            refreshTrigger = viewModel.refreshTrigger,
+                            isAnimated = viewModel.isAnimatedImage
                         )
                     }
                 }
@@ -616,6 +617,7 @@ fun Background(
 private fun BackgroundImage(
     refreshTrigger: Any,
     imageFile: File,
+    isAnimated: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -635,14 +637,6 @@ private fun BackgroundImage(
 
     //GIF 的动画帧由绘制 → invalidateSelf → 再绘制的自续循环推进，
     //任何一帧失效丢失都会让动画永久冻结，由帧时钟显式逐帧驱动重绘，保证循环自愈
-    val isAnimatedState = remember(refreshTrigger) { mutableStateOf(false) }
-    LaunchedEffect(refreshTrigger) {
-        isAnimatedState.value = withContext(Dispatchers.IO) {
-            imageFile.isGifFile()
-        }
-    }
-    val isAnimated = isAnimatedState.value
-
     val frameTick = remember { mutableIntStateOf(0) }
     if (isAnimated) {
         LaunchedEffect(Unit) {

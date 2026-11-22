@@ -840,6 +840,8 @@ public class GLFW
     }
 
     static boolean isGLFWReady;
+    private static native void nativeWaitEvents(double seconds, boolean timed);
+    private static native void nativePostEmptyEvent();
     public static boolean glfwInit() {
         if (!isGLFWReady) {
             //CallbackBridge.nativeAttachThreadToOther(false, false);
@@ -851,6 +853,7 @@ public class GLFW
     }
 
     public static void glfwTerminate() {
+        nativePostEmptyEvent();
         mGLFWIsInputReady = false;
         CallbackBridge.nativeSetInputReady(false);
 
@@ -1310,22 +1313,30 @@ public class GLFW
         }
     }
 
-    public static void glfwWaitEvents() {}
-
-    public static void glfwWaitEventsTimeout(double timeout) {
-        // Boardwalk: this isn't how you do a frame limiter, but oh well
-        // System.out.println("Frame limiter");
-    /*
-        try {
-            Thread.sleep((long)(timeout * 1000));
-        } catch (InterruptedException ie) {
-        }
-    */
-        // System.out.println("Out of the frame limiter");
-
+    public static void glfwWaitEvents() {
+        waitEvents(0.0, false);
     }
 
-    public static void glfwPostEmptyEvent() {}
+    public static void glfwWaitEventsTimeout(double timeout) {
+        waitEvents(timeout, true);
+    }
+
+    public static void glfwPostEmptyEvent() {
+        nativePostEmptyEvent();
+    }
+
+    private static void waitEvents(double timeout, boolean timed) {
+        if (!isGLFWReady) return;
+        // 事件泵派发回调期间不得等待
+        if (mGLFWInputPumping) return;
+        // 首次等待前必须让输入桥开始投递事件，否则不会收到任何唤醒
+        if (!mGLFWIsInputReady) {
+            mGLFWIsInputReady = true;
+            CallbackBridge.nativeSetInputReady(true);
+        }
+        nativeWaitEvents(timeout, timed);
+        glfwPollEvents();
+    }
 
     public static int glfwGetInputMode(@NativeType("GLFWwindow *") long window, int mode) {
         return internalGetWindow(window).inputModes.get(mode);

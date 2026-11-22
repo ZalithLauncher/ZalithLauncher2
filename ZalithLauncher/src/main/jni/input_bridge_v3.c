@@ -23,6 +23,7 @@
 
 #include "logger/logger.h"
 #include "utils.h"
+#include "glfw/event_wait.h"
 #include "environ/environ.h"
 
 #define EVENT_TYPE_CHAR 1000
@@ -274,6 +275,18 @@ void pojavStopPumping() {
 }
 
 JNIEXPORT void JNICALL
+Java_org_lwjgl_glfw_GLFW_nativeWaitEvents(JNIEnv *env, jclass clazz, jdouble seconds, jboolean timed) {
+    (void) env; (void) clazz;
+    event_wait_block(seconds, timed != JNI_FALSE);
+}
+
+JNIEXPORT void JNICALL
+Java_org_lwjgl_glfw_GLFW_nativePostEmptyEvent(JNIEnv *env, jclass clazz) {
+    (void) env; (void) clazz;
+    event_wait_notify();
+}
+
+JNIEXPORT void JNICALL
 Java_org_lwjgl_glfw_GLFW_nglfwGetCursorPos(JNIEnv *env, __attribute__((unused)) jclass clazz, __attribute__((unused)) jlong window, jobject xpos,
                                           jobject ypos) {
     *(double*)(*env)->GetDirectBufferAddress(env, xpos) = pojav_environ->cursorX;
@@ -317,7 +330,8 @@ void sendData(int type, int i1, int i2, int i3, int i4) {
     if (++pojav_environ->inEventIndex >= EVENT_WINDOW_SIZE)
         pojav_environ->inEventIndex -= EVENT_WINDOW_SIZE;
 
-    atomic_fetch_add_explicit(&pojav_environ->eventCounter, 1, memory_order_acquire);
+    atomic_fetch_add_explicit(&pojav_environ->eventCounter, 1, memory_order_release);
+    event_wait_notify();
 }
 
 /**
@@ -561,6 +575,7 @@ jboolean critical_send_char(jchar codepoint) {
             sendData(EVENT_TYPE_CHAR, codepoint, 0, 0, 0);
         } else {
             pojav_environ->GLFW_invoke_Char((void*) pojav_environ->showingWindow, (unsigned int) codepoint);
+            event_wait_notify();
         }
         return JNI_TRUE;
     }
@@ -577,6 +592,7 @@ jboolean critical_send_char_mods(jchar codepoint, jint mods) {
             sendData(EVENT_TYPE_CHAR_MODS, (int) codepoint, mods, 0, 0);
         } else {
             pojav_environ->GLFW_invoke_CharMods((void*) pojav_environ->showingWindow, codepoint, mods);
+            event_wait_notify();
         }
         return JNI_TRUE;
     }
@@ -619,6 +635,7 @@ void critical_send_cursor_pos(jfloat x, jfloat y) {
             pojav_environ->cursorX = x;
             pojav_environ->cursorY = y;
         }
+        event_wait_notify();
     }
 }
 
@@ -638,6 +655,7 @@ void critical_send_key(jint key, jint scancode, jint action, jint mods) {
             sendData(EVENT_TYPE_KEY, key, scancode, action, mods);
         } else {
             pojav_environ->GLFW_invoke_Key((void*) pojav_environ->showingWindow, key, scancode, action, mods);
+            event_wait_notify();
         }
     }
 }
@@ -654,6 +672,7 @@ void critical_send_mouse_button(jint button, jint action, jint mods) {
             sendData(EVENT_TYPE_MOUSE_BUTTON, button, action, mods, 0);
         } else {
             pojav_environ->GLFW_invoke_MouseButton((void*) pojav_environ->showingWindow, button, action, mods);
+            event_wait_notify();
         }
     }
 }
@@ -683,6 +702,7 @@ void critical_send_screen_size(jint width, jint height) {
     // So unmark the size as "consumed"
     pojav_environ->monitorSizeConsumed = false;
     pojav_environ->shouldUpdateMonitorSize = true;
+    event_wait_notify();
     // Don't use the direct updates for screen dimensions.
     // This is done to ensure that we have predictable conditions to correctly call
     // updateMonitorSize() and updateWindowSize() while on the render thread with an attached
@@ -699,6 +719,7 @@ void critical_send_scroll(jdouble xoffset, jdouble yoffset) {
             sendData(EVENT_TYPE_SCROLL, (int)xoffset, (int)yoffset, 0, 0);
         } else {
             pojav_environ->GLFW_invoke_Scroll((void*) pojav_environ->showingWindow, (double) xoffset, (double) yoffset);
+            event_wait_notify();
         }
     }
 }

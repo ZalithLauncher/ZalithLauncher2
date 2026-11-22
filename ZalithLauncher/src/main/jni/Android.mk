@@ -28,6 +28,7 @@ LOCAL_SRC_FILES := \
     ctxbridges/swap_interval_no_egl.c \
     ctxbridges/virgl_bridge.c \
     environ/environ.c \
+    glfw/event_wait.c \
     logger/logger.c \
     input_bridge_v3.c \
     jre_launcher.c \

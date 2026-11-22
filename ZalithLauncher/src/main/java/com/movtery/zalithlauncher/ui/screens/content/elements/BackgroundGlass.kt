@@ -30,7 +30,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.GraphicsContext
 import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
-import androidx.compose.ui.graphics.Matrix as ComposeMatrix
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -47,7 +46,6 @@ import androidx.compose.ui.node.invalidateDraw
 import androidx.compose.ui.platform.LocalGraphicsContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.util.lerp
 import androidx.core.graphics.withSave
 import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
@@ -59,12 +57,13 @@ import com.movtery.zalithlauncher.viewmodel.DYNAMIC_GPU_BLUR_MAX_DIMENSION
 import com.movtery.zalithlauncher.viewmodel.GPU_MAX_SAMPLED_BLUR_RADIUS
 import com.movtery.zalithlauncher.viewmodel.LocalBackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.calculateBlurSamplingPlan
+import com.movtery.zalithlauncher.viewmodel.whiteOverlayAlpha
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
-import kotlin.math.sqrt
+import androidx.compose.ui.graphics.Matrix as ComposeMatrix
 
 /**
  * 背景毛玻璃效果：在元素内容下方对齐绘制启动器背景的预模糊结果
@@ -103,11 +102,6 @@ internal fun Modifier.backgroundCapture(
     blurRadiusPx = blurRadiusPx,
     whiteOverlayAlpha = whiteOverlayAlpha
 )
-
-internal fun whiteOverlayAlpha(blur: Int): Float {
-    val t = (blur / 80f).coerceIn(0f, 1f)
-    return lerp(start = 0f, stop = 0.25f, fraction = sqrt(t))
-}
 
 /** 将 Compose 的列主序 4×4 矩阵转换为 Android Canvas 的 3×3 矩阵（局部 z 固定为 0）。 */
 internal fun Matrix.setFromComposeMatrix(source: ComposeMatrix, target: FloatArray) {
@@ -196,10 +190,11 @@ private class GlassNode(
         androidMatrix.setFromComposeMatrix(localToScreen, matrixValues)
         if (!androidMatrix.invert(invertedMatrix)) return
 
+        val frame = store.blurredBackgroundFrame
         val nativeCanvas = drawContext.canvas.nativeCanvas
         nativeCanvas.withSave {
             concat(invertedMatrix)
-            val bitmap = store.blurredBackground
+            val bitmap = frame?.image
             if (bitmap != null) {
                 this@drawGlass.drawImage(
                     image = bitmap,
@@ -216,10 +211,12 @@ private class GlassNode(
         }
 
         drawRect(color = color, blendMode = BlendMode.SrcOver)
-        drawRect(
-            color = Color.White.copy(alpha = whiteOverlayAlpha(blur)),
-            blendMode = BlendMode.Softlight
-        )
+        if (frame?.whiteOverlayApplied != true) {
+            drawRect(
+                color = Color.White.copy(alpha = whiteOverlayAlpha(blur)),
+                blendMode = BlendMode.Softlight
+            )
+        }
     }
 }
 

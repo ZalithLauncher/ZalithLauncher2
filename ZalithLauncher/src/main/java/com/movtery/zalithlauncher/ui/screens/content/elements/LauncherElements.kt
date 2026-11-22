@@ -105,6 +105,7 @@ import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.LaunchGameViewModel
 import com.movtery.zalithlauncher.viewmodel.resolveBackgroundBlur
 import com.movtery.zalithlauncher.viewmodel.sendToast
+import com.movtery.zalithlauncher.viewmodel.whiteOverlayAlpha
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -568,6 +569,7 @@ fun Background(
     }
     val blurDecision = resolveBackgroundBlur(contentKind, blur, opacity)
     val backgroundBlurEnabled = backgroundMode && blurDecision.enabled
+    val backgroundFrame = viewModel.blurredBackgroundFrame
     val density = LocalDensity.current
 
     Box(
@@ -577,7 +579,13 @@ fun Background(
                 recordContent = blurDecision.captureFrames,
                 displayBlurred = backgroundBlurEnabled && blurDecision.captureFrames,
                 blurRadiusPx = blur * density.density,
-                whiteOverlayAlpha = if (backgroundBlurEnabled) whiteOverlayAlpha(blur) else 0f
+                whiteOverlayAlpha = if (
+                    backgroundBlurEnabled && backgroundFrame?.whiteOverlayApplied != true
+                ) {
+                    whiteOverlayAlpha(blur)
+                } else {
+                    0f
+                }
             )
     ) {
         if (viewModel.isValid) {
@@ -591,7 +599,7 @@ fun Background(
                     )
                 }
                 viewModel.isImage -> {
-                    val blurred = viewModel.blurredBackground
+                    val blurred = backgroundFrame?.image
                     if (backgroundBlurEnabled && blurDecision.cacheStaticImage && blurred != null) {
                         Image(
                             bitmap = blurred,

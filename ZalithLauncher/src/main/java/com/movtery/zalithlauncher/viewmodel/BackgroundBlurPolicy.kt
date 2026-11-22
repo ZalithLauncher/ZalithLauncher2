@@ -23,6 +23,12 @@ import kotlinx.coroutines.flow.combine
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
+
+internal fun whiteOverlayAlpha(blur: Int): Float {
+    val t = (blur / 80f).coerceIn(0f, 1f)
+    return 0.25f * sqrt(t)
+}
 
 //小半径优先保留纹理；只有大半径才利用高频信息不可见的特性增加降采样。
 internal const val DYNAMIC_GPU_BLUR_MAX_DIMENSION = 1024

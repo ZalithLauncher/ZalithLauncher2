@@ -112,6 +112,15 @@ class BackgroundBlurPolicyTest {
     }
 
     @Test
+    fun `white overlay uses the original blur response curve and clamps its range`() {
+        assertEquals(0f, whiteOverlayAlpha(-1), 0f)
+        assertEquals(0f, whiteOverlayAlpha(0), 0f)
+        assertEquals(0.125f, whiteOverlayAlpha(20), 0f)
+        assertEquals(0.25f, whiteOverlayAlpha(80), 0f)
+        assertEquals(0.25f, whiteOverlayAlpha(100), 0f)
+    }
+
+    @Test
     fun `center crop matches portrait and square destinations`() {
         val portrait = calculateCenterCrop(4000, 3000, 1080, 2400)
         assertEquals(1350, portrait.width)

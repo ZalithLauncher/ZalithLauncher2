@@ -755,7 +755,12 @@ private fun MCVersionRow(
         contentColor = onCardColor()
     ) {
         Row(
-            modifier = Modifier.padding(vertical = 4.dp),
+            modifier = Modifier
+                .backgroundGlass(
+                    blur = LauncherSettings.backgroundBlur.state,
+                    color = cardColor()
+                )
+                .padding(vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Spacer(modifier = Modifier.width(16.dp))

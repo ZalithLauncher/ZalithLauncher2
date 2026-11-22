@@ -311,6 +311,69 @@ static void test_blocked_wait_burns_no_cpu(void) {
           args.wall_ms, args.cpu_ms);
 }
 
+/* --- 12. the frame-limiter pattern keeps pace with its deadlines --- */
+/* Reproduces the Minecraft 1.20.1 Window#limitDisplayFPS loop: every frame
+   waits until lastDrawTime + frameTime, then resets lastDrawTime to the
+   actual exit time. Wake-up latency past the deadline therefore adds up
+   into every subsequent frame, which is exactly what the EWMA-backed spin
+   window is there to absorb. */
+static void test_frame_limiter_precision(void) {
+    struct gw_event_wait events = {0};
+    gw_events_reset(&events);
+    const int frames = 240;
+    const double frame_s = 1.0 / 60.0;
+    double last_draw = (double)wall_ns() / 1e9;
+    double overshoot_sum = 0.0;
+    double overshoot_max = 0.0;
+    for (int i = 0; i < frames; i++) {
+        double deadline = last_draw + frame_s;
+        double now = (double)wall_ns() / 1e9;
+        while (now < deadline) {
+            gw_events_wait(&events, deadline - now, true);
+            now = (double)wall_ns() / 1e9;
+        }
+        double overshoot_ms = (now - deadline) * 1e3;
+        /* Skip the warm-up half: the EWMA needs a few frames to learn the
+           host's futex wake-up delay. */
+        if (i >= frames / 2) {
+            overshoot_sum += overshoot_ms;
+            if (overshoot_ms > overshoot_max) overshoot_max = overshoot_ms;
+        }
+        last_draw = now;
+    }
+    double mean_ms = overshoot_sum / (frames / 2);
+    CHECKF(mean_ms < 1.0 && overshoot_max < 5.0,
+          "frame_limiter_precision", "mean=%.3fms max=%.3fms", mean_ms, overshoot_max);
+}
+
+/* --- 13. sub-spin-window timeouts still wait until the deadline --- */
+static void test_tiny_timeout_spins_to_deadline(void) {
+    struct gw_event_wait events = {0};
+    gw_events_reset(&events);
+    double min_ms = 1e9;
+    for (int i = 0; i < 200; i++) {
+        int64_t start = wall_ns();
+        int rc = gw_events_wait(&events, 0.0003, true); /* 300 us: inside the spin window */
+        double ms = elapsed_ms(start);
+        if (rc != GW_EVENT_TIMEOUT) {
+            min_ms = -1.0;
+            break;
+        }
+        if (ms < min_ms) min_ms = ms;
+    }
+    CHECKF(min_ms >= 0.25, "tiny_timeout_spins_to_deadline", "min=%.4fms", min_ms);
+}
+
+/* --- 14. reset also drops the learned wake-up-delay estimate --- */
+static void test_reset_clears_oversleep_average(void) {
+    struct gw_event_wait events = {0};
+    gw_events_reset(&events);
+    events.oversleep_ewma = 900000; /* stale estimate from a previous session */
+    gw_events_stop(&events);
+    gw_events_reset(&events);
+    CHECK(events.oversleep_ewma == 0, "reset_clears_oversleep_average");
+}
+
 int main(void) {
     test_wait_before_init();
     test_invalid_timeouts();
@@ -323,6 +386,9 @@ int main(void) {
     test_interrupt_keeps_deadline();
     test_stress_no_lost_wakeups();
     test_blocked_wait_burns_no_cpu();
+    test_frame_limiter_precision();
+    test_tiny_timeout_spins_to_deadline();
+    test_reset_clears_oversleep_average();
     printf(failures ? "event_wait_test: %d FAILURE(S)\n" : "event_wait_test: all passed\n",
            failures);
     return failures;

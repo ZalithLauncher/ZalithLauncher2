@@ -494,6 +494,13 @@ private fun addHttpsIfMissing(baseUrl: String): String {
 }
 
 /**
+ * 从统一通行证服务器URL中截取服务器ID
+ */
+fun getPassportServerId(url: String): String {
+    return url.replace("https://auth.mc-user.com:233/", "").trimEnd('/')
+}
+
+/**
  * 检查是否为32位16进制字符串，这可能是一个
  * 统一通行证的服务器ID
  */

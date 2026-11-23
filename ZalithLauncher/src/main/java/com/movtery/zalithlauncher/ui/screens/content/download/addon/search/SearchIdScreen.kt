@@ -222,12 +222,13 @@ private fun Content(
     defaultClasses: PlatformClasses,
     onSearch: () -> Unit,
     onView: (Platform, PlatformClasses, id: String, iconUrl: String?) -> Unit,
+    modifier: Modifier = Modifier,
+    onQuickDownload: ((PlatformProject) -> Unit)? = null,
     openLink: (String) -> Unit,
     projectId: String,
     onProjectIdChange: (String) -> Unit,
     searchPlatform: Platform,
     onPlatformChange: (Platform) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier,
@@ -241,6 +242,7 @@ private fun Content(
             operation = operation,
             onReload = onSearch,
             onView = onView,
+            onQuickDownload = onQuickDownload,
             openLink = openLink,
             defaultClasses = defaultClasses,
             contentPadding = PaddingValues(start = 12.dp, top = 12.dp, bottom = 12.dp)
@@ -268,8 +270,9 @@ private fun ContentResult(
     defaultClasses: PlatformClasses,
     onReload: () -> Unit,
     onView: (Platform, PlatformClasses, id: String, iconUrl: String?) -> Unit,
-    openLink: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onQuickDownload: ((PlatformProject) -> Unit)? = null,
+    openLink: (String) -> Unit,
     contentPadding: PaddingValues = PaddingValues()
 ) {
     val ctx = rememberAnimatedContext(isVisible = isVisible)
@@ -297,6 +300,7 @@ private fun ContentResult(
                     mcmod = operation.mcMod,
                     defaultClasses = defaultClasses,
                     onView = onView,
+                    onQuickDownload = onQuickDownload,
                     openLink = openLink,
                     contentPadding = contentPadding,
                 )
@@ -357,6 +361,7 @@ private fun ResultLayout(
     project: PlatformProject,
     defaultClasses: PlatformClasses,
     onView: (Platform, PlatformClasses, id: String, iconUrl: String?) -> Unit,
+    onQuickDownload: ((PlatformProject) -> Unit)? = null,
     openLink: (String) -> Unit,
     contentPadding: PaddingValues = PaddingValues(),
 ) {
@@ -396,6 +401,9 @@ private fun ResultLayout(
 //                onFavoriteClick = {
 //                    FavoriteProjectsRepository.toggle(project, classes)
 //                },
+                onQuickDownload = if (onQuickDownload != null && classes != PlatformClasses.MOD_PACK) {
+                    { onQuickDownload(project) }
+                } else null,
                 onClick = {
                     onView(platform, classes, project.platformId(), iconUrl)
                 }

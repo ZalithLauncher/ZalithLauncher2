@@ -51,9 +51,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.download.addon.favorites.FavoriteEntry
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformFilterCode
 import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.components.MarqueeText
+import com.movtery.zalithlauncher.ui.components.ScalingIconButton
 import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.AddonIcon
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.ClassesIdentifier
@@ -69,6 +71,7 @@ import com.movtery.zalithlauncher.utils.formatNumberByLocale
  * 收藏项目条目
  *
  * 远端项目不可用时整卡减淡并展示失效标识，点击不再生效，仍可取消收藏
+ * @param onQuickDownload 快捷下载，null 或项目失效时不展示快捷下载入口
  */
 @Composable
 fun FavoriteProjectLayout(
@@ -76,6 +79,7 @@ fun FavoriteProjectLayout(
     onClick: () -> Unit,
     onUnfavorite: () -> Unit,
     modifier: Modifier = Modifier,
+    onQuickDownload: (() -> Unit)? = null,
     shape: Shape = MaterialTheme.shapes.large,
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
@@ -126,135 +130,86 @@ fun FavoriteProjectLayout(
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 ProjectTitleHead(
                     platform = entry.platform,
                     title = title,
                 )
 
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        if (authors == null && downloads == null && followsCount == null) {
-                            Spacer(
-                                modifier = Modifier
-                                    .height(14.dp)
-                                    .weight(1f)
-                            )
-                        } else {
-                            Row(
-                                modifier = Modifier
-                                    .alpha(0.7f)
-                                    .weight(1f),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                // 作者
-                                authors?.let {
-                                    Row(
-                                        modifier = Modifier.weight(1f, fill = false),
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            modifier = Modifier.size(14.dp),
-                                            painter = painterResource(R.drawable.ic_person_filled),
-                                            contentDescription = null
-                                        )
-                                        MarqueeText(
-                                            text = it.joinToString(", "),
-                                            style = MaterialTheme.typography.labelSmall,
-                                        )
-                                    }
-                                }
-
-                                // 下载量
-                                downloads?.let {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            modifier = Modifier.size(14.dp),
-                                            painter = painterResource(R.drawable.ic_download_2_filled),
-                                            contentDescription = null
-                                        )
-                                        Text(
-                                            text = formatNumberByLocale(context, it),
-                                            style = MaterialTheme.typography.labelSmall
-                                        )
-                                    }
-                                }
-
-                                // 收藏数量（Modrinth）
-                                followsCount?.let {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            modifier = Modifier.size(14.dp),
-                                            painter = painterResource(R.drawable.ic_star_filled),
-                                            contentDescription = null
-                                        )
-                                        Text(
-                                            text = formatNumberByLocale(context, it),
-                                            style = MaterialTheme.typography.labelMedium
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                        //资源的类别
-                        ClassesIdentifier(classes = project.classes)
-                    }
-
-                    //描述
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.labelSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    //标签栏
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .marquee()
-                            .alpha(0.7f),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        modloaders?.forEach { modloader ->
-                            Text(
-                                text = modloader.getDisplayName(),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                        categories?.forEach { category ->
-                            Text(
-                                text = stringResource(category.getDisplayName()),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
+                    if (authors == null && downloads == null && followsCount == null) {
+                        Spacer(
+                            modifier = Modifier
+                                .height(14.dp)
+                                .weight(1f)
+                        )
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .alpha(0.7f)
+                                .weight(1f),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // 作者
+                            authors?.let {
+                                Row(
+                                    modifier = Modifier.weight(1f, fill = false),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.size(14.dp),
+                                        painter = painterResource(R.drawable.ic_person_filled),
+                                        contentDescription = null
+                                    )
+                                    MarqueeText(
+                                        text = it.joinToString(", "),
+                                        style = MaterialTheme.typography.labelSmall,
+                                    )
+                                }
+                            }
 
-                    //失效标识
-                    if (invalid) {
-                        UnavailableIdentifier()
+                            // 下载量
+                            downloads?.let {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.size(14.dp),
+                                        painter = painterResource(R.drawable.ic_download_2_filled),
+                                        contentDescription = null
+                                    )
+                                    Text(
+                                        text = formatNumberByLocale(context, it),
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+                            }
+
+                            // 收藏数量（Modrinth）
+                            followsCount?.let {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.size(14.dp),
+                                        painter = painterResource(R.drawable.ic_star_filled),
+                                        contentDescription = null
+                                    )
+                                    Text(
+                                        text = formatNumberByLocale(context, it),
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
+                            }
+                        }
                     }
 
                     //取消收藏
@@ -262,6 +217,79 @@ fun FavoriteProjectLayout(
                         isFavorite = true,
                         onClick = onUnfavorite
                     )
+
+                    //资源的类别
+                    ClassesIdentifier(classes = project.classes)
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        //描述
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            //标签栏
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .marquee()
+                                    .alpha(0.7f),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                modloaders?.forEach { modloader ->
+                                    Text(
+                                        text = modloader.getDisplayName(),
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+                                categories?.forEach { category ->
+                                    Text(
+                                        text = stringResource(category.getDisplayName()),
+                                        style = MaterialTheme.typography.labelSmall
+                                    )
+                                }
+                            }
+
+                            //失效标识
+                            if (invalid) {
+                                UnavailableIdentifier()
+                            }
+                        }
+                    }
+
+                    //快捷下载
+                    if (!invalid && project.classes != PlatformClasses.MOD_PACK) {
+                        onQuickDownload?.let { handler ->
+                            ScalingIconButton(
+                                modifier = Modifier
+                                    .align(Alignment.Bottom)
+                                    .padding(top = 4.dp, bottom = 2.dp),
+                                onClick = handler,
+                                size = 36.dp
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(20.dp),
+                                    painter = painterResource(R.drawable.ic_download),
+                                    contentDescription = stringResource(R.string.download_addon_quick_download)
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }

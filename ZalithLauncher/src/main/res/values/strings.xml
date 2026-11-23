@@ -499,7 +499,7 @@
     <string name="download_addon_install_progress_downloading">Downloading and installing addons\n%1$s\n (%2$s / %3$s)</string>
     <!-- Progress text while the downloaded file is copied into the game folders; %s is the file name -->
     <string name="download_addon_install_progress_installing">Installing addons\n%s</string>
-    <!-- Content description of the quick download button on addon search result cards -->
+    <!-- Content description of the quick download button on addon project cards -->
     <string name="download_addon_quick_download">Quick download</string>
     <!-- Title of the error notification when downloading or installing an addon fails -->
     <string name="download_addon_install_failed">Failed to install addons!</string>

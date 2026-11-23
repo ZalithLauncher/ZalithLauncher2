@@ -130,12 +130,13 @@ fun DownloadModScreen(
                         onPlatformChange = {
                             installedViewModel.onPlatformChanged(it)
                         },
-                        installedInfo = installedViewModel::checkProject
-                    ) { platform, projectId, _ ->
-                        backStack.navigateTo(
-                            NormalNavKey.DownloadAddon(platform, projectId, PlatformClasses.MOD)
-                        )
-                    }
+                        installedInfo = installedViewModel::checkProject,
+                        swapToDownload = { platform, projectId, _ ->
+                            backStack.navigateTo(
+                                NormalNavKey.DownloadAddon(platform, projectId, PlatformClasses.MOD)
+                            )
+                        },
+                    )
                 }
                 entry<NormalNavKey.DownloadAddon> { addonKey ->
                     DownloadAddonScreen(

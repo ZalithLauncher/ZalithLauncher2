@@ -284,6 +284,7 @@
     <string name="download_addon_install_addons_for_versions">为哪些游戏版本安装？</string>
     <string name="download_addon_install_progress_downloading">下载安装附加内容中\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_addon_install_progress_installing">安装附加内容中\n%s</string>
+    <string name="download_addon_quick_download">快捷下载</string>
     <string name="download_addon_install_failed">安装附加内容失败！</string>
     <string name="download_addon_dependency_no_compatible_version">依赖 %s 未找到适配的版本</string>
     <string name="download_addon_dependency_project_unavailable">依赖项目信息获取失败</string>

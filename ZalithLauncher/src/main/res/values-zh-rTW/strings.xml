@@ -1207,6 +1207,7 @@
     <string name="download_addon_install_addons_for_versions">為哪個遊戲版本安裝?</string>
     <string name="download_addon_install_progress_downloading">下載並安裝附加內容\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_addon_install_progress_installing">安裝附加內容\n%s</string>
+    <string name="download_addon_quick_download">快捷下載</string>
     <string name="download_addon_install_failed">安裝附加內容失敗!</string>
     <string name="download_addon_dependency_no_compatible_version">依賴 %s 未找到適配的版本</string>
     <string name="download_addon_dependency_project_unavailable">無法取得依賴專案資訊</string>

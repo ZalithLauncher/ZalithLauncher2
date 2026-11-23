@@ -109,12 +109,13 @@ fun DownloadResourcePackScreen(
                         mainScreenKey = mainScreenKey,
                         downloadScreenKey = downloadScreenKey,
                         downloadResourcePackScreenKey = key,
-                        downloadResourcePackScreenCurrentKey = downloadResourcePackScreenKey
-                    ) { platform, projectId, _ ->
-                        backStack.navigateTo(
-                            NormalNavKey.DownloadAddon(platform, projectId, PlatformClasses.RESOURCE_PACK)
-                        )
-                    }
+                        downloadResourcePackScreenCurrentKey = downloadResourcePackScreenKey,
+                        swapToDownload = { platform, projectId, _ ->
+                            backStack.navigateTo(
+                                NormalNavKey.DownloadAddon(platform, projectId, PlatformClasses.RESOURCE_PACK)
+                            )
+                        },
+                    )
                 }
                 entry<NormalNavKey.DownloadAddon> { addonKey ->
                     DownloadAddonScreen(

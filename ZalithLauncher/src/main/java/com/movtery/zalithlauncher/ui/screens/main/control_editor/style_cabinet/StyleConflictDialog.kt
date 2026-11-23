@@ -36,8 +36,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.ButtonPosition
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.PositionButton
@@ -66,7 +66,7 @@ fun StyleConflictDialog(
     onSecondary: () -> Unit,
     onCancel: () -> Unit
 ) {
-    Dialog(onDismissRequest = onCancel) {
+    AppDialog(onDismissRequest = onCancel) {
         val dialogMxHeight = rememberDialogMaxHeight()
         BoxWithConstraints(
             modifier = Modifier

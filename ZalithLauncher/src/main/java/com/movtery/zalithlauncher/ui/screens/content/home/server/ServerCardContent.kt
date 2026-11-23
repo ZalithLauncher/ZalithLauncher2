@@ -79,7 +79,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImagePainter
@@ -99,6 +98,7 @@ import com.movtery.zalithlauncher.game.version.multiplayer.description.Component
 import com.movtery.zalithlauncher.game.version.multiplayer.description.ComponentDescriptionRoot
 import com.movtery.zalithlauncher.game.version.multiplayer.description.ServerDescription
 import com.movtery.zalithlauncher.game.version.multiplayer.description.StringDescription
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.ImePanContainer
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -947,7 +947,7 @@ private fun CardDialogFrame(
     onDismissRequest: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    Dialog(
+    AppDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(decorFitsSystemWindows = false)
     ) {

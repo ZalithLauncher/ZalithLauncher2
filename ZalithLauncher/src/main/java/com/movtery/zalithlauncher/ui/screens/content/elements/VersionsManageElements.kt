@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -83,6 +82,7 @@ import com.movtery.zalithlauncher.game.version.installed.cleanup.GameAssetCleane
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.components.AppAlertDialog
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
@@ -623,7 +623,7 @@ fun CleanupOperation(
         is CleanupOperation.Error -> {
             val error = operation.error
             if (error is CleanFailedException) {
-                AlertDialog(
+                AppAlertDialog(
                     onDismissRequest = {},
                     title = {
                         Text(

@@ -25,6 +25,7 @@ import android.view.InputDevice
 import android.view.MotionEvent
 import android.view.View
 import android.view.View.OnSystemUiVisibilityChangeListener
+import android.view.Window
 import android.view.WindowManager
 import androidx.activity.compose.LocalActivity
 import androidx.annotation.CallSuper
@@ -33,8 +34,10 @@ import androidx.compose.runtime.LaunchedEffect
 import kotlin.math.abs
 
 abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
-    /** 当前手势的 raw 坐标与局部坐标是否分属不同坐标系，需要重建事件 */
-    private var correctTouchCoordinates = false
+    private val windowController by lazy { newWindowController(window) }
+
+    /** 已挂载全屏机制的 Dialog 窗口 */
+    private val dialogControllers = mutableListOf<FullScreenWindow>()
 
     /**
      * @return 决定是否忽略前置摄像头区域
@@ -44,18 +47,81 @@ abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
     @CallSuper
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        applyFullscreen()
+        windowController.applyFullscreen()
     }
 
     @CallSuper
     override fun onPostResume() {
         super.onPostResume()
-        applyFullscreen()
+        windowController.applyFullscreen()
     }
 
-    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean =
+        windowController.dispatchTouchEvent(event)
+
+    fun refreshIgnoreNotch() {
+        windowController.refreshIgnoreNotch()
+        // 同步刷新已挂载的 Dialog 窗口，避免 Dialog 与宿主窗口的刘海模式不一致
+        dialogControllers.toList().forEach { it.refreshIgnoreNotch() }
+    }
+
+    /**
+     * 将全屏机制套用到 Dialog 的窗口上
+     * @return 卸载函数，在 Dialog 关闭时调用，恢复窗口原状
+     */
+    fun attachDialogWindow(window: Window): () -> Unit {
+        val originalCallback = window.callback
+        val controller = FullScreenWindow(
+            window = window,
+            isInMultiWindowMode = { isInMultiWindowMode },
+            isIgnoreNotch = { isIgnoreNotch() },
+            // 修正后的事件需要交还给 Dialog 自己的原始回调继续分发
+            dispatch = { event -> originalCallback.dispatchTouchEvent(event) }
+        )
+        // Dialog 窗口的触摸事件经由 WindowCallback 分发，包装它以介入坐标修正
+        val wrappedCallback = object : Window.Callback by originalCallback {
+            override fun dispatchTouchEvent(event: MotionEvent): Boolean =
+                controller.dispatchTouchEvent(event)
+        }
+        window.callback = wrappedCallback
+
+        controller.applyFullscreen()
+        controller.refreshIgnoreNotch()
+        dialogControllers.add(controller)
+
+        return {
+            // 仅在回调未被他人替换时恢复，避免覆盖后续设置的新回调
+            if (window.callback === wrappedCallback) {
+                window.callback = originalCallback
+            }
+            dialogControllers.remove(controller)
+        }
+    }
+
+    private fun newWindowController(window: Window): FullScreenWindow =
+        FullScreenWindow(
+            window = window,
+            isInMultiWindowMode = { isInMultiWindowMode },
+            isIgnoreNotch = { isIgnoreNotch() },
+            dispatch = { event -> super.dispatchTouchEvent(event) }
+        )
+}
+
+/**
+ * 以单个窗口为单位的全屏机制实现，供 Activity 窗口与 Dialog 窗口共用
+ */
+private class FullScreenWindow(
+    private val window: Window,
+    private val isInMultiWindowMode: () -> Boolean,
+    private val isIgnoreNotch: () -> Boolean,
+    private val dispatch: (event: MotionEvent) -> Boolean
+) {
+    /** 当前手势的 raw 坐标与局部坐标是否分属不同坐标系，需要重建事件 */
+    private var correctTouchCoordinates = false
+
+    fun dispatchTouchEvent(event: MotionEvent): Boolean {
         if (!event.isFromSource(InputDevice.SOURCE_TOUCHSCREEN)) {
-            return super.dispatchTouchEvent(event)
+            return dispatch(event)
         }
 
         val action = event.actionMasked
@@ -70,12 +136,12 @@ abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
         val handled = if (correctTouchCoordinates) {
             val corrected = event.copyWithConsistentCoordinates()
             try {
-                super.dispatchTouchEvent(corrected)
+                dispatch(corrected)
             } finally {
                 corrected.recycle()
             }
         } else {
-            super.dispatchTouchEvent(event)
+            dispatch(event)
         }
 
         if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
@@ -142,10 +208,10 @@ abstract class FullScreenAppCompatActivity : AbstractAppCompatActivity() {
      *
      * 注：targetSdk 需要设置为 34，从 35 开始，Activity 会被强行加入 enableEdgeToEdge，该实现就会彻底失效
      */
-    private fun applyFullscreen() {
+    fun applyFullscreen() {
         val decorView = window.decorView
         val visibilityChangeListener = OnSystemUiVisibilityChangeListener { visibility: Int ->
-            if (!isInMultiWindowMode) {
+            if (!isInMultiWindowMode()) {
                 if ((visibility and View.SYSTEM_UI_FLAG_FULLSCREEN) == 0) {
                     decorView.systemUiVisibility = (
                             View.SYSTEM_UI_FLAG_LAYOUT_STABLE

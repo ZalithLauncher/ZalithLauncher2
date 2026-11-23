@@ -31,26 +31,26 @@ import kotlinx.serialization.encoding.Encoder
 
 @Serializable(with = CurseForgeModLoader.Serializer::class)
 @Parcelize
-enum class CurseForgeModLoader(val code: Int) : ModLoaderDisplayLabel {
-    ANY(0) {
+enum class CurseForgeModLoader(val code: Int, val apiName: String) : ModLoaderDisplayLabel {
+    ANY(0, "Any") {
         override fun getDisplayName(): String = ""
     },
-    FORGE(1) {
+    FORGE(1, "Forge") {
         override fun getDisplayName(): String = ModLoader.FORGE.displayName
     },
-    CAULDRON(2) {
+    CAULDRON(2, "Cauldron") {
         override fun getDisplayName(): String = "Cauldron"
     },
-    LITE_LOADER(3) {
+    LITE_LOADER(3, "LiteLoader") {
         override fun getDisplayName(): String = ModLoader.LITE_LOADER.displayName
     },
-    FABRIC(4) {
+    FABRIC(4, "Fabric") {
         override fun getDisplayName(): String = ModLoader.FABRIC.displayName
     },
-    QUILT(5) {
+    QUILT(5, "Quilt") {
         override fun getDisplayName(): String = ModLoader.QUILT.displayName
     },
-    NEOFORGE(6) {
+    NEOFORGE(6, "NeoForge") {
         override fun getDisplayName(): String = ModLoader.NEOFORGE.displayName
     };
 

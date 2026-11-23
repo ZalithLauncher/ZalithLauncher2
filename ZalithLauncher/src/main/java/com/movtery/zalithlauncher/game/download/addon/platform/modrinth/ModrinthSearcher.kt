@@ -30,6 +30,8 @@ import io.ktor.client.plugins.ClientRequestException
 import io.ktor.http.Parameters
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonPrimitive
 import java.io.File
 
 class ModrinthSearcher(
@@ -63,24 +65,27 @@ class ModrinthSearcher(
     }
 
     /**
-     * 获取 Modrinth 项目的版本列表（可设置区间）
-     * @param pageSize 每页请求数量，null则为获取所有版本
-     * @param offset 开始处，null则为获取所有版本
+     * 获取 Modrinth 项目的版本列表
+     * @param loaders 按加载器过滤，例如 `fabric`
+     * @param gameVersions 按游戏版本过滤，例如 `1.20.1`
+     * @param featured 是否仅获取推荐版本
+     * @param includeChangelog 是否需要每个版本的更新日志，默认关闭以减少响应体
      */
-    suspend fun getVersionsChunk(
+    suspend fun getProjectVersions(
         projectID: String,
-        pageSize: Int? = null,
-        offset: Int? = null,
+        loaders: List<String>? = null,
+        gameVersions: List<String>? = null,
+        featured: Boolean? = null,
+        includeChangelog: Boolean = false
     ): List<ModrinthVersion> {
         return httpGetJson(
             url = "$api/project/$projectID/version",
-            parameters = if (pageSize != null && offset != null) {
-                Parameters.build {
-                    append("limit", pageSize.toString())
-                    append("offset", offset.toString())
-                    append("include_changelog", "false")
-                }
-            } else null
+            parameters = modrinthVersionsParameters(
+                loaders = loaders,
+                gameVersions = gameVersions,
+                featured = featured,
+                includeChangelog = includeChangelog
+            )
         )
     }
 
@@ -88,9 +93,7 @@ class ModrinthSearcher(
         projectID: String,
         pageCallback: (chunk: Int, page: Int) -> Unit
     ): List<ModrinthVersion> {
-        return getVersionsChunk(
-            projectID = projectID
-        )
+        return getProjectVersions(projectID = projectID)
     }
 
     /**
@@ -131,6 +134,25 @@ class ModrinthSearcher(
             body = ModrinthVersionFilesRequest(hashes = sha1List)
         )
     }
+}
+
+/**
+ * 构造项目版本列表的查询参数，列表值按官方要求编码为 JSON 数组
+ */
+internal fun modrinthVersionsParameters(
+    loaders: List<String>? = null,
+    gameVersions: List<String>? = null,
+    featured: Boolean? = null,
+    includeChangelog: Boolean = false
+): Parameters = Parameters.build {
+    loaders?.takeIf { it.isNotEmpty() }?.let { values ->
+        append("loaders", JsonArray(values.map(::JsonPrimitive)).toString())
+    }
+    gameVersions?.takeIf { it.isNotEmpty() }?.let { values ->
+        append("game_versions", JsonArray(values.map(::JsonPrimitive)).toString())
+    }
+    featured?.let { append("featured", it.toString()) }
+    append("include_changelog", includeChangelog.toString())
 }
 
 /**

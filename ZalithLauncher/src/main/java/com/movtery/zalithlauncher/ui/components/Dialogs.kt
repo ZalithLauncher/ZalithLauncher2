@@ -38,7 +38,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
@@ -64,7 +63,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.theme.cardColor
@@ -106,7 +104,7 @@ fun SimpleAlertDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    AppAlertDialog(
         onDismissRequest = {
             if (dismissByDialog) onDismiss()
         },
@@ -155,7 +153,7 @@ fun SimpleAlertDialog(
     dismissByDialog: Boolean = true,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    AppAlertDialog(
         onDismissRequest = {
             if (dismissByDialog) onDismiss()
         },
@@ -193,7 +191,7 @@ fun SimpleAlertDialog(
     onCancel: () -> Unit,
     onDismissRequest: () -> Unit = {}
 ) {
-    AlertDialog(
+    AppAlertDialog(
         onDismissRequest = onDismissRequest,
         title = {
             Text(
@@ -238,7 +236,7 @@ fun SimpleAlertDialog(
     confirmText: String = stringResource(R.string.generic_confirm),
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    AppAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(
@@ -281,7 +279,7 @@ fun SimpleEditDialog(
     onCancel: () -> Unit = onDismissRequest,
     onConfirm: () -> Unit = {},
 ) {
-    Dialog(
+    AppDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(decorFitsSystemWindows = false)
     ) {
@@ -358,7 +356,7 @@ fun SimpleEditDialog(
     extraContent: @Composable (() -> Unit)? = null,
     onConfirm: () -> Unit = {},
 ) {
-    Dialog(
+    AppDialog(
         onDismissRequest = {},
         properties = DialogProperties(decorFitsSystemWindows = false)
     ) {
@@ -551,7 +549,7 @@ fun <T> SimpleListDialog(
 ) {
     var selectedItem: T? by remember { mutableStateOf(current) }
 
-    Dialog(
+    AppDialog(
         onDismissRequest = {
             onDismissRequest(false)
         }
@@ -663,7 +661,7 @@ fun ProgressDialog(
     title: String = stringResource(R.string.generic_in_progress),
     text: String? = null
 ) {
-    Dialog(onDismissRequest = {}) {
+    AppDialog(onDismissRequest = {}) {
         Surface(
             shape = MaterialTheme.shapes.extraLarge,
             color = cardColor(false),

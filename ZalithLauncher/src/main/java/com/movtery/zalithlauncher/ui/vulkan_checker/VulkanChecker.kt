@@ -43,10 +43,10 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.version.installed.Version
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
@@ -79,7 +79,7 @@ fun VulkanChecker(
             )
         }
         is VCOperation.Result -> {
-            Dialog(
+            AppDialog(
                 onDismissRequest = {},
                 properties = DialogProperties(
                     usePlatformDefaultWidth = false,

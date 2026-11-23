@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.ui.theme
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.drawable.RippleDrawable
@@ -37,6 +38,7 @@ import com.google.android.material.color.utilities.Variant
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.DarkMode
+import com.movtery.zalithlauncher.ui.base.FullScreenAppCompatActivity
 
 data class NativeColorScheme(
     val primary: Color,
@@ -233,6 +235,11 @@ fun MaterialAlertDialogBuilder.createThemed(): AlertDialog {
     }
 
     return create().apply {
+        context.findFullScreenActivity()?.let { activity ->
+            val dialogWindow = window ?: return@apply
+            val detach = activity.attachDialogWindow(dialogWindow)
+            setOnDismissListener { detach() }
+        }
         setOnShowListener {
             findViewById<TextView>(androidx.appcompat.R.id.alertTitle)?.setTextColor(colors.onSurface.toArgb())
             findViewById<TextView>(android.R.id.message)?.setTextColor(colors.onSurfaceVariant.toArgb())
@@ -241,6 +248,12 @@ fun MaterialAlertDialogBuilder.createThemed(): AlertDialog {
             getButton(AlertDialog.BUTTON_NEUTRAL)?.applyThemeColors(colors)
         }
     }
+}
+
+private tailrec fun Context.findFullScreenActivity(): FullScreenAppCompatActivity? = when (this) {
+    is FullScreenAppCompatActivity -> this
+    is ContextWrapper -> baseContext.findFullScreenActivity()
+    else -> null
 }
 
 fun MaterialAlertDialogBuilder.showThemed(): AlertDialog {

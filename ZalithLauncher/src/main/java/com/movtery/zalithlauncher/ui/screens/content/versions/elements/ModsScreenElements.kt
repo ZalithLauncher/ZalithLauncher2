@@ -37,7 +37,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
@@ -56,7 +55,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.gson.JsonSyntaxException
 import com.movtery.zalithlauncher.R
@@ -69,6 +67,8 @@ import com.movtery.zalithlauncher.game.version.mod.RemoteMod
 import com.movtery.zalithlauncher.game.version.mod.isEnabled
 import com.movtery.zalithlauncher.game.version.mod.update.ModUpdater
 import com.movtery.zalithlauncher.game.version.mod.update.SelectableModManifest
+import com.movtery.zalithlauncher.ui.components.AppAlertDialog
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ProgressDialog
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
@@ -209,7 +209,7 @@ fun ModsUpdateOperation(
             val dismiss = {
                 changeOperation(ModsUpdateOperation.None)
             }
-            AlertDialog(
+            AppAlertDialog(
                 onDismissRequest = dismiss,
                 title = {
                     Text(text = stringResource(R.string.mods_update_failed))
@@ -276,7 +276,7 @@ private fun ModsUpdateListDialog(
     onCancel: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    Dialog(
+    AppDialog(
         onDismissRequest = {}
     ) {
         BoxWithConstraints(

@@ -59,6 +59,8 @@ git clone git@github.com:ZalithLauncher/ZalithLauncher2.git
 
 2. 你不得移除本程式所顯示的版權聲明。（依據 [GPLv3, 7(b)](https://github.com/ZalithLauncher/ZalithLauncher2/blob/969827b/LICENSE#L368-L370)）
 
+3. 《使用者協議》與《隱私政策》為本專案專有法律文件，**不屬於 GPL-3.0 授權範圍**：它們僅隨官方建置分發，修改版本不得捆綁、複製或仿冒這些文件；未包含這些文件的建置將在啟動時跳過協議同意頁面。
+
 ## 引用開源專案
   
 本軟體使用以下開源函式庫:

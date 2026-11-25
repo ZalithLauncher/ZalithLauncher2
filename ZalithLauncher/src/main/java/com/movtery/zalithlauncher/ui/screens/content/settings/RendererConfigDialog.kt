@@ -68,7 +68,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.renderer.ConfigurableRenderer
@@ -84,6 +83,7 @@ import com.movtery.zalithlauncher.game.renderer.config.SingleChoiceEntry
 import com.movtery.zalithlauncher.game.renderer.config.SwitchEntry
 import com.movtery.zalithlauncher.game.renderer.config.TextEntry
 import com.movtery.zalithlauncher.game.renderer.config.VersionRendererConfigStore
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.DefaultSwitch
 import com.movtery.zalithlauncher.ui.components.ImePanContainer
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
@@ -141,7 +141,7 @@ fun RendererConfigDialog(
         }
     }
 
-    Dialog(
+    AppDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
             usePlatformDefaultWidth = false,

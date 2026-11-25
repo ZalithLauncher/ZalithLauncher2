@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.viewmodel
 
 import android.content.Context
 import android.net.Uri
-import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
@@ -39,7 +38,7 @@ import androidx.lifecycle.viewModelScope
 import com.movtery.zalithlauncher.context.copyLocalFile
 import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.setting.LauncherSettings
-import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
+import com.movtery.zalithlauncher.utils.image.isGifFile
 import com.movtery.zalithlauncher.utils.image.isImageFile
 import com.movtery.zalithlauncher.utils.video.isVideoFile
 import kotlinx.coroutines.Dispatchers
@@ -48,6 +47,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.apache.commons.io.FileUtils
 import java.io.File
+import kotlin.math.roundToInt
 
 /**
  * 启动器背景管理
@@ -73,6 +73,12 @@ class BackgroundViewModel: ViewModel() {
     var isImage by mutableStateOf(false)
         private set
 
+    /**
+     * 背景文件是 GIF，按动态背景处理，避免把动画固定为首帧
+     */
+    var isAnimatedImage by mutableStateOf(false)
+        private set
+
     var refreshTrigger by mutableStateOf(false)
         private set
 
@@ -96,14 +102,18 @@ class BackgroundViewModel: ViewModel() {
     val captureLayer: GraphicsLayer? get() = glassBlur.captureLayer
 
     /**
-     * 预模糊的背景位图 (Android 12-)
+     * 预模糊背景位图：静态图片全系统共用，动态内容用于 Android 12-
      */
     val blurredBackground: ImageBitmap? get() = glassBlur.blurredBackground
+
+    /** 同一次读取同时取得位图与预合成标记，避免发布切换时混用两帧的元数据 */
+    internal val blurredBackgroundFrame: BlurredBackgroundFrame? get() = glassBlur.blurredBackgroundFrame
 
     fun updateBackgroundBounds(coordinates: LayoutCoordinates) {
         val position = coordinates.positionOnScreen()
         if (!position.isSpecified) return
-        backgroundBounds = Rect(position, coordinates.size.toSize())
+        val bounds = Rect(position, coordinates.size.toSize())
+        if (backgroundBounds != bounds) backgroundBounds = bounds
     }
 
     fun attachGlassLayer(layer: GraphicsLayer?) {
@@ -115,23 +125,25 @@ class BackgroundViewModel: ViewModel() {
     }
 
     /**
-     * 捕获当前捕获层的一帧并模糊为前景毛玻璃位图 (Android 12-)
+     * 捕获当前低分辨率捕获层的一帧并模糊 (Android 12-)
      */
-    suspend fun captureGlassFrame() {
-        glassBlur.captureFrame()
+    suspend fun captureGlassFrame(sampledRadiusPx: Float) {
+        glassBlur.captureFrame(sampledRadiusPx)
     }
 
     private suspend fun updateState() {
-        val (isImage0, isVideo0) = withContext(Dispatchers.IO) {
+        val (isImage0, isVideo0, isAnimatedImage0) = withContext(Dispatchers.IO) {
             val isImage = backgroundFile.isImageFile()
             //如果文件是图片，则不检查是否为视频
             val isVideo = if (!isImage) backgroundFile.isVideoFile() else false
-            isImage to isVideo
+            val isAnimatedImage = if (isImage) backgroundFile.isGifFile() else false
+            Triple(isImage, isVideo, isAnimatedImage)
         }
         //更新状态
         withContext(Dispatchers.Main) {
             isImage = isImage0
             isVideo = isVideo0
+            isAnimatedImage = isAnimatedImage0
             isValid = backgroundFile.exists() && (isImage0 || isVideo0)
             refreshTrigger = !refreshTrigger
         }
@@ -143,22 +155,42 @@ class BackgroundViewModel: ViewModel() {
         }
 
         viewModelScope.launch {
-            snapshotFlow {
-                BlurConfig(
-                    blur = LauncherSettings.backgroundBlur.flow.value,
-                    blurType = LauncherSettings.backgroundBlurType.flow.value,
-                    opacity = LauncherSettings.launcherBackgroundOpacity.flow.value,
+            var previousGeneration: Boolean? = null
+            var previousStaticImage = false
+            val mediaConfig = snapshotFlow {
+                BackgroundMediaConfig(
                     valid = isValid,
                     isImage = isImage,
-                    generation = refreshTrigger
+                    isAnimatedImage = isAnimatedImage,
+                    generation = refreshTrigger,
+                    targetWidth = backgroundBounds.width.roundToInt(),
+                    targetHeight = backgroundBounds.height.roundToInt()
                 )
-            }.collectLatest { config ->
+            }
+            combineBackgroundBlurConfig(
+                blur = LauncherSettings.backgroundBlur.flow,
+                opacity = LauncherSettings.launcherBackgroundOpacity.flow,
+                media = mediaConfig
+            ).collectLatest { config ->
+                val generationChanged = previousGeneration != config.generation
+                val staticImage = config.valid && config.isImage && !config.isAnimatedImage
+                val clearDynamicResult = previousStaticImage || generationChanged
+                if (generationChanged) glassBlur.invalidateStaticCache()
+                //在启动可取消的静态任务前记录代次，快速拖杆时仍能复用同一解码源
+                previousGeneration = config.generation
+                previousStaticImage = staticImage
+
                 when {
-                    Build.VERSION.SDK_INT >= 31 || !config.valid ||
-                        config.blur <= 0 || config.opacity >= 100 ->
+                    !config.valid || config.blur <= 0 || config.opacity >= 100 ->
                         glassBlur.clearBlurredBackground()
-                    config.isImage && config.blurType == BackgroundBlur.Background ->
-                        glassBlur.refreshStaticDisplayBitmap(config.blur)
+                    staticImage ->
+                        glassBlur.refreshStaticDisplayBitmap(
+                            blur = config.blur,
+                            targetWidth = config.targetWidth,
+                            targetHeight = config.targetHeight
+                        )
+                    clearDynamicResult ->
+                        glassBlur.clearBlurredBackground()
                 }
             }
         }
@@ -184,18 +216,6 @@ class BackgroundViewModel: ViewModel() {
         }
     }
 }
-
-/**
- * 生成模糊位图的触发条件快照，任一变化都会重新生成
- */
-private data class BlurConfig(
-    val blur: Int,
-    val blurType: BackgroundBlur,
-    val opacity: Int,
-    val valid: Boolean,
-    val isImage: Boolean,
-    val generation: Boolean
-)
 
 /**
  * 本地随时可以使用的背景图片管理 ViewModel

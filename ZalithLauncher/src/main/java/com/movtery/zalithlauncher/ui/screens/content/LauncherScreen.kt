@@ -305,14 +305,16 @@ private fun AccountAvatarRow(
     ) {
         if (account != null) {
             PlayerFace(
-                modifier = Modifier.padding(start = 4.dp),
+                modifier = Modifier.padding(horizontal = 4.dp),
                 account = account,
                 avatarSize = avatarSize,
                 refreshKey = refreshKey
             )
         } else {
             Icon(
-                modifier = Modifier.size(placeholderSize),
+                modifier = Modifier
+                    .padding(start = 8.dp, end = 4.dp, top = 2.dp, bottom = 2.dp)
+                    .size(placeholderSize),
                 painter = painterResource(R.drawable.ic_add),
                 contentDescription = null
             )
@@ -603,7 +605,7 @@ private fun ActionMenuContent(
                 AccountAvatarRow(
                     modifier = Modifier.fillMaxWidth(),
                     avatarSize = 38.dp,
-                    placeholderSize = 32.dp,
+                    placeholderSize = 34.dp,
                     textSpacer = 0.dp,
                 )
             }

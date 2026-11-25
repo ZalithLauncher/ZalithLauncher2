@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -48,6 +47,7 @@ import com.movtery.zalithlauncher.game.download.modpack.install.UnsupportedPackR
 import com.movtery.zalithlauncher.game.download.modpack.platform.PackPlatform
 import com.movtery.zalithlauncher.game.version.download.DownloadFailedException
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.ui.components.AppAlertDialog
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
@@ -235,7 +235,7 @@ fun ModpackImportOperation(
             }
         }
         is ModpackImportOperation.NotSupport -> {
-            AlertDialog(
+            AppAlertDialog(
                 onDismissRequest = {},
                 title = {
                     Text(text = stringResource(R.string.import_modpack_not_supported_title))
@@ -303,7 +303,7 @@ fun ModpackImportOperation(
             val dismiss = {
                 changeOperation(ModpackImportOperation.None)
             }
-            AlertDialog(
+            AppAlertDialog(
                 onDismissRequest = dismiss,
                 title = {
                     Text(text = stringResource(R.string.import_modpack_failed_title))

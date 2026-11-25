@@ -19,6 +19,9 @@
 package com.movtery.zalithlauncher.game.renderer.config
 
 import androidx.annotation.WorkerThread
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.setValue
 import com.movtery.zalithlauncher.game.plugin.renderer_v2.data.RendererEnvConfig
 import com.movtery.zalithlauncher.game.version.installed.getZalithVersionPath
 import com.movtery.zalithlauncher.path.GLOBAL_JSON
@@ -39,6 +42,13 @@ import java.util.concurrent.Executors
 
 private const val TAG = "RendererConfigStore"
 private val RENDERER_CONFIG_JSON = Json(GLOBAL_JSON) { encodeDefaults = true }
+
+object RendererConfigChanges {
+    var revision by mutableIntStateOf(0)
+        private set
+
+    fun bump() = ++revision
+}
 
 /**
  * 稀疏配置存储接口，只读写用户显式设置的值，不提供规范默认值
@@ -80,6 +90,7 @@ object GlobalRendererConfigStore : RendererConfigStore {
 
     override fun putValue(rendererId: String, entryId: String, value: ConfigScalar) {
         mmkv.putString(valueKey(rendererId, entryId), encodeScalar(value)).apply()
+        RendererConfigChanges.bump()
     }
 
     override fun getEnabled(rendererId: String, entryId: String): Boolean? =
@@ -89,16 +100,19 @@ object GlobalRendererConfigStore : RendererConfigStore {
 
     override fun putEnabled(rendererId: String, entryId: String, enabled: Boolean) {
         mmkv.putBoolean(enabledKey(rendererId, entryId), enabled).apply()
+        RendererConfigChanges.bump()
     }
 
     override fun removeEntry(rendererId: String, entryId: String) {
         mmkv.remove(valueKey(rendererId, entryId))
         mmkv.remove(enabledKey(rendererId, entryId))
+        RendererConfigChanges.bump()
     }
 
     override fun removeRenderer(rendererId: String) {
         val prefix = "$rendererId:"
         mmkv.allKeys()?.filter { it.startsWith(prefix) }?.forEach(mmkv::remove)
+        RendererConfigChanges.bump()
     }
 
     override fun keys(rendererId: String): Set<String> {
@@ -203,6 +217,7 @@ class VersionRendererConfigStore @WorkerThread constructor(
     override fun putValue(rendererId: String, entryId: String, value: ConfigScalar) {
         entries(rendererId).values[entryId] = value.toJson()
         persist()
+        RendererConfigChanges.bump()
     }
 
     override fun getEnabled(rendererId: String, entryId: String): Boolean? =
@@ -211,6 +226,7 @@ class VersionRendererConfigStore @WorkerThread constructor(
     override fun putEnabled(rendererId: String, entryId: String, enabled: Boolean) {
         entries(rendererId).enabled[entryId] = enabled
         persist()
+        RendererConfigChanges.bump()
     }
 
     override fun removeEntry(rendererId: String, entryId: String) {
@@ -219,10 +235,14 @@ class VersionRendererConfigStore @WorkerThread constructor(
         entry.enabled.remove(entryId)
         cleanup(rendererId)
         persist()
+        RendererConfigChanges.bump()
     }
 
     override fun removeRenderer(rendererId: String) {
-        if (config.renderers.remove(rendererId) != null) persist()
+        if (config.renderers.remove(rendererId) != null) {
+            persist()
+            RendererConfigChanges.bump()
+        }
     }
 
     override fun keys(rendererId: String): Set<String> {
@@ -317,7 +337,7 @@ class VersionRendererConfigStore @WorkerThread constructor(
     private fun awaitPendingWrites() {
         try {
             writeExecutor.submit { }.get()
-        } catch (e: InterruptedException) {
+        } catch (_: InterruptedException) {
             Thread.currentThread().interrupt()
         } catch (e: Exception) {
             Logger.warning(TAG, "Failed to wait for version renderer configuration writes", e)

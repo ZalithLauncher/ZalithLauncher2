@@ -18,6 +18,7 @@ jobs:
       STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
       OAUTH_CLIENT_ID: ${{ secrets.OAUTH_CLIENT_ID }}
       CURSEFORGE_API_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
+      LEGAL_DOCS_TOKEN: ${{ secrets.LEGAL_DOCS_TOKEN }}
 
   Upload-to-Release:
     needs: Build
@@ -54,6 +55,24 @@ jobs:
           done
 
           echo "Found $(ls ./mappings/ | wc -l) mapping file(s)"
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Verify legal documents in release APKs
+        run: |
+          fail=0
+          while read -r expected path; do
+            [ -z "$expected" ] && continue
+            for apk in ./apks/*.apk; do
+              actual=$(unzip -p "$apk" "assets/legal/$path" 2>/dev/null | sha256sum | awk '{print $1}')
+              if [ "$actual" != "$expected" ]; then
+                echo "::error file=$apk::Legal document missing or modified: assets/legal/$path"
+                fail=1
+              fi
+            done
+          done < ZalithLauncher/legal-docs.sha256
+          exit $fail
 
       - name: Upload To Release
         uses: softprops/action-gh-release@v3

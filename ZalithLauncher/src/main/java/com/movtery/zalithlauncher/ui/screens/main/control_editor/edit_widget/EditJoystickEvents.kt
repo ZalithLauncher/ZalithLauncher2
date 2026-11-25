@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.movtery.guide.GuideSide
 import com.movtery.guide.guideNode
 import com.movtery.layer_controller.data.JoystickDirection
@@ -47,6 +46,7 @@ import com.movtery.layer_controller.observable.ObservableJoystickData
 import com.movtery.layer_controller.observable.joystickDirectionEventsProvider
 import com.movtery.layer_controller.observable.joystickLockEventsProvider
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.components.verticalScrollWithBar
@@ -382,7 +382,7 @@ private fun JoystickLauncherEventDialog(
     sendText: (ObservableClickEventsProvider) -> Unit,
     onDismiss: () -> Unit
 ) {
-    Dialog(
+    AppDialog(
         onDismissRequest = onDismiss
     ) {
         Surface(
@@ -508,7 +508,7 @@ private fun JoystickKeyEventDialog(
     isLock: Boolean,
     onDismiss: () -> Unit
 ) {
-    Dialog(onDismissRequest = onDismiss) {
+    AppDialog(onDismissRequest = onDismiss) {
         BoxWithConstraints(
             modifier = Modifier
                 .heightIn(max = rememberDialogMaxHeight())

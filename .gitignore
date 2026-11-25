@@ -15,6 +15,7 @@ local.properties
 .curseforge_api.txt
 LWJGL/build/
 LWJGL/*/build/
+/legal-docs
 
 # AI agent
 .zcode/

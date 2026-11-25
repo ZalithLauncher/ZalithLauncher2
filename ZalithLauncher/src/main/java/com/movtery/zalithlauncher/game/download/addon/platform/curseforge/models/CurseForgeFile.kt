@@ -29,6 +29,9 @@ import com.movtery.zalithlauncher.game.download.addon.platform.mirroredPlatformS
 import com.movtery.zalithlauncher.game.versioninfo.filterRelease
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.parseInstant
+import io.ktor.client.plugins.ClientRequestException
+import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -237,36 +240,62 @@ class CurseForgeFile(
     @Transient
     private lateinit var primaryDownloadUrl: String
 
-    override suspend fun initFile(currentProjectId: String): Boolean {
-        val file = this.takeIf { it.fileName != null && it.fixedFileUrl() != null }
+    override suspend fun initFile(currentProjectId: String): Boolean =
+        initFileInternal(currentProjectId, strict = false)
+
+    override suspend fun initFileStrict(currentProjectId: String): Boolean =
+        initFileInternal(currentProjectId, strict = true)
+
+    private suspend fun initFileInternal(currentProjectId: String, strict: Boolean): Boolean {
+        val file = this.takeIf { it.hasUsablePrimaryMetadata() }
         // 文件名或者下载链接为空
         // 单独获取该文件信息
             ?: run {
                 val fileId = id.toString()
-                runCatching {
-                    mirroredPlatformSearcher(
-                        searchers = mirroredCurseForgeSource()
-                    ) { searcher ->
-                        searcher.getVersion(
-                            projectID = currentProjectId,
-                            fileID = fileId
-                        )
-                    }.data
-                }.onFailure { e ->
-                    when (e) {
-                        is FileNotFoundException -> Logger.warning("InitCFFile", "Could not query api.curseforge.com for deleted mods: $currentProjectId, $fileId", e)
-                        is IOException, is SerializationException -> Logger.warning("InitCFFile", "Unable to fetch the file name projectID=$currentProjectId, fileID=$fileId", e)
+                if (strict) {
+                    try {
+                        queryPrimaryFile(currentProjectId, fileId)
+                    } catch (e: FileNotFoundException) {
+                        Logger.warning("InitCFFile", "Could not query api.curseforge.com for deleted mods: $currentProjectId, $fileId", e)
+                        return false
+                    } catch (e: ClientRequestException) {
+                        // Ktor 将 HTTP 404 抛为该异常，仅 404 可按永久不可用处理
+                        if (e.response.status != HttpStatusCode.NotFound) throw e
+                        Logger.warning("InitCFFile", "Could not query api.curseforge.com for deleted mods: $currentProjectId, $fileId", e)
+                        return false
                     }
-                }.getOrNull() ?: return false
+                } else {
+                    runCatching {
+                        queryPrimaryFile(currentProjectId, fileId)
+                    }.onFailure { e ->
+                        when (e) {
+                            is CancellationException -> throw e
+                            is FileNotFoundException -> Logger.warning("InitCFFile", "Could not query api.curseforge.com for deleted mods: $currentProjectId, $fileId", e)
+                            is IOException, is SerializationException -> Logger.warning("InitCFFile", "Unable to fetch the file name projectID=$currentProjectId, fileID=$fileId", e)
+                        }
+                    }.getOrNull() ?: return false
+                }
             }
-        val link = file.fixedFileUrl() ?: run {
-            Logger.warning("InitCFFile", "No download link available, projectID=$currentProjectId, fileID=${file.id}")
+        if (!file.hasUsablePrimaryMetadata()) {
+            Logger.warning("InitCFFile", "No usable file name or download link, projectID=$currentProjectId, fileID=${file.id}")
             return false
         }
+        val link = checkNotNull(file.fixedFileUrl())
 
         thisPrimaryFile = file
         primaryDownloadUrl = link
         return true
+    }
+
+    private suspend fun queryPrimaryFile(currentProjectId: String, fileId: String): CurseForgeFile {
+        return mirroredPlatformSearcher(
+            searchers = mirroredCurseForgeSource()
+        ) { searcher ->
+            searcher.getVersion(
+                projectID = currentProjectId,
+                fileID = fileId
+            )
+        }.data
     }
 
     override fun platform(): Platform = Platform.CURSEFORGE
@@ -289,6 +318,15 @@ class CurseForgeFile(
         return thisPrimaryFile.gameVersions.mapNotNull { loaderName ->
             CurseForgeModLoader.entries.find {
                 it.getDisplayName().equals(loaderName, true)
+            }
+        }
+    }
+
+    override fun platformLoadersStrict(): List<PlatformDisplayLabel> {
+        // Any 的显示名为空，严格模式必须按 API 标识解析，才能保留明确的通配语义。
+        return thisPrimaryFile.gameVersions.mapNotNull { loaderName ->
+            CurseForgeModLoader.entries.find {
+                it.apiName.equals(loaderName, ignoreCase = true)
             }
         }
     }
@@ -317,6 +355,10 @@ class CurseForgeFile(
 
     override fun platformVersion(): String = displayName
 }
+
+/** 文件名非空白且存在下载地址（包括可推导的 CDN 地址）时，无需补全或重新查询。 */
+internal fun CurseForgeFile.hasUsablePrimaryMetadata(): Boolean =
+    !fileName.isNullOrBlank() && fixedFileUrl() != null
 
 /**
  * 获取修正后的文件下载链接，若下载链接为null，则根据id与文件名称计算下载链接

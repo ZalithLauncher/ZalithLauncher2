@@ -33,6 +33,7 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.File
+import java.net.SocketTimeoutException
 import java.nio.file.Files
 import java.util.Collections
 import java.util.Random
@@ -233,6 +234,32 @@ class BatchDownloaderE2ETest {
 
             assertEquals(2, batch.stats.downloadedFiles)
             assertTrue(batch.lastRunFailures.isEmpty())
+        }
+    }
+
+    @Test
+    fun `file timeout becomes a download failure instead of task cancellation`() = runBlocking {
+        withTimeout(60_000) {
+            val server = startServer(object : Dispatcher() {
+                override fun dispatch(request: RecordedRequest): MockResponse {
+                    Thread.sleep(1_000)
+                    return MockResponse.Builder().body(Buffer().write(payload(9))).build()
+                }
+            })
+            val dir = newWorkDir()
+            val batch = BatchDownloader(
+                requests = listOf(
+                    DownloadRequest(listOf(server.url("/slow").toString()), File(dir, "slow.bin"))
+                ),
+                maxConnections = 1,
+                retryRounds = 0,
+                fileTimeoutMillis = 50
+            )
+
+            val failure = runCatching { batch.run() }.exceptionOrNull()
+
+            assertTrue(failure is BatchDownloadException)
+            assertTrue(batch.lastRunFailures.values.single() is SocketTimeoutException)
         }
     }
 }

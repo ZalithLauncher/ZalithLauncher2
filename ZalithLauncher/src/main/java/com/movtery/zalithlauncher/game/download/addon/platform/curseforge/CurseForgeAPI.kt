@@ -30,6 +30,12 @@ import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
  */
 const val CURSEFORGE_API = "https://api.curseforge.com/v1"
 
+/** CurseForge 分页单页最大返回数量 */
+const val CURSEFORGE_MAX_PAGE_SIZE = 50
+
+/** CurseForge 分页可遍历的最大结果数量 */
+const val CURSEFORGE_MAX_PAGINATION_RESULTS = 10_000
+
 /**
  * MCIM 镜像：CurseForge 平台的 API 链接
  * [MCIM CurseForge API](https://github.com/mcmod-info-mirror/mcim-rust-api?tab=readme-ov-file#curseforge)

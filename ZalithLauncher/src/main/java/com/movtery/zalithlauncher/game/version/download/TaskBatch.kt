@@ -41,13 +41,15 @@ private const val LOCAL_VERIFY_PARALLELISM = 4
  * message 内含失败文件路径。
  *
  * @param onSnapshot 每 100ms 收到一次引擎统计快照
+ * @param fileTimeoutMillis 单次文件尝试的整体超时；null 时不额外限制
  */
 suspend fun Task.runBatchDownloads(
     tasks: List<DownloadTask>,
     maxConnections: Int,
     retryRounds: Int = 1,
     onSnapshot: suspend (BatchProgress) -> Unit = {},
-    acceptFailure: ((task: DownloadTask, error: Throwable) -> Boolean)? = null
+    acceptFailure: ((task: DownloadTask, error: Throwable) -> Boolean)? = null,
+    fileTimeoutMillis: Long? = null,
 ) {
     val verifyStarted = System.currentTimeMillis()
     val (reusable, pending) = verifyExistingFilesConcurrently(tasks)
@@ -59,7 +61,8 @@ suspend fun Task.runBatchDownloads(
     val batch = BatchDownloader(
         requests = pending.map { it.toRequest() },
         maxConnections = maxConnections,
-        retryRounds = retryRounds
+        retryRounds = retryRounds,
+        fileTimeoutMillis = fileTimeoutMillis,
     )
 
     reusable.forEach {

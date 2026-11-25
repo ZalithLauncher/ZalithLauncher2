@@ -24,6 +24,7 @@ import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformSearchFilter
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeFile
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeFingerprintsMatches
+import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeModLoader
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeProject
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeVersion
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeVersions
@@ -31,8 +32,8 @@ import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models
 import com.movtery.zalithlauncher.utils.file.MurmurHash2Incremental
 import com.movtery.zalithlauncher.utils.network.httpGetJson
 import com.movtery.zalithlauncher.utils.network.httpPostJson
-import io.ktor.http.Parameters
-import io.ktor.server.plugins.NotFoundException
+import io.ktor.http.*
+import io.ktor.server.plugins.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -87,26 +88,45 @@ class CurseForgeSearcher(
     /**
      * 在 CurseForge 平台根据分页获取项目的版本列表
      * @param index 开始处
-     * @param pageSize 每页请求数量
+     * @param pageSize 每页请求数量，最大为 [CURSEFORGE_MAX_PAGE_SIZE]
+     * @param gameVersion 按游戏版本过滤
+     * @param modLoader 按模组加载器过滤
+     * @param gameVersionTypeId 按游戏版本类型 ID 过滤
      */
     suspend fun getVersions(
         projectID: String,
         index: Int = 0,
-        pageSize: Int = 100
-    ): CurseForgeVersions = httpGetJson(
-        url = "$api/mods/$projectID/files",
-        parameters = Parameters.build {
-            append("index", index.toString())
-            append("pageSize", pageSize.toString())
+        pageSize: Int = CURSEFORGE_MAX_PAGE_SIZE,
+        gameVersion: String? = null,
+        modLoader: CurseForgeModLoader? = null,
+        gameVersionTypeId: Int? = null
+    ): CurseForgeVersions {
+        require(index >= 0) { "index must not be negative." }
+        require(pageSize in 1..CURSEFORGE_MAX_PAGE_SIZE) {
+            "pageSize must be between 1 and $CURSEFORGE_MAX_PAGE_SIZE."
         }
-    )
+        require(index <= CURSEFORGE_MAX_PAGINATION_RESULTS - pageSize) {
+            "index + pageSize must not exceed $CURSEFORGE_MAX_PAGINATION_RESULTS."
+        }
+
+        return httpGetJson(
+            url = "$api/mods/$projectID/files",
+            parameters = Parameters.build {
+                gameVersion?.let { append("gameVersion", it) }
+                modLoader?.let { append("modLoaderType", it.code.toString()) }
+                gameVersionTypeId?.let { append("gameVersionTypeId", it.toString()) }
+                append("index", index.toString())
+                append("pageSize", pageSize.toString())
+            }
+        )
+    }
 
     override suspend fun getVersions(
         projectID: String,
         pageCallback: (chunk: Int, page: Int) -> Unit
     ): List<CurseForgeFile> {
         return getAllVersions(
-            pageSize = 50,
+            pageSize = CURSEFORGE_MAX_PAGE_SIZE,
             chunkSize = 20,
             maxConcurrent = 10,
             pageCallback = pageCallback,
@@ -177,8 +197,8 @@ private data class CurseForgeFingerprintsRequest(
  * @param asyncVersions 异步获取单区块的版本数据
  * @param processVersions 加工返回数据，同时需要返回当前结果实际的页面大小
  */
-private suspend fun <E, T> getAllVersions(
-    pageSize: Int = 100,
+suspend fun <E, T> getAllVersions(
+    pageSize: Int = CURSEFORGE_MAX_PAGE_SIZE,
     chunkSize: Int = 10,
     maxConcurrent: Int = 5,
     pageCallback: (chunk: Int, page: Int) -> Unit = { _ , _ -> },
@@ -199,9 +219,12 @@ private suspend fun <E, T> getAllVersions(
 
         while (!reachedEnd) {
             //创建当前区间的任务列表
-            val jobs = (0 until chunkSize).map { offset ->
+            val jobs = (0 until chunkSize).mapNotNull { offset ->
                 val pageIndex = startPage + offset
                 val index = pageIndex * pageSize
+                if (index > CURSEFORGE_MAX_PAGINATION_RESULTS - pageSize) {
+                    return@mapNotNull null
+                }
 
                 async {
                     semaphore.withPermit {
@@ -216,6 +239,8 @@ private suspend fun <E, T> getAllVersions(
                     }
                 }
             }
+
+            if (jobs.isEmpty()) break
 
             for ((i, job) in jobs.withIndex()) {
                 val (files, realSize) = processVersions(job.await())

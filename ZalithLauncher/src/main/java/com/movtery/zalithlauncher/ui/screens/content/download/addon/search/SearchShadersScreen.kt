@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.movtery.zalithlauncher.game.download.addon.platform.Platform
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformSearchData
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeShadersCategory
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthFeatures
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthShadersCategory
@@ -35,7 +36,8 @@ fun SearchShadersScreen(
     downloadScreenKey: TitledNavKey?,
     downloadShadersScreenKey: TitledNavKey,
     downloadShadersScreenCurrentKey: TitledNavKey?,
-    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
+    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> },
+    onQuickDownload: ((PlatformSearchData) -> Unit)? = null,
 ) {
     val initialPlatform = remember {
         MiscSettings.searchShadersPlatform.getValue()
@@ -68,6 +70,7 @@ fun SearchShadersScreen(
                 }
             }
         },
-        swapToDownload = swapToDownload
+        swapToDownload = swapToDownload,
+        onQuickDownload = onQuickDownload,
     )
 }

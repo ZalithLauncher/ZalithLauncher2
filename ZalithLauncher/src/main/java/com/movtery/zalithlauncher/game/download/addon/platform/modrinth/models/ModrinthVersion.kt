@@ -100,6 +100,10 @@ class ModrinthVersion(
     @SerialName("changelog_url")
     val changelogUrl: String? = null,
 
+    /** 该版本支持的运行环境 */
+    @SerialName("environment")
+    val environment: String? = null,
+
     /** 该版本可下载文件的列表 */
     @SerialName("files")
     val files: Array<ModrinthFile>

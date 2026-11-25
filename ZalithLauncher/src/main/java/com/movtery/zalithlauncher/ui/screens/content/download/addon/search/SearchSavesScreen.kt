@@ -21,6 +21,7 @@ package com.movtery.zalithlauncher.ui.screens.content.download.addon.search
 import androidx.compose.runtime.Composable
 import com.movtery.zalithlauncher.game.download.addon.platform.Platform
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformSearchData
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeSavesCategory
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
@@ -31,7 +32,8 @@ fun SearchSavesScreen(
     downloadScreenKey: TitledNavKey?,
     downloadSavesScreenKey: TitledNavKey,
     downloadSavesScreenCurrentKey: TitledNavKey?,
-    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
+    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> },
+    onQuickDownload: ((PlatformSearchData) -> Unit)? = null,
 ) {
     SearchAddonScreen(
         mainScreenKey = mainScreenKey,
@@ -46,6 +48,7 @@ fun SearchSavesScreen(
         mapCategories = { platform, string ->
             CurseForgeSavesCategory.entries.find { it.describe() == string }
         },
-        swapToDownload = swapToDownload
+        swapToDownload = swapToDownload,
+        onQuickDownload = onQuickDownload,
     )
 }

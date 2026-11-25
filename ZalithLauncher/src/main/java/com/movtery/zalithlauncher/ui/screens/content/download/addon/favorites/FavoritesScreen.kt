@@ -182,6 +182,7 @@ private fun rememberFavoritesScreenViewModel(): FavoritesScreenViewModel = viewM
 
 /**
  * @param swapToDownload 跳转到资源类型对应的下载分类屏幕详情页
+ * @param onQuickDownload 快捷下载，null 时不展示快捷下载入口
  */
 @Composable
 fun FavoritesScreen(
@@ -190,7 +191,8 @@ fun FavoritesScreen(
     parentCurrentKey: TitledNavKey?,
     screenKey: TitledNavKey,
     currentKey: TitledNavKey?,
-    swapToDownload: (Platform, PlatformClasses, projectId: String, iconUrl: String?) -> Unit
+    swapToDownload: (Platform, PlatformClasses, projectId: String, iconUrl: String?) -> Unit,
+    onQuickDownload: ((FavoriteEntry) -> Unit)? = null
 ) {
     val viewModel = rememberFavoritesScreenViewModel()
 
@@ -214,7 +216,8 @@ fun FavoritesScreen(
                     .weight(7f)
                     .animated(ctx),
                 viewModel = viewModel,
-                swapToDownload = swapToDownload
+                swapToDownload = swapToDownload,
+                onQuickDownload = onQuickDownload
             )
 
             val ctxX = rememberAnimatedContext(isVisible = isVisible)
@@ -233,7 +236,8 @@ fun FavoritesScreen(
 private fun FavoritesContent(
     modifier: Modifier = Modifier,
     viewModel: FavoritesScreenViewModel,
-    swapToDownload: (Platform, PlatformClasses, projectId: String, iconUrl: String?) -> Unit
+    swapToDownload: (Platform, PlatformClasses, projectId: String, iconUrl: String?) -> Unit,
+    onQuickDownload: ((FavoriteEntry) -> Unit)? = null
 ) {
     val repositoryLoaded = FavoriteProjectsRepository.initialized
     val repositoryEmpty = FavoriteProjectsRepository.projects.isEmpty()
@@ -354,7 +358,10 @@ private fun FavoritesContent(
                         },
                         onUnfavorite = {
                             FavoriteProjectsRepository.unfavorite(entry.platform, entry.project.projectId)
-                        }
+                        },
+                        onQuickDownload = if (onQuickDownload != null) {
+                            { onQuickDownload(entry) }
+                        } else null
                     )
                 }
             }

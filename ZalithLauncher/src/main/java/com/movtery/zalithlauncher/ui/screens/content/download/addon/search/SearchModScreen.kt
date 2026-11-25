@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.movtery.zalithlauncher.game.download.addon.platform.Platform
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformSearchData
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeModCategory
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.curseForgeModLoaderFilters
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthFeatures
@@ -40,7 +41,8 @@ fun SearchModScreen(
     downloadModScreenCurrentKey: TitledNavKey?,
     onPlatformChange: (Platform) -> Unit = {},
     installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null,
-    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
+    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> },
+    onQuickDownload: ((PlatformSearchData) -> Unit)? = null,
 ) {
     val initialPlatform = remember {
         MiscSettings.searchModPlatform.getValue()
@@ -82,6 +84,7 @@ fun SearchModScreen(
             }
         },
         swapToDownload = swapToDownload,
-        installedInfo = installedInfo
+        installedInfo = installedInfo,
+        onQuickDownload = onQuickDownload,
     )
 }

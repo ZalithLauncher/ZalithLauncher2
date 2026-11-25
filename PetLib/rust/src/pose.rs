@@ -1,10 +1,16 @@
-//! 玩家骨架
+//! 玩家骨架：具名关节的轨道混合与程序化姿态。
+//!
+//! 姿态以「节点 → 局部平移/旋转」映射输出，渲染端按模型节点树合成
+//! 世界变换。程序化效果（注视/摆臂/压扁/行走）按模型契约名查找关节，
+//! 缺失则跳过对应效果，非人形模型因此可复用同一套轨道系统。
+
+use std::sync::Arc;
 
 use glam::{EulerRot, Mat4, Quat, Vec2, Vec3};
 
 use crate::animation::{evaluate_walking, AnimFrame, AnimationId, WALKING_PERIOD};
-use crate::clip::{self, ClipPose, IdleClips};
-use crate::clip_data::{CLIP_IDLE, CLIP_INTERACT, CLIP_SUBS};
+use crate::clip::{self, IdleClips};
+use crate::model::ModelData;
 
 /// 攻击动画时长 (20 tick/s 下的 6 tick)
 const SWING_SECONDS: f32 = 0.30;
@@ -17,20 +23,10 @@ pub const TAU_YAW: f32 = 0.15;
 pub const FADE_SECONDS: f32 = 0.2;
 pub const TAU_RECENTER: f32 = 0.35;
 
-/// 臂静止枢轴 [左, 右]:肩点(模型 22px 高),原始 GLTF 基坐标。
-pub(crate) const ARM_REST_PIVOTS: [Vec3; 2] = [Vec3::new(-5., 10., 0.), Vec3::new(5., 10., 0.)];
-/// 腿静止枢轴 [左, 右]:髋点(模型 12px 高),原始 GLTF 基坐标。
-pub(crate) const LEG_REST_PIVOTS: [Vec3; 2] = [Vec3::new(-1.9, 0., 0.), Vec3::new(1.9, 0., 0.)];
-
 /// 原始 GLTF 基 → 渲染基的 180°Y 根共轭(即 GLTF 骨架里
-/// blockbench_export 节点的旋转):四元数 (x, y, z, w) → (−x, y, −z, w)。
+/// blockbench_export 节点的旋转)：四元数 (x, y, z, w) → (−x, y, −z, w)。
 pub(crate) fn flip_quat(q: Quat) -> Quat {
     Quat::from_xyzw(-q.x, q.y, -q.z, q.w)
-}
-
-/// `flip_quat` 的向量版本:(x, y, z) → (−x, y, −z)。
-pub(crate) fn flip_vec(v: Vec3) -> Vec3 {
-    Vec3::new(-v.x, v.y, -v.z)
 }
 
 /// 背对切断阈值：偏航相对摄像机方向超过此角放弃跟随。
@@ -60,6 +56,7 @@ pub fn front_yaw() -> f32 {
     30f32.atan2(70.)
 }
 
+/// 欧拉角（弧度，XYZ 序）转四元数。
 pub fn rotation(x: f32, y: f32, z: f32) -> Quat {
     Quat::from_euler(EulerRot::XYZ, x, y, z)
 }
@@ -84,6 +81,56 @@ pub fn view_quat() -> Quat {
         * Quat::from_rotation_x(-(23f32 / (30f32 * 30f32 + 70f32 * 70f32).sqrt()).atan())
 }
 
+/// 具名关节索引（模型契约名，None 表示该模型缺少此关节）。
+#[derive(Clone, Copy)]
+struct Joints {
+    body: Option<usize>,
+    head: Option<usize>,
+    arms: [Option<usize>; 2],
+    legs: [Option<usize>; 2],
+    cape: Option<usize>,
+}
+
+impl Joints {
+    fn resolve(model: &ModelData) -> Self {
+        Self {
+            body: model.joint("Body"),
+            head: model.joint("Head"),
+            arms: [model.joint("Left_Arm"), model.joint("Right_Arm")],
+            legs: [model.joint("Left_Leg"), model.joint("Right_Leg")],
+            cape: model.joint("Cape"),
+        }
+    }
+}
+
+/// 节点局部姿态快照：全部节点的平移（像素）与旋转（GLTF 基）。
+#[derive(Clone)]
+pub struct NodeSnapshot {
+    pub translations: Vec<Vec3>,
+    pub rotations: Vec<Quat>,
+}
+
+impl NodeSnapshot {
+    /// 静止姿态：平移取节点静止值，旋转取恒等。渲染端对未驱动节点
+    /// 回退 glTF 静止旋转；驱动节点由骨架完全给定。
+    pub(crate) fn rest(model: &ModelData) -> Self {
+        Self {
+            translations: model.nodes.iter().map(|n| n.rest_translation).collect(),
+            rotations: vec![Quat::IDENTITY; model.nodes.len()],
+        }
+    }
+
+    /// 将另一姿态按权重混入当前快照，复用已有节点数组。
+    pub(crate) fn blend_in_place(&mut self, other: &Self, t: f32) {
+        for (current, incoming) in self.translations.iter_mut().zip(&other.translations) {
+            *current = current.lerp(*incoming, t);
+        }
+        for (current, incoming) in self.rotations.iter_mut().zip(&other.rotations) {
+            *current = current.slerp(*incoming, t);
+        }
+    }
+}
+
 /// 动作来源
 #[derive(Clone, Copy, PartialEq, Debug)]
 enum Source {
@@ -106,6 +153,72 @@ struct Track {
     target: f32,
     /// 一次性轨道的定格时长；循环轨道为 INFINITY
     duration: f32,
+}
+
+/// 注视目标：屏幕模式每帧经活相机反投影；场景模式为世界固定点。
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub(crate) enum GazeTarget {
+    None,
+    Screen(Vec2),
+    Scene(Vec3),
+}
+
+/// 注视解算上下文：活相机视图基、观察距离与方位偏移。
+/// 旧固定机位与场景相机都折算为同一组量，解算端只有一条代码路径。
+pub(crate) struct GazeRig {
+    pub(crate) basis: crate::render::ViewBasis,
+    /// 观察距离（顶点像素单位）
+    pub(crate) distance_px: f32,
+    /// 相机方位角相对旧固定机位的偏移（弧度；背对切断用）
+    pub(crate) yaw_offset: f32,
+}
+
+impl GazeRig {
+    /// 旧固定机位（与历史解算逐位一致）。
+    pub(crate) fn legacy(view: Vec2) -> Self {
+        Self {
+            basis: crate::render::legacy_basis(view),
+            distance_px: LEGACY_VIEW_DISTANCE,
+            yaw_offset: 0.,
+        }
+    }
+
+    /// 旧固定机位的相对距离版本，注视换算与渲染共用同一缩放。
+    pub(crate) fn legacy_with_distance(view: Vec2, distance: f32) -> Self {
+        let distance = distance.max(1e-3);
+        Self {
+            basis: crate::render::legacy_basis_with_distance(view, distance),
+            distance_px: LEGACY_VIEW_DISTANCE * distance,
+            yaw_offset: 0.,
+        }
+    }
+
+    /// 使用已经计算好的场景视图基构造注视上下文。
+    pub(crate) fn from_view(
+        camera: &crate::scene::Camera,
+        basis: crate::render::ViewBasis,
+    ) -> Self {
+        Self {
+            basis,
+            distance_px: camera.distance * crate::model::PIXELS_PER_UNIT,
+            yaw_offset: camera.azimuth.to_radians() - front_yaw(),
+        }
+    }
+}
+
+/// 旧固定机位的相机-模型距离（(30,23,70) 的模长）。
+const LEGACY_VIEW_DISTANCE: f32 = 79.55501241279521;
+
+/// 手动动画对象的播放状态（api::Animation 门面控制，本层推进时间与权重）。
+#[derive(Debug)]
+pub(crate) struct ManualState {
+    pub(crate) clip: usize,
+    pub(crate) time: f32,
+    pub(crate) speed: f32,
+    pub(crate) loop_: bool,
+    pub(crate) playing: bool,
+    pub(crate) weight: f32,
+    pub(crate) target_weight: f32,
 }
 
 impl Track {
@@ -149,71 +262,16 @@ impl Track {
     }
 }
 
-#[derive(Clone, Copy)]
-struct LimbSnapshot {
-    arms: [Quat; 2],
-    legs: [Quat; 2],
-    arm_pivots: [Vec3; 2],
-    leg_pivots: [Vec3; 2],
-    head_rot: Quat,
-    body_rot: Quat,
-    body_pos: Vec3,
-    head_pos: f32,
-    cape: Vec2,
-}
-
-impl LimbSnapshot {
-    /// 加权混合：四元数 slerp、向量/标量 lerp
-    fn blend(self, other: Self, t: f32) -> Self {
-        Self {
-            arms: std::array::from_fn(|i| self.arms[i].slerp(other.arms[i], t)),
-            legs: std::array::from_fn(|i| self.legs[i].slerp(other.legs[i], t)),
-            arm_pivots: std::array::from_fn(|i| self.arm_pivots[i].lerp(other.arm_pivots[i], t)),
-            leg_pivots: std::array::from_fn(|i| self.leg_pivots[i].lerp(other.leg_pivots[i], t)),
-            head_rot: self.head_rot.slerp(other.head_rot, t),
-            body_rot: self.body_rot.slerp(other.body_rot, t),
-            body_pos: self.body_pos.lerp(other.body_pos, t),
-            head_pos: Self::lerp_f(self.head_pos, other.head_pos, t),
-            cape: self.cape.lerp(other.cape, t),
-        }
-    }
-
-    fn lerp_f(a: f32, b: f32, t: f32) -> f32 {
-        a + (b - a) * t
-    }
-}
-
-/// 把剪辑姿态折算成骨架关节目标
-fn snapshot_from_pose(pose: ClipPose) -> LimbSnapshot {
-    LimbSnapshot {
-        arms: pose.arms,
-        legs: pose.legs,
-        arm_pivots: pose.arm_pivots,
-        leg_pivots: pose.leg_pivots,
-        head_rot: pose.head_rot,
-        body_rot: pose.body_rot,
-        body_pos: pose.body_pos,
-        head_pos: 0.,
-        cape: pose.cape,
-    }
-}
-
-/// 把欧拉动画帧折算成骨架关节目标；披风 z 未写时保持 `current_cape_z`
-fn snapshot_from_frame(frame: AnimFrame, current_cape_z: f32) -> LimbSnapshot {
-    LimbSnapshot {
-        arms: frame.arms.map(|e| rotation(e.x, e.y, e.z)),
-        legs: frame.legs.map(|e| rotation(e.x, e.y, e.z)),
-        arm_pivots: ARM_REST_PIVOTS,
-        leg_pivots: LEG_REST_PIVOTS,
-        head_rot: rotation(frame.head_rot.x, frame.head_rot.y, frame.head_rot.z),
-        body_rot: rotation(frame.body_rot.x, frame.body_rot.y, frame.body_rot.z),
-        body_pos: frame.body_pos,
-        head_pos: frame.head_pos,
-        cape: Vec2::new(frame.cape_x, frame.cape_z.unwrap_or(current_cape_z)),
-    }
-}
-
+/// 姿态状态：动画轨道混合、手动动画层，以及注视/偏航/压扁/摆臂等程序化效果。
+/// 每帧经 update / update_with_rig 推进，输出节点局部平移（像素）与旋转。
 pub struct Skeleton {
+    pub(crate) model: Arc<ModelData>,
+    joints: Joints,
+    /// 随机子动画剪辑索引（文档序）
+    sub_indices: Vec<usize>,
+    /// 基础待机剪辑索引
+    idle_index: Option<usize>,
+
     pub tau_gaze: f32,
     pub tau_yaw: f32,
     /// 动画轨道交叉淡入淡出时长(秒)
@@ -224,7 +282,7 @@ pub struct Skeleton {
     /// 压扁深度百分比（0..=30）。
     pub squash_depth: f32,
 
-    gaze_target: Option<Vec2>,
+    gaze_target: GazeTarget,
     yaw_target: f32,
 
     /// 当前基础动画；None 为停止（静止姿态）。
@@ -244,18 +302,16 @@ pub struct Skeleton {
     /// 压扁脉冲已进行时间(秒)，None 为未播放
     squash_phase: Option<f32>,
 
-    // 逐帧输出，render.rs 消费。
-    pub arms: [Quat; 2],
-    pub legs: [Quat; 2],
-    pub arm_pivots: [Vec3; 2],
-    pub leg_pivots: [Vec3; 2],
-    pub head_rot: Quat,
-    pub body_rot: Quat,
-    pub body_pos: Vec3,
-    pub head_pos: f32,
-    pub cape: Vec2,
-    /// 头部最终局部旋转
-    pub head: Quat,
+    // 逐帧输出，render.rs 消费：节点局部平移（像素）与旋转（GLTF 基）。
+    // 已驱动的关节由本层完全给定；未驱动节点渲染端回退静止值。
+    pub translations: Vec<Vec3>,
+    pub rotations: Vec<Quat>,
+    /// 混合后的目标姿态（注视合成与测试读取）
+    targets: NodeSnapshot,
+    /// 头部最终局部旋转（注视平滑状态）
+    head_slerp: Quat,
+    /// 披风欧拉 z 的当前值（行走通道的 "保持当前" 语义）
+    cape_z: f32,
     pub squash: f32,
     pub body_yaw: f32,
 
@@ -263,24 +319,34 @@ pub struct Skeleton {
     swing_elapsed: Option<f32>,
     pub swing_progress: f32,
     swing_side: usize,
-}
 
-impl Default for Skeleton {
-    fn default() -> Self {
-        Self::new()
-    }
+    /// 手动动画对象（并行权重混合层；常规调度不受影响）
+    manual: Vec<ManualState>,
 }
 
 impl Skeleton {
-    pub fn new() -> Self {
+    pub(crate) fn new(model: Arc<ModelData>) -> Self {
+        let joints = Joints::resolve(&model);
+        let sub_indices = model.clips_with_prefix("idle_sub_");
+        let idle_index = model.clip("idle").map(|_| {
+            model
+                .clips
+                .iter()
+                .position(|c| c.name == "idle")
+                .unwrap_or(0)
+        });
+        let rest = NodeSnapshot::rest(&model);
         Self {
+            joints,
+            sub_indices,
+            idle_index,
             tau_gaze: TAU_GAZE,
             tau_yaw: TAU_YAW,
             fade_seconds: FADE_SECONDS,
             tau_recenter: TAU_RECENTER,
             head_range: Vec2::new(60f32.to_radians(), 53f32.to_radians()),
             squash_depth: 5.,
-            gaze_target: None,
+            gaze_target: GazeTarget::None,
             yaw_target: 0.,
             animation: Some((AnimationId::Idle, 1., true)),
             tracks: vec![Track::looping(Source::Idle)],
@@ -290,30 +356,36 @@ impl Skeleton {
             gaze_twist_cut: false,
             model_yaw: 0.,
             squash_phase: None,
-            arms: [Quat::IDENTITY; 2],
-            legs: [Quat::IDENTITY; 2],
-            arm_pivots: ARM_REST_PIVOTS,
-            leg_pivots: LEG_REST_PIVOTS,
-            head_rot: Quat::IDENTITY,
-            body_rot: Quat::IDENTITY,
-            body_pos: Vec3::ZERO,
-            head_pos: 0.,
-            cape: Vec2::ZERO,
-            head: Quat::IDENTITY,
+            translations: rest.translations.clone(),
+            rotations: rest.rotations.clone(),
+            targets: rest,
+            head_slerp: Quat::IDENTITY,
+            cape_z: 0.,
             squash: 1.,
             body_yaw: 0.,
             swing_elapsed: None,
             swing_progress: 0.,
             swing_side: 1,
+            manual: Vec::new(),
+            model,
         }
     }
 
+    /// 注视目标：屏幕像素（随活相机逐帧反投影）。
     pub fn set_gaze_target(&mut self, target: Option<Vec2>) {
-        self.gaze_target = target;
+        self.gaze_target = target.map_or(GazeTarget::None, GazeTarget::Screen);
+    }
+
+    /// 注视目标：场景空间固定点（世界坐标，模型互看用）。
+    pub fn set_gaze_scene(&mut self, target: Option<Vec3>) {
+        self.gaze_target = target.map_or(GazeTarget::None, GazeTarget::Scene);
     }
 
     pub fn gaze_target(&self) -> Option<Vec2> {
-        self.gaze_target
+        match self.gaze_target {
+            GazeTarget::Screen(p) => Some(p),
+            _ => None,
+        }
     }
 
     /// 设置偏航目标角。
@@ -323,6 +395,11 @@ impl Skeleton {
 
     pub fn model_yaw(&self) -> f32 {
         self.model_yaw
+    }
+
+    /// 以固定种子重建待机调度，供确定性回放。
+    pub fn seed_idle(&mut self, seed: u64) {
+        self.idle_clips = IdleClips::seeded(seed);
     }
 
     pub fn head_follow(&self) -> bool {
@@ -405,9 +482,6 @@ impl Skeleton {
             }
         }
         if finished {
-            if let Some((AnimationId::Idle, ..)) = self.animation {
-                self.idle_clips.rebase();
-            }
             // 基础轨道若已在淡出完成后被回收
             let base = self
                 .tracks
@@ -416,10 +490,16 @@ impl Skeleton {
                 .max_by(|a, b| a.weight.total_cmp(&b.weight));
             match base {
                 Some(base) => {
-                    base.time = 0.;
                     base.target = 1.;
+                    if let Some((AnimationId::Idle, ..)) = self.animation {
+                        self.idle_clips.rearm();
+                    }
                 }
                 None => {
+                    // 基础轨道已回收：从循环起点淡入重建，相位归零被淡入掩盖。
+                    if let Some((AnimationId::Idle, ..)) = self.animation {
+                        self.idle_clips.rebase();
+                    }
                     if let Some((id, _, _)) = self.animation {
                         let source = match id {
                             AnimationId::Idle => Source::Idle,
@@ -438,17 +518,24 @@ impl Skeleton {
                 let fired = if oneshot_active {
                     None
                 } else {
-                    self.idle_clips.tick(dt, speed)
+                    let idle_clip = self.idle_index.map(|i| &self.model.clips[i]);
+                    match idle_clip {
+                        Some(idle) => self.idle_clips.tick(dt, speed, &self.sub_indices, idle),
+                        None => None,
+                    }
                 };
-                if let Some(index) = fired {
+                if let Some(sub) = fired {
                     for track in &mut self.tracks {
                         if track.is_base() {
                             track.target = 0.;
                         }
                     }
-                    let duration = clip::clip_duration(&CLIP_SUBS[index]);
-                    self.tracks
-                        .push(Track::oneshot(Source::Sub(index), duration));
+                    let duration = self
+                        .sub_indices
+                        .get(sub)
+                        .map(|&i| clip::clip_duration(&self.model.clips[i]))
+                        .unwrap_or(0.);
+                    self.tracks.push(Track::oneshot(Source::Sub(sub), duration));
                 }
             }
             Some((AnimationId::Walking, speed, _)) => {
@@ -472,38 +559,104 @@ impl Skeleton {
         });
     }
 
-    fn rest_snapshot(cape_z: f32) -> LimbSnapshot {
-        snapshot_from_frame(AnimFrame::rest_with_open_cape(), cape_z)
+    /// 静止姿态：全部节点取静止 TR，披风取骨架基准欧拉 (0.06π, 0)。
+    fn rest_snapshot(&self) -> NodeSnapshot {
+        let mut rest = NodeSnapshot::rest(&self.model);
+        if let Some(cape) = self.joints.cape {
+            rest.rotations[cape] = clip::cape_quat(std::f32::consts::PI * 0.06, 0.);
+        }
+        rest
     }
 
-    fn sample_track(&self, track: &Track, cape_z: f32) -> LimbSnapshot {
+    fn sample_track(&self, track: &Track, cape_z: f32) -> NodeSnapshot {
         match track.source {
-            Source::Idle => snapshot_from_pose(clip::sample(&CLIP_IDLE, self.idle_clips.base_time)),
-            Source::Walking => snapshot_from_frame(evaluate_walking(track.time), cape_z),
-            Source::Sub(index) => snapshot_from_pose(clip::sample(&CLIP_SUBS[index], track.time)),
-            Source::Interact => snapshot_from_pose(clip::sample(&CLIP_INTERACT, track.time)),
+            Source::Idle => {
+                let Some(idle) = self.model.clip("idle") else {
+                    return self.rest_snapshot();
+                };
+                clip::sample(&self.model, idle, self.idle_clips.base_time)
+            }
+            Source::Walking => self.snapshot_from_frame(evaluate_walking(track.time), cape_z),
+            Source::Sub(index) => {
+                let Some(&clip_index) = self.sub_indices.get(index) else {
+                    return self.rest_snapshot();
+                };
+                clip::sample(&self.model, &self.model.clips[clip_index], track.time)
+            }
+            Source::Interact => {
+                let Some(interact) = self.model.clip("interact") else {
+                    return self.rest_snapshot();
+                };
+                clip::sample(&self.model, interact, track.time)
+            }
         }
     }
 
+    /// 把行走等程序化欧拉帧折算成节点局部姿态（GLTF 基）。
+    fn snapshot_from_frame(&self, frame: AnimFrame, cape_z: f32) -> NodeSnapshot {
+        let mut snap = self.rest_snapshot();
+        let joints = self.joints;
+        if let Some(body) = joints.body {
+            snap.rotations[body] = rotation(frame.body_rot.x, frame.body_rot.y, frame.body_rot.z);
+            snap.translations[body] = frame.body_pos;
+        }
+        if let Some(head) = joints.head {
+            snap.rotations[head] = rotation(frame.head_rot.x, frame.head_rot.y, frame.head_rot.z);
+            snap.translations[head].y += frame.head_pos;
+        }
+        for (slot, arm) in joints.arms.iter().enumerate() {
+            if let Some(node) = *arm {
+                let e = frame.arms[slot];
+                snap.rotations[node] = rotation(e.x, e.y, e.z);
+            }
+        }
+        for (slot, leg) in joints.legs.iter().enumerate() {
+            if let Some(node) = *leg {
+                let e = frame.legs[slot];
+                snap.rotations[node] = rotation(e.x, e.y, e.z);
+            }
+        }
+        if let Some(cape) = joints.cape {
+            snap.rotations[cape] = clip::cape_quat(frame.cape_x, frame.cape_z.unwrap_or(cape_z));
+        }
+        snap
+    }
+
     /// 按权重混合所有轨道，权重之和不足 1 的部分回落到静止姿态
-    fn blended(&self) -> LimbSnapshot {
-        let cape_z = self.cape.y;
+    fn blended(&self) -> NodeSnapshot {
+        let cape_z = self.cape_z;
         let mut acc_weight = 0.;
-        let mut acc: Option<LimbSnapshot> = None;
+        let mut acc: Option<NodeSnapshot> = None;
         for track in &self.tracks {
             if track.weight <= 0. {
                 continue;
             }
             let pose = self.sample_track(track, cape_z);
-            acc = Some(match acc {
-                None => pose,
-                Some(s) => s.blend(pose, track.weight / (acc_weight + track.weight)),
-            });
+            match &mut acc {
+                None => acc = Some(pose),
+                Some(current) => {
+                    current.blend_in_place(&pose, track.weight / (acc_weight + track.weight));
+                }
+            }
             acc_weight += track.weight;
         }
-        let mut result = acc.unwrap_or_else(|| Self::rest_snapshot(cape_z));
+        // 手动动画与自动轨道使用同一套权重归一化规则。
+        for st in &self.manual {
+            if st.weight <= 0. {
+                continue;
+            }
+            let pose = clip::sample(&self.model, &self.model.clips[st.clip], st.time);
+            match &mut acc {
+                None => acc = Some(pose),
+                Some(current) => {
+                    current.blend_in_place(&pose, st.weight / (acc_weight + st.weight));
+                }
+            }
+            acc_weight += st.weight;
+        }
+        let mut result = acc.unwrap_or_else(|| self.rest_snapshot());
         if acc_weight < 1. {
-            result = result.blend(Self::rest_snapshot(cape_z), 1. - acc_weight);
+            result.blend_in_place(&self.rest_snapshot(), 1. - acc_weight);
         }
         result
     }
@@ -511,21 +664,20 @@ impl Skeleton {
     /// 逐帧推进。
     /// `now` 仅为兼容保留，内部计时全部由帧间隔 `dt` 驱动;
     /// `view` 为输出视图尺寸（像素），注视目标坐标与之同空间。
+    /// 等效于旧固定机位的注视上下文。
     pub fn update(&mut self, view: Vec2, _now: f32, dt: f32) {
+        self.update_with_rig(&GazeRig::legacy(view), dt);
+    }
+
+    /// 场景路径入口：注视解算经活相机视图基。
+    pub(crate) fn update_with_rig(&mut self, rig: &GazeRig, dt: f32) {
         // 负间隔非法：平滑系数与动画进度都不允许倒退。
         let dt = dt.max(0.);
         self.advance(dt);
         let targets = self.blended();
-
-        self.arms = targets.arms;
-        self.legs = targets.legs;
-        self.arm_pivots = targets.arm_pivots;
-        self.leg_pivots = targets.leg_pivots;
-        self.head_rot = targets.head_rot;
-        self.body_rot = targets.body_rot;
-        self.body_pos = targets.body_pos;
-        self.head_pos = targets.head_pos;
-        self.cape = targets.cape;
+        self.translations.clone_from(&targets.translations);
+        self.rotations.clone_from(&targets.rotations);
+        self.targets = targets;
 
         // 整体偏航平滑。
         self.model_yaw += (self.yaw_target - self.model_yaw) * (1. - (-dt / self.tau_yaw).exp());
@@ -538,11 +690,17 @@ impl Skeleton {
         //        背对摄像机或头-身水平扭角超限时放弃跟随，头部回正到身体朝向。
         // 未追踪  与身体朝向对齐（仅动画摆动），以 τ_recenter 平滑回正。
         let parent = Quat::from_rotation_y(self.model_yaw + front_yaw());
-        let (head_target, tau) = match self.gaze_target.filter(|_| self.head_follow()) {
-            Some(_) => {
-                let raw = self.solve_gaze(view);
-                // 背对切断（迟滞）：model_yaw 即相对相机正面的偏航。
-                let facing = wrap_pi(self.model_yaw).abs();
+        let blended_head = self.targets.rotations[self.joints.head.unwrap_or(0)];
+        let gaze_req = match self.gaze_target {
+            GazeTarget::None => None,
+            t => Some(t),
+        };
+        let (head_target, tau) = match gaze_req.filter(|_| self.head_follow()) {
+            Some(_) if self.joints.head.is_some() => {
+                let raw = self.solve_gaze(rig);
+                // 背对切断（迟滞）：model_yaw 即相对相机正面的偏航
+                //（活相机按方位偏移折算）。
+                let facing = wrap_pi(self.model_yaw - rig.yaw_offset).abs();
                 if facing > GAZE_OFF_YAW {
                     self.gaze_yaw_cut = true;
                 } else if facing < GAZE_ON_YAW {
@@ -557,7 +715,7 @@ impl Skeleton {
                 }
                 if self.gaze_yaw_cut || self.gaze_twist_cut {
                     self.gaze = Vec2::ZERO;
-                    (self.head_rot, self.tau_recenter)
+                    (blended_head, self.tau_recenter)
                 } else {
                     let target = Vec2::new(
                         raw.x.clamp(-self.head_range.x, self.head_range.x),
@@ -568,21 +726,24 @@ impl Skeleton {
                     let head_world = view_quat()
                         * Quat::from_rotation_y(self.gaze.x)
                         * Quat::from_rotation_x(self.gaze.y)
-                        * flip_quat(self.head_rot);
+                        * flip_quat(blended_head);
                     (flip_quat(parent.inverse() * head_world), self.tau_gaze)
                 }
             }
-            None => {
+            _ => {
                 self.gaze = Vec2::ZERO;
                 self.gaze_yaw_cut = false;
                 self.gaze_twist_cut = false;
-                (self.head_rot, self.tau_recenter)
+                (blended_head, self.tau_recenter)
             }
         };
-        self.head = self
-            .head
-            .slerp(head_target, 1. - (-dt / tau).exp())
-            .normalize();
+        if self.joints.head.is_some() {
+            self.head_slerp = self
+                .head_slerp
+                .slerp(head_target, 1. - (-dt / tau).exp())
+                .normalize();
+            self.rotations[self.joints.head.unwrap()] = self.head_slerp;
+        }
 
         // 压扁脉冲。
         if let Some(phase) = self.squash_phase.as_mut() {
@@ -612,43 +773,133 @@ impl Skeleton {
         } else {
             0.
         };
+
+        // 程序化扭转并入躯干局部旋转；攻击摆臂覆写对应臂。
+        if let Some(body) = self.joints.body {
+            self.rotations[body] = self.rotations[body] * Quat::from_rotation_y(self.body_yaw);
+        }
         if self.swing_elapsed.is_some() {
             let side = self.swing_side;
-            let sign = if side == 0 { -1. } else { 1. };
-            let p = self.swing_progress;
-            let pi = std::f32::consts::PI;
-            // 原版 HumanoidModel 攻击曲线：四次缓动、躯干扭转与侧向翻滚。
-            let eased = 1. - (1. - p).powi(4);
-            let strike = (eased * pi).sin() * 1.2 + (p * pi).sin() * -(self.gaze.y - 0.7) * 0.75;
-            self.arms[side] = rotation(strike, self.body_yaw * 3., -sign * ((p * pi).sin() * 0.4));
+            if let Some(node) = self.joints.arms[side] {
+                let sign = if side == 0 { -1. } else { 1. };
+                let p = self.swing_progress;
+                let pi = std::f32::consts::PI;
+                // 原版 HumanoidModel 攻击曲线：四次缓动、躯干扭转与侧向翻滚。
+                let eased = 1. - (1. - p).powi(4);
+                let strike =
+                    (eased * pi).sin() * 1.2 + (p * pi).sin() * -(self.gaze.y - 0.7) * 0.75;
+                self.rotations[node] =
+                    rotation(strike, self.body_yaw * 3., -sign * ((p * pi).sin() * 0.4));
+            }
+        }
+
+        // 披风欧拉 z 的保持值（行走轨道的 cape_z 语义）
+        if let Some(cape) = self.joints.cape {
+            self.cape_z = clip::cape_euler(flip_quat(self.rotations[cape])).y;
+        }
+
+        // 手动动画对象：时间推进与权重斜坡（一次性播完自动淡出）。
+        let rate = (dt / self.fade_seconds).max(0.);
+        for st in &mut self.manual {
+            if st.playing {
+                st.time += (dt * st.speed).max(0.).min(0.05);
+                let dur = clip::clip_duration(&self.model.clips[st.clip]).max(1e-6);
+                if st.loop_ {
+                    st.time %= dur;
+                } else if st.time >= dur {
+                    st.time = dur;
+                    st.target_weight = 0.;
+                }
+            }
+            if st.weight < st.target_weight {
+                st.weight = (st.weight + rate).min(st.target_weight);
+            } else if st.weight > st.target_weight {
+                st.weight = (st.weight - rate).max(st.target_weight);
+            }
         }
     }
 
-    /// 以相机隐含距离解算指向光标的 yaw/pitch（未按颈部活动范围夹取）。
-    fn solve_gaze(&self, view: Vec2) -> Vec2 {
-        let Some(cursor) = self.gaze_target else {
+    /// 手动动画对象槽位（按剪辑索引查找，无则创建）。
+    pub(crate) fn manual_slot(&mut self, clip: usize) -> usize {
+        if let Some(i) = self.manual.iter().position(|s| s.clip == clip) {
+            return i;
+        }
+        self.manual.push(ManualState {
+            clip,
+            time: 0.,
+            speed: 1.,
+            loop_: false,
+            playing: false,
+            weight: 0.,
+            target_weight: 0.,
+        });
+        self.manual.len() - 1
+    }
+
+    pub(crate) fn manual(&self, index: usize) -> &ManualState {
+        &self.manual[index]
+    }
+
+    pub(crate) fn manual_mut(&mut self, index: usize) -> &mut ManualState {
+        &mut self.manual[index]
+    }
+
+    /// 经活相机视图基解算指向目标的 yaw/pitch（未按颈部活动范围夹取）。
+    /// 屏幕模式为"眼睛投影与光标的屏幕差 × 观察距离"；场景模式为
+    /// "目标投影与眼睛投影的屏幕差 × 目标真实距离"。
+    fn solve_gaze(&self, rig: &GazeRig) -> Vec2 {
+        let Some(head) = self.joints.head else {
             return Vec2::ZERO;
         };
         // 眼睛的世界位置：根偏航 ∘ 颈部（头部枢轴，含 bob）+ 相机基准上移。
+        // 头部枢轴 = 髋部 12px + 头关节局部 y（静止 12px，含行走 bob）。
+        let head_pivot_y =
+            self.model.nodes[head].rest_translation.y + self.targets.translations[head].y;
         let neck = Mat4::from_rotation_y(self.model_yaw + front_yaw())
-            * Mat4::from_translation(Vec3::Y * (24. + self.head_pos));
+            * Mat4::from_translation(Vec3::Y * head_pivot_y);
         let view_basis = view_quat();
         let eye = neck.transform_point3(Vec3::ZERO) + view_basis * (Vec3::Y * 3.);
-        let p = crate::render::project(eye, view.x, view.y);
-        let distance = Vec3::new(30., 23., 70.).length();
-        let unit = view.x / 44.;
-        let dx = (cursor.x - p.x) / unit;
-        let dy = (p.y - cursor.y) / unit;
+        let (p, _) = rig.basis.project_view(eye);
+        let unit = rig.basis.scale;
+        let (dx, dy, distance) = match self.gaze_target {
+            GazeTarget::Screen(cursor) => (
+                (cursor.x - p.x) / unit,
+                (p.y - cursor.y) / unit,
+                rig.distance_px,
+            ),
+            GazeTarget::Scene(target) => {
+                let (pt, _) = rig.basis.project_view(target);
+                (
+                    (pt.x - p.x) / unit,
+                    (p.y - pt.y) / unit,
+                    (target - eye).length(),
+                )
+            }
+            GazeTarget::None => return Vec2::ZERO,
+        };
         let h = dx.atan2(distance);
         let v = (-dy / (dx * dx + dy * dy + distance * distance).sqrt()).asin();
         Vec2::new(h, v)
     }
+
+    // ===== 测试辅助 =====
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::model::builtin_data;
     use crate::pose::rotation;
+    use crate::skin::ArmModel;
+    use glam::Quat;
+
+    fn model() -> Arc<ModelData> {
+        builtin_data(ArmModel::Classic).unwrap()
+    }
+
+    fn skeleton() -> Skeleton {
+        Skeleton::new(model())
+    }
 
     fn sub_active(s: &Skeleton) -> bool {
         s.tracks
@@ -665,7 +916,7 @@ mod tests {
 
     #[test]
     fn gaze_recenters_after_target_removed() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         s.set_gaze_target(Some(Vec2::new(400., 100.)));
         for i in 0..120 {
@@ -681,7 +932,7 @@ mod tests {
 
     #[test]
     fn random_sub_suspends_gaze_until_finished() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         s.set_gaze_target(Some(Vec2::new(900., 100.)));
         // 2 秒：注视收敛
@@ -700,8 +951,9 @@ mod tests {
             s.update(view, i as f32 / 60., 1. / 60.);
         }
         assert!(s.gaze.length() < 0.001, "gaze must be suspended during sub");
+        let head = s.model.joint("Head").unwrap();
         assert!(
-            s.head.abs_diff_eq(s.head_rot, 0.2),
+            s.rotations[head].abs_diff_eq(s.targets.rotations[head], 0.2),
             "head must follow the clip during sub"
         );
         // 子动画播完（11 秒）：头部平滑转回新光标位置
@@ -714,7 +966,7 @@ mod tests {
 
     #[test]
     fn gaze_follows_directly_within_twist_limit() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         // 需求角在自然范围内：直接跟随，注视收敛到需求角本身。
         // 只跑 5 秒：8 秒起随机子动画会暂时接管头部。
@@ -722,13 +974,13 @@ mod tests {
         for i in 0..300 {
             s.update(view, i as f32 / 60., 1. / 60.);
         }
-        let expected = s.solve_gaze(view);
+        let expected = s.solve_gaze(&GazeRig::legacy(view));
         assert!((s.gaze.x - expected.x).abs() < 0.001);
     }
 
     #[test]
     fn gaze_abandons_beyond_twist_limit() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         // 需求扭角远超自然范围：放弃跟随，头部回正到身体朝向。
         s.set_gaze_target(Some(Vec2::new(5000., 262.5)));
@@ -736,15 +988,16 @@ mod tests {
             s.update(view, i as f32 / 60., 1. / 60.);
         }
         assert!(s.gaze.length() < 0.001, "gaze = {:?}", s.gaze);
+        let head = s.model.joint("Head").unwrap();
         assert!(
-            s.head.abs_diff_eq(s.head_rot, 0.2),
+            s.rotations[head].abs_diff_eq(s.targets.rotations[head], 0.2),
             "head must realign with body"
         );
     }
 
     #[test]
     fn back_facing_cuts_gaze_with_hysteresis() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         s.set_gaze_target(Some(Vec2::new(920., 262.5)));
         // 全程压在 8 秒（首次随机子动画）之前：子动画会重置视线状态、
@@ -752,7 +1005,7 @@ mod tests {
         for i in 0..90 {
             s.update(view, i as f32 / 60., 1. / 60.);
         }
-        let expected = s.solve_gaze(view);
+        let expected = s.solve_gaze(&GazeRig::legacy(view));
         assert!((s.gaze.x - expected.x).abs() < 0.001);
         // 背对：切断跟随，头部回正。
         s.set_yaw_target(std::f32::consts::PI);
@@ -760,8 +1013,9 @@ mod tests {
             s.update(view, i as f32 / 60., 1. / 60.);
         }
         assert!(s.gaze.length() < 0.001);
+        let head = s.model.joint("Head").unwrap();
         assert!(
-            s.head.abs_diff_eq(s.head_rot, 0.2),
+            s.rotations[head].abs_diff_eq(s.targets.rotations[head], 0.2),
             "head must realign while back-facing"
         );
         // 拖回 82°（处于 75°~90° 迟滞区间）：保持切断。
@@ -778,7 +1032,7 @@ mod tests {
         for i in 270..420 {
             s.update(view, i as f32 / 60., 1. / 60.);
         }
-        let expected = s.solve_gaze(view);
+        let expected = s.solve_gaze(&GazeRig::legacy(view));
         assert!((s.gaze.x - expected.x).abs() < 0.001);
     }
 
@@ -786,14 +1040,14 @@ mod tests {
     fn gaze_rules_mirror_for_rightward_turns() {
         // 上述规则的镜像：身体向右转、光标在屏幕左侧，判定量级必须一致。
         // 全程压在 8 秒（首次随机子动画）之前。
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         // 需求角超夹角上限、未过扭：贴在负向夹角上限。
         s.set_gaze_target(Some(Vec2::new(-443., 262.5)));
         for i in 0..90 {
             s.update(view, i as f32 / 60., 1. / 60.);
         }
-        let expected = s.solve_gaze(view);
+        let expected = s.solve_gaze(&GazeRig::legacy(view));
         assert!((s.gaze.x - expected.x).abs() < 0.001);
         // 需求扭角远超自然范围：放弃。
         s.set_gaze_target(Some(Vec2::new(-4500., 262.5)));
@@ -823,13 +1077,13 @@ mod tests {
         for i in 360..450 {
             s.update(view, i as f32 / 60., 1. / 60.);
         }
-        let expected = s.solve_gaze(view);
+        let expected = s.solve_gaze(&GazeRig::legacy(view));
         assert!((s.gaze.x - expected.x).abs() < 0.001);
     }
 
     #[test]
     fn fast_full_turn_drag_keeps_direction() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         let tau = std::f32::consts::TAU;
         // 18 帧内把目标拖过一整圈(整宽快拖)
@@ -858,7 +1112,7 @@ mod tests {
 
     #[test]
     fn model_yaw_approaches_target() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         s.set_yaw_target(std::f32::consts::FRAC_PI_2);
         for i in 0..600 {
@@ -869,7 +1123,7 @@ mod tests {
 
     #[test]
     fn recentered_head_aligns_with_body() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         s.set_yaw_target(std::f32::consts::FRAC_PI_2);
         for i in 0..600 {
@@ -877,17 +1131,18 @@ mod tests {
         }
         // 无输入时头部与身体朝向对齐（仅存动画摆动），不额外朝相机偏转。
         // 子动画的头部摆动存在 τ_recenter 量级的追踪滞后，容差随之放宽。
+        let head = s.model.joint("Head").unwrap();
         assert!(
-            s.head.abs_diff_eq(s.head_rot, 0.2),
+            s.rotations[head].abs_diff_eq(s.targets.rotations[head], 0.2),
             "head={:?} sway={:?}",
-            s.head,
-            s.head_rot
+            s.rotations[head],
+            s.targets.rotations[head]
         );
     }
 
     #[test]
     fn interact_overrides_then_returns() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         for i in 0..60 {
             s.update(view, i as f32 / 60., 1. / 60.);
@@ -919,11 +1174,83 @@ mod tests {
         );
     }
 
+    /// 一次性动画播完时基础轨道未淡出（interact 期间一直在底下混），
+    /// 基础相位必须保持冻结值继续，而非全权重下跳回循环起点。
+    /// 回归：旧回归逻辑无条件 rebase/reset 基础相位。
+    #[test]
+    fn oneshot_finish_keeps_base_idle_phase() {
+        let mut s = skeleton();
+        let view = Vec2::new(450., 525.);
+        let dt = 1. / 60.;
+        let mut now = 0.;
+        // 2 秒：idle 相位推进到循环中段（0.1, 3-0.1）之间
+        for _ in 0..120 {
+            s.update(view, now, dt);
+            now += dt;
+        }
+        let idle_dur = clip::clip_duration(s.model.clip("idle").unwrap());
+        let phase = s.idle_clips.base_time;
+        assert!(
+            phase > 0.1 && phase < idle_dur - 0.1,
+            "phase {phase} must be mid-loop"
+        );
+
+        s.play_interact();
+        // 0.5 秒 = 30 帧后 interact 定格：结束当帧起 tick 恢复（+1 帧）
+        for _ in 0..30 {
+            s.update(view, now, dt);
+            now += dt;
+        }
+        assert!(
+            (s.idle_clips.base_time - (phase + dt)).abs() < 0.02 && s.idle_clips.base_time > 1.,
+            "base phase must continue from frozen value, got {}",
+            s.idle_clips.base_time
+        );
+    }
+
+    /// 同上：行走基础轨道的相位在 interact 结束后不得归零。
+    /// 行走相位在一次性动作期间照常推进，播完应从该处继续。
+    #[test]
+    fn oneshot_finish_keeps_walking_phase() {
+        let mut s = skeleton();
+        let view = Vec2::new(450., 525.);
+        let dt = 1. / 60.;
+        let mut now = 0.;
+        s.play_animation(AnimationId::Walking, 1., true);
+        for _ in 0..120 {
+            s.update(view, now, dt);
+            now += dt;
+        }
+        let phase = s
+            .tracks
+            .iter()
+            .find(|t| t.source == Source::Walking)
+            .unwrap()
+            .time;
+
+        s.play_interact();
+        for _ in 0..30 {
+            s.update(view, now, dt);
+            now += dt;
+        }
+        let after = s
+            .tracks
+            .iter()
+            .find(|t| t.source == Source::Walking)
+            .unwrap()
+            .time;
+        let expected = (phase + 0.5) % WALKING_PERIOD;
+        assert!(
+            (after - expected).abs() < 0.02,
+            "walking phase must keep advancing, got {after}, expected {expected}"
+        );
+    }
+
     #[test]
     fn play_animation_keeps_interact_until_finished() {
         // interact 是 0.5 秒一次性动作：切换基础动画不打断它，
         // 播完后淡回到切换后的动画。停止动画则立即撤销它。
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         for i in 0..60 {
             s.update(view, i as f32 / 60., 1. / 60.);
@@ -960,7 +1287,7 @@ mod tests {
         // 10 虚拟分钟：注视持续输入、周期性 interact/压扁、待机与行走交替,
         // 宿主时钟取一年后的巨值(长 uptime 场景,精度极差),
         // 全程不得出现非有限值、姿态发散或轨道泄漏。
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         s.set_gaze_target(Some(Vec2::new(600., 200.)));
         let huge_now = 86_400. * 365.;
@@ -979,12 +1306,12 @@ mod tests {
                 }
             }
             s.update(view, huge_now + i as f32 / 60., 1. / 60.);
-            assert!(s.head.is_finite());
-            assert!(s.body_pos.is_finite());
-            assert!(s.arms.iter().all(|q| q.is_finite()));
-            assert!(s.arm_pivots.iter().all(|v| v.is_finite()));
-            assert!(s.leg_pivots.iter().all(|v| v.is_finite()));
-            assert!(s.cape.is_finite());
+            for q in &s.rotations {
+                assert!(q.is_finite());
+            }
+            for t in &s.translations {
+                assert!(t.is_finite());
+            }
             assert!(s.squash.is_finite());
             assert!(
                 s.tracks.len() <= 4,
@@ -993,8 +1320,9 @@ mod tests {
             );
             assert!(s.tracks.iter().all(|t| (0.0..=1.0).contains(&t.weight)));
         }
+        let head = s.model.joint("Head").unwrap();
         assert!(
-            (s.head.length() - 1.).abs() < 0.001,
+            (s.rotations[head].length() - 1.).abs() < 0.001,
             "head must stay normalized"
         );
     }
@@ -1003,7 +1331,7 @@ mod tests {
     /// 宿主时钟是设备开机以来的秒数,长 uptime 下 f32 精度极差。
     #[test]
     fn squash_and_swing_survive_huge_host_clock() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         let huge = 86_400. * 365.; // 一年的秒数
         s.squash_tap(huge);
@@ -1022,7 +1350,7 @@ mod tests {
     /// 行走轨道时间按整周期回绕:跨过回绕点后姿态与连续累计同相。
     #[test]
     fn walking_time_wraps_in_skeleton() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         s.play_animation(AnimationId::Walking, 1., true);
         if let Some(base) = s.tracks.iter_mut().find(|t| t.source == Source::Walking) {
             base.time = WALKING_PERIOD - 0.01;
@@ -1042,24 +1370,26 @@ mod tests {
         );
         let f = evaluate_walking(track.time);
         let expected = rotation(f.arms[0].x, f.arms[0].y, f.arms[0].z);
-        assert!(s.arms[0].abs_diff_eq(expected, 1e-4));
+        let arm_l = s.model.joint("Left_Arm").unwrap();
+        assert!(s.rotations[arm_l].abs_diff_eq(expected, 1e-4));
     }
 
     #[test]
     fn animation_switch_blends_from_current_pose() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         for i in 0..60 {
             s.update(view, i as f32 / 60., 1. / 60.);
         }
-        let before = s.arms[0];
+        let arm_l = s.model.joint("Left_Arm").unwrap();
+        let before = s.rotations[arm_l];
         s.play_animation(AnimationId::Walking, 0.8, true);
         s.update(view, 1.01, 1. / 60.);
         // 切换瞬间不应直接跳到行走目标。
         let f = evaluate_walking(0.08);
         let walking = rotation(f.arms[0].x, f.arms[0].y, f.arms[0].z);
-        assert!(before.abs_diff_eq(s.arms[0], 0.4));
-        assert!(!s.arms[0].abs_diff_eq(walking, 0.0001));
+        assert!(before.abs_diff_eq(s.rotations[arm_l], 0.4));
+        assert!(!s.rotations[arm_l].abs_diff_eq(walking, 0.0001));
         for i in 2..180 {
             s.update(view, 1. + i as f32 / 60., 1. / 60.);
         }
@@ -1068,12 +1398,12 @@ mod tests {
         assert_eq!(s.tracks[0].source, Source::Walking);
         let f = evaluate_walking(s.tracks[0].time);
         let walking = rotation(f.arms[0].x, f.arms[0].y, f.arms[0].z);
-        assert!(s.arms[0].abs_diff_eq(walking, 0.0001));
+        assert!(s.rotations[arm_l].abs_diff_eq(walking, 0.0001));
     }
 
     #[test]
     fn squash_taps_restart_from_full_height() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         s.squash_tap(0.);
         for i in 0..6 {
@@ -1089,7 +1419,7 @@ mod tests {
 
     #[test]
     fn scheduler_fires_sub_after_interval_and_returns() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         let dt = 1. / 60.;
         let mut now = 0.;
@@ -1128,7 +1458,7 @@ mod tests {
     /// 回归测试:基础轨道淡出后会被回收,子动画结束时须重建淡入。
     #[test]
     fn sub_finish_fades_back_to_base_idle() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         let dt = 1. / 60.;
         let mut now = 0.;
@@ -1149,21 +1479,22 @@ mod tests {
             "base track must be revived: {:?}",
             s.tracks
         );
-        // 再跑 1 秒:姿态必须是 idle 剪辑(躯干下沉),静止姿态的 body_pos.y 为 0
+        // 再跑 1 秒:姿态必须是 idle 剪辑(躯干下沉),静止姿态的躯干平移 y 为 0
         for _ in 0..60 {
             s.update(view, now, dt);
             now += dt;
         }
+        let body = s.model.joint("Body").unwrap();
         assert!(
-            s.body_pos.y < -0.3,
-            "must fade back to idle clip, body_pos.y = {}",
-            s.body_pos.y
+            s.translations[body].y < -0.3,
+            "must fade back to idle clip, body y = {}",
+            s.translations[body].y
         );
     }
 
     #[test]
     fn scheduler_never_repeats_last_sub() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         let dt = 0.05;
         let mut last = None;
@@ -1188,7 +1519,7 @@ mod tests {
 
     #[test]
     fn play_animation_restarts_idle_schedule() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         let dt = 1. / 60.;
         let mut now = 0.;
@@ -1207,9 +1538,9 @@ mod tests {
 
     #[test]
     fn base_idle_time_wraps_for_looping() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
-        let duration = clip::clip_duration(&CLIP_IDLE);
+        let duration = clip::clip_duration(s.model.clip("idle").unwrap());
         // 覆盖多轮循环与子动画穿插:基础采样时间必须始终落在循环长度内
         let mut now = 0.;
         for _ in 0..400 {
@@ -1227,7 +1558,7 @@ mod tests {
     fn scheduler_runs_indefinitely() {
         // 20 虚拟分钟:子动画持续触发(不因时间累计而停摆),
         // 基础循环相位持续回绕(不冻结在末帧)。
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         let dt = 1. / 60.;
         let mut sub_fires = 0;
@@ -1256,21 +1587,28 @@ mod tests {
     /// 腿挂静态髋部:躯干位移(含 idle 的 -0.64px 下沉)不得出现在脚上。
     #[test]
     fn body_motion_does_not_carry_legs() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         for i in 0..180 {
             s.update(view, i as f32 / 60., 1. / 60.);
         }
         // idle 阶段躯干持续下沉,腿枢轴必须保持在髋部静止位置。
-        assert!(s.body_pos.y < -0.3, "idle body must sink: {}", s.body_pos.y);
-        assert_eq!(s.leg_pivots[0], LEG_REST_PIVOTS[0]);
-        assert_eq!(s.leg_pivots[1], LEG_REST_PIVOTS[1]);
+        let body = s.model.joint("Body").unwrap();
+        let leg_l = s.model.joint("Left_Leg").unwrap();
+        let leg_r = s.model.joint("Right_Leg").unwrap();
+        assert!(
+            s.translations[body].y < -0.3,
+            "idle body must sink: {}",
+            s.translations[body].y
+        );
+        assert_eq!(s.translations[leg_l], s.model.nodes[leg_l].rest_translation);
+        assert_eq!(s.translations[leg_r], s.model.nodes[leg_r].rest_translation);
     }
 
     /// 停止动画后所有轨道淡出,输出收敛到静止姿态。
     #[test]
     fn stop_fades_to_rest_pose() {
-        let mut s = Skeleton::new();
+        let mut s = skeleton();
         let view = Vec2::new(450., 525.);
         for i in 0..60 {
             s.update(view, i as f32 / 60., 1. / 60.);
@@ -1280,7 +1618,32 @@ mod tests {
             s.update(view, i as f32 / 60., 1. / 60.);
         }
         assert!(s.tracks.is_empty(), "tracks must drain: {:?}", s.tracks);
-        assert!(s.body_pos.abs_diff_eq(Vec3::ZERO, 0.001));
-        assert!((s.cape.x - std::f32::consts::PI * 0.06).abs() < 0.01);
+        let body = s.model.joint("Body").unwrap();
+        assert!(s.translations[body].abs_diff_eq(s.model.nodes[body].rest_translation, 0.001));
+        let cape_e = clip::cape_euler(flip_quat(s.rotations[s.model.joint("Cape").unwrap()]));
+        assert!((cape_e.x - std::f32::consts::PI * 0.06).abs() < 0.01);
+    }
+
+    /// 行走时头部俯仰摆动的幅度保持原版观感（配方未变的回归锚点）。
+    #[test]
+    fn walking_head_sway_matches_reference_range() {
+        let mut s = skeleton();
+        s.play_animation(AnimationId::Walking, 1., true);
+        let view = Vec2::new(450., 525.);
+        let head = s.model.joint("Head").unwrap();
+        let mut max_x = 0f32;
+        for i in 0..1200 {
+            s.update(view, i as f32 / 60., 1. / 60.);
+            let (x, _) = euler_xy(s.rotations[head]);
+            max_x = max_x.max(x.abs());
+        }
+        // skinview3d 行走头部摆幅 ±0.1 弧度
+        assert!((max_x - 0.1).abs() < 0.02, "head sway = {max_x}");
+    }
+
+    fn euler_xy(q: Quat) -> (f32, f32) {
+        // 仅测试用的小角度欧拉抽取
+        let m = glam::Mat3::from_quat(q);
+        (m.z_axis.y.asin(), 0.)
     }
 }

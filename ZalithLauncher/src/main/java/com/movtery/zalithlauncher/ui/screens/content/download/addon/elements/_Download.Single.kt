@@ -483,7 +483,7 @@ fun SelectVersionListItem(
         }
     ) {
         Row(
-            modifier = modifier.padding(vertical = 8.dp),
+            modifier = modifier.padding(horizontal = 4.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
@@ -500,15 +500,19 @@ fun SelectVersionListItem(
             Column(modifier = Modifier.weight(1f)) {
                 CommonVersionInfoLayout(
                     modifier = Modifier.fillMaxWidth(),
-                    version = version
+                    version = version,
+                    iconSize = 38.dp,
+                    horizontalSpacer = 12.dp,
+                    appendContent = supportingText?.let { text ->
+                        @Composable {
+                            Text(
+                                text = text,
+                                color = supportingTextColor,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
                 )
-                supportingText?.let { text ->
-                    Text(
-                        text = text,
-                        color = supportingTextColor,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
             }
         }
     }

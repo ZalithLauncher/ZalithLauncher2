@@ -879,6 +879,8 @@ fun CommonVersionInfoLayout(
     version: Version,
     modifier: Modifier = Modifier,
     iconSize: Dp = 34.dp,
+    horizontalSpacer: Dp = 16.dp,
+    appendContent: (@Composable () -> Unit)? = null,
 ) {
     val isValid = remember(version) { version.isValid() }
     val versionName = remember(version) { version.getVersionName() }
@@ -888,7 +890,7 @@ fun CommonVersionInfoLayout(
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(horizontalSpacer)
     ) {
         VersionIconImage(
             modifier = Modifier.size(iconSize),
@@ -932,18 +934,22 @@ fun CommonVersionInfoLayout(
                             style = MaterialTheme.typography.labelSmall,
                         )
                         versionInfo.loaderInfos.forEach { loaderInfo ->
-                            Text(
-                                text = loaderInfo.loader.displayName,
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                            Text(
-                                text = loaderInfo.version,
-                                style = MaterialTheme.typography.labelSmall
-                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = loaderInfo.loader.displayName,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Text(
+                                    text = loaderInfo.version,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
                         }
                     }
                 }
             }
+
+            appendContent?.invoke()
         }
     }
 }

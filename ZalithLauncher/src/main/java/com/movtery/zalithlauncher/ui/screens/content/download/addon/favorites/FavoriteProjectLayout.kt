@@ -58,7 +58,6 @@ import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.ScalingIconButton
 import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.AddonIcon
-import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.ClassesIdentifier
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.FavoriteToggleLabel
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.ProjectTitleHead
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
@@ -136,6 +135,7 @@ fun FavoriteProjectLayout(
                 ProjectTitleHead(
                     platform = entry.platform,
                     title = title,
+                    classes = classes,
                 )
 
                 Row(
@@ -218,9 +218,6 @@ fun FavoriteProjectLayout(
                         isFavorite = true,
                         onClick = onUnfavorite
                     )
-
-                    //资源的类别
-                    ClassesIdentifier(classes = classes)
                 }
 
                 Row(
@@ -281,7 +278,7 @@ fun FavoriteProjectLayout(
                                     .align(Alignment.Bottom)
                                     .padding(top = 4.dp, bottom = 2.dp),
                                 onClick = handler,
-                                size = 36.dp
+                                size = 28.dp
                             ) {
                                 Icon(
                                     modifier = Modifier.size(20.dp),

@@ -503,6 +503,7 @@ fun ResultProjectLayout(
                 ProjectTitleHead(
                     platform = platform,
                     title = title,
+                    classes = classes,
                 )
 
                 Row(
@@ -614,11 +615,6 @@ fun ResultProjectLayout(
                                 }
                             }
 
-                            //资源的类别
-                            if (classes != null) {
-                                ClassesIdentifier(classes = classes)
-                            }
-
 //                            onFavoriteClick?.let { onFavorite ->
 //                                FavoriteToggleLabel(
 //                                    isFavorite = isFavorite,
@@ -634,7 +630,7 @@ fun ResultProjectLayout(
                                 .align(Alignment.Bottom)
                                 .padding(bottom = 2.dp),
                             onClick = handler,
-                            size = 36.dp
+                            size = 32.dp
                         ) {
                             Icon(
                                 modifier = Modifier.size(20.dp),
@@ -654,6 +650,7 @@ fun ProjectTitleHead(
     modifier: Modifier = Modifier,
     platform: Platform,
     title: String,
+    classes: PlatformClasses? = null,
 ) {
     //标题栏、作者栏、平台标签
     Row(
@@ -667,6 +664,10 @@ fun ProjectTitleHead(
             text = title,
             style = MaterialTheme.typography.titleSmall,
         )
+        //资源的类别
+        if (classes != null) {
+            ClassesIdentifier(classes = classes)
+        }
         //平台标签
         PlatformIdentifier(platform = platform)
     }

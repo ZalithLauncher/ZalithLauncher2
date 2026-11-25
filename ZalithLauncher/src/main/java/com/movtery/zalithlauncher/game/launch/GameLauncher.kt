@@ -48,8 +48,10 @@ import com.movtery.zalithlauncher.game.renderer.getSfpewLibraryPath
 import com.movtery.zalithlauncher.game.renderer.isSfpewEnabledFor
 import com.movtery.zalithlauncher.game.renderer.prepareRendererLaunchConfig
 import com.movtery.zalithlauncher.game.support.touch_controller.ControllerProxy
+import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
+import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
 import com.movtery.zalithlauncher.path.LibPath
 import com.movtery.zalithlauncher.path.PathManager
@@ -99,20 +101,27 @@ class GameLauncher(
         config.account
     }
 
-    override fun exit() {
-        offlineServer.stop()
-    }
-
-    override suspend fun launch(screenSize: IntSize): Int {
+    /**
+     * 初始化渲染器设置、自定义配置
+     */
+    suspend fun initRendererConfig() {
         if (!Renderers.isCurrentRendererValid()) {
-            Renderers.setCurrentRenderer(version.getRenderer())
+            val renderer = Renderers.setCurrentRenderer(version.getRenderer())
+            version.setRendererInfo(renderer.getRendererName(), renderer is Plugin)
         }
+
         configuredRenderer = withContext(Dispatchers.IO) {
             (Renderers.getCurrentRenderer() as? ConfigurableRenderer)?.let { renderer ->
                 prepareRendererLaunchConfig(renderer, version)
             }
         }
+    }
 
+    override fun exit() {
+        offlineServer.stop()
+    }
+
+    override suspend fun launch(screenSize: IntSize): Int {
         val manifest = GSON.fromJson(File(version.getVersionPath(), "${version.getVersionName()}.json").readText(), GameManifest::class.java)
         val clientJar = manifest.inheritsFrom?.let { inheritsFrom ->
             //FIXME: 依赖的是一个原版ID的版本，但这个版本可能是用户自行安装的，只是版本名称与ID一致，不保证客户端真的是对应版本
@@ -246,9 +255,15 @@ class GameLauncher(
 
         disableSplash(gameDirPath)
 
-        if (version.getVersionInfo()?.hasLoader(ModLoader.NEOFORGE) == true) {
-            // 关闭NeoForge 12早期加载屏动画
-            disableFmlEarlyWindow(gameDirPath)
+        version.getVersionInfo()?.let { versionInfo ->
+            if (
+                versionInfo.hasLoader(ModLoader.NEOFORGE) &&
+                !versionInfo.minecraftVersion.isLowerVer("26.2") &&
+                version.getGraphicsApi() != GraphicsApi.OPENGL
+            ) {
+                // Vulkan 与 FML 早期窗口的交接尚不兼容
+                disableFmlEarlyWindow(gameDirPath)
+            }
         }
 
         //初始化运行环境
@@ -383,11 +398,7 @@ class GameLauncher(
     }
 
     /**
-     * 关闭 FML 的早期加载屏
-     *
-     * NeoForge 12（MC 26.3+）移除了 -Dfml.earlyprogresswindow 属性通道，仅读取 config/fml.toml
-     * 早期加载屏的渲染会在启动扫描期反复分配 gralloc 缓冲，与启动器 UI 互相阻塞导致界面冻结直至无响应，
-     * 写入 earlyWindowControl = false 关闭
+     * 在可能使用 Vulkan 后端时关闭 FML 的早期加载窗口
      */
     private fun disableFmlEarlyWindow(dir: File) {
         File(dir, "config").let { configDir ->

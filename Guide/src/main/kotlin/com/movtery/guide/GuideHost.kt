@@ -9,11 +9,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+
+/**
+ * 宿主内容当前所处的引导步骤
+ */
+val LocalGuideStep = compositionLocalOf<GuideKey?> { null }
 
 /**
  * 引导画布
@@ -74,7 +80,10 @@ fun GuideHost(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        CompositionLocalProvider(LocalGuideRegistry provides registry) {
+        CompositionLocalProvider(
+            LocalGuideRegistry provides registry,
+            LocalGuideStep provides activeState?.entry?.key
+        ) {
             content()
         }
 

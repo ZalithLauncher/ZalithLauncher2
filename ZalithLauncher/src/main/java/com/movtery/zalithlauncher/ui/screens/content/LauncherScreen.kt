@@ -52,6 +52,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -75,6 +76,7 @@ import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.cardgrid.state.rememberCardGridState
 import com.movtery.guide.GuideSide
+import com.movtery.guide.LocalGuideStep
 import com.movtery.guide.guideNode
 import com.movtery.petlib.PetAnimation
 import com.movtery.petlib.PetTapReaction
@@ -303,14 +305,16 @@ private fun AccountAvatarRow(
     ) {
         if (account != null) {
             PlayerFace(
-                modifier = Modifier.padding(start = 4.dp),
+                modifier = Modifier.padding(horizontal = 4.dp),
                 account = account,
                 avatarSize = avatarSize,
                 refreshKey = refreshKey
             )
         } else {
             Icon(
-                modifier = Modifier.size(placeholderSize),
+                modifier = Modifier
+                    .padding(start = 8.dp, end = 4.dp, top = 2.dp, bottom = 2.dp)
+                    .size(placeholderSize),
                 painter = painterResource(R.drawable.ic_add),
                 contentDescription = null
             )
@@ -404,11 +408,6 @@ private fun Modifier.versionLayout(
         role = Role.Button,
         onClick = swapToVersionManage,
         onLongClick = requestOpenVersionList,
-    )
-    .guideNode(
-        key = GuideKeys.Main.Step.VersionList,
-        holeShape = RectangleShape,
-        preferSide = GuideSide.Above,
     )
 
 
@@ -610,39 +609,41 @@ private fun ActionMenuContent(
                 AccountAvatarRow(
                     modifier = Modifier.fillMaxWidth(),
                     avatarSize = 38.dp,
-                    placeholderSize = 32.dp,
+                    placeholderSize = 34.dp,
                     textSpacer = 0.dp,
                 )
             }
 
             val isRefreshing by VersionsManager.isRefreshing.collectAsStateWithLifecycle()
-            if (isRefreshing) {
-                BackgroundCard(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .guideNode(
-                            key = GuideKeys.Main.Step.VersionList,
-                            holeShape = bottomShape,
-                            preferSide = GuideSide.Above,
-                        ),
-                    shape = rememberSettingsCardShape(CardPosition.Bottom),
-                ) {
-                    LinearProgressIndicator(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 26.dp)
-                            .fillMaxWidth()
-                    )
-                }
-            } else {
-                Row(
-                    modifier = Modifier
-                        .height(IntrinsicSize.Min)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                ) {
-                    val version0 by VersionsManager.currentVersion.collectAsStateWithLifecycle()
-                    val version = version0
+            val version0 by VersionsManager.currentVersion.collectAsStateWithLifecycle()
+            val version = version0
 
+            Row(
+                modifier = Modifier
+                    .height(IntrinsicSize.Min)
+                    .fillMaxWidth()
+                    .guideNode(
+                        key = GuideKeys.Main.Step.VersionList,
+                        holeShape = bottomShape,
+                        preferSide = GuideSide.Above,
+                    )
+                    .alpha(
+                        if (LocalGuideStep.current == GuideKeys.Main.Step.VersionList) 0f else 1f
+                    ),
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                if (isRefreshing) {
+                    BackgroundCard(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = bottomShape,
+                    ) {
+                        LinearProgressIndicator(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 26.dp)
+                                .fillMaxWidth()
+                        )
+                    }
+                } else {
                     // 版本图标
                     version?.let {
                         BackgroundCard(
@@ -688,15 +689,7 @@ private fun ActionMenuContent(
                         },
                     ) {
                         VersionsContent(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .let {
-                                    if (version == null) it.guideNode(
-                                        key = GuideKeys.Main.Step.VersionList,
-                                        holeShape = bottomShape,
-                                        preferSide = GuideSide.Above,
-                                    ) else it
-                                },
+                            modifier = Modifier.fillMaxWidth(),
                             version = version,
                             onLaunchGame = onLaunchGame,
                             toVersionManageScreen = toVersionManageScreen,

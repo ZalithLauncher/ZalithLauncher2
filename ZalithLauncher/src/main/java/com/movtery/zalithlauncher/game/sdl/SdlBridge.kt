@@ -171,7 +171,7 @@ object SdlBridge {
      * SDL 请求唤起输入法时，启动器侧是否响应
      */
     @JvmStatic
-    fun getSdlImeAutoShowEnabled(): Boolean = ControlSettings.sdlAutoShowIme.state
+    fun getSdlImeAutoShowEnabled(): Boolean = ControlSettings.sdlAutoShowIme.flow.value
 
     @JvmStatic
     @MainThread

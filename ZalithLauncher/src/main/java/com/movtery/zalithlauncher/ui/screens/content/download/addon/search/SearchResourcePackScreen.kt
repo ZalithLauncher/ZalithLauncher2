@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.movtery.zalithlauncher.game.download.addon.platform.Platform
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformSearchData
 import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeResourcePackCategory
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthFeatures
 import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthResourcePackCategory
@@ -35,7 +36,8 @@ fun SearchResourcePackScreen(
     downloadScreenKey: TitledNavKey?,
     downloadResourcePackScreenKey: TitledNavKey,
     downloadResourcePackScreenCurrentKey: TitledNavKey?,
-    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> }
+    swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> },
+    onQuickDownload: ((PlatformSearchData) -> Unit)? = null,
 ) {
     val initialPlatform = remember {
         MiscSettings.searchResourcePackPlatform.getValue()
@@ -68,6 +70,7 @@ fun SearchResourcePackScreen(
                 }
             }
         },
-        swapToDownload = swapToDownload
+        swapToDownload = swapToDownload,
+        onQuickDownload = onQuickDownload,
     )
 }

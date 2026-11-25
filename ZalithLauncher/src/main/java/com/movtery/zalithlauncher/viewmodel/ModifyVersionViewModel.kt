@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -63,6 +61,8 @@ import com.movtery.zalithlauncher.game.version.download.DownloadFailedException
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager.isVersionExists
+import com.movtery.zalithlauncher.ui.components.AppAlertDialog
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.NotificationCheck
 import com.movtery.zalithlauncher.ui.components.OwnOutlinedTextField
@@ -308,7 +308,7 @@ fun ModifyVersionOperation(
             }
             val nameValid = nameValue.isNotEmpty() && filenameInvalidMessage == null && !nameConflict
 
-            Dialog(
+            AppDialog(
                 onDismissRequest = { changeOperation(ModifyOperation.None) },
                 properties = DialogProperties(
                     usePlatformDefaultWidth = false
@@ -463,7 +463,7 @@ fun ModifyVersionOperation(
             val dismiss = {
                 changeOperation(ModifyOperation.None)
             }
-            AlertDialog(
+            AppAlertDialog(
                 onDismissRequest = dismiss,
                 title = {
                     Text(text = stringResource(R.string.download_install_error_title))

@@ -23,6 +23,7 @@ import com.movtery.zalithlauncher.BuildConfig
 import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.bridge.LoggerBridge
 import com.movtery.zalithlauncher.game.account.Account
+import com.movtery.zalithlauncher.game.account.getPassportServerId
 import com.movtery.zalithlauncher.game.account.isAuthServerAccount
 import com.movtery.zalithlauncher.game.account.isLocalAccount
 import com.movtery.zalithlauncher.game.account.offline.OfflineYggdrasilServer
@@ -43,6 +44,7 @@ import com.movtery.zalithlauncher.utils.file.child
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.network.ServerAddress
 import com.movtery.zalithlauncher.utils.string.insertJSONValueList
+import com.movtery.zalithlauncher.utils.string.isBiggerOrEqualTo
 import com.movtery.zalithlauncher.utils.string.isEmptyOrBlank
 import com.movtery.zalithlauncher.utils.string.isLowerTo
 import com.movtery.zalithlauncher.utils.string.isNotEmptyOrBlank
@@ -204,11 +206,13 @@ class LaunchArgs(
                 }
             }
         } else if (account.isAuthServerAccount()) {
-            if (account.otherBaseUrl!!.contains("auth.mc-user.com")) {
-                argsList.add("-javaagent:${LibPath.NIDE_8_AUTH.absolutePath}=${account.otherBaseUrl!!.replace("https://auth.mc-user.com:233/", "")}")
+            val baseUrl = account.otherBaseUrl!!
+            if (baseUrl.contains("auth.mc-user.com")) {
+                val serverId = getPassportServerId(baseUrl)
+                argsList.add("-javaagent:${LibPath.NIDE_8_AUTH.absolutePath}=$serverId")
                 argsList.add("-Dnide8auth.client=true")
             } else {
-                argsList.add("-javaagent:${LibPath.AUTHLIB_INJECTOR.absolutePath}=${account.otherBaseUrl}")
+                argsList.add("-javaagent:${LibPath.AUTHLIB_INJECTOR.absolutePath}=$baseUrl")
                 argsList.add("-Dauthlibinjector.side=client")
             }
         }
@@ -236,6 +240,11 @@ class LaunchArgs(
         argsList.add("-Dminecraft.client.jar=${clientJar.absolutePath}")
         argsList.add("-Dminecraft.launcher.brand=${BuildKeys.LAUNCHER_NAME}")
         argsList.add("-Dminecraft.launcher.version=${BuildConfig.VERSION_NAME}")
+
+        // CVE-2026-114938
+        if (runtime.shouldDisableBase64Intrinsics()) {
+            argsList.add("-XX:-UseBASE64Intrinsics")
+        }
 
         return argsList
     }
@@ -430,3 +439,27 @@ fun detectLwjglVersion(manifest: GameManifest): Int {
  * 版本 >= 3.4.1 -> 3.4.1 组件；否则（含 LWJGL2 桥接场景）-> 3.3.3 组件
  */
 fun lwjglVersionDir(lwjglVersion: Int): String = if (lwjglVersion >= 341) "3.4.1" else "3.3.3"
+
+/**
+ * 判断该运行时是否需要禁用 JVM 的 Base64 intrinsic（CVE-2026-114938）
+ * 参考 HMCL 的 Base64Utils（https://github.com/HMCL-dev/HMCL/blob/ade3d687bf435f593c05a0f8ac364b147c7827dc/HMCLCore/src/main/java/org/jackhuang/hmcl/util/Base64Utils.java）
+ */
+fun Runtime.shouldDisableBase64Intrinsics(): Boolean {
+    val arch = arch ?: return false
+    // JDK 8 无该 intrinsic 也无此 flag，arm/aarch64 不受影响，均不添加
+    return !(arch != "x86_64" && arch != "amd64") && when (javaVersion) {
+        // 无修复版本的受影响版本线，全部受影响
+        18, 19, 20, 22, 23, 24, 26 -> true
+        // 17.0.6 才引入该 intrinsic，17.0.21.1 起修复
+        17 -> versionString != null &&
+                versionString.isBiggerOrEqualTo("17.0.6") &&
+                versionString.isLowerTo("17.0.21.1")
+        // 21.0.13.1 起修复
+        21 -> versionString != null && versionString.isLowerTo("21.0.13.1")
+        // 25.0.5.1 起修复
+        25 -> versionString != null && versionString.isLowerTo("25.0.5.1")
+        // 27.0.1.1 起修复
+        27 -> versionString != null && versionString.isLowerTo("27.0.1.1")
+        else -> false
+    }
+}

@@ -124,7 +124,7 @@ fun InputMagnifier(
     LaunchedEffect(inputOccludesGame) {
         if (!inputOccludesGame) {
             state.isVisible = false
-        } else if (!state.dismissedForInput && ControlSettings.imeMagnifierAutoShow.state) {
+        } else if (!state.dismissedForInput && ControlSettings.imeMagnifierAutoShow.flow.value) {
             state.isVisible = true
         }
     }

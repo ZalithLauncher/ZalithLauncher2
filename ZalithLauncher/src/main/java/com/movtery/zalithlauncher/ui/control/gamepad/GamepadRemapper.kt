@@ -172,7 +172,7 @@ data class GamepadRemapper(
     private fun getDeadzone(event: MotionEvent, axis: Int): Float {
         return try {
             val range = event.device?.getMotionRange(axis, InputDevice.SOURCE_JOYSTICK)
-            val deadzoneScale = ControlSettings.gamepadDeadZoneScale.state / 100f
+            val deadzoneScale = ControlSettings.gamepadDeadZoneScale.flow.value / 100f
             val deadzone = (range?.flat ?: 0f) * deadzoneScale
             max(deadzone, 0.1f * deadzoneScale)
         } catch (e: Exception) {

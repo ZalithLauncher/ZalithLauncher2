@@ -20,6 +20,7 @@ package com.movtery.zalithlauncher.ui.theme
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.drawable.RippleDrawable
@@ -37,6 +38,7 @@ import com.google.android.material.color.utilities.Variant
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.DarkMode
+import com.movtery.zalithlauncher.ui.base.FullScreenAppCompatActivity
 
 data class NativeColorScheme(
     val primary: Color,
@@ -79,7 +81,7 @@ data class NativeColorScheme(
  * 判断当前是否为暗色主题
  */
 fun isDarkTheme(context: Context): Boolean {
-    return when (LauncherSettings.launcherDarkMode.state) {
+    return when (LauncherSettings.launcherDarkMode.flow.value) {
         DarkMode.Enable -> true
         DarkMode.Disable -> false
         DarkMode.FollowSystem -> {
@@ -180,7 +182,7 @@ private fun buildColorScheme(seedColor: Int, darkTheme: Boolean): NativeColorSch
 }
 
 private fun getSeedColor(context: Context, darkTheme: Boolean): Int {
-    return when (LauncherSettings.launcherColorTheme.state) {
+    return when (LauncherSettings.launcherColorTheme.flow.value) {
         ColorThemeType.DYNAMIC -> {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
@@ -196,8 +198,8 @@ private fun getSeedColor(context: Context, darkTheme: Boolean): Int {
                 getPredefinedSeedColor(ColorThemeType.EMBERMIRE, darkTheme)
             }
         }
-        ColorThemeType.CUSTOM -> LauncherSettings.launcherCustomColor.state
-        else -> getPredefinedSeedColor(LauncherSettings.launcherColorTheme.state, darkTheme)
+        ColorThemeType.CUSTOM -> LauncherSettings.launcherCustomColor.flow.value
+        else -> getPredefinedSeedColor(LauncherSettings.launcherColorTheme.flow.value, darkTheme)
     }
 }
 
@@ -233,6 +235,11 @@ fun MaterialAlertDialogBuilder.createThemed(): AlertDialog {
     }
 
     return create().apply {
+        context.findFullScreenActivity()?.let { activity ->
+            val dialogWindow = window ?: return@apply
+            val detach = activity.attachDialogWindow(dialogWindow)
+            setOnDismissListener { detach() }
+        }
         setOnShowListener {
             findViewById<TextView>(androidx.appcompat.R.id.alertTitle)?.setTextColor(colors.onSurface.toArgb())
             findViewById<TextView>(android.R.id.message)?.setTextColor(colors.onSurfaceVariant.toArgb())
@@ -241,6 +248,12 @@ fun MaterialAlertDialogBuilder.createThemed(): AlertDialog {
             getButton(AlertDialog.BUTTON_NEUTRAL)?.applyThemeColors(colors)
         }
     }
+}
+
+private tailrec fun Context.findFullScreenActivity(): FullScreenAppCompatActivity? = when (this) {
+    is FullScreenAppCompatActivity -> this
+    is ContextWrapper -> baseContext.findFullScreenActivity()
+    else -> null
 }
 
 fun MaterialAlertDialogBuilder.showThemed(): AlertDialog {

@@ -19,6 +19,7 @@
 package com.movtery.zalithlauncher.game.path
 
 import android.content.Context
+import android.os.Environment
 import com.movtery.zalithlauncher.database.AppDatabase
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
 import com.movtery.zalithlauncher.path.PathManager
@@ -26,6 +27,7 @@ import com.movtery.zalithlauncher.setting.MiscSettings
 import com.movtery.zalithlauncher.utils.canHandlePermission
 import com.movtery.zalithlauncher.utils.hasStoragePermission
 import com.movtery.zalithlauncher.utils.logging.Logger
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -138,6 +140,20 @@ object GamePathManager {
     fun containsPath(path: String): Boolean = _gamePathData.value.any { it.path == path }
 
     /**
+     * 检查指定路径是否被禁止用作游戏目录
+     */
+    fun isForbiddenGamePath(path: String): Boolean {
+        val target = File(path).absolutePath
+        // 从外部存储根目录起逐级向上比对，命中即代表目标路径是根目录本身或其全部上级目录
+        var node: File? = Environment.getExternalStorageDirectory()
+        while (node != null) {
+            if (node.absolutePath == target) return true
+            node = node.parentFile
+        }
+        return false
+    }
+
+    /**
      * 修改并保存指定目录的标题
      * @throws IllegalArgumentException 未找到匹配项
      */
@@ -149,9 +165,10 @@ object GamePathManager {
 
     /**
      * 添加新的路径并保存
-     * @throws IllegalArgumentException 当前添加的路径与现有项冲突
+     * @throws IllegalArgumentException 当前添加的路径被禁止用作游戏目录，或与现有项冲突
      */
     fun addNewPath(title: String, path: String) {
+        if (isForbiddenGamePath(path)) throw IllegalArgumentException("The path is not allowed to be used as a game directory!")
         if (containsPath(path)) throw IllegalArgumentException("The path conflicts with an existing item!")
         savePath(
             GamePath(id = generateUUID(), title = title, path = path)
@@ -215,6 +232,7 @@ object GamePathManager {
                 gamePathDao.savePath(path)
                 Logger.info(TAG, "Saved game path: ${path.path}")
             }.onFailure { e ->
+                if (e is CancellationException) throw e
                 Logger.error(TAG, "Failed to save game path config!", e)
             }
             reloadPath()

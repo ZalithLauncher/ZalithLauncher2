@@ -78,6 +78,16 @@ object RuntimesManager {
         return findNearestPositive(majorVersion, getRuntimes()) { it.javaVersion }?.value?.name
     }
 
+    /** 查找指定 Java 大版本中首个架构兼容的运行时名称 */
+    fun getCompatibleJreName(majorVersion: Int): String? {
+        return getRuntimes().firstOrNull { it.javaVersion == majorVersion && it.isCompatible() }?.name
+    }
+
+    /** @return 运行时是否可用 */
+    fun isRuntimeUsable(name: String): Boolean {
+        return name.isNotEmpty() && loadRuntime(name).isCompatible()
+    }
+
     fun forceReload(name: String): Runtime {
         cache.remove(name)
         return loadRuntime(name)

@@ -21,7 +21,6 @@ package com.movtery.zalithlauncher.ui.screens.content.home.server
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
@@ -80,7 +79,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImagePainter
@@ -100,6 +98,7 @@ import com.movtery.zalithlauncher.game.version.multiplayer.description.Component
 import com.movtery.zalithlauncher.game.version.multiplayer.description.ComponentDescriptionRoot
 import com.movtery.zalithlauncher.game.version.multiplayer.description.ServerDescription
 import com.movtery.zalithlauncher.game.version.multiplayer.description.StringDescription
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.ImePanContainer
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MarqueeText
@@ -290,9 +289,7 @@ private fun HeaderRow(card: ServerCardState?, iconSize: Dp) {
                 verticalArrangement = Arrangement.spacedBy(DetailItemGap)
             ) {
                 card?.record?.name?.let { name ->
-                    Text(
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                        maxLines = 1,
+                    MarqueeText(
                         text = name,
                         style = MaterialTheme.typography.labelLarge
                     )
@@ -328,9 +325,7 @@ private fun RowContent(
             verticalArrangement = Arrangement.spacedBy(DetailItemGap)
         ) {
             card?.record?.name?.let { name ->
-                Text(
-                    modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                    maxLines = 1,
+                MarqueeText(
                     text = name,
                     style = MaterialTheme.typography.labelLarge
                 )
@@ -952,7 +947,7 @@ private fun CardDialogFrame(
     onDismissRequest: () -> Unit,
     content: @Composable () -> Unit
 ) {
-    Dialog(
+    AppDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(decorFitsSystemWindows = false)
     ) {

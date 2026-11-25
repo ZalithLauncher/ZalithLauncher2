@@ -25,7 +25,6 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -90,8 +89,10 @@ import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.PullToRefreshLayout
+import com.movtery.zalithlauncher.ui.components.ScalingIconButton
 import com.movtery.zalithlauncher.ui.components.ScalingLabel
 import com.movtery.zalithlauncher.ui.components.SmallOutlinedEditField
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.screens.content.elements.backgroundGlass
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -110,6 +111,7 @@ sealed interface SearchAddonState {
  * 资源搜索结果展示列表
  * @param swapToDownload 跳转到下载详情页
  * @param installedInfo 查询项目本地是否已安装，键为平台与平台项目ID
+ * @param onQuickDownload 快捷下载，null 时不展示快捷下载入口
  * @param onNavigatePage 导航到指定页面
  */
 @Composable
@@ -125,7 +127,8 @@ fun ResultListLayout(
     onNextPage: (pageNumber: Int, isLastPage: Boolean) -> Unit,
     onNavigatePage: (Int) -> Unit,
     swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> },
-    installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null
+    installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null,
+    onQuickDownload: ((PlatformSearchData) -> Unit)? = null,
 ) {
     PullToRefreshLayout(
         modifier = modifier,
@@ -174,7 +177,8 @@ fun ResultListLayout(
                         classes = classes,
                         data = page.data,
                         swapToDownload = swapToDownload,
-                        installedInfo = installedInfo
+                        installedInfo = installedInfo,
+                        onQuickDownload = onQuickDownload,
                     )
 
                     val targetScale = 1f - (1f - controllerMinScale) * fraction
@@ -378,7 +382,8 @@ private fun ResultList(
     classes: PlatformClasses,
     data: List<Pair<PlatformSearchData, AddonProjectInfo?>>,
     swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> },
-    installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null
+    installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null,
+    onQuickDownload: ((PlatformSearchData) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     LazyColumn(
@@ -418,6 +423,9 @@ private fun ResultList(
 //                onFavoriteClick = {
 //                    FavoriteProjectsRepository.toggle(item, classes)
 //                },
+                onQuickDownload = if (onQuickDownload != null) {
+                    { onQuickDownload(item) }
+                } else null,
                 onClick = {
                     swapToDownload(platform, item.platformId(), iconUrl)
                 }
@@ -442,6 +450,7 @@ fun ResultProjectLayout(
     isInstalled: Boolean = false,
 //    isFavorite: Boolean = false,
 //    onFavoriteClick: (() -> Unit)? = null,
+    onQuickDownload: (() -> Unit)? = null,
     shape: Shape = MaterialTheme.shapes.large,
     influencedByBackground: Boolean = true,
     color: Color = cardColor(influencedByBackground),
@@ -470,13 +479,22 @@ fun ResultProjectLayout(
                 .height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            AddonIcon(
-                modifier = Modifier
-                    .clip(shape = RoundedCornerShape(10.dp))
-                    .align(Alignment.CenterVertically),
-                size = 72.dp,
-                iconUrl = iconUrl
-            )
+            Box(
+                modifier = Modifier.align(Alignment.CenterVertically),
+            ) {
+                AddonIcon(
+                    modifier = Modifier.clip(shape = RoundedCornerShape(10.dp)),
+                    size = 72.dp,
+                    iconUrl = iconUrl
+                )
+                if (isInstalled) {
+                    InstalledModBadge(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(all = 4.dp)
+                    )
+                }
+            }
 
             Column(
                 modifier = Modifier.weight(1f),
@@ -485,127 +503,142 @@ fun ResultProjectLayout(
                 ProjectTitleHead(
                     platform = platform,
                     title = title,
+                    classes = classes,
                 )
 
-                Column(
+                Row(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .alpha(0.7f)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
                     ) {
-                        // 作者
-                        authors?.let {
+                        Row(
+                            modifier = Modifier
+                                .alpha(0.7f)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // 作者
+                            authors?.let {
+                                Row(
+                                    modifier = Modifier.weight(1f, fill = false),
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.size(14.dp),
+                                        painter = painterResource(R.drawable.ic_person_filled),
+                                        contentDescription = null
+                                    )
+                                    MarqueeText(
+                                        text = it.joinToString(", "),
+                                        style = MaterialTheme.typography.labelSmall,
+                                    )
+                                }
+                            }
+
+                            // 下载量
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Icon(
                                     modifier = Modifier.size(14.dp),
-                                    painter = painterResource(R.drawable.ic_person_filled),
+                                    painter = painterResource(R.drawable.ic_download_2_filled),
                                     contentDescription = null
                                 )
-                                MarqueeText(
-                                    text = it.joinToString(", "),
-                                    style = MaterialTheme.typography.labelSmall,
+                                Text(
+                                    text = formatNumberByLocale(context, downloads),
+                                    style = MaterialTheme.typography.labelSmall
                                 )
+                            }
+
+                            // 收藏数量（Modrinth）
+                            followsCount?.let {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        modifier = Modifier.size(14.dp),
+                                        painter = painterResource(R.drawable.ic_star_filled),
+                                        contentDescription = null
+                                    )
+                                    Text(
+                                        text = formatNumberByLocale(context, it),
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
                             }
                         }
 
-                        // 下载量
+                        //描述
+                        Text(
+                            text = description,
+                            style = MaterialTheme.typography.labelSmall,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            //标签栏
+                            Row(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .marquee()
+                                    .alpha(0.7f),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                modloaders?.let {
+                                    it.forEach { modloader ->
+                                        Text(
+                                            text = modloader.getDisplayName(),
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                }
+                                categories?.let {
+                                    it.forEach { category ->
+                                        Text(
+                                            text = stringResource(category.getDisplayName()),
+                                            style = MaterialTheme.typography.labelSmall
+                                        )
+                                    }
+                                }
+                            }
+
+//                            onFavoriteClick?.let { onFavorite ->
+//                                FavoriteToggleLabel(
+//                                    isFavorite = isFavorite,
+//                                    onClick = onFavorite
+//                                )
+//                            }
+                        }
+                    }
+
+                    onQuickDownload?.let { handler ->
+                        ScalingIconButton(
+                            modifier = Modifier
+                                .align(Alignment.Bottom)
+                                .padding(bottom = 2.dp),
+                            onClick = handler,
+                            size = 32.dp
                         ) {
                             Icon(
-                                modifier = Modifier.size(14.dp),
-                                painter = painterResource(R.drawable.ic_download_2_filled),
-                                contentDescription = null
-                            )
-                            Text(
-                                text = formatNumberByLocale(context, downloads),
-                                style = MaterialTheme.typography.labelSmall
+                                modifier = Modifier.size(20.dp),
+                                painter = painterResource(R.drawable.ic_download),
+                                contentDescription = stringResource(R.string.download_addon_quick_download)
                             )
                         }
-
-                        // 收藏数量（Modrinth）
-                        followsCount?.let {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    modifier = Modifier.size(14.dp),
-                                    painter = painterResource(R.drawable.ic_star_filled),
-                                    contentDescription = null
-                                )
-                                Text(
-                                    text = formatNumberByLocale(context, it),
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            }
-                        }
                     }
-
-                    //描述
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.labelSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    //标签栏
-                    Row(
-                        modifier = Modifier
-                            .weight(1f)
-                            .basicMarquee(Int.MAX_VALUE)
-                            .alpha(0.7f),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        modloaders?.let {
-                            it.forEach { modloader ->
-                                Text(
-                                    text = modloader.getDisplayName(),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-                        }
-                        categories?.let {
-                            it.forEach { category ->
-                                Text(
-                                    text = stringResource(category.getDisplayName()),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-                        }
-                    }
-
-                    //资源的类别
-                    if (classes != null) {
-                        ClassesIdentifier(classes = classes)
-                    }
-
-                    if (isInstalled) {
-                        InstalledModBadge()
-                    }
-
-//                    onFavoriteClick?.let { onFavorite ->
-//                        FavoriteToggleLabel(
-//                            isFavorite = isFavorite,
-//                            onClick = onFavorite
-//                        )
-//                    }
                 }
             }
         }
@@ -617,6 +650,7 @@ fun ProjectTitleHead(
     modifier: Modifier = Modifier,
     platform: Platform,
     title: String,
+    classes: PlatformClasses? = null,
 ) {
     //标题栏、作者栏、平台标签
     Row(
@@ -626,12 +660,14 @@ fun ProjectTitleHead(
     ) {
         //标题栏
         MarqueeText(
-            modifier = Modifier
-                .weight(1f)
-                .basicMarquee(iterations = Int.MAX_VALUE),
+            modifier = Modifier.weight(1f),
             text = title,
             style = MaterialTheme.typography.titleSmall,
         )
+        //资源的类别
+        if (classes != null) {
+            ClassesIdentifier(classes = classes)
+        }
         //平台标签
         PlatformIdentifier(platform = platform)
     }

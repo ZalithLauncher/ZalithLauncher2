@@ -101,8 +101,9 @@ object Renderers {
      * 设置当前的渲染器
      * @param uniqueIdentifier 渲染器的唯一标识符，用于找到当前想要设置的渲染器
      * @param retryToFirstOnFailure 如果未找到匹配的渲染器，是否跳回渲染器列表的首个渲染器
+     * @return 当前设置的渲染器对象
      */
-    fun setCurrentRenderer(uniqueIdentifier: String, retryToFirstOnFailure: Boolean = true) {
+    fun setCurrentRenderer(uniqueIdentifier: String, retryToFirstOnFailure: Boolean = true): RendererInterface {
         if (!isInitialized) throw IllegalStateException("Uninitialized renderer!")
         currentRenderer = renderers.find { it.getUniqueIdentifier() == uniqueIdentifier } ?: run {
             if (retryToFirstOnFailure) {
@@ -111,6 +112,7 @@ object Renderers {
                 renderer
             } else null
         }
+        return getCurrentRenderer()
     }
 
     /**

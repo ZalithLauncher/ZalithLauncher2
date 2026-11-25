@@ -18,7 +18,6 @@
 
 package com.movtery.zalithlauncher.ui.screens.main.control_editor.edit_widget
 
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
@@ -52,9 +51,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.movtery.layer_controller.observable.ObservableControlLayer
 import com.movtery.zalithlauncher.R
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.orUnspecified
@@ -75,7 +74,7 @@ fun SelectLayers(
     //当前选择的控制层
     val selectedLayers = remember { mutableStateListOf(initLayer) }
 
-    Dialog(
+    AppDialog(
         onDismissRequest = onDismissRequest
     ) {
         BoxWithConstraints(
@@ -235,9 +234,7 @@ private fun SelectLayerListItem(
                 }
             }
         )
-        Text(
-            modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-            maxLines = 1,
+        MarqueeText(
             text = layer.name.orUnspecified(),
             style = MaterialTheme.typography.labelLarge
         )

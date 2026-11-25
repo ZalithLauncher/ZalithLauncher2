@@ -839,18 +839,70 @@ public class GLFW
         return previousCallback;
     }
 
-    static boolean isGLFWReady;
+    static volatile boolean isGLFWReady;
+    private static volatile Thread eventThread;
+    private static final class EventWaitError {
+        int code;
+        ByteBuffer description;
+    }
+    private static final ThreadLocal<EventWaitError> eventWaitError =
+        ThreadLocal.withInitial(EventWaitError::new);
+
+    private static native void gwResetEventWait();
+    private static native void gwStopEventWait();
+    private static native int gwWaitEvents(double seconds, boolean timed);
+    private static native int gwPostEmptyEvent();
+
+    private static void eventError(int code, String text) {
+        EventWaitError error = eventWaitError.get();
+        error.description = ByteBuffer.allocateDirect(text.length() + 1);
+        for (int i = 0; i < text.length(); i++) error.description.put((byte)text.charAt(i));
+        error.description.put((byte)0).flip();
+        error.code = code;
+        GLFWErrorCallback callback = mGLFWErrorCallback;
+        if (callback != null) callback.invoke(code, memAddress(error.description));
+    }
+
+    private static void waitEvents(double timeout, boolean timed) {
+        if (!isGLFWReady) {
+            eventError(GLFW_NOT_INITIALIZED, "GLFW event wait requires initialization");
+            return;
+        }
+        if (timed && (!(timeout > 0.0) || Double.isInfinite(timeout))) {
+            eventError(GLFW_INVALID_VALUE, "GLFW timeout must be positive and finite");
+            return;
+        }
+        if (Thread.currentThread() != eventThread || mGLFWInputPumping) {
+            eventError(GLFW_PLATFORM_ERROR, "GLFW event wait requires the event thread outside callbacks");
+            return;
+        }
+        if (!mGLFWIsInputReady) {
+            mGLFWIsInputReady = true;
+            CallbackBridge.nativeSetInputReady(true);
+        }
+        int result = gwWaitEvents(timeout, timed);
+        if (result == GLFW_NO_ERROR) glfwPollEvents();
+        else eventError(result, "GLFW native event wait failed");
+    }
+
     public static boolean glfwInit() {
         if (!isGLFWReady) {
             //CallbackBridge.nativeAttachThreadToOther(false, false);
             mGLFWInitialTime = (double) System.nanoTime();
             long __functionAddress = Functions.Init;
             isGLFWReady = invokeI(__functionAddress) != 0;
+            if (isGLFWReady) {
+                gwResetEventWait();
+                eventThread = Thread.currentThread();
+            }
         }
         return isGLFWReady;
     }
 
     public static void glfwTerminate() {
+        gwStopEventWait();
+        isGLFWReady = false;
+        eventThread = null;
         mGLFWIsInputReady = false;
         CallbackBridge.nativeSetInputReady(false);
 
@@ -994,7 +1046,12 @@ public class GLFW
     }
 
     public static int glfwGetError(@Nullable PointerBuffer description) {
-        return GLFW_NO_ERROR;
+        EventWaitError error = eventWaitError.get();
+        int code = error.code;
+        if (description != null) description.put(description.position(),
+            code == GLFW_NO_ERROR ? NULL : memAddress(error.description));
+        error.code = GLFW_NO_ERROR;
+        return code;
     }
 
     @Nullable
@@ -1287,10 +1344,16 @@ public class GLFW
         // Prevent these with this code.
         if(mGLFWInputPumping) return;
         mGLFWInputPumping = true;
-        callV(Functions.StartPumping);
-        for (Long ptr : mGLFWWindowMap.keySet()) callJV(ptr, Functions.PumpEvents);
-        callV(Functions.StopPumping);
-        mGLFWInputPumping = false;
+        try {
+            callV(Functions.StartPumping);
+            for (Long ptr : mGLFWWindowMap.keySet()) callJV(ptr, Functions.PumpEvents);
+        } finally {
+            try {
+                callV(Functions.StopPumping);
+            } finally {
+                mGLFWInputPumping = false;
+            }
+        }
     }
     @SuppressWarnings("unused") // Used by pojavexec
     public static void internalWindowSizeChanged(long window) {
@@ -1310,22 +1373,18 @@ public class GLFW
         }
     }
 
-    public static void glfwWaitEvents() {}
-
-    public static void glfwWaitEventsTimeout(double timeout) {
-        // Boardwalk: this isn't how you do a frame limiter, but oh well
-        // System.out.println("Frame limiter");
-    /*
-        try {
-            Thread.sleep((long)(timeout * 1000));
-        } catch (InterruptedException ie) {
-        }
-    */
-        // System.out.println("Out of the frame limiter");
-
+    public static void glfwWaitEvents() {
+        waitEvents(0.0, false);
     }
 
-    public static void glfwPostEmptyEvent() {}
+    public static void glfwWaitEventsTimeout(double timeout) {
+        waitEvents(timeout, true);
+    }
+
+    public static void glfwPostEmptyEvent() {
+        int result = gwPostEmptyEvent();
+        if (result != GLFW_NO_ERROR) eventError(result, "GLFW empty event requires initialization");
+    }
 
     public static int glfwGetInputMode(@NativeType("GLFWwindow *") long window, int mode) {
         return internalGetWindow(window).inputModes.get(mode);

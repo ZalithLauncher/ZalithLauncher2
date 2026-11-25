@@ -21,18 +21,14 @@ package com.movtery.zalithlauncher.game.download.addon
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.coroutine.Task
 import com.movtery.zalithlauncher.coroutine.TaskSystem
-import com.movtery.zalithlauncher.game.addons.modloader.ModLoader
 import com.movtery.zalithlauncher.game.download.addon.platform.Platform
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformDependencyType
-import com.movtery.zalithlauncher.game.download.addon.platform.PlatformDisplayLabel
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformProject
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
-import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models.CurseForgeModLoader
 import com.movtery.zalithlauncher.game.download.addon.platform.getProjectByVersion
 import com.movtery.zalithlauncher.game.download.addon.platform.getVersionById
 import com.movtery.zalithlauncher.game.download.addon.platform.getVersions
-import com.movtery.zalithlauncher.game.download.addon.platform.modrinth.models.ModrinthModLoaderCategory
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
 import com.movtery.zalithlauncher.game.version.mod.matchInstalledMods
@@ -457,38 +453,4 @@ private suspend fun DependencyContext.isInstalled(
         }?.also { installedMemo[key] = it }
     }
     return projects?.contains(request.projectId) == true
-}
-
-/**
- * 该依赖版本是否适配目标游戏版本
- */
-private fun PlatformVersion.isCompatibleWith(
-    target: Version,
-    classes: PlatformClasses
-): Boolean {
-    val info = target.getVersionInfo() ?: return true
-    if (info.minecraftVersion !in platformGameVersion()) return false
-
-    // 仅模组依赖需要校验模组加载器
-    if (classes != PlatformClasses.MOD) return true
-    // 多加载器组合时任一加载器匹配平台要求即可
-    val targetLoaders = info.loaderInfos.mapNotNull { it.loader.toPlatformLoader(platform()) }
-    if (targetLoaders.isEmpty()) return true
-    val versionLoaders = platformLoaders()
-    return versionLoaders.isEmpty() || targetLoaders.any { it in versionLoaders }
-}
-
-/**
- * 将本地模组加载器转换为平台上的加载器标识
- */
-private fun ModLoader.toPlatformLoader(platform: Platform): PlatformDisplayLabel? {
-    if (displayName.isEmpty()) return null
-    return when (platform) {
-        Platform.MODRINTH -> ModrinthModLoaderCategory.entries.find {
-            it.getDisplayName().equals(displayName, true)
-        }
-        Platform.CURSEFORGE -> CurseForgeModLoader.entries.find {
-            it.getDisplayName().equals(displayName, true)
-        }
-    }
 }

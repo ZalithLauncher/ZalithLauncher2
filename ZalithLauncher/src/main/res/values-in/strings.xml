@@ -1392,6 +1392,9 @@
     <string name="guide_main_welcome_text">Mari kita lihat sekilas fitur layar utama.</string>
     <string name="guide_main_account">Ketuk di sini untuk membuka pengelola akun, tempat kamu dapat menambahkan atau mengelola akun Minecraft</string>
     <string name="guide_main_version_list">Ketuk di sini untuk membuka daftar versi, tempat semua versi game yang kamu instal akan tercantum</string>
+    <string name="guide_main_version_icon_title">Ikon versi dan akses pengaturan</string>
+    <string name="guide_main_version_icon_text">Ketuk di sini untuk membuka pengaturan versi saat ini dan menyesuaikan opsi khusus versi ini</string>
+    <string name="guide_main_version_launch">Tombol mulai game di sebelah kanan akan langsung menjalankan versi saat ini</string>
     <string name="guide_main_card_drag_title">Kurang cocok dengan posisi menu aksi?</string>
     <string name="guide_main_card_drag_text">Tekan lama kartu untuk mengangkatnya, lalu seret dan letakkan untuk memasangnya di sisi seberang</string>
     <string name="guide_main_card_tip_title">Terlihat agak kosong di sini?</string>
@@ -1443,7 +1446,7 @@
     <string name="guide_joystick_events_events_text2">Jika hanya ingin mengontrol game, cukup edit pengikatan tombol sebenarnya di bagian “Input”</string>
     <string name="festivals_halloween">Selamat Halloween!</string>
     <string name="festivals_valentines">Selamat Hari Valentine!</string>
-    <string name="launch_check_mods">Mengecek Mod</string>
+    <string name="launch_check_environment">Mengecek lingkungan game</string>
     <string name="cape_name_twisted">Twisted</string>
     <string name="cape_name_hero">Hero</string>
     <string name="cape_name_aurora">Aurora</string>

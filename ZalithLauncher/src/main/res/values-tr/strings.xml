@@ -1190,6 +1190,9 @@
     <string name="guide_main_welcome_text">Ana ekranın işlevlerine hızlıca bir göz atalım.</string>
     <string name="guide_main_account">Hesap yöneticisini açmak için buraya dokunun; Minecraft hesaplarınızı buradan ekleyebilir veya yönetebilirsiniz</string>
     <string name="guide_main_version_list">Sürüm listesini açmak için buraya dokunun, kurduğunuz tüm oyun sürümleri burada listelenecek</string>
+    <string name="guide_main_version_icon_title">Sürüm simgesi ve ayarlar girişi</string>
+    <string name="guide_main_version_icon_text">Geçerli sürümün ayarlarını açmak ve bu sürüme özel seçenekleri düzenlemek için buraya dokunun</string>
+    <string name="guide_main_version_launch">Sağdaki oyunu başlat düğmesi geçerli sürümü doğrudan başlatır</string>
     <string name="guide_main_card_drag_title">İşlem menüsünün konumu hoşunuza gitmiyor mu?</string>
     <string name="guide_main_card_drag_text">Kartı kaldırmak için uzun basın, ardından diğer tarafa yuvalamak için sürükleyip bırakın</string>
     <string name="guide_main_card_tip_title">Burası biraz boş mu görünüyor?</string>

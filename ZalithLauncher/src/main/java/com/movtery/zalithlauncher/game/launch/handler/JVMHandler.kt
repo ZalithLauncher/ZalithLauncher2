@@ -73,13 +73,21 @@ class JVMHandler(
             var canvas: Canvas?
             val rgbArrayBitmap = createBitmap(canvasWidth, canvasHeight)
             val paint = Paint()
+            // 帧缓冲区跨帧复用，避免每帧在 Java 堆分配全屏大数组
+            var rgbArray = IntArray(canvasWidth * canvasHeight)
 
             try {
                 while (!mIsSurfaceDestroyed && surface.isValid) {
                     canvas = surface.lockCanvas(null)
                     canvas?.drawRGB(0, 0, 0)
 
-                    ZLBridge.renderAWTScreenFrame()?.let { rgbArray ->
+                    var frameLength = ZLBridge.renderAWTScreenFrame(rgbArray)
+                    if (frameLength > rgbArray.size) {
+                        // Cacio 屏幕尺寸变化，重建缓冲区后重取一帧
+                        rgbArray = IntArray(frameLength)
+                        frameLength = ZLBridge.renderAWTScreenFrame(rgbArray)
+                    }
+                    if (frameLength > 0) {
                         canvas?.withSave {
                             rgbArrayBitmap.setPixels(
                                 rgbArray,

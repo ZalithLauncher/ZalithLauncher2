@@ -991,6 +991,9 @@
     <string name="guide_main_welcome_text">메인 화면의 기능을 간단히 살펴볼게요.</string>
     <string name="guide_main_account">여기를 눌러 계정 관리 화면을 여세요. Minecraft 계정을 추가하거나 관리할 수 있습니다</string>
     <string name="guide_main_version_list">여기를 눌러 버전 목록을 열어 보세요. 설치한 모든 게임 버전이 여기에 표시됩니다</string>
+    <string name="guide_main_version_icon_title">버전 아이콘 및 설정 진입점</string>
+    <string name="guide_main_version_icon_text">여기를 눌러 현재 버전의 설정을 열고 해당 버전 전용 옵션을 조정하세요</string>
+    <string name="guide_main_version_launch">오른쪽 게임 실행 버튼으로 현재 버전을 바로 실행할 수 있습니다</string>
     <string name="guide_main_card_drag_title">작업 메뉴 위치가 마음에 들지 않으신가요?</string>
     <string name="guide_main_card_drag_text">카드를 길게 눌러 들어올린 뒤, 드래그해서 반대쪽에 놓을 수 있어요</string>
     <string name="guide_main_card_tip_title">여기가 좀 텅 빈 것 같나요?</string>

@@ -1199,6 +1199,9 @@
     <string name="guide_main_welcome_text">Давайте вкратце познакомимся с возможностями главного экрана.</string>
     <string name="guide_main_account">Нажмите здесь, чтобы открыть управление аккаунтами — здесь можно добавить аккаунты Minecraft или управлять ими</string>
     <string name="guide_main_version_list">Нажмите здесь, чтобы открыть список версий: все установленные версии игры будут перечислены здесь</string>
+    <string name="guide_main_version_icon_title">Значок версии и вход в настройки</string>
+    <string name="guide_main_version_icon_text">Нажмите здесь, чтобы открыть настройки текущей версии и изменить её отдельные параметры</string>
+    <string name="guide_main_version_launch">Кнопка запуска справа напрямую запускает текущую версию</string>
     <string name="guide_main_card_drag_title">Не нравится расположение меню действий?</string>
     <string name="guide_main_card_drag_text">Удерживайте карточку, чтобы поднять её, затем перетащите и отпустите с другой стороны</string>
     <string name="guide_main_card_tip_title">Здесь слишком пусто?</string>

@@ -422,6 +422,7 @@ abstract class Launcher(
         val path = listOfNotNull(
             // per-version LWJGL natives 优先，避免 APK 内旧版 native 抢占
             lwjglNativesDir,
+            FFmpegPluginManager.takeIf { it.isAvailable }?.libraryPath,
             "/system/$libDirName",
             "/vendor/$libDirName",
             "/vendor/$libDirName/hw",
@@ -485,7 +486,11 @@ abstract class Launcher(
         screenSize: IntSize,
         envMap: () -> MutableMap<String, String>
     ) {
-        val path = listOfNotNull("$runtimeHome/bin", Os.getenv("PATH"))
+        val path = listOfNotNull(
+            FFmpegPluginManager.binPath,
+            "$runtimeHome/bin",
+            Os.getenv("PATH")
+        )
 
         envMap().let { map ->
             map["POJAV_NATIVEDIR"] = PathManager.DIR_NATIVE_LIB

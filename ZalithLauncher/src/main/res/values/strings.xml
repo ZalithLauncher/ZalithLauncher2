@@ -80,6 +80,7 @@
     <string name="generic_follow_system">Follow System</string>
     <string name="generic_edit">Edit</string>
     <string name="generic_view">View</string>
+    <string name="generic_plugin">Plugin</string>
     <!-- Title of the version list page -->
     <string name="page_title_version_list">Version List</string>
     <!-- Title of the manage versions page -->
@@ -305,7 +306,7 @@
     <!-- Launch button on the home screen; also the title of the final launch step -->
     <string name="main_launch_game">Launch</string>
     <!-- Title of the launch step that scans the installed mods -->
-    <string name="launch_check_mods">Checking mods</string>
+    <string name="launch_check_environment">Checking game environment</string>
     <!-- Title of the side panel listing running download and install tasks -->
     <string name="main_task_menu">Task Menu</string>
     <!-- Category on the download page that opens the game version downloads -->
@@ -498,6 +499,30 @@
     <string name="download_addon_install_progress_downloading">Downloading and installing addons\n%1$s\n (%2$s / %3$s)</string>
     <!-- Progress text while the downloaded file is copied into the game folders; %s is the file name -->
     <string name="download_addon_install_progress_installing">Installing addons\n%s</string>
+    <!-- Content description of the quick download button on addon project cards -->
+    <string name="download_addon_quick_download">Quick download</string>
+    <!-- Progress text while resolving the selected project and required dependencies; %s is the current project -->
+    <string name="download_addon_quick_planning">Preparing quick download\n%s</string>
+    <!-- Aggregate download progress; file counts and downloaded bytes -->
+    <string name="download_addon_quick_downloading">Downloading addons\n%1$d / %2$d files (%3$s)</string>
+    <!-- Progress text after every file has downloaded, while installing -->
+    <string name="download_addon_quick_installing">Installing downloaded addons…</string>
+    <!-- Number of install targets skipped because another quick task is already downloading them -->
+    <string name="download_addon_quick_skipped">Skipped %d in-flight install targets</string>
+    <!-- Completion text when every requested item is already in flight -->
+    <string name="download_addon_quick_all_skipped">All requested files are already being downloaded</string>
+    <!-- Completion text when planning found no compatible file for any selected game version -->
+    <string name="download_addon_quick_no_files">No compatible files were available to install</string>
+    <!-- Successful completion of a quick addon download -->
+    <string name="download_addon_quick_complete">Quick download completed</string>
+    <!-- Title of the summary shown after compatible files install but some targets were skipped -->
+    <string name="download_addon_quick_incomplete">Quick download finished with skipped items</string>
+    <!-- Skipped item summary; %1$s is the project title, %2$s is the list of installed game versions -->
+    <string name="download_addon_quick_no_compatible">No compatible version was found for %1$s on %2$s</string>
+    <!-- Summary metadata does not match the selected installed game version -->
+    <string name="download_addon_quick_incompatible">May be incompatible</string>
+    <!-- Summary metadata is insufficient to estimate compatibility -->
+    <string name="download_addon_quick_unknown">Compatibility unknown</string>
     <!-- Title of the error notification when downloading or installing an addon fails -->
     <string name="download_addon_install_failed">Failed to install addons!</string>
     <!-- Error line for a dependency without a compatible version; %s is the project title -->
@@ -778,6 +803,8 @@
     <string name="game_loading_version_name">Game Version: %s</string>
     <!-- Line on the game launching overlay; %s is extra info about the version being started -->
     <string name="game_loading_version_info">Game Info: %s</string>
+    <!-- Line on the game launching overlay; %s is the name of the renderer being used -->
+    <string name="game_loading_renderer">Renderer: %s</string>
     <!-- Title of the in-game menu overlay -->
     <string name="game_menu_title">Game Menu</string>
     <!-- Warning message in the dialog confirming force close from the in-game menu -->
@@ -3016,6 +3043,12 @@
     <string name="guide_main_account">Tap here to open the account manager, where you can add or manage your Minecraft accounts</string>
     <!-- Guide text next to the version entry on the action menu card; tapping it opens the version list -->
     <string name="guide_main_version_list">Tap here to open the version list, where every game version you install will be listed</string>
+    <!-- Title of the callout pointing to the version icon and its settings shortcut -->
+    <string name="guide_main_version_icon_title">Version icon and settings shortcut</string>
+    <!-- Body of the version-icon callout; tapping opens settings specific to the current game version -->
+    <string name="guide_main_version_icon_text">Tap here to open the current version\'s settings and adjust its version-specific options</string>
+    <!-- Body of the version-list callout explaining that the right-side button launches the current version -->
+    <string name="guide_main_version_launch">The launch button on the right directly starts the current version</string>
     <!-- Title of the guide card for the draggable action menu card -->
     <string name="guide_main_card_drag_title">Not happy with where the action menu is?</string>
     <!-- Body of the guide card explaining how to move the action menu card to the other side -->

@@ -109,7 +109,7 @@ fun SimpleGamepadCapture(
 
     DisposableEffect(view, gamepadViewModel) {
         val motionListener = View.OnGenericMotionListener { motionView, event ->
-            if (event.isGamepadEvent() && ControlSettings.gamepadControl.state && gamepadViewModel.checkModePrompt()) {
+            if (event.isGamepadEvent() && ControlSettings.gamepadControl.flow.value && gamepadViewModel.checkModePrompt()) {
                 //模式选择询问优先级最高
                 true
             } else if (isBinding()) {
@@ -118,7 +118,7 @@ fun SimpleGamepadCapture(
                 )
                 true
             } else if (event.isGamepadEvent() && event.action == MotionEvent.ACTION_MOVE) {
-                if (ControlSettings.gamepadControl.state && ControlSettings.gamepadInputMode.state == GamepadInputMode.SdlDirect) {
+                if (ControlSettings.gamepadControl.flow.value && ControlSettings.gamepadInputMode.flow.value == GamepadInputMode.SdlDirect) {
                     if (SdlBridge.sdlEnabled) {
                         gamepadViewModel.notifyActivity()
                         handleGamepadMotionEvent(event)

@@ -34,7 +34,11 @@ import com.movtery.zalithlauncher.game.account.isReloginRequired
 import com.movtery.zalithlauncher.game.account.microsoft.validateAccessToken
 import com.movtery.zalithlauncher.game.account.refreshMicrosoft
 import com.movtery.zalithlauncher.game.download.game.GameLibDownloader
+import com.movtery.zalithlauncher.game.renderer.RendererInterface
+import com.movtery.zalithlauncher.game.renderer.Renderers
 import com.movtery.zalithlauncher.game.renderer.detectFpeEmulatorMods
+import com.movtery.zalithlauncher.game.renderer.isSfpewConfiguredFor
+import com.movtery.zalithlauncher.game.renderer.loadRenderer
 import com.movtery.zalithlauncher.game.support.lwjgl3ify.patchLwjgl3ifyIfNeeded
 import com.movtery.zalithlauncher.game.version.download.BaseMinecraftDownloader
 import com.movtery.zalithlauncher.game.version.download.DownloadMode
@@ -42,6 +46,9 @@ import com.movtery.zalithlauncher.game.version.download.MinecraftDownloader
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionFolders
 import com.movtery.zalithlauncher.game.version.installed.VersionInfoParser
+import com.movtery.zalithlauncher.game.version.installed.hasVulkanBackend
+import com.movtery.zalithlauncher.game.version.installed.utils.isBiggerVer
+import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.game.version.mod.AllModReader
 import com.movtery.zalithlauncher.game.version.mod.isEnabled
 import com.movtery.zalithlauncher.game.versioninfo.models.GameManifest
@@ -68,6 +75,9 @@ private class LaunchCheckFailed(
     cause: Throwable
 ) : RuntimeException(cause)
 
+/** 用户在渲染器不兼容确认框选择取消时抛出 */
+private class LaunchRendererDeclined : RuntimeException("Launch declined at renderer compatibility check")
+
 
 /**
  * 游戏启动器
@@ -80,12 +90,18 @@ class GameLaunchFlow(scope: CoroutineScope) {
      * 启动游戏
      * @param version 指定版本
      * @param skipAccountRefresh 跳过启动前的账号校验，直接使用现有凭据
+     * @param ensureVulkanSupported 校验设备 Vulkan 能力，不满足时挂起展示检测流程
+     * @param onRendererUnsupported 挂起展示渲染器不兼容确认框，返回是否忽略风险继续启动
+     * @param onRendererDeclined 用户在渲染器不兼容确认框选择取消
      */
     fun launch(
         context: Context,
         version: Version,
         skipAccountRefresh: Boolean = false,
         exitActivity: () -> Unit,
+        ensureVulkanSupported: suspend (Version) -> Boolean = { true },
+        onRendererUnsupported: suspend (RendererInterface, Version) -> Boolean = { _, _ -> true },
+        onRendererDeclined: () -> Unit = {},
         onReloginRequired: (Account) -> Unit = {},
         onRefreshFailed: (Account, Throwable) -> Unit = { _, _ -> },
         isRunning: () -> Unit = {},
@@ -117,6 +133,8 @@ class GameLaunchFlow(scope: CoroutineScope) {
                             account = account,
                             skipAccountRefresh = skipAccountRefresh,
                             exitActivity = exitActivity,
+                            ensureVulkanSupported = ensureVulkanSupported,
+                            onRendererUnsupported = onRendererUnsupported,
                             onError = handleError
                         )
                     )
@@ -127,6 +145,7 @@ class GameLaunchFlow(scope: CoroutineScope) {
                 when (th) {
                     is LaunchReloginRequired -> onReloginRequired(th.account)
                     is LaunchCheckFailed -> onRefreshFailed(th.account, th.cause ?: th)
+                    is LaunchRendererDeclined -> onRendererDeclined()
                     else -> handleError(
                         ErrorViewModel.ThrowableMessage(
                             title = androidText(R.string.generic_error),
@@ -151,6 +170,8 @@ class GameLaunchFlow(scope: CoroutineScope) {
         account: Account,
         skipAccountRefresh: Boolean,
         exitActivity: () -> Unit,
+        ensureVulkanSupported: suspend (Version) -> Boolean,
+        onRendererUnsupported: suspend (RendererInterface, Version) -> Boolean,
         onError: (ErrorViewModel.ThrowableMessage) -> Unit
     ): TaskFlowExecutor.TaskPhase {
         //检查是否联网，根据这个条件决定是否校验账号
@@ -187,13 +208,20 @@ class GameLaunchFlow(scope: CoroutineScope) {
                 }
             }
 
-            //扫描模组列表，开启对应功能
+            // 检查游戏环境
+            // 扫描模组列表，开启对应功能，并检查渲染器兼容性
             addTask(
                 icon = R.drawable.ic_extension_outlined,
-                title = androidText(R.string.launch_check_mods),
+                title = androidText(R.string.launch_check_environment),
                 dispatcher = Dispatchers.IO
             ) { task ->
                 val patchedManifest = checkMods(version)
+                checkRendererSupport(
+                    version = version,
+                    ensureVulkanSupported = ensureVulkanSupported,
+                    onRendererUnsupported = onRendererUnsupported
+                )
+
                 val manifest = patchedManifest ?: VersionInfoParser(version)
                     .setInheriting(skipIfNotExists = true)
                     .build()
@@ -308,5 +336,31 @@ class GameLaunchFlow(scope: CoroutineScope) {
 
         val patched = patchLwjgl3ifyIfNeeded(version, mods)
         return patched
+    }
+
+    /**
+     * 渲染器兼容性检查
+     */
+    private suspend fun checkRendererSupport(
+        version: Version,
+        ensureVulkanSupported: suspend (Version) -> Boolean,
+        onRendererUnsupported: suspend (RendererInterface, Version) -> Boolean
+    ) {
+        val renderer = Renderers.setCurrentRenderer(version.getRenderer())
+        val mcVer = version.getVersionInfo()?.minecraftVersion ?: version.getVersionName()
+
+        // 设备完全支持 Vulkan 时，游戏走 Vulkan 后端渲染，跳过渲染器的版本支持检查
+        if (version.hasVulkanBackend() && ensureVulkanSupported(version)) return
+
+        val loaded = loadRenderer(renderer, version)
+        // FPE 支持可来自 SFPEW 兼容层，也可来自检测到的 FPE 模拟模组
+        val fpeProvided = version.fpeEmulatorModDetected ||
+                (loaded.sfpewLayerEnabled ?: isSfpewConfiguredFor(renderer, version))
+        val unsupportedMin = loaded.getMinMCVersion()?.let { !fpeProvided && mcVer.isLowerVer(it) } ?: false
+        val unsupportedMax = loaded.getMaxMCVersion()?.let { mcVer.isBiggerVer(it) } ?: false
+
+        if ((unsupportedMin || unsupportedMax) && !onRendererUnsupported(renderer, version)) {
+            throw LaunchRendererDeclined()
+        }
     }
 }

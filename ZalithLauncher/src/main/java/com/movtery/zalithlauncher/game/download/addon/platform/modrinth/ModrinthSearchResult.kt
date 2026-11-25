@@ -77,6 +77,10 @@ class ModrinthSearchResult(
         @SerialName("project_type")
         val projectType: String,
 
+        /** 项目所有版本涉及的项目类型 */
+        @SerialName("all_project_types")
+        val allProjectTypes: Array<String> = emptyArray(),
+
         /**
          * 项目简洁字符串标识符 **un-required**
          */
@@ -88,6 +92,18 @@ class ModrinthSearchResult(
          */
         @SerialName("author")
         val author: String,
+
+        /** 作者的用户 ID */
+        @SerialName("author_id")
+        val authorId: String? = null,
+
+        /** 项目所属组织的 slug */
+        @SerialName("organization")
+        val organization: String? = null,
+
+        /** 项目所属组织的 ID */
+        @SerialName("organization_id")
+        val organizationId: String? = null,
 
         /**
          * 项目的标题 **un-required**
@@ -118,6 +134,14 @@ class ModrinthSearchResult(
          */
         @SerialName("versions")
         val versions: Array<String>,
+
+        /** 项目支持的运行环境 */
+        @SerialName("environment")
+        val environment: Array<String> = emptyArray(),
+
+        /** 项目的内容披露标识 */
+        @SerialName("disclosure_types")
+        val disclosureTypes: Array<String> = emptyArray(),
 
         /**
          * 项目的下载总数 **required**

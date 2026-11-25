@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.ui.screens.content.elements
 
 import android.app.Activity
 import android.net.Uri
-import android.os.Build
 import android.os.Parcelable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -50,14 +49,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.ImageLoader
 import coil3.compose.AsyncImage
@@ -78,15 +75,14 @@ import com.movtery.zalithlauncher.game.plugin.natives.NativePluginManager
 import com.movtery.zalithlauncher.game.plugin.renderer.RendererPluginManager
 import com.movtery.zalithlauncher.game.renderer.RendererInterface
 import com.movtery.zalithlauncher.game.renderer.Renderers
-import com.movtery.zalithlauncher.game.renderer.isSfpewConfiguredFor
 import com.movtery.zalithlauncher.game.version.installed.Version
-import com.movtery.zalithlauncher.game.version.installed.hasVulkanBackend
 import com.movtery.zalithlauncher.game.version.installed.utils.isBiggerVer
 import com.movtery.zalithlauncher.game.version.installed.utils.isLowerVer
 import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.setting.enums.BackgroundBlur
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.ButtonPosition
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.PositionButton
@@ -102,12 +98,14 @@ import com.movtery.zalithlauncher.utils.checkStoragePermissions
 import com.movtery.zalithlauncher.utils.file.InvalidFilenameException
 import com.movtery.zalithlauncher.utils.file.checkFilenameValidity
 import com.movtery.zalithlauncher.utils.hasStoragePermission
-import com.movtery.zalithlauncher.utils.image.isGifFile
+import com.movtery.zalithlauncher.viewmodel.BackgroundContentKind
 import com.movtery.zalithlauncher.viewmodel.BackgroundViewModel
 import com.movtery.zalithlauncher.viewmodel.ErrorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.LaunchGameViewModel
+import com.movtery.zalithlauncher.viewmodel.resolveBackgroundBlur
 import com.movtery.zalithlauncher.viewmodel.sendToast
+import com.movtery.zalithlauncher.viewmodel.whiteOverlayAlpha
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
@@ -141,12 +139,11 @@ sealed interface LaunchGameOperation {
         val quickPlay: QuickPlay?
     ) : LaunchGameOperation
 
-    /** 当前渲染器不支持选中版本 */
+    /** 当前渲染器不支持选中版本，等待用户选择是否忽略风险继续启动 */
     data class UnsupportedRenderer(
         val renderer: RendererInterface,
-        val version: Version,
-        val quickPlay: QuickPlay?
-    ): LaunchGameOperation
+        val version: Version
+    ) : LaunchGameOperation
 
     /** 当前已加载的插件不支持选中的版本 */
     data class UnsupportedPlugins(
@@ -249,18 +246,18 @@ fun LaunchGameOperation(
             }
         }
         is LaunchGameOperation.UnsupportedRenderer -> {
-            val renderer = operation.renderer
-            val version = operation.version
-            val quickPlay = operation.quickPlay
             SimpleAlertDialog(
                 title = stringResource(R.string.generic_warning),
-                text = stringResource(R.string.renderer_version_unsupported_warning, renderer.getRendererName()),
+                text = stringResource(
+                    R.string.renderer_version_unsupported_warning,
+                    operation.renderer.getRendererName()
+                ),
                 confirmText = stringResource(R.string.generic_anyway),
                 onConfirm = {
-                    launchGameViewModel.updateOperation(LaunchGameOperation.RealLaunch(version, quickPlay))
+                    launchGameViewModel.confirmUnsupportedRenderer()
                 },
                 onDismiss = {
-                    launchGameViewModel.updateOperation(LaunchGameOperation.None)
+                    launchGameViewModel.dismissUnsupportedRenderer()
                 }
             )
         }
@@ -301,26 +298,9 @@ fun LaunchGameOperation(
                     return@LaunchedEffect
                 }
 
-                Renderers.setCurrentRenderer(version.getRenderer())
-                val currentRenderer = Renderers.getCurrentRenderer()
+                val currentRenderer = Renderers.setCurrentRenderer(version.getRenderer())
 
                 val mcVer = version.getVersionInfo()!!.minecraftVersion
-
-                // 设备完全支持 Vulkan 时跳过渲染器的版本支持检查
-                if (!version.hasVulkanBackend() || !ensureVulkanSupported(version)) {
-                    val supportedMin = currentRenderer.getMinMCVersion()?.let { verStr ->
-                        !isSfpewConfiguredFor(currentRenderer, version) && mcVer.isLowerVer(verStr)
-                    } ?: false
-                    val supportedMax = currentRenderer.getMaxMCVersion()?.let { verStr ->
-                        mcVer.isBiggerVer(verStr)
-                    } ?: false
-                    val isRendererUnsupported = supportedMin || supportedMax
-
-                    if (isRendererUnsupported) {
-                        launchGameViewModel.updateOperation(LaunchGameOperation.UnsupportedRenderer(currentRenderer, version, quickPlay))
-                        return@LaunchedEffect
-                    }
-                }
 
                 val unsupportedPlugins = NativePluginManager.getCheckedPlugins().filter { plugin ->
                     (plugin.minMCVer?.let { mcVer.isLowerVer(it) } ?: false) ||
@@ -474,7 +454,8 @@ fun LaunchGameOperation(
                     exitActivity = exitActivity,
                     submitError = submitError,
                     quickPlay = quickPlay,
-                    skipAccountRefresh = operation.skipAccountRefresh
+                    skipAccountRefresh = operation.skipAccountRefresh,
+                    ensureVulkanSupported = ensureVulkanSupported
                 )
                 launchGameViewModel.updateOperation(LaunchGameOperation.None)
             }
@@ -489,7 +470,7 @@ private fun AccountRefreshFailedDialog(
     onRetry: () -> Unit,
     onCancel: () -> Unit
 ) {
-    Dialog(
+    AppDialog(
         onDismissRequest = onCancel
     ) {
         BoxWithConstraints(
@@ -579,24 +560,32 @@ fun Background(
     val blur = LauncherSettings.backgroundBlur.state
     val opacity = LauncherSettings.launcherBackgroundOpacity.state
     val backgroundMode = LauncherSettings.backgroundBlurType.state == BackgroundBlur.Background
-    val backgroundBlurEnabled = backgroundMode && blur > 0 && opacity < 100
-    val layerCapture = !backgroundMode && blur > 0 && opacity < 100 && viewModel.isValid
+    val contentKind = when {
+        !viewModel.isValid -> BackgroundContentKind.NONE
+        viewModel.isVideo && allowVideo -> BackgroundContentKind.VIDEO
+        viewModel.isImage && viewModel.isAnimatedImage -> BackgroundContentKind.ANIMATED_IMAGE
+        viewModel.isImage -> BackgroundContentKind.STATIC_IMAGE
+        else -> BackgroundContentKind.NONE
+    }
+    val blurDecision = resolveBackgroundBlur(contentKind, blur, opacity)
+    val backgroundBlurEnabled = backgroundMode && blurDecision.enabled
+    val backgroundFrame = viewModel.blurredBackgroundFrame
     val density = LocalDensity.current
 
     Box(
         modifier = modifier
-            .then(
-                if (backgroundBlurEnabled && Build.VERSION.SDK_INT >= 31) {
-                    Modifier.blur(blur.dp)
-                } else {
-                    Modifier
-                }
-            )
             .backgroundCapture(
                 store = viewModel,
-                recordContent = layerCapture,
+                recordContent = blurDecision.captureFrames,
+                displayBlurred = backgroundBlurEnabled && blurDecision.captureFrames,
                 blurRadiusPx = blur * density.density,
-                whiteOverlayAlpha = if (backgroundBlurEnabled) whiteOverlayAlpha(blur) else 0f
+                whiteOverlayAlpha = if (
+                    backgroundBlurEnabled && backgroundFrame?.whiteOverlayApplied != true
+                ) {
+                    whiteOverlayAlpha(blur)
+                } else {
+                    0f
+                }
             )
     ) {
         if (viewModel.isValid) {
@@ -610,8 +599,8 @@ fun Background(
                     )
                 }
                 viewModel.isImage -> {
-                    val blurred = viewModel.blurredBackground
-                    if (backgroundBlurEnabled && Build.VERSION.SDK_INT < 31 && blurred != null) {
+                    val blurred = backgroundFrame?.image
+                    if (backgroundBlurEnabled && blurDecision.cacheStaticImage && blurred != null) {
                         Image(
                             bitmap = blurred,
                             contentDescription = null,
@@ -622,7 +611,8 @@ fun Background(
                         BackgroundImage(
                             modifier = Modifier.fillMaxSize(),
                             imageFile = viewModel.backgroundFile,
-                            refreshTrigger = viewModel.refreshTrigger
+                            refreshTrigger = viewModel.refreshTrigger,
+                            isAnimated = viewModel.isAnimatedImage
                         )
                     }
                 }
@@ -635,6 +625,7 @@ fun Background(
 private fun BackgroundImage(
     refreshTrigger: Any,
     imageFile: File,
+    isAnimated: Boolean,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -654,14 +645,6 @@ private fun BackgroundImage(
 
     //GIF 的动画帧由绘制 → invalidateSelf → 再绘制的自续循环推进，
     //任何一帧失效丢失都会让动画永久冻结，由帧时钟显式逐帧驱动重绘，保证循环自愈
-    val isAnimatedState = remember(refreshTrigger) { mutableStateOf(false) }
-    LaunchedEffect(refreshTrigger) {
-        isAnimatedState.value = withContext(Dispatchers.IO) {
-            imageFile.isGifFile()
-        }
-    }
-    val isAnimated = isAnimatedState.value
-
     val frameTick = remember { mutableIntStateOf(0) }
     if (isAnimated) {
         LaunchedEffect(Unit) {

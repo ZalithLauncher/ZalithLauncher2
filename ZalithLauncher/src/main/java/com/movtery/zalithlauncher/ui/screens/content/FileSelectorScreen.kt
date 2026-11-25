@@ -40,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -82,12 +83,14 @@ fun NavBackStack<TitledNavKey>.navigateToFileSelector(
     startPath: String,
     selectFile: Boolean,
     saveKey: TitledNavKey,
+    canSelect: ((path: String) -> Boolean)? = null,
     onSelected: (path: String) -> Unit
 ) = this.navigateTo(
     screenKey = NormalNavKey.FileSelector(
         startPath = startPath,
         selectFile = selectFile,
         saveKey = saveKey,
+        canSelect = canSelect,
         onSelected = onSelected
     ),
     useClassEquality = true
@@ -103,16 +106,15 @@ private sealed interface SelectorOperation {
 private fun SelectorOperation(
     operation: SelectorOperation,
     onChange: (SelectorOperation) -> Unit,
-    currentPath: String,
-    onCreatePath: (File) -> Unit,
+    onCreatePath: (name: String) -> Unit,
 ) {
     when (operation) {
         SelectorOperation.None -> {}
         SelectorOperation.CreateDir -> {
             CreateNewDirDialog(
                 onDismissRequest = { onChange(SelectorOperation.None) },
-                createDir = {
-                    onCreatePath(File(currentPath, it))
+                createDir = { name ->
+                    onCreatePath(name)
                 }
             )
         }
@@ -149,6 +151,7 @@ fun FileSelectorScreen(
     val scope = rememberCoroutineScope()
     val createDir = { dirName: String ->
         scope.launch(Dispatchers.IO) {
+            operation = SelectorOperation.None
             val newDir = File(currentPath, dirName)
             if (newDir.mkdirs()) {
                 withContext(Dispatchers.Main) {
@@ -158,12 +161,15 @@ fun FileSelectorScreen(
         }
     }
 
+    val selectEnabled by produceState(initialValue = false, currentPath) {
+        value = key.canSelect?.invoke(currentPath) ?: true
+    }
+
     SelectorOperation(
         operation = operation,
         onChange = { operation = it },
-        currentPath = currentPath,
-        onCreatePath = { newDir ->
-            createDir(newDir.name)
+        onCreatePath = { name ->
+            createDir(name)
         }
     )
 
@@ -180,6 +186,7 @@ fun FileSelectorScreen(
             LeftActionMenu(
                 isVisible = isVisible,
                 backEnabled = currentPath != key.startPath,
+                selectEnabled = selectEnabled,
                 backToParent = {
                     File(currentPath).parentFile?.let {
                         currentPath = it.absolutePath
@@ -217,6 +224,7 @@ fun FileSelectorScreen(
 private fun LeftActionMenu(
     isVisible: Boolean,
     backEnabled: Boolean,
+    selectEnabled: Boolean,
     backToParent: () -> Unit,
     selectDir: () -> Unit,
     createDir: () -> Unit,
@@ -242,6 +250,7 @@ private fun LeftActionMenu(
             MarqueeText(text = stringResource(R.string.files_create_dir))
         }
         ScalingActionButton(
+            enabled = selectEnabled,
             modifier = Modifier.fillMaxWidth(),
             onClick = selectDir
         ) {

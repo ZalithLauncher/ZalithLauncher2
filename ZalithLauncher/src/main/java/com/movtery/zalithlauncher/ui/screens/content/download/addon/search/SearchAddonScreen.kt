@@ -39,6 +39,7 @@ import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformDisplayLabel
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformFilterCode
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformSearchFilter
+import com.movtery.zalithlauncher.game.download.addon.platform.PlatformSearchData
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformSearchResult
 import com.movtery.zalithlauncher.game.download.addon.platform.navigatePage
 import com.movtery.zalithlauncher.game.download.addon.platform.nextPage
@@ -253,6 +254,7 @@ private fun rememberSearchAddonViewModel(
  * @param mapCategories 通过平台获取类别本地化信息
  * @param swapToDownload 跳转到下载详情页
  * @param installedInfo 查询项目本地是否已安装，键为平台与平台项目ID
+ * @param onQuickDownload 快捷下载，null 时不展示快捷下载入口
  * @param extraFilter 额外的过滤器UI
  */
 @Composable
@@ -272,6 +274,7 @@ fun SearchAddonScreen(
     mapCategories: (Platform, String) -> PlatformFilterCode?,
     swapToDownload: (Platform, projectId: String, iconUrl: String?) -> Unit = { _, _, _ -> },
     installedInfo: ((Platform, projectId: String) -> InstalledMod?)? = null,
+    onQuickDownload: ((PlatformSearchData) -> Unit)? = null,
     extraFilter: (LazyListScope.() -> Unit)? = null
 ) {
     val viewModel: SearchScreenViewModel = rememberSearchAddonViewModel(
@@ -309,6 +312,7 @@ fun SearchAddonScreen(
                 },
                 swapToDownload = swapToDownload,
                 installedInfo = installedInfo,
+                onQuickDownload = onQuickDownload,
                 onPreviousPage = { pageNumber ->
                     previousPage(
                         pageNumber = pageNumber,

@@ -1392,6 +1392,9 @@
     <string name="guide_main_welcome_text">Vamos dar uma olhada rápida nas funções da tela principal.</string>
     <string name="guide_main_account">Toque aqui para abrir o gerenciador de contas, onde você pode adicionar ou gerenciar suas contas do Minecraft</string>
     <string name="guide_main_version_list">Toque aqui para abrir a lista de versões, onde todas as versões do jogo que você instalar serão listadas</string>
+    <string name="guide_main_version_icon_title">Ícone da versão e atalho de configurações</string>
+    <string name="guide_main_version_icon_text">Toque aqui para abrir as configurações da versão atual e ajustar as opções específicas dela</string>
+    <string name="guide_main_version_launch">O botão de iniciar jogo à direita inicia diretamente a versão atual</string>
     <string name="guide_main_card_drag_title">Não gostou de onde o menu de ações está?</string>
     <string name="guide_main_card_drag_text">Mantenha o cartão pressionado para levantá-lo, depois arraste e solte para encaixá-lo do outro lado</string>
     <string name="guide_main_card_tip_title">Parece um pouco vazio por aqui?</string>
@@ -1442,7 +1445,7 @@
     <string name="guide_joystick_events_events_text2">Se você só quer controlar o jogo, edite os mapeamentos de teclas reais na seção “Tecla”</string>
     <string name="festivals_halloween">Feliz dia das bruxas!</string>
     <string name="festivals_valentines">Feliz Dia dos Namorados!</string>
-    <string name="launch_check_mods">Verificando mods</string>
+    <string name="launch_check_environment">Verificando o ambiente do jogo</string>
     <string name="cape_name_hero">Herói</string>
     <string name="cape_name_twisted">Torcido</string>
     <string name="cape_name_aurora">Aurora</string>

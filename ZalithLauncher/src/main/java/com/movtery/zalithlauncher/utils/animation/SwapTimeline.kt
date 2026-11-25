@@ -60,13 +60,13 @@ object SwapTimeline {
     /**
      * @return 页面切换动画是否关闭
      */
-    fun isSwapClosed(): Boolean = !LauncherSettings.launcherSwapAnimEnabled.state
+    fun isSwapClosed(): Boolean = !LauncherSettings.launcherSwapAnimEnabled.flow.value
 
     /**
      * @return 速度倍率
      */
     fun speedScale(): Float {
-        return (LauncherSettings.launcherAnimateSpeedLevel.state / 10f).coerceIn(0.1f, 3f)
+        return (LauncherSettings.launcherAnimateSpeedLevel.flow.value / 10f).coerceIn(0.1f, 3f)
     }
 
     /**

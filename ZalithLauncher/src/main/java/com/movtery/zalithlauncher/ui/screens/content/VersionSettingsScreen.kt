@@ -18,7 +18,6 @@
 
 package com.movtery.zalithlauncher.ui.screens.content
 
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -35,7 +34,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -57,6 +55,7 @@ import com.movtery.zalithlauncher.notification.NotificationManager
 import com.movtery.zalithlauncher.ui.base.BaseScreen
 import com.movtery.zalithlauncher.ui.base.VersionViewModelStoreScope
 import com.movtery.zalithlauncher.ui.components.AnimatedDirection
+import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.animated
 import com.movtery.zalithlauncher.ui.components.fadeEdge
 import com.movtery.zalithlauncher.ui.components.rememberAnimatedContext
@@ -208,10 +207,8 @@ private fun TabMenu(
                     item.icon()
                 },
                 label = {
-                    Text(
-                        modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
+                    MarqueeText(
                         text = stringResource(item.textRes),
-                        maxLines = 1,
                         style = MaterialTheme.typography.labelMedium
                     )
                 }
@@ -310,6 +307,9 @@ private fun NavigationUI(
                                 NestedNavKey.AddonInfo::class,
                                 NestedNavKey.AddonInfo(platform, projectId, PlatformClasses.MOD)
                             )
+                        },
+                        onSwapModifyVersion = {
+                            backStack.navigateOnce(NormalNavKey.Versions.ModifyVersion)
                         },
                         eventViewModel = eventViewModel,
                         submitError = submitError

@@ -91,13 +91,13 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.jakewharton.processphoenix.ProcessPhoenix
 import com.movtery.inputmap.keycodes.LwjglGlfwKeycode
+import com.movtery.zalithlauncher.BuildKeys
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.bridge.CURSOR_DISABLED
 import com.movtery.zalithlauncher.bridge.FliteTts
 import com.movtery.zalithlauncher.bridge.LoggerBridge
 import com.movtery.zalithlauncher.bridge.ZLBridge
 import com.movtery.zalithlauncher.bridge.ZLBridgeStates
-import com.movtery.zalithlauncher.coroutine.DataBridge
 import com.movtery.zalithlauncher.game.account.Account
 import com.movtery.zalithlauncher.game.input.AWTCharSender
 import com.movtery.zalithlauncher.game.input.CharacterSenderStrategy
@@ -130,9 +130,11 @@ import com.movtery.zalithlauncher.ui.control.input.HidableInputLayout
 import com.movtery.zalithlauncher.ui.control.input.InputMagnifier
 import com.movtery.zalithlauncher.ui.control.input.InputMagnifierState
 import com.movtery.zalithlauncher.ui.control.input.TextInputMode
+import com.movtery.zalithlauncher.ui.screens.EmptyLoadingScreen
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderLayer
 import com.movtery.zalithlauncher.ui.screens.game.elements.OpenFolderOperation
 import com.movtery.zalithlauncher.ui.theme.ZalithLauncherTheme
+import com.movtery.zalithlauncher.ui.theme.backgroundColor
 import com.movtery.zalithlauncher.ui.toAndroidString
 import com.movtery.zalithlauncher.utils.computeGameDisplayLayout
 import com.movtery.zalithlauncher.utils.computeGameRenderSize
@@ -146,10 +148,14 @@ import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.libsdl.app.SDLActivity
 import org.libsdl.app.SDLSurface
@@ -173,6 +179,17 @@ data class LaunchSession(
     val inputSender: CharacterSenderStrategy
 )
 
+/** 初始化状态操作流程 */
+sealed interface VMOperation {
+    /** 初始化数据中 */
+    data object Loading : VMOperation
+    /** 初始化完成，进入布局阶段 */
+    data class Layout(val session: LaunchSession) : VMOperation
+}
+
+/** 串行化进程内的重型初始化，覆盖 Activity 重建和多实例并发。 */
+private val vmInitializationMutex = Mutex()
+
 /**
  * 一些关键状态须在此存放
  */
@@ -184,8 +201,17 @@ class VMViewModel : ViewModel() {
      */
     var keyHandle = true
 
-    val screenSizeBridge = DataBridge<IntSize>()
-    var screenSize: IntSize = IntSize.Zero
+    private val _screenSize = MutableStateFlow(IntSize.Zero)
+    /** 屏幕大小 */
+    val screenSize = _screenSize.asStateFlow()
+
+    fun updateScreenSize(value: IntSize) {
+        _screenSize.value = value
+    }
+
+    suspend fun awaitValidScreenSize(): IntSize {
+        return screenSize.first { it.width > 0 && it.height > 0 }
+    }
 
     private val _onConfigurationChanged = MutableStateFlow(false)
     val onConfigurationChanged = _onConfigurationChanged.asStateFlow()
@@ -208,21 +234,26 @@ class VMViewModel : ViewModel() {
         }
     }
 
-    private var _session: LaunchSession? = null
-    val session: LaunchSession
-        get() = _session ?: error("LaunchSession not initialized")
+    private val _operation = MutableStateFlow<VMOperation>(VMOperation.Loading)
+    val operation = _operation.asStateFlow()
 
-    fun initSession(
+    val currentLayout: VMOperation.Layout?
+        get() = operation.value as? VMOperation.Layout
+
+    /**
+     * 在后台构建 Session
+     *
+     * 只有所有启动前置条件完成后，才能通过 [publishSession] 发布
+     */
+    suspend fun createSession(
         activity: VMActivity,
         bundle: Bundle,
         errorViewModel: ErrorViewModel,
         eventViewModel: EventViewModel,
         gamepadViewModel: GamepadViewModel,
         exitListener: (Int, Boolean) -> Unit,
-    ) {
-        if (_session != null) return
-
-        _session = when {
+    ): LaunchSession {
+        return when {
             bundle.getBoolean(INTENT_RUN_GAME) -> {
                 val config: LaunchConfig = bundle.getParcelableSafely(INTENT_GAME_CONFIG, LaunchConfig::class.java)
                     ?: throw IllegalStateException("No launch config has been set.")
@@ -245,6 +276,8 @@ class VMViewModel : ViewModel() {
                         }
                     }
                 )
+                // 初始化渲染器设置
+                launcher.initRendererConfig()
 
                 sender = LWJGLCharSender
 
@@ -295,6 +328,14 @@ class VMViewModel : ViewModel() {
                 )
             }
             else -> error("Unknown VM launch mode")
+        }
+    }
+
+    /** 在主线程原子发布已完全初始化的 [LaunchSession] */
+    fun publishSession(session: LaunchSession): VMOperation.Layout {
+        currentLayout?.let { return it } // 已经初始化完成了，拒绝本次发布
+        return VMOperation.Layout(session).also { layout ->
+            _operation.value = layout
         }
     }
 
@@ -407,17 +448,20 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
     /** View used to locate the layout hosting SDL's text input bridge. */
     private var gameTextureView: TextureView? = null
 
+    // 当前可用的 SurfaceTexture 及其代次，用于取消尚未执行的旧启动尝试
+    private var availableSurfaceTexture: SurfaceTexture? = null
+    private var surfaceGeneration = 0L
+    private var surfaceLaunchJob: Job? = null
+
+
+    // Loading 期间仅记录窗口状态，CallbackBridge 就绪后再统一同步
+    private var nativeWindowFocused = 0
+    private var nativeWindowHovered = 0
+
+
     private var magnifierBitmap: Bitmap? = null
     private var magnifierFrame by mutableStateOf<ImageBitmap?>(null)
     private var magnifierFrameVersion by mutableLongStateOf(0L)
-
-    private inline fun <T> withHandler(block: AbstractHandler.() -> T): T {
-        return vmViewModel.session.handler.block()
-    }
-
-    private inline fun <T> withLauncher(block: Launcher.() -> T): T {
-        return vmViewModel.session.launcher.block()
-    }
 
     private fun captureMagnifierFrame() {
         if (!vmViewModel.inputMagnifierState.isVisible) return
@@ -442,11 +486,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //加载渲染器
-        Renderers.init()
-        //加载插件
-        PluginLoader.loadAllPlugins(this, false)
-        refreshData()
 
         //初始化物理鼠标连接检查器
         PhysicalMouseChecker.initChecker(this)
@@ -455,33 +494,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         runCatching {
             //应用处于后台等受限状态时系统会拒绝启动，此时无需保活，忽略即可
             startService(Intent(this, GameService::class.java))
-        }
-
-        val bundle = intent.extras ?: throw IllegalStateException("Unknown VM launch state!")
-
-        vmViewModel.initSession(
-            activity = this,
-            bundle = bundle,
-            errorViewModel = errorViewModel,
-            eventViewModel = eventViewModel,
-            gamepadViewModel = gamepadViewModel,
-            exitListener = { exitCode: Int, isSignal: Boolean ->
-                stopAllService()
-                if (exitCode != 0) {
-                    val logPath = withLauncher {
-                        getLogFile().absolutePath
-                    }
-                    showExitMessage(this@VMActivity, exitCode, isSignal, logPath)
-                } else {
-                    //重启启动器
-                    ProcessPhoenix.triggerRebirth(this@VMActivity)
-                }
-            }
-        )
-
-        //设置画面渲染输出回调
-        CallbackBridge.setGraphicOutputListener {
-            withHandler { onGraphicOutput() }
         }
 
         window?.apply {
@@ -494,11 +506,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
 
         getSystemService(DisplayManager::class.java)?.registerDisplayListener(displayListener, null)
         applyMaxRefreshRatePolicy()
-
-        val logFile = withLauncher { getLogFile() }
-        logFile.parentFile?.mkdirs() // 换过一次日志文件路径，此处创建父目录是必要的
-        if (!logFile.exists() && !logFile.createNewFile()) throw IOException("Failed to create a new log file")
-        LoggerBridge.start(logFile.absolutePath)
 
         //错误信息展示
         lifecycleScope.launch {
@@ -544,6 +551,8 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
                     vmViewModel.disableInputMode()
                     return
                 }
+                // 真实游戏布局尚未挂载，不能发送或缓存无人接收的返回事件
+                if (vmViewModel.currentLayout == null) return
                 if (!vmViewModel.keyHandle) return
 
                 eventViewModel.sendEvent(EventViewModel.Event.Game.OnBack)
@@ -566,10 +575,10 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
                 LaunchedEffect(RendererSettings.requestMaxRefreshRate.state) {
                     applyMaxRefreshRatePolicy()
                 }
-                Screen {
-                    withHandler {
-                        ComposableLayout(vmViewModel.textInputMode)
-                    }
+
+                val operation by vmViewModel.operation.collectAsStateWithLifecycle()
+                Screen(operation = operation) { layout ->
+                    layout.session.handler.ComposableLayout(vmViewModel.textInputMode)
 
                     if (vmViewModel.textInputMode == TextInputMode.ENABLE) {
                         //输入栏控制区域
@@ -607,45 +616,151 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
                 }
             }
         }
+
+        startInitialization()
+    }
+
+    private fun startInitialization() {
+        vmViewModel.currentLayout?.let { layout ->
+            // 已有操作状态即表示初始化均已完成
+            // Activity 重建时只恢复当前实例的回调与 UI
+            configureSessionCallbacks(layout.session)
+            onSessionReady(layout)
+            return // 拒绝再次初始化
+        }
+
+        lifecycleScope.launch {
+            val (session, logFile) = withContext(Dispatchers.IO) {
+                val bundle = intent.extras ?: throw IllegalStateException("Unknown VM launch state!")
+                vmInitializationMutex.withLock {
+                    // 以下顺序存在依赖，不能并行或提前发布 Session
+                    // 加载渲染器
+                    Renderers.init()
+                    // 加载插件
+                    PluginLoader.loadAllPlugins(this@VMActivity, false)
+                    refreshData()
+
+                    val session = vmViewModel.createSession(
+                        activity = this@VMActivity,
+                        bundle = bundle,
+                        errorViewModel = errorViewModel,
+                        eventViewModel = eventViewModel,
+                        gamepadViewModel = gamepadViewModel,
+                        exitListener = ::onLauncherExit
+                    )
+
+                    val logFile = session.launcher.getLogFile()
+                    logFile.parentFile?.mkdirs() // 换过一次日志文件路径，此处创建父目录是必要的
+                    if (!logFile.exists() && !logFile.createNewFile()) {
+                        throw IOException("Failed to create a new log file")
+                    }
+
+                    // 首次触碰 CallbackBridge 会加载 native 库并创建手柄缓冲区，须在后台完成
+                    configureSessionCallbacks(session)
+                    session to logFile
+                }
+            }
+
+            ensureActive()
+
+            // LoggerBridge 的初始化必须保持在主线程
+            withContext(Dispatchers.Main) {
+                LoggerBridge.start(logFile.absolutePath)
+            }
+
+            val layout = vmViewModel.publishSession(session)
+            onSessionReady(layout)
+        }
+    }
+
+    private fun configureSessionCallbacks(session: LaunchSession) {
+        CallbackBridge.setGraphicOutputListener {
+            session.handler.onGraphicOutput()
+        }
+        CallbackBridge.setDirectGamepadEnableHandler {
+            lifecycleScope.launch(Dispatchers.Main) {
+                LoggerBridge.append("${BuildKeys.LAUNCHER_IDENTIFIER}: Direct gamepad handler enabled")
+            }
+        }
+    }
+
+    private fun onSessionReady(layout: VMOperation.Layout) {
+        refreshTaskDescription()
+        applyNativeWindowState()
+        //首次 onResume 可能发生在 Loading 期间，此时需要补齐 Handler 的恢复回调
+        if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+            layout.session.handler.onResume()
+        }
+        tryStartGame()
+    }
+
+    private fun applyNativeWindowState() {
+        if (vmViewModel.currentLayout == null) return
+        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_FOCUSED, nativeWindowFocused)
+        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_HOVERED, nativeWindowHovered)
+    }
+
+    private fun onLauncherExit(exitCode: Int, isSignal: Boolean) {
+        stopAllService()
+        if (exitCode != 0) {
+            val session = vmViewModel.currentLayout?.session
+                ?: error("LaunchSession not initialized")
+            showExitMessage(
+                this@VMActivity,
+                exitCode,
+                isSignal,
+                session.launcher.getLogFile().absolutePath
+            )
+        } else {
+            //重启启动器
+            ProcessPhoenix.triggerRebirth(this@VMActivity)
+        }
     }
 
     override fun getTaskDescriptionTitle(): String? {
-        return runCatching {
-            vmViewModel.session.activityTitle
-        }.getOrNull()
+        return vmViewModel.currentLayout?.session?.activityTitle
     }
 
     override fun onResume() {
         super.onResume()
-        withHandler { onResume() }
-        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_FOCUSED, 1)
-        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_HOVERED, 1)
+        nativeWindowFocused = 1
+        nativeWindowHovered = 1
+        vmViewModel.currentLayout?.session?.handler?.onResume()
+        applyNativeWindowState()
+        tryStartGame()
     }
 
     override fun onPause() {
         super.onPause()
-        withHandler { onPause() }
-        CallbackBridge.resetInputState()
-        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_FOCUSED, 0)
-        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_HOVERED, 0)
+        cancelPendingSurfaceLaunch()
+        nativeWindowFocused = 0
+        nativeWindowHovered = 0
+        vmViewModel.currentLayout?.session?.handler?.onPause()
+        if (vmViewModel.currentLayout != null) {
+            CallbackBridge.resetInputState()
+        }
+        applyNativeWindowState()
     }
 
     override fun onStart() {
         super.onStart()
-        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_HOVERED, 1)
+        nativeWindowHovered = 1
+        applyNativeWindowState()
     }
 
     override fun onStop() {
         super.onStop()
-        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_HOVERED, 0)
+        nativeWindowHovered = 0
+        applyNativeWindowState()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (!hasFocus) {
+        nativeWindowFocused = if (hasFocus) 1 else 0
+        if (!hasFocus && vmViewModel.currentLayout != null) {
             CallbackBridge.resetInputState()
         }
-        CallbackBridge.nativeSetWindowAttrib(LwjglGlfwKeycode.GLFW_FOCUSED, if (hasFocus) 1 else 0)
+        applyNativeWindowState()
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -664,7 +779,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
     override fun onPostResume() {
         super.onPostResume()
         if (vmViewModel.isRunning) {
-            requestRefreshWindowSize(screenSize = vmViewModel.screenSize)
+            requestRefreshWindowSize(screenSize = vmViewModel.screenSize.value)
         }
     }
 
@@ -673,7 +788,60 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
      * 自定义分辨率下游戏 Surface 不再铺满全屏，其视图尺寸不能作为参照，此时优先使用全屏布局尺寸
      */
     private fun referenceScreenSize(fallback: IntSize): IntSize {
-        return vmViewModel.screenSize.takeIf { it.width > 0 && it.height > 0 } ?: fallback
+        return vmViewModel.screenSize.value.takeIf { it.width > 0 && it.height > 0 } ?: fallback
+    }
+
+    private fun cancelPendingSurfaceLaunch() {
+        if (vmViewModel.isRunning) return
+        surfaceLaunchJob?.cancel()
+        surfaceLaunchJob = null
+    }
+
+    /**
+     * 汇合 Session、Surface、首次有效尺寸和前台状态，确保首次启动只执行一次。
+     */
+    private fun tryStartGame() {
+        if (vmViewModel.isRunning || surfaceLaunchJob?.isActive == true) return
+        val layout = vmViewModel.currentLayout ?: return
+        if (!lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) return
+        val surfaceTexture = availableSurfaceTexture ?: return
+        val generation = surfaceGeneration
+
+        surfaceLaunchJob = lifecycleScope.launch {
+            // 开始启动前获取到有效的屏幕大小
+            val screenSize = vmViewModel.awaitValidScreenSize()
+            if (!canStartGame(layout, surfaceTexture, generation)) return@launch
+
+            val currentSize = refreshWindowSize(
+                screenSize = screenSize,
+                handler = layout.session.handler
+            )
+            if (!canStartGame(layout, surfaceTexture, generation)) return@launch
+
+            // 在确认仍满足条件后，将启动视为已开始
+            // 后续 Surface 重建走复用路径
+            vmViewModel.isRunning = true
+            val surface = Surface(surfaceTexture)
+            lifecycleScope.launch(Dispatchers.Default) {
+                layout.session.handler.execute(
+                    surface = surface,
+                    screenSize = currentSize,
+                    scope = lifecycleScope
+                )
+            }
+        }
+    }
+
+    private fun canStartGame(
+        layout: VMOperation.Layout,
+        surfaceTexture: SurfaceTexture,
+        generation: Long
+    ): Boolean {
+        return !vmViewModel.isRunning &&
+                vmViewModel.currentLayout === layout &&
+                availableSurfaceTexture === surfaceTexture &&
+                surfaceGeneration == generation &&
+                lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)
     }
 
     private var lastWindowSize: IntSize? = null
@@ -684,27 +852,32 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
      */
     private fun requestRefreshWindowSize(screenSize: IntSize) {
         if (screenSize.width <= 0 || screenSize.height <= 0) return
+        if (!vmViewModel.isRunning || vmViewModel.currentLayout == null) return
+
         pendingRefreshSize = screenSize
         refreshSizeJob?.cancel()
         refreshSizeJob = lifecycleScope.launch {
             delay(50L.milliseconds)
             val size = pendingRefreshSize ?: return@launch
+            val layout = vmViewModel.currentLayout ?: return@launch
             pendingRefreshSize = null
-            refreshWindowSize(screenSize = size)
+            refreshWindowSize(
+                screenSize = size,
+                handler = layout.session.handler
+            )
         }
     }
 
     private suspend fun refreshWindowSize(
-        screenSize: IntSize
+        screenSize: IntSize,
+        handler: AbstractHandler,
     ): IntSize = withContext(Dispatchers.Main) {
-        val newSize = withHandler {
-            when (type) {
-                HandlerType.GAME -> computeGameRenderSize(screenSize)
-                HandlerType.JVM -> IntSize(
-                    getDisplayFriendlyRes(screenSize.width, 0.8f),
-                    getDisplayFriendlyRes(screenSize.height, 0.8f)
-                )
-            }
+        val newSize = when (handler.type) {
+            HandlerType.GAME -> computeGameRenderSize(screenSize)
+            HandlerType.JVM -> IntSize(
+                getDisplayFriendlyRes(screenSize.width, 0.8f),
+                getDisplayFriendlyRes(screenSize.height, 0.8f)
+            )
         }
         lastWindowSize = newSize
 
@@ -722,9 +895,12 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
     }
 
     override fun onDestroy() {
+        cancelPendingSurfaceLaunch()
+        availableSurfaceTexture = null
+        surfaceGeneration++
         getSystemService(DisplayManager::class.java)?.unregisterDisplayListener(displayListener)
         stopAllService()
-        withHandler { onDestroy() }
+        vmViewModel.currentLayout?.session?.handler?.onDestroy()
         SdlBridge.reset()
         FliteTts.shutdown()
         super.onDestroy()
@@ -740,11 +916,12 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
 
     @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val layout = vmViewModel.currentLayout ?: return super.dispatchKeyEvent(event)
         if (!vmViewModel.keyHandle) return super.dispatchKeyEvent(event)
 
         val isPressed = event.action == KeyEvent.ACTION_DOWN
 
-        val code = ControlSettings.physicalKeyImeCode.state
+        val code = ControlSettings.physicalKeyImeCode.flow.value
         if (isPressed && code != null && event.keyCode == code) {
             //用户按下了绑定呼出输入法的按键
             //开启或关闭输入法
@@ -783,15 +960,13 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
                 if (event.keyCode == KeyEvent.KEYCODE_BACK) {
                     //一些系统会将鼠标右键当成KEYCODE_BACK来处理，需要在这里进行拦截
                     //然后发送真实的鼠标右键
-                    withHandler { sendMouseRight(isPressed) }
+                    layout.session.handler.sendMouseRight(isPressed)
                     return false
                 }
             }
         }
-        withHandler {
-            if (shouldIgnoreKeyEvent(event)) {
-                return super.dispatchKeyEvent(event)
-            }
+        if (layout.session.handler.shouldIgnoreKeyEvent(event)) {
+            return super.dispatchKeyEvent(event)
         }
         return true
     }
@@ -903,45 +1078,41 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
     }
 
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+        surfaceGeneration++
+        availableSurfaceTexture = surface
+
         val nativeSurface = Surface(surface)
         gameSurface = nativeSurface
         applyMaxRefreshRatePolicy()
         SdlBridge.prepareSurface(this, nativeSurface, gameTextureView?.parent as? ViewGroup, surface)
-        //游戏请求 GLFW direct gamepad 时的通知接收方
-        CallbackBridge.setDirectGamepadEnableHandler {
-            LoggerBridge.append("ZalithLauncher: Direct gamepad handler enabled")
-        }
+
+        val layout = vmViewModel.currentLayout
         if (vmViewModel.isRunning) {
+            val runningLayout = layout ?: error("Running game without a launch session")
             ZLBridge.setupBridgeWindow(nativeSurface)
             // surface 重建后新 SurfaceTexture 的渲染 buffer 回落视图尺寸，须重新恢复渲染状态；
             // 复用分支若不重置销毁标记，后续尺寸回调会被持续阻塞，错位状态将无法自愈
-            withHandler { mIsSurfaceDestroyed = false }
+            runningLayout.session.handler.mIsSurfaceDestroyed = false
             requestRefreshWindowSize(screenSize = referenceScreenSize(fallback = IntSize(width, height)))
             return
         }
-        vmViewModel.isRunning = true
 
-        withHandler { mIsSurfaceDestroyed = false }
-        lifecycleScope.launch(Dispatchers.Default) {
-            val screenSize = vmViewModel.screenSizeBridge.awaitData()
-            val currentSize = refreshWindowSize(screenSize = screenSize)
-            withHandler {
-                execute(
-                    surface = Surface(surface),
-                    screenSize = currentSize,
-                    scope = lifecycleScope
-                )
-            }
-        }
+        layout?.session?.handler?.mIsSurfaceDestroyed = false
+        tryStartGame()
     }
 
     override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-        if (withHandler { mIsSurfaceDestroyed }) return
+        val handler = vmViewModel.currentLayout?.session?.handler ?: return
+        if (handler.mIsSurfaceDestroyed || !vmViewModel.isRunning) return
         requestRefreshWindowSize(screenSize = referenceScreenSize(fallback = IntSize(width, height)))
     }
 
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+        surfaceGeneration++
+        if (availableSurfaceTexture === surface) availableSurfaceTexture = null
         gameSurface = null
+        cancelPendingSurfaceLaunch()
+
         val nativeSurface = SDLSurface.getNativeSurface()
         if (SdlBridge.beginSurfaceDestroy(surface, nativeSurface)) {
             if (SdlBridge.sdlEnabled) {
@@ -949,7 +1120,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
             }
             SdlBridge.unregisterSurface(nativeSurface)
         }
-        withHandler { mIsSurfaceDestroyed = true }
+        vmViewModel.currentLayout?.session?.handler?.mIsSurfaceDestroyed = true
         return true
     }
 
@@ -959,10 +1130,12 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
 
     @Composable
     private fun Screen(
-        content: @Composable () -> Unit = {}
+        operation: VMOperation,
+        content: @Composable (VMOperation.Layout) -> Unit
     ) {
         val imeInsets = WindowInsets.ime
-        val inputArea by withHandler { inputArea }.collectAsStateWithLifecycle()
+        val layout = operation as? VMOperation.Layout
+        val inputArea = layout?.session?.handler?.inputArea?.collectAsStateWithLifecycle()?.value
         val density = LocalDensity.current
 
         BoxWithConstraints(
@@ -974,8 +1147,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
 
             val changed by vmViewModel.onConfigurationChanged.collectAsStateWithLifecycle()
             LaunchedEffect(screenSize, changed) {
-                vmViewModel.screenSize = screenSize
-                vmViewModel.screenSizeBridge.provideData(screenSize)
+                vmViewModel.updateScreenSize(screenSize)
                 if (changed) {
                     requestRefreshWindowSize(screenSize = screenSize)
                     vmViewModel.onConfigurationChanged(false)
@@ -983,7 +1155,7 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
             }
 
             //游戏模式下使用自定义分辨率时，游戏画面等比缩放居中显示（黑边）
-            val letterboxed = withHandler { type } == HandlerType.GAME &&
+            val letterboxed = layout?.session?.handler?.type == HandlerType.GAME &&
                     RendererSettings.resolutionRule.state == ResolutionRule.CUSTOM
             val renderSize = rememberGameRenderSize(screenSize)
             val displaySize = if (letterboxed) computeGameDisplayLayout(screenSize, renderSize).displaySize else screenSize
@@ -1025,7 +1197,16 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
                 }
             )
 
-            content()
+            when (operation) {
+                VMOperation.Loading -> {
+                    EmptyLoadingScreen(
+                        modifier = Modifier.background(backgroundColor())
+                    )
+                }
+                is VMOperation.Layout -> {
+                    content(operation)
+                }
+            }
 
             InputMagnifier(
                 inputEnabled = vmViewModel.textInputMode == TextInputMode.ENABLE,
@@ -1096,7 +1277,7 @@ private fun InputMagnifierContent(
                                     checked = ControlSettings.imeMagnifierAutoShow.state,
                                     onCheckedChange = {
                                         ControlSettings.imeMagnifierAutoShow.save(
-                                            !ControlSettings.imeMagnifierAutoShow.state
+                                            !ControlSettings.imeMagnifierAutoShow.flow.value
                                         )
                                     }
                                 )
@@ -1104,7 +1285,7 @@ private fun InputMagnifierContent(
                         },
                         onClick = {
                             ControlSettings.imeMagnifierAutoShow.save(
-                                !ControlSettings.imeMagnifierAutoShow.state
+                                !ControlSettings.imeMagnifierAutoShow.flow.value
                             )
                         }
                     )

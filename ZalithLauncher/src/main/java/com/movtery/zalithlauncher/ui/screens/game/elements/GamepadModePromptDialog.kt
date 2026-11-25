@@ -46,11 +46,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.setting.ControlSettings
 import com.movtery.zalithlauncher.setting.enums.GamepadInputMode
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
 import com.movtery.zalithlauncher.ui.theme.cardColor
 import com.movtery.zalithlauncher.ui.theme.onCardColor
@@ -65,10 +65,10 @@ fun GamepadModePromptDialog(
 ) {
     if (!visible) return
     var selected by remember {
-        mutableStateOf(ControlSettings.gamepadInputMode.state)
+        mutableStateOf(ControlSettings.gamepadInputMode.flow.value)
     }
 
-    Dialog(
+    AppDialog(
         onDismissRequest = {},
         properties = DialogProperties(
             dismissOnBackPress = false,

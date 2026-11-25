@@ -18,7 +18,6 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.elements
 
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,13 +41,14 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleEditDialog
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.utils.file.InvalidFilenameException
 import com.movtery.zalithlauncher.utils.file.checkFilenameValidity
 import com.movtery.zalithlauncher.utils.file.formatFileSize
 import com.movtery.zalithlauncher.utils.formatDate
 import org.apache.commons.io.FileUtils
 import java.io.File
-import java.util.Date
+import java.util.*
 
 @Composable
 fun BaseFileItem(
@@ -83,7 +83,7 @@ fun BaseFileItem(
                 style = MaterialTheme.typography.labelMedium
             )
             Row(
-                modifier = Modifier.basicMarquee(Int.MAX_VALUE),
+                modifier = Modifier.marquee(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 val date = Date(file.lastModified())

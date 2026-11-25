@@ -50,6 +50,8 @@ This project is licensed under the **[GPL-3.0 license](LICENSE)**.
 
 2. You must not remove the copyright notices displayed by the program. (According to [GPLv3, 7(b)](https://github.com/ZalithLauncher/ZalithLauncher2/blob/969827b/LICENSE#L368-L370))
 
+3. The User Agreement and Privacy Policy are proprietary legal documents of this project and are **not covered by the GPL-3.0 license**: they are distributed only with official builds, and modified versions must not bundle, copy, or imitate them; builds without these files will skip the agreement consent screen at startup.
+
 ## Open Source Libraries and Licenses
 
 This software uses the following open source libraries:

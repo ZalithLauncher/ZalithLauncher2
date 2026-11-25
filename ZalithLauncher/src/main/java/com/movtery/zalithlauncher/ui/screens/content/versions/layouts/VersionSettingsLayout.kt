@@ -18,7 +18,6 @@
 
 package com.movtery.zalithlauncher.ui.screens.content.versions.layouts
 
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -49,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.game.version.installed.SettingState
 import com.movtery.zalithlauncher.game.version.installed.Version
+import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.TitleAndSummary
 import com.movtery.zalithlauncher.ui.screens.content.elements.VersionIconImage
 import com.movtery.zalithlauncher.ui.screens.content.settings.layouts.CardPosition
@@ -218,17 +218,12 @@ fun VersionOverviewItem(
         Column(
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                modifier = Modifier.basicMarquee(iterations = Int.MAX_VALUE),
-                maxLines = 1,
+            MarqueeText(
                 text = versionName,
                 style = MaterialTheme.typography.labelLarge
             )
-            Text(
-                modifier = Modifier
-                    .alpha(0.7f)
-                    .basicMarquee(iterations = Int.MAX_VALUE),
-                maxLines = 1,
+            MarqueeText(
+                modifier = Modifier.alpha(0.7f),
                 text = versionSummary,
                 style = MaterialTheme.typography.labelMedium
             )

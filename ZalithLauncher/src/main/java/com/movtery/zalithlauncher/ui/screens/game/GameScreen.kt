@@ -77,6 +77,7 @@ import com.movtery.zalithlauncher.bridge.ZLNativeInvoker
 import com.movtery.zalithlauncher.game.input.LWJGLCharSender
 import com.movtery.zalithlauncher.game.keycodes.mapToKeycode
 import com.movtery.zalithlauncher.game.launch.handler.GameHandler
+import com.movtery.zalithlauncher.game.renderer.SimpleRendererInfo
 import com.movtery.zalithlauncher.game.sdl.SdlBridge
 import com.movtery.zalithlauncher.game.sdl.SdlTextSender
 import com.movtery.zalithlauncher.game.support.touch_controller.touchControllerInputModifier
@@ -89,6 +90,7 @@ import com.movtery.zalithlauncher.setting.enums.isLauncherInDarkTheme
 import com.movtery.zalithlauncher.setting.enums.toAction
 import com.movtery.zalithlauncher.terracotta.Terracotta
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
+import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MenuState
 import com.movtery.zalithlauncher.ui.components.rememberBoxSize
 import com.movtery.zalithlauncher.ui.control.MinecraftHotbar
@@ -117,12 +119,13 @@ import com.movtery.zalithlauncher.ui.screens.game.multiplayer.TerracottaOperatio
 import com.movtery.zalithlauncher.ui.screens.game.multiplayer.rememberTerracottaViewModel
 import com.movtery.zalithlauncher.ui.screens.main.control_editor.ControlEditor
 import com.movtery.zalithlauncher.utils.GameDisplayLayoutState
-import com.movtery.zalithlauncher.utils.rememberGameDisplayLayoutState
 import com.movtery.zalithlauncher.utils.logging.Logger
+import com.movtery.zalithlauncher.utils.rememberGameDisplayLayoutState
 import com.movtery.zalithlauncher.viewmodel.EditorViewModel
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.GamepadViewModel
 import com.movtery.zalithlauncher.viewmodel.sendToast
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -449,6 +452,8 @@ private class MouseScrollEvent(
                     ensureActive()
                     CallbackBridge.sendScroll(0.0, offset)
                     delay(50L.milliseconds)
+                } catch (e: CancellationException) {
+                    throw e
                 } catch (_: Exception) {
                     break
                 }
@@ -671,12 +676,13 @@ fun GameScreen(
             }
 
             //控制布局层
+            val controlsOpacity by GameUiSettings.controlsOpacity.flow.collectAsStateWithLifecycle()
             ControlBoxLayout(
                 modifier = Modifier.fillMaxSize(),
                 observedLayout = viewModel.observableLayout,
                 eventHandler = viewModel.eventHandler,
                 checkOccupiedPointers = { viewModel.occupiedPointers.contains(it) },
-                opacity = { (GameUiSettings.controlsOpacity.state.toFloat() / 100f).coerceIn(0f, 1f) },
+                opacity = { (controlsOpacity.toFloat() / 100f).coerceIn(0f, 1f) },
                 markPointerAsMoveOnly = { viewModel.moveOnlyPointers.add(it) },
                 onOccupiedPointer = { viewModel.occupiedPointers.add(it) },
                 onReleasePointer = { viewModel.occupiedPointers.remove(it) },
@@ -728,10 +734,10 @@ fun GameScreen(
         if (isGrabbing && isGyroscopeAvailable && ControlSettings.gyroscopeControl.state) {
             GyroscopeReader(
                 xEvent = { delta ->
-                    CallbackBridge.sendCursorDelta(if (ControlSettings.gyroscopeInvertX.state) -delta else delta, 0f)
+                    CallbackBridge.sendCursorDelta(if (ControlSettings.gyroscopeInvertX.flow.value) -delta else delta, 0f)
                 },
                 yEvent = { delta ->
-                    CallbackBridge.sendCursorDelta(0f, if (ControlSettings.gyroscopeInvertY.state) delta else -delta)
+                    CallbackBridge.sendCursorDelta(0f, if (ControlSettings.gyroscopeInvertY.flow.value) delta else -delta)
                 },
                 sampleRate = ControlSettings.gyroscopeSampleRate.state,
                 smoothing = ControlSettings.gyroscopeSmoothing.state,
@@ -746,6 +752,7 @@ fun GameScreen(
                 .padding(all = 16.dp),
             versionName = version.getVersionName(),
             versionInfo = version.getVersionInfo()?.getInfoString(),
+            renderer = version.rendererInfo,
             visible = showGameInfo,
             onClose = onInfoBoxClose
         )
@@ -893,6 +900,7 @@ fun GameScreen(
 private fun GameInfoBox(
     versionName: String,
     versionInfo: String?,
+    renderer: SimpleRendererInfo?,
     visible: Boolean,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
@@ -939,6 +947,22 @@ private fun GameInfoBox(
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
+                        renderer?.let {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.game_loading_renderer, it.name),
+                                    style = MaterialTheme.typography.labelLarge
+                                )
+                                if (it.isPlugin) {
+                                    LittleTextLabel(
+                                        modifier = Modifier.padding(start = 6.dp),
+                                        text = stringResource(R.string.generic_plugin)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -964,6 +988,10 @@ private fun PreviewGameInfoBox() {
         GameInfoBox(
             versionName = "1.21.11",
             versionInfo = "1.21.11",
+            renderer = SimpleRendererInfo(
+                name = "Mobile Glues",
+                isPlugin = true,
+            ),
             visible = true,
             onClose = {}
         )
@@ -1029,7 +1057,7 @@ private fun MouseControlLayout(
                 CallbackBridge.putMouseEventWithCoords(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), gamePosition.x, gamePosition.y)
             },
             onCapturedTap = {
-                if (ControlSettings.gestureControl.state) {
+                if (ControlSettings.gestureControl.flow.value) {
                     CallbackBridge.putMouseEvent(capturedTapMouseAction)
                 }
             },
@@ -1040,12 +1068,12 @@ private fun MouseControlLayout(
                 CallbackBridge.putMouseEvent(LwjglGlfwKeycode.GLFW_MOUSE_BUTTON_LEFT.toInt(), false)
             },
             onCapturedLongPress = {
-                if (ControlSettings.gestureControl.state) {
+                if (ControlSettings.gestureControl.flow.value) {
                     CallbackBridge.putMouseEvent(capturedLongPressMouseAction, true)
                 }
             },
             onCapturedLongPressEnd = {
-                if (ControlSettings.gestureControl.state) {
+                if (ControlSettings.gestureControl.flow.value) {
                     CallbackBridge.putMouseEvent(capturedLongPressMouseAction, false)
                 }
             },

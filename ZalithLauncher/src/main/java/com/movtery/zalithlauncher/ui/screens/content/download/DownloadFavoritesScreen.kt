@@ -22,15 +22,21 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
 import com.movtery.zalithlauncher.game.download.addon.platform.Platform
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.quick.toQuickDownloadRequest
 import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
 import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.QuickDownloadOperation
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.favorites.FavoritesScreen
 import com.movtery.zalithlauncher.ui.screens.onBack
 import com.movtery.zalithlauncher.ui.screens.rememberTransitionSpec
@@ -53,6 +59,14 @@ fun DownloadFavoritesScreen(
         onCurrentKeyChange(stackTopKey)
     }
 
+    var quickOperation by remember {
+        mutableStateOf<QuickDownloadOperation>(QuickDownloadOperation.None)
+    }
+    QuickDownloadOperation(
+        operation = quickOperation,
+        changeOperation = { quickOperation = it }
+    )
+
     if (backStack.isNotEmpty()) {
         NestedNavDisplay(
             ownerKey = key,
@@ -74,7 +88,12 @@ fun DownloadFavoritesScreen(
                         parentCurrentKey = downloadScreenKey,
                         screenKey = NormalNavKey.Favorites,
                         currentKey = downloadFavoritesScreenKey,
-                        swapToDownload = swapToDownload
+                        swapToDownload = swapToDownload,
+                        onQuickDownload = { entry ->
+                            entry.toQuickDownloadRequest()?.let { request ->
+                                quickOperation = QuickDownloadOperation.SelectVersion(request)
+                            }
+                        }
                     )
                 }
             }

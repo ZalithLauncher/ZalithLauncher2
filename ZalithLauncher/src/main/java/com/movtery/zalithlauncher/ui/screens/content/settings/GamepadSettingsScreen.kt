@@ -19,7 +19,6 @@
 package com.movtery.zalithlauncher.ui.screens.content.settings
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -57,6 +56,7 @@ import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleEditDialog
 import com.movtery.zalithlauncher.ui.components.animated
+import com.movtery.zalithlauncher.ui.components.marquee
 import com.movtery.zalithlauncher.ui.control.GamepadBindingKeyboard
 import com.movtery.zalithlauncher.ui.control.gamepad.GamepadMap
 import com.movtery.zalithlauncher.ui.control.gamepad.JoystickMode
@@ -439,7 +439,7 @@ BaseScreen(
                                 Row(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .basicMarquee(Int.MAX_VALUE),
+                                        .marquee(),
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     codes.forEach { code ->

@@ -22,7 +22,12 @@ class GuideScope internal constructor(
     /**
      * 所属引导流控制器，可通过 [GuideController.next] 等驱动步骤
      */
-    val controller: GuideController
+    val controller: GuideController,
+
+    /**
+     * 引导层动画配置，自定义内容应复用同一组动画参数
+     */
+    val animations: GuideAnimations,
 ) {
     /**
      * 全部锚点的包围盒

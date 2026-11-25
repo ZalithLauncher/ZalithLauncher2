@@ -285,6 +285,17 @@
     <string name="download_addon_install_progress_downloading">下载安装附加内容中\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_addon_install_progress_installing">安装附加内容中\n%s</string>
     <string name="download_addon_quick_download">快捷下载</string>
+    <string name="download_addon_quick_planning">正在准备快捷下载\n%s</string>
+    <string name="download_addon_quick_downloading">正在下载附加内容\n%1$d / %2$d 个文件（%3$s）</string>
+    <string name="download_addon_quick_installing">正在安装已下载的附加内容…</string>
+    <string name="download_addon_quick_skipped">已跳过 %d 个正在其他任务中下载的安装目标</string>
+    <string name="download_addon_quick_all_skipped">所有请求的文件都正在其他任务中下载</string>
+    <string name="download_addon_quick_no_files">没有找到可安装的兼容文件</string>
+    <string name="download_addon_quick_complete">快捷下载完成</string>
+    <string name="download_addon_quick_incomplete">快捷下载已完成，但有跳过项</string>
+    <string name="download_addon_quick_no_compatible">%1$s 没有适用于 %2$s 的兼容版本</string>
+    <string name="download_addon_quick_incompatible">可能不兼容</string>
+    <string name="download_addon_quick_unknown">兼容性未知</string>
     <string name="download_addon_install_failed">安装附加内容失败！</string>
     <string name="download_addon_dependency_no_compatible_version">依赖 %s 未找到适配的版本</string>
     <string name="download_addon_dependency_project_unavailable">依赖项目信息获取失败</string>

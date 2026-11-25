@@ -32,6 +32,14 @@ interface PlatformVersion {
     suspend fun initFile(currentProjectId: String): Boolean
 
     /**
+     * 严格初始化版本数据，供必须区分文件不可用与初始化异常的流程使用。
+     * 默认保持旧初始化行为；平台实现可覆盖此函数以传播网络、序列化等错误。
+     *
+     * @return false 仅表示文件确定不可用，而不是初始化过程中发生了错误
+     */
+    suspend fun initFileStrict(currentProjectId: String): Boolean = initFile(currentProjectId)
+
+    /**
      * 所属平台
      */
     fun platform(): Platform
@@ -65,6 +73,11 @@ interface PlatformVersion {
      * 该版本在平台上标注的支持的加载器列表
      */
     fun platformLoaders(): List<PlatformDisplayLabel>
+
+    /**
+     * 严格兼容判断使用的加载器列表。默认保持普通页面使用的加载器表示。
+     */
+    fun platformLoadersStrict(): List<PlatformDisplayLabel> = platformLoaders()
 
     /**
      * 该版本在平台上的发布类型

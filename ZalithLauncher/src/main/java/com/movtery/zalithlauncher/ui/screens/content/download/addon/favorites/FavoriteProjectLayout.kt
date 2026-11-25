@@ -90,6 +90,7 @@ fun FavoriteProjectLayout(
     val project = entry.project
     val remote = entry.remote
     val invalid = entry.invalid
+    val classes = remote?.platformClasses(project.classes) ?: project.classes
 
     val title = remote?.platformTitle() ?: project.title
     val description = remote?.platformSummary() ?: project.description
@@ -97,7 +98,7 @@ fun FavoriteProjectLayout(
     val iconUrl = remote?.platformIconUrl() ?: project.iconUrl
     val downloads = remote?.platformDownloadCount()
     val modloaders = remote?.platformModLoaders()
-    val categories: List<PlatformFilterCode>? = remote?.platformCategories(project.classes)
+    val categories: List<PlatformFilterCode>? = remote?.platformCategories(classes)
     val followsCount = remote?.platformFollows()
 
     val scale = remember { Animatable(initialValue = 0.95f) }
@@ -219,7 +220,7 @@ fun FavoriteProjectLayout(
                     )
 
                     //资源的类别
-                    ClassesIdentifier(classes = project.classes)
+                    ClassesIdentifier(classes = classes)
                 }
 
                 Row(
@@ -273,7 +274,7 @@ fun FavoriteProjectLayout(
                     }
 
                     //快捷下载
-                    if (!invalid && project.classes != PlatformClasses.MOD_PACK) {
+                    if (!invalid && classes != PlatformClasses.MOD_PACK) {
                         onQuickDownload?.let { handler ->
                             ScalingIconButton(
                                 modifier = Modifier

@@ -18,12 +18,11 @@
 
 package com.movtery.zalithlauncher.game.download.engine
 
-import com.movtery.zalithlauncher.game.download.engine.BatchDownloader.Companion.PROGRESS_INTERVAL_MS
-import com.movtery.zalithlauncher.game.download.engine.BatchDownloader.Companion.SYSTEMIC_FAILURE_LIMIT
 import com.movtery.zalithlauncher.utils.logging.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -32,7 +31,9 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withTimeout
 import java.io.IOException
+import java.net.SocketTimeoutException
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
@@ -52,7 +53,9 @@ class BatchDownloadException(summary: String, cause: Throwable? = null) : IOExce
 class BatchDownloader(
     private val requests: List<DownloadRequest>,
     private val maxConnections: Int = DEFAULT_MAX_CONNECTIONS,
-    private val retryRounds: Int = 1
+    private val retryRounds: Int = 1,
+    /** 单次文件尝试的整体超时；null 表示不额外限制，连接和读取超时仍然生效。 */
+    private val fileTimeoutMillis: Long? = null
 ) {
     val stats = DownloadStats()
 
@@ -157,11 +160,22 @@ class BatchDownloader(
         var lastError: Throwable? = null
         repeat(retryRounds + 1) {
             try {
-                FileDownloader(request, stats).download()
+                if (fileTimeoutMillis == null) {
+                    FileDownloader(request, stats).download()
+                } else {
+                    withTimeout(fileTimeoutMillis.milliseconds) {
+                        FileDownloader(request, stats).download()
+                    }
+                }
                 onFileSuccess?.invoke(request)
                 stats.markFileFinished()
                 systemicFailureCount.set(0)
                 return
+            } catch (e: TimeoutCancellationException) {
+                if (fileTimeoutMillis == null) throw e
+                lastError = SocketTimeoutException(
+                    "Download timed out after $fileTimeoutMillis ms: ${request.targetFile.absolutePath}"
+                ).apply { initCause(e) }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {

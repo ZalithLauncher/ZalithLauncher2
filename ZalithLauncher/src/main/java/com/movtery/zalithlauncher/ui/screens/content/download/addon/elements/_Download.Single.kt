@@ -465,6 +465,8 @@ fun SelectVersionListItem(
     shape: Shape = MaterialTheme.shapes.large,
     color: Color = itemColor(false),
     contentColor: Color = onItemColor(),
+    supportingText: String? = null,
+    supportingTextColor: Color = contentColor,
 ) {
     Surface(
         modifier = modifier.alpha(if (enabled) 1f else 0.5f),
@@ -495,10 +497,19 @@ fun SelectVersionListItem(
                     }
                 }
             )
-            CommonVersionInfoLayout(
-                modifier = Modifier.weight(1f),
-                version = version
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                CommonVersionInfoLayout(
+                    modifier = Modifier.fillMaxWidth(),
+                    version = version
+                )
+                supportingText?.let { text ->
+                    Text(
+                        text = text,
+                        color = supportingTextColor,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+            }
         }
     }
 }

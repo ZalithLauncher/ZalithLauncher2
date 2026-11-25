@@ -32,8 +32,8 @@ import com.movtery.zalithlauncher.game.download.addon.platform.curseforge.models
 import com.movtery.zalithlauncher.utils.file.MurmurHash2Incremental
 import com.movtery.zalithlauncher.utils.network.httpGetJson
 import com.movtery.zalithlauncher.utils.network.httpPostJson
-import io.ktor.http.Parameters
-import io.ktor.server.plugins.NotFoundException
+import io.ktor.http.*
+import io.ktor.server.plugins.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -197,7 +197,7 @@ private data class CurseForgeFingerprintsRequest(
  * @param asyncVersions 异步获取单区块的版本数据
  * @param processVersions 加工返回数据，同时需要返回当前结果实际的页面大小
  */
-private suspend fun <E, T> getAllVersions(
+suspend fun <E, T> getAllVersions(
     pageSize: Int = CURSEFORGE_MAX_PAGE_SIZE,
     chunkSize: Int = 10,
     maxConcurrent: Int = 5,
@@ -219,9 +219,12 @@ private suspend fun <E, T> getAllVersions(
 
         while (!reachedEnd) {
             //创建当前区间的任务列表
-            val jobs = (0 until chunkSize).map { offset ->
+            val jobs = (0 until chunkSize).mapNotNull { offset ->
                 val pageIndex = startPage + offset
                 val index = pageIndex * pageSize
+                if (index > CURSEFORGE_MAX_PAGINATION_RESULTS - pageSize) {
+                    return@mapNotNull null
+                }
 
                 async {
                     semaphore.withPermit {
@@ -236,6 +239,8 @@ private suspend fun <E, T> getAllVersions(
                     }
                 }
             }
+
+            if (jobs.isEmpty()) break
 
             for ((i, job) in jobs.withIndex()) {
                 val (files, realSize) = processVersions(job.await())

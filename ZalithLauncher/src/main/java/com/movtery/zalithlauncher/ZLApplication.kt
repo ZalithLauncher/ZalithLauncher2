@@ -67,9 +67,13 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
         //初始化任务保活控制器，需在任何任务开始前完成初始化
         TaskKeepAlive.initialize(this)
 
-        Thread.setDefaultUncaughtExceptionHandler { _, th ->
+        Thread.setDefaultUncaughtExceptionHandler { _, th -> 
+                        val cm = getSystemService(CLIPBOARD_SERVICE) as android.content.ClipboardManager
+            cm.setPrimaryClip(android.content.ClipData.newPlainText("ZenCrash", android.util.Log.getStackTraceString(th)))
+            
             //停止所有任务
-            TaskSystem.stopAll()
+            TaskSystem.stopAll() 
+            
 
             val throwable = if (th is SplashException) th.cause!!
             else th

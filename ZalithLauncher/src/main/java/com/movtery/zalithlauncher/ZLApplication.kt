@@ -1,24 +1,8 @@
-/*
- * Zalith Launcher 2
- * Copyright (C) 2025-2026 MovTery <movtery228@qq.com> and contributors
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/gpl-3.0.txt>.
- */
-
 package com.movtery.zalithlauncher
 
 import android.app.Application
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.res.Configuration
 import android.os.Process
 import android.util.Log
@@ -64,23 +48,20 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
         GlobalContext = this
         TLSSecurity.install()
         refreshContext(this)
-        //初始化任务保活控制器，需在任何任务开始前完成初始化
         TaskKeepAlive.initialize(this)
 
         Thread.setDefaultUncaughtExceptionHandler { _, th ->
-            //停止所有任务
+            try {
+                val cm = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                cm.setPrimaryClip(ClipData.newPlainText("ZenCrash", Log.getStackTraceString(th)))
+            } catch (_: Exception) {}
+
             TaskSystem.stopAll()
-
-            val throwable = if (th is SplashException) th.cause!!
-            else th
-
+            val throwable = if (th is SplashException) th.cause!! else th
             Logger.error("Startup", "An exception occurred", throwable)
 
-            writeCrashFile(
-                file = PathManager.FILE_CRASH_REPORT,
-                throwable = throwable
-            ) { t ->
-                Logger.error("AppCrash", "An exception occurred while saving the crash report", t)
+            writeCrashFile(file = PathManager.FILE_CRASH_REPORT, throwable = throwable) { t ->
+                Logger.error("AppCrash", "Failed saving crash report", t)
             }
 
             showLauncherCrash(this@ZLApplication, throwable, th !is SplashException)
@@ -90,27 +71,18 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
         super.onCreate()
         runCatching {
             Fishnet.init(this, PathManager.DIR_NATIVE_LOGS.absolutePath)
-
             MMKV.initialize(this)
             loadAllSettings(this)
-
             Logger.initialize(this)
-
             initializeData()
             PathManager.DIR_FILES_PRIVATE = getDir("files", MODE_PRIVATE)
             DEVICE_ARCHITECTURE = Architecture.getDeviceArchitecture()
-            //Force x86 lib directory for Asus x86 based zenfones
             if (Architecture.isx86Device() && Architecture.is32BitsDevice) {
                 val originalJNIDirectory = applicationInfo.nativeLibraryDir
                 applicationInfo.nativeLibraryDir = originalJNIDirectory.take(originalJNIDirectory.lastIndexOf("/")) + "/x86"
             }
         }.onFailure { launchTh ->
-            writeCrashFile(
-                file = PathManager.FILE_CRASH_REPORT,
-                throwable = launchTh
-            ) {
-                Log.w("ZLApplication", "An exception occurred while saving the crash report", it)
-            }
+            writeCrashFile(file = PathManager.FILE_CRASH_REPORT, throwable = launchTh) {}
             showFatalError(this, launchTh)
         }
     }
@@ -125,14 +97,14 @@ class ZLApplication : Application(), SingletonImageLoader.Factory {
             .memoryCachePolicy(CachePolicy.ENABLED)
             .memoryCache {
                 MemoryCache.Builder()
-                    .maxSizeBytes(20L * 1024 * 1024) // 20MB
-                    .weakReferencesEnabled(true) //弱引用
+                    .maxSizeBytes(20L * 1024 * 1024)
+                    .weakReferencesEnabled(true)
                     .build()
             }
             .diskCachePolicy(CachePolicy.ENABLED)
             .diskCache {
                 DiskCache.Builder()
-                    .maxSizeBytes(512L * 1024 * 1024) // 512MB
+                    .maxSizeBytes(512L * 1024 * 1024)
                     .directory(PathManager.DIR_IMAGE_CACHE.toOkioPath())
                     .build()
             }

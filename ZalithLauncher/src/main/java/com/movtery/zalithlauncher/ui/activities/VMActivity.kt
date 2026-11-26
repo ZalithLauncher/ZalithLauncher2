@@ -984,13 +984,13 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         this, flags, title, message, buttonFlags, buttonIds, buttonTexts, colors
     )
 
-    /** 游戏渲染用的 native Surface，保留引用供系统降档后重新发起刷新率请求 */
-    private var gameSurface: Surface? = null
-
-    /** 已请求的目标刷新率，0 表示未请求；DisplayListener 据此判断系统是否中途降档 */
+    /**
+     * 已请求的目标刷新率，0 表示未请求
+     * DisplayListener 据此判断当前刷新率是否低于请求档位
+     */
     private var requestedRefreshRate = 0f
 
-    /** 系统中途降档（智能刷新率/省电策略）后重新发起请求；1 秒冷却防御部分 ROM 频繁回调 */
+    /** 显示模式变化且当前刷新率低于请求档位时重新选档（如切换分辨率后，同分辨率的最高档位变了） */
     private val displayListener = object : DisplayManager.DisplayListener {
         private var lastRequestAt = 0L
 
@@ -999,9 +999,10 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         override fun onDisplayRemoved(displayId: Int) {}
 
         override fun onDisplayChanged(displayId: Int) {
-            if (SystemClock.uptimeMillis() - lastRequestAt < 1000L) return
+            if (SystemClock.uptimeMillis() - lastRequestAt < 1000L) return // 1 秒冷却防御部分 ROM 频繁回调
             val display = currentDisplay() ?: return
-            if (display.displayId != displayId ||
+            if (
+                display.displayId != displayId ||
                 requestedRefreshRate <= 0f ||
                 display.mode.refreshRate >= requestedRefreshRate - 0.1f
             ) return
@@ -1010,24 +1011,17 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         }
     }
 
-    /**
-     * 应用“请求最高刷新率”策略（设置开关，默认开）：
-     * 窗口级 preferredDisplayModeId 硬请求同分辨率下的最高刷新率档位，
-     * surface 级 setFrameRate 投票（CHANGE_FRAME_RATE_ALWAYS，非无缝切档的机型也生效）。
-     * 关闭时清除两类请求，回落系统自适应刷新。
-     */
+    /** 应用“请求最高刷新率”策略 */
     fun applyMaxRefreshRatePolicy() {
         val display = currentDisplay() ?: return
         if (!RendererSettings.requestMaxRefreshRate.getValue()) {
             requestedRefreshRate = 0f
             setPreferredDisplayModeId(0)
-            clearSurfaceFrameRate()
             return
         }
         val best = maxRefreshRateMode(display)
         requestedRefreshRate = best.refreshRate
         setPreferredDisplayModeId(best.modeId)
-        voteMaxDisplayRefreshRate()
     }
 
     /** 当前关联的 Display；API 30 前走已废弃的 getDefaultDisplay */
@@ -1047,18 +1041,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         }
     }
 
-    /** surface 级投票：请求系统将屏幕切换到设备支持的最高刷新率，避免游戏帧率被系统限制在自选的较低刷新档位 */
-    private fun voteMaxDisplayRefreshRate() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-        val surface = gameSurface ?: return
-        val display = currentDisplay() ?: return
-        surface.setFrameRate(
-            maxRefreshRateMode(display).refreshRate,
-            Surface.FRAME_RATE_COMPATIBILITY_DEFAULT,
-            Surface.CHANGE_FRAME_RATE_ALWAYS
-        )
-    }
-
     /** modeId 传 0 表示清除窗口的显示模式偏好 */
     private fun setPreferredDisplayModeId(modeId: Int) {
         val attributes = window.attributes
@@ -1067,23 +1049,11 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
         window.attributes = attributes
     }
 
-    private fun clearSurfaceFrameRate() {
-        gameSurface?.let { surface ->
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                surface.clearFrameRate()
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                surface.setFrameRate(0f, Surface.FRAME_RATE_COMPATIBILITY_DEFAULT)
-            }
-        }
-    }
-
     override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
         surfaceGeneration++
         availableSurfaceTexture = surface
 
         val nativeSurface = Surface(surface)
-        gameSurface = nativeSurface
-        applyMaxRefreshRatePolicy()
         SdlBridge.prepareSurface(this, nativeSurface, gameTextureView?.parent as? ViewGroup, surface)
 
         val layout = vmViewModel.currentLayout
@@ -1110,7 +1080,6 @@ class VMActivity : BaseAppCompatActivity(), SurfaceTextureListener {
     override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
         surfaceGeneration++
         if (availableSurfaceTexture === surface) availableSurfaceTexture = null
-        gameSurface = null
         cancelPendingSurfaceLaunch()
 
         val nativeSurface = SDLSurface.getNativeSurface()

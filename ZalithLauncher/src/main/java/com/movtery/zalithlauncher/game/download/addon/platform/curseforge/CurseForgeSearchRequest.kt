@@ -60,6 +60,14 @@ data class CurseForgeSearchRequest(
      * 转换为 GET 参数
      */
     fun toParameters(): Parameters = Parameters.build {
+        require(index >= 0) { "index must not be negative." }
+        require(pageSize in 1..CURSEFORGE_MAX_PAGE_SIZE) {
+            "pageSize must be between 1 and $CURSEFORGE_MAX_PAGE_SIZE."
+        }
+        require(index <= CURSEFORGE_MAX_PAGINATION_RESULTS - pageSize) {
+            "index + pageSize must not exceed $CURSEFORGE_MAX_PAGINATION_RESULTS."
+        }
+
         append("gameId", gameId.toString())
         append("classId", classId.toString())
         categories.mutableParameters(
@@ -76,7 +84,8 @@ data class CurseForgeSearchRequest(
             append("gameVersion", it)
         }
         modLoader?.let {
-            append("modLoaderType", it.code.toString())
+            //modLoaderType 必须搭配 gameVersion，使用列表参数后可独立筛选加载器
+            append("modLoaderTypes", "[\"${it.apiName}\"]")
         }
         append("sortField", sortField.curseforge)
         append("sortOrder", sortOrder)

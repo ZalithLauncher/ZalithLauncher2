@@ -66,6 +66,7 @@ import com.movtery.zalithlauncher.game.download.addon.platform.PlatformProject
 import com.movtery.zalithlauncher.game.download.addon.platform.UnsupportedClassesException
 import com.movtery.zalithlauncher.game.download.addon.platform.getProjectByVersion
 import com.movtery.zalithlauncher.game.download.addon.platform.isAllNull
+import com.movtery.zalithlauncher.game.download.addon.quick.toQuickDownloadRequest
 import com.movtery.zalithlauncher.game.download.addon.utils.getMcMod
 import com.movtery.zalithlauncher.game.download.addon.utils.getMcmodTitle
 import com.movtery.zalithlauncher.ui.AndroidStringText
@@ -82,14 +83,15 @@ import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.PlatformListLayout
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.ProjectUrlsContent
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.QuickDownloadOperation
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.ResultProjectLayout
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.ScreenshotItemLayout
 import com.movtery.zalithlauncher.utils.animation.getAnimateTween
 import com.movtery.zalithlauncher.utils.logging.Logger
 import com.movtery.zalithlauncher.utils.string.isEmptyOrBlank
-import io.ktor.client.plugins.ClientRequestException
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.plugins.NotFoundException
+import io.ktor.client.plugins.*
+import io.ktor.http.*
+import io.ktor.server.plugins.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -190,6 +192,14 @@ fun SearchIdScreen(
     openLink: (String) -> Unit,
     swapToDownload: (Platform, PlatformClasses, projectId: String, iconUrl: String?) -> Unit,
 ) {
+    var quickOperation by remember {
+        mutableStateOf<QuickDownloadOperation>(QuickDownloadOperation.None)
+    }
+    QuickDownloadOperation(
+        operation = quickOperation,
+        changeOperation = { quickOperation = it }
+    )
+
     BaseScreen(
         levels1 = listOf(
             Pair(NestedNavKey.Download::class.java, mainScreenKey)
@@ -203,6 +213,11 @@ fun SearchIdScreen(
             onSearch = { viewModel.search() },
             onView = { platform, classes, id, iconUrl ->
                 swapToDownload(platform, classes, id, iconUrl)
+            },
+            onQuickDownload = { project ->
+                project.toQuickDownloadRequest(viewModel.defaultClasses)?.let { request ->
+                    quickOperation = QuickDownloadOperation.SelectVersion(request)
+                }
             },
             openLink = openLink,
             operation = viewModel.operation,
@@ -222,12 +237,13 @@ private fun Content(
     defaultClasses: PlatformClasses,
     onSearch: () -> Unit,
     onView: (Platform, PlatformClasses, id: String, iconUrl: String?) -> Unit,
+    modifier: Modifier = Modifier,
+    onQuickDownload: ((PlatformProject) -> Unit)? = null,
     openLink: (String) -> Unit,
     projectId: String,
     onProjectIdChange: (String) -> Unit,
     searchPlatform: Platform,
     onPlatformChange: (Platform) -> Unit,
-    modifier: Modifier = Modifier
 ) {
     Row(
         modifier = modifier,
@@ -241,6 +257,7 @@ private fun Content(
             operation = operation,
             onReload = onSearch,
             onView = onView,
+            onQuickDownload = onQuickDownload,
             openLink = openLink,
             defaultClasses = defaultClasses,
             contentPadding = PaddingValues(start = 12.dp, top = 12.dp, bottom = 12.dp)
@@ -268,8 +285,9 @@ private fun ContentResult(
     defaultClasses: PlatformClasses,
     onReload: () -> Unit,
     onView: (Platform, PlatformClasses, id: String, iconUrl: String?) -> Unit,
-    openLink: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onQuickDownload: ((PlatformProject) -> Unit)? = null,
+    openLink: (String) -> Unit,
     contentPadding: PaddingValues = PaddingValues()
 ) {
     val ctx = rememberAnimatedContext(isVisible = isVisible)
@@ -297,6 +315,7 @@ private fun ContentResult(
                     mcmod = operation.mcMod,
                     defaultClasses = defaultClasses,
                     onView = onView,
+                    onQuickDownload = onQuickDownload,
                     openLink = openLink,
                     contentPadding = contentPadding,
                 )
@@ -357,6 +376,7 @@ private fun ResultLayout(
     project: PlatformProject,
     defaultClasses: PlatformClasses,
     onView: (Platform, PlatformClasses, id: String, iconUrl: String?) -> Unit,
+    onQuickDownload: ((PlatformProject) -> Unit)? = null,
     openLink: (String) -> Unit,
     contentPadding: PaddingValues = PaddingValues(),
 ) {
@@ -396,6 +416,9 @@ private fun ResultLayout(
 //                onFavoriteClick = {
 //                    FavoriteProjectsRepository.toggle(project, classes)
 //                },
+                onQuickDownload = if (onQuickDownload != null && classes != PlatformClasses.MOD_PACK) {
+                    { onQuickDownload(project) }
+                } else null,
                 onClick = {
                     onView(platform, classes, project.platformId(), iconUrl)
                 }

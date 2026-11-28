@@ -106,7 +106,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.graphics.createBitmap
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -137,6 +136,7 @@ import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.path.URL_MINECRAFT_PURCHASE
 import com.movtery.zalithlauncher.ui.AndroidStringText
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.BaseIconTextButton
 import com.movtery.zalithlauncher.ui.components.ButtonPosition
 import com.movtery.zalithlauncher.ui.components.IconTextButton
@@ -447,7 +447,7 @@ fun LoginMenuDialog(
     onAddAuthServer: () -> Unit,
     onDeleteAuthServer: (server: AuthServer) -> Unit,
 ) {
-    Dialog(
+    AppDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
@@ -700,7 +700,7 @@ fun MicrosoftLoginMethodDialog(
     onSystemBrowser: () -> Unit,
     onInternalBrowser: () -> Unit
 ) {
-    Dialog(
+    AppDialog(
         onDismissRequest = onDismissRequest,
     ) {
         BoxWithConstraints(
@@ -809,7 +809,7 @@ fun LocalLoginDialog(
 
     var editUUID by rememberSaveable { mutableStateOf(false) }
 
-    Dialog(
+    AppDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(decorFitsSystemWindows = false)
     ) {
@@ -1039,7 +1039,7 @@ fun OtherServerLoginDialog(
         }
     }
 
-    Dialog(
+    AppDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(decorFitsSystemWindows = false)
     ) {
@@ -1241,7 +1241,7 @@ fun OtherAccountReloginDialog(
     var password by rememberSaveable { mutableStateOf("") }
     var showPassword by rememberSaveable { mutableStateOf(false) }
 
-    Dialog(
+    AppDialog(
         onDismissRequest = { if (!logging) onDismissRequest() },
         properties = DialogProperties(decorFitsSystemWindows = false)
     ) {
@@ -1492,7 +1492,7 @@ fun ChangeSkinDialog(
         ChangeSkin.ResetSkin -> ArmModel.Classic
     }
 
-    Dialog(
+    AppDialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
             usePlatformDefaultWidth = false

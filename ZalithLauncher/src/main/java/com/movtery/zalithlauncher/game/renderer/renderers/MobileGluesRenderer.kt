@@ -247,6 +247,10 @@ object MobileGluesRenderer : ConfigurableRenderer {
 
     override fun getRendererSummary(): String = "OpenGL 4.0"
 
+    override fun getMinMCVersion(config: ResolvedRendererConfig?): String? =
+        // 关闭 SFPEW 兼容层后，1.17 之前的版本无法获得 FPE 支持
+        if (config?.sfpewLayerEnabled == false) "1.17" else null
+
     override fun getConfiguredEnv(config: ResolvedRendererConfig): Map<String, String> {
         val mgDir = File(PathManager.DIR_FILES_PRIVATE, "mobileglues")
         writeMobileGluesConfig(mgDir, config.jsonFields)

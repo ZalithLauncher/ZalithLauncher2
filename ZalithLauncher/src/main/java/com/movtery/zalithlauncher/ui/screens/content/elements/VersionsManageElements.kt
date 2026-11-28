@@ -33,7 +33,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -83,6 +82,7 @@ import com.movtery.zalithlauncher.game.version.installed.cleanup.GameAssetCleane
 import com.movtery.zalithlauncher.game.versioninfo.MinecraftVersion
 import com.movtery.zalithlauncher.setting.LauncherSettings
 import com.movtery.zalithlauncher.ui.androidText
+import com.movtery.zalithlauncher.ui.components.AppAlertDialog
 import com.movtery.zalithlauncher.ui.components.LittleTextLabel
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
@@ -623,7 +623,7 @@ fun CleanupOperation(
         is CleanupOperation.Error -> {
             val error = operation.error
             if (error is CleanFailedException) {
-                AlertDialog(
+                AppAlertDialog(
                     onDismissRequest = {},
                     title = {
                         Text(
@@ -879,6 +879,8 @@ fun CommonVersionInfoLayout(
     version: Version,
     modifier: Modifier = Modifier,
     iconSize: Dp = 34.dp,
+    horizontalSpacer: Dp = 16.dp,
+    appendContent: (@Composable () -> Unit)? = null,
 ) {
     val isValid = remember(version) { version.isValid() }
     val versionName = remember(version) { version.getVersionName() }
@@ -888,7 +890,7 @@ fun CommonVersionInfoLayout(
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp)
+        horizontalArrangement = Arrangement.spacedBy(horizontalSpacer)
     ) {
         VersionIconImage(
             modifier = Modifier.size(iconSize),
@@ -932,18 +934,22 @@ fun CommonVersionInfoLayout(
                             style = MaterialTheme.typography.labelSmall,
                         )
                         versionInfo.loaderInfos.forEach { loaderInfo ->
-                            Text(
-                                text = loaderInfo.loader.displayName,
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                            Text(
-                                text = loaderInfo.version,
-                                style = MaterialTheme.typography.labelSmall
-                            )
+                            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                                Text(
+                                    text = loaderInfo.loader.displayName,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Text(
+                                    text = loaderInfo.version,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            }
                         }
                     }
                 }
             }
+
+            appendContent?.invoke()
         }
     }
 }

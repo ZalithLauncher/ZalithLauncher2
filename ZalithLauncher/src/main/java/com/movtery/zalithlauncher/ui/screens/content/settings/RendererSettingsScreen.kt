@@ -37,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,8 +52,10 @@ import com.movtery.zalithlauncher.game.plugin.Plugin
 import com.movtery.zalithlauncher.game.plugin.driver.Driver
 import com.movtery.zalithlauncher.game.plugin.driver.DriverPluginManager
 import com.movtery.zalithlauncher.game.renderer.ConfigurableRenderer
-import com.movtery.zalithlauncher.game.renderer.RendererInterface
+import com.movtery.zalithlauncher.game.renderer.LoadedRenderer
 import com.movtery.zalithlauncher.game.renderer.Renderers
+import com.movtery.zalithlauncher.game.renderer.config.RendererConfigChanges
+import com.movtery.zalithlauncher.game.renderer.loadRenderer
 import com.movtery.zalithlauncher.game.version.installed.GraphicsApi
 import com.movtery.zalithlauncher.path.URL_CLOUD_DRIVE_DRIVER_PLUGINS
 import com.movtery.zalithlauncher.path.URL_CLOUD_RENDERER_PLUGINS
@@ -83,6 +86,8 @@ import com.movtery.zalithlauncher.utils.device.checkVulkanSupport
 import com.movtery.zalithlauncher.utils.ensureCustomResolutionInitialized
 import com.movtery.zalithlauncher.utils.getRealScreenSize
 import com.movtery.zalithlauncher.utils.isAdrenoGPU
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.movtery.zalithlauncher.viewmodel.EventViewModel
 import com.movtery.zalithlauncher.viewmodel.sendDLPlugin
 
@@ -121,6 +126,18 @@ fun RendererSettingsScreen(
                     }
                     var showConfigDialog by remember { mutableStateOf(false) }
 
+                    val configRevision = RendererConfigChanges.revision
+                    val loadedRenderers by produceState(
+                        initialValue = emptyMap(),
+                        key1 = configRevision
+                    ) {
+                        value = withContext(Dispatchers.IO) {
+                            Renderers.getRenderers().associateBy({ it.getUniqueIdentifier() }) { renderer ->
+                                loadRenderer(renderer, version = null)
+                            }
+                        }
+                    }
+
                     ListSettingsCard(
                         modifier = Modifier.fillMaxWidth(),
                         position = CardPosition.Top,
@@ -130,8 +147,10 @@ fun RendererSettingsScreen(
                         summary = stringResource(R.string.settings_renderer_global_renderer_summary),
                         getItemText = { it.getRendererName() },
                         getItemId = { it.getUniqueIdentifier() },
-                        getItemSummary = {
-                            RendererSummaryLayout(it)
+                        getItemSummary = { renderer ->
+                            loadedRenderers[renderer.getUniqueIdentifier()]?.let {
+                                RendererSummaryLayout(it)
+                            }
                         },
                         trailingIcon = {
                             if (configurableRenderer != null) {
@@ -397,33 +416,33 @@ fun RendererSettingsScreen(
 }
 
 @Composable
-fun RendererSummaryLayout(renderer: RendererInterface) {
+fun RendererSummaryLayout(renderer: LoadedRenderer) {
     FlowRow(
         modifier = Modifier.alpha(0.7f),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        with(renderer) {
+        with(renderer.renderer) {
             getRendererSummary()?.let { summary ->
                 Text(text = summary, style = MaterialTheme.typography.labelSmall)
             }
+        }
 
-            val minVer = getDisplayMinMCVersion()
-            val maxVer = getDisplayMaxMCVersion()
+        val minVer = renderer.getDisplayMinMCVersion()
+        val maxVer = renderer.getDisplayMaxMCVersion()
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                if (minVer != null || maxVer != null) {
-                    Text(text = stringResource(R.string.renderer_version_support), style = MaterialTheme.typography.labelSmall)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            if (minVer != null || maxVer != null) {
+                Text(text = stringResource(R.string.renderer_version_support), style = MaterialTheme.typography.labelSmall)
 
-                    minVer?.let {
-                        Text(text = ">= $it", style = MaterialTheme.typography.labelSmall)
-                    }
+                minVer?.let {
+                    Text(text = ">= $it", style = MaterialTheme.typography.labelSmall)
+                }
 
-                    maxVer?.let {
-                        Text(text = "<= $it", style = MaterialTheme.typography.labelSmall)
-                    }
+                maxVer?.let {
+                    Text(text = "<= $it", style = MaterialTheme.typography.labelSmall)
                 }
             }
         }

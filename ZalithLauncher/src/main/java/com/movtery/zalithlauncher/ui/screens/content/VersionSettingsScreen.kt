@@ -308,6 +308,9 @@ private fun NavigationUI(
                                 NestedNavKey.AddonInfo(platform, projectId, PlatformClasses.MOD)
                             )
                         },
+                        onSwapModifyVersion = {
+                            backStack.navigateOnce(NormalNavKey.Versions.ModifyVersion)
+                        },
                         eventViewModel = eventViewModel,
                         submitError = submitError
                     )

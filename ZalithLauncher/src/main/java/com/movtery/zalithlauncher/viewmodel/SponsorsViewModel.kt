@@ -63,7 +63,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -81,6 +80,7 @@ import com.movtery.zalithlauncher.sponsor.SponsorPlan
 import com.movtery.zalithlauncher.sponsor.SponsorPlanEffect
 import com.movtery.zalithlauncher.sponsor.SponsorPrefs
 import com.movtery.zalithlauncher.sponsor.SponsorUser
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.SponsorEffectBox
 import com.movtery.zalithlauncher.ui.components.SponsorEffectClock
 import com.movtery.zalithlauncher.ui.components.SponsorText
@@ -348,7 +348,7 @@ fun SponsorsDialog(
             val dialogBackground = cardColor(false)
             val outsideColor = onCardColor()
 
-            Dialog(
+            AppDialog(
                 onDismissRequest = viewModel::closeDialog,
                 properties = DialogProperties(usePlatformDefaultWidth = false)
             ) {
@@ -465,7 +465,7 @@ private fun LastMonthReportDialog(
     onSupportClick: () -> Unit,
     onClose: () -> Unit
 ) {
-    Dialog(
+    AppDialog(
         onDismissRequest = onClose,
         properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {

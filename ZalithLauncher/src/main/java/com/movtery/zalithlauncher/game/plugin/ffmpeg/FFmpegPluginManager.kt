@@ -20,8 +20,10 @@ package com.movtery.zalithlauncher.game.plugin.ffmpeg
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.system.Os
 import com.movtery.zalithlauncher.game.plugin.ApkPlugin
 import com.movtery.zalithlauncher.game.plugin.cacheAppIcon
+import com.movtery.zalithlauncher.path.PathManager
 import com.movtery.zalithlauncher.utils.logging.Logger
 import java.io.File
 
@@ -30,10 +32,23 @@ private const val TAG = "FFmpegPlugin"
 object FFmpegPluginManager {
     private const val PLUGIN_PACKAGE_NAME = "net.kdt.pojavlaunch.ffmpeg"
 
+    // 暴露为标准命令名的插件可执行文件
+    // 链接名 -> 插件内的实际文件名
+    private val exposedExecutables = mapOf(
+        "ffmpeg" to "libffmpeg.so",
+        "ffprobe" to "libffprobe.so"
+    )
+
     var libraryPath: String? = null
         private set
 
     var executablePath: String? = null
+        private set
+
+    /**
+     * 暴露进游戏 PATH 的目录，内含指向插件可执行文件的符号链接
+     */
+    var binPath: String? = null
         private set
 
     /**
@@ -49,6 +64,7 @@ object FFmpegPluginManager {
         context: Context,
         loaded: (ApkPlugin) -> Unit = {}
     ) {
+        binPath = null
         val manager: PackageManager = context.packageManager
         runCatching {
             val info = try {
@@ -67,6 +83,7 @@ object FFmpegPluginManager {
             isAvailable = ffmpegExecutable.exists()
 
             if (isAvailable) {
+                createPathLinks(applicationInfo.nativeLibraryDir)
                 cacheAppIcon(context, applicationInfo)
                 runCatching {
                     ApkPlugin(
@@ -78,6 +95,33 @@ object FFmpegPluginManager {
             }
         }.onFailure { e ->
             Logger.warning(TAG, "Failed to discover plugin", e)
+        }
+    }
+
+    /**
+     * 在 [PathManager.DIR_FFMPEG_BIN] 内为插件可执行文件创建标准命令名的符号链接，使其能被 PATH 检索
+     */
+    private fun createPathLinks(libDir: String) {
+        runCatching {
+            val binDir = PathManager.DIR_FFMPEG_BIN
+            exposedExecutables.forEach { (name, fileName) ->
+                val link = File(binDir, name)
+                val target = File(libDir, fileName)
+                if (!target.exists()) {
+                    link.delete()
+                    return@forEach
+                }
+                //链接缺失或已指向其他目标时重建
+                val linked = runCatching { Os.readlink(link.absolutePath) }.getOrNull()
+                if (linked != target.absolutePath) {
+                    link.delete()
+                    Os.symlink(target.absolutePath, link.absolutePath)
+                }
+            }
+            binPath = binDir.absolutePath
+        }.onFailure { e ->
+            binPath = null
+            Logger.warning(TAG, "Failed to expose plugin executables in PATH", e)
         }
     }
 }

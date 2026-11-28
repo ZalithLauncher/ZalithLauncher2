@@ -171,7 +171,7 @@
     <string name="unpack_screen_jna">讓 Minecraft 能直接呼叫作業系統的底層功能</string>
     <!--  主選單  -->
     <string name="main_launch_game">啟動遊戲</string>
-    <string name="launch_check_mods">檢查模組</string>
+    <string name="launch_check_environment">檢查遊戲環境</string>
     <string name="main_task_menu">任務選單</string>
     <!--  下載  -->
     <string name="download_category_game">遊戲</string>
@@ -1207,6 +1207,18 @@
     <string name="download_addon_install_addons_for_versions">為哪個遊戲版本安裝?</string>
     <string name="download_addon_install_progress_downloading">下載並安裝附加內容\n%1$s\n (%2$s / %3$s)</string>
     <string name="download_addon_install_progress_installing">安裝附加內容\n%s</string>
+    <string name="download_addon_quick_download">快捷下載</string>
+    <string name="download_addon_quick_planning">正在準備快捷下載\n%s</string>
+    <string name="download_addon_quick_downloading">正在下載附加內容\n%1$d / %2$d 個檔案（%3$s）</string>
+    <string name="download_addon_quick_installing">正在安裝已下載的附加內容…</string>
+    <string name="download_addon_quick_skipped">已跳過 %d 個正在其他任務中下載的安裝目標</string>
+    <string name="download_addon_quick_all_skipped">所有請求的檔案都正在其他任務中下載</string>
+    <string name="download_addon_quick_no_files">找不到可安裝的相容檔案</string>
+    <string name="download_addon_quick_complete">快捷下載完成</string>
+    <string name="download_addon_quick_incomplete">快捷下載已完成，但有跳過項目</string>
+    <string name="download_addon_quick_no_compatible">%1$s 沒有適用於 %2$s 的相容版本</string>
+    <string name="download_addon_quick_incompatible">可能不相容</string>
+    <string name="download_addon_quick_unknown">相容性未知</string>
     <string name="download_addon_install_failed">安裝附加內容失敗!</string>
     <string name="download_addon_dependency_no_compatible_version">依賴 %s 未找到適配的版本</string>
     <string name="download_addon_dependency_project_unavailable">無法取得依賴專案資訊</string>

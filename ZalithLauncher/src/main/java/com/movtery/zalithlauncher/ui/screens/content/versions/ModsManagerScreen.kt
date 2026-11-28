@@ -588,6 +588,7 @@ fun ModsManagerScreen(
     backToMainScreen: () -> Unit,
     swapToDownload: () -> Unit,
     onSwapMoreInfo: (id: String, Platform) -> Unit,
+    onSwapModifyVersion: () -> Unit,
     eventViewModel: EventViewModel,
     submitError: (ErrorViewModel.ThrowableMessage) -> Unit
 ) {
@@ -801,6 +802,7 @@ fun ModsManagerScreen(
                                     }
                                 },
                                 onSwapMoreInfo = onSwapMoreInfo,
+                                onSwapModifyVersion = onSwapModifyVersion,
                                 onDelete = { mod ->
                                     modsOperation = ModsOperation.Delete(mod.localMod)
                                 }
@@ -1083,6 +1085,7 @@ private fun ModsList(
     onEnable: (RemoteMod) -> Unit,
     onDisable: (RemoteMod) -> Unit,
     onSwapMoreInfo: (id: String, Platform) -> Unit,
+    onSwapModifyVersion: () -> Unit,
     onDelete: (RemoteMod) -> Unit
 ) {
     Box(
@@ -1104,7 +1107,8 @@ private fun ModsList(
             if (!hasModLoader) {
                 item(key = "warning_no_modloader") {
                     WarningItem(
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        onClick = onSwapModifyVersion,
                     ) {
                         Text(
                             text = stringResource(R.string.mods_manage_no_loader),
@@ -1441,6 +1445,7 @@ private fun WarningItem(
     itemColor: Color = itemColor(),
     itemContentColor: Color = onItemColor(),
     shape: Shape = MaterialTheme.shapes.large,
+    onClick: () -> Unit = {},
     content: @Composable ColumnScope.() -> Unit
 ) {
     val scale = remember { Animatable(initialValue = 0.95f) }
@@ -1449,9 +1454,8 @@ private fun WarningItem(
     }
 
     Surface(
-        modifier = modifier
-            .graphicsLayer(scaleY = scale.value, scaleX = scale.value),
-        onClick = {},
+        modifier = modifier.graphicsLayer(scaleY = scale.value, scaleX = scale.value),
+        onClick = onClick,
         shape = shape,
         color = itemColor,
         contentColor = itemContentColor,
@@ -1479,6 +1483,12 @@ private fun WarningItem(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 content = content
+            )
+
+            Icon(
+                modifier = Modifier.size(34.dp),
+                painter = painterResource(R.drawable.ic_arrow_right_rounded),
+                contentDescription = stringResource(R.string.versions_modify_select_mc)
             )
         }
     }

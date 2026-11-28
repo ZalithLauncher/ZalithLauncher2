@@ -306,7 +306,7 @@
     <!-- Launch button on the home screen; also the title of the final launch step -->
     <string name="main_launch_game">Launch</string>
     <!-- Title of the launch step that scans the installed mods -->
-    <string name="launch_check_mods">Checking mods</string>
+    <string name="launch_check_environment">Checking game environment</string>
     <!-- Title of the side panel listing running download and install tasks -->
     <string name="main_task_menu">Task Menu</string>
     <!-- Category on the download page that opens the game version downloads -->
@@ -499,6 +499,30 @@
     <string name="download_addon_install_progress_downloading">Downloading and installing addons\n%1$s\n (%2$s / %3$s)</string>
     <!-- Progress text while the downloaded file is copied into the game folders; %s is the file name -->
     <string name="download_addon_install_progress_installing">Installing addons\n%s</string>
+    <!-- Content description of the quick download button on addon project cards -->
+    <string name="download_addon_quick_download">Quick download</string>
+    <!-- Progress text while resolving the selected project and required dependencies; %s is the current project -->
+    <string name="download_addon_quick_planning">Preparing quick download\n%s</string>
+    <!-- Aggregate download progress; file counts and downloaded bytes -->
+    <string name="download_addon_quick_downloading">Downloading addons\n%1$d / %2$d files (%3$s)</string>
+    <!-- Progress text after every file has downloaded, while installing -->
+    <string name="download_addon_quick_installing">Installing downloaded addons…</string>
+    <!-- Number of install targets skipped because another quick task is already downloading them -->
+    <string name="download_addon_quick_skipped">Skipped %d in-flight install targets</string>
+    <!-- Completion text when every requested item is already in flight -->
+    <string name="download_addon_quick_all_skipped">All requested files are already being downloaded</string>
+    <!-- Completion text when planning found no compatible file for any selected game version -->
+    <string name="download_addon_quick_no_files">No compatible files were available to install</string>
+    <!-- Successful completion of a quick addon download -->
+    <string name="download_addon_quick_complete">Quick download completed</string>
+    <!-- Title of the summary shown after compatible files install but some targets were skipped -->
+    <string name="download_addon_quick_incomplete">Quick download finished with skipped items</string>
+    <!-- Skipped item summary; %1$s is the project title, %2$s is the list of installed game versions -->
+    <string name="download_addon_quick_no_compatible">No compatible version was found for %1$s on %2$s</string>
+    <!-- Summary metadata does not match the selected installed game version -->
+    <string name="download_addon_quick_incompatible">May be incompatible</string>
+    <!-- Summary metadata is insufficient to estimate compatibility -->
+    <string name="download_addon_quick_unknown">Compatibility unknown</string>
     <!-- Title of the error notification when downloading or installing an addon fails -->
     <string name="download_addon_install_failed">Failed to install addons!</string>
     <!-- Error line for a dependency without a compatible version; %s is the project title -->

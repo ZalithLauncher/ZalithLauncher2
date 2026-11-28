@@ -33,6 +33,7 @@ import androidx.navigation3.runtime.entryProvider
 import com.movtery.zalithlauncher.game.download.addon.downloadDependenciesForVersions
 import com.movtery.zalithlauncher.game.download.addon.downloadSingleForVersions
 import com.movtery.zalithlauncher.game.download.addon.platform.PlatformClasses
+import com.movtery.zalithlauncher.game.download.addon.quick.toQuickDownloadRequest
 import com.movtery.zalithlauncher.game.version.saves.unpackSaveZip
 import com.movtery.zalithlauncher.ui.screens.NestedNavDisplay
 import com.movtery.zalithlauncher.ui.screens.NestedNavKey
@@ -40,6 +41,7 @@ import com.movtery.zalithlauncher.ui.screens.NormalNavKey
 import com.movtery.zalithlauncher.ui.screens.TitledNavKey
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.download.DownloadAddonScreen
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.DownloadSingleOperation
+import com.movtery.zalithlauncher.ui.screens.content.download.addon.elements.QuickDownloadOperation
 import com.movtery.zalithlauncher.ui.screens.content.download.addon.search.SearchSavesScreen
 import com.movtery.zalithlauncher.ui.screens.navigateTo
 import com.movtery.zalithlauncher.ui.screens.onBack
@@ -109,6 +111,15 @@ fun DownloadSavesScreen(
         }
     )
 
+    var quickOperation by remember {
+        mutableStateOf<QuickDownloadOperation>(QuickDownloadOperation.None)
+    }
+    QuickDownloadOperation(
+        operation = quickOperation,
+        changeOperation = { quickOperation = it },
+        submitError = submitError
+    )
+
     if (backStack.isNotEmpty()) {
         NestedNavDisplay(
             ownerKey = key,
@@ -128,12 +139,18 @@ fun DownloadSavesScreen(
                         mainScreenKey = mainScreenKey,
                         downloadScreenKey = downloadScreenKey,
                         downloadSavesScreenKey = key,
-                        downloadSavesScreenCurrentKey = downloadSavesScreenKey
-                    ) { platform, projectId, _ ->
-                        backStack.navigateTo(
-                            NormalNavKey.DownloadAddon(platform, projectId, PlatformClasses.SAVES)
-                        )
-                    }
+                        downloadSavesScreenCurrentKey = downloadSavesScreenKey,
+                        swapToDownload = { platform, projectId, _ ->
+                            backStack.navigateTo(
+                                NormalNavKey.DownloadAddon(platform, projectId, PlatformClasses.SAVES)
+                            )
+                        },
+                        onQuickDownload = { data ->
+                            data.toQuickDownloadRequest(PlatformClasses.SAVES)?.let { request ->
+                                quickOperation = QuickDownloadOperation.SelectVersion(request)
+                            }
+                        },
+                    )
                 }
                 entry<NormalNavKey.DownloadAddon> { addonKey ->
                     DownloadAddonScreen(

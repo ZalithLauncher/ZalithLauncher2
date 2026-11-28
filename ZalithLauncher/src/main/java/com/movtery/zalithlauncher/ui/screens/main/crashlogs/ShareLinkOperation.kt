@@ -20,7 +20,6 @@ package com.movtery.zalithlauncher.ui.screens.main.crashlogs
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.crashlogs.LinkNotFoundException
+import com.movtery.zalithlauncher.ui.components.AppAlertDialog
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.utils.string.getMessageOrToString
 
@@ -70,7 +70,7 @@ fun ShareLinkOperation(
             )
         }
         is ShareLinkOperation.Uploading -> {
-            AlertDialog(
+            AppAlertDialog(
                 onDismissRequest = {},
                 title = {
                     Text(

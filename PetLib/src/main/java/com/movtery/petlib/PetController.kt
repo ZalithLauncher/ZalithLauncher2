@@ -171,6 +171,14 @@ class PetController(
     }
 
     /**
+     * 旧固定机位的相对摄像机距离
+     * @param distance 1 为原始取景，值越大模型越小
+     */
+    fun setCameraDistance(@FloatRange(from = 0.001) distance: Float) {
+        post { PetLibNative.nativeSetCameraDistance(ptr, distance) }
+    }
+
+    /**
      * 是否开启双层皮肤
      */
     fun setOuterLayer(enabled: Boolean) {
@@ -249,7 +257,7 @@ class PetController(
         }
     }
 
-    /** 查询当前偏航角，结果异步回到调用方的回调 */
+    /** 查询当前偏航角 */
     fun getModelYaw(onResult: (Float) -> Unit) {
         post { onResult(PetLibNative.nativeGetYaw(ptr)) }
     }

@@ -68,7 +68,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.movtery.zalithlauncher.R
@@ -82,6 +81,7 @@ import com.movtery.zalithlauncher.game.download.addon.platform.PlatformVersion
 import com.movtery.zalithlauncher.game.download.addon.platform.cacheKey
 import com.movtery.zalithlauncher.game.version.installed.Version
 import com.movtery.zalithlauncher.game.version.installed.VersionsManager
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.SimpleAlertDialog
 import com.movtery.zalithlauncher.ui.components.fadeEdge
@@ -194,7 +194,7 @@ fun DownloadSingleOperation(
 }
 
 @Composable
-private fun rememberValidVersions(): State<List<Version>> {
+fun rememberValidVersions(): State<List<Version>> {
     val vers by VersionsManager.versions.collectAsStateWithLifecycle()
     return remember(vers) {
         derivedStateOf {
@@ -261,7 +261,7 @@ private fun DownloadDialog(
             )
         }
 
-        Dialog(
+        AppDialog(
             onDismissRequest = onDismiss,
             properties = DialogProperties(
                 usePlatformDefaultWidth = false
@@ -455,21 +455,25 @@ private fun ChoseGameVersionLayout(
 }
 
 @Composable
-private fun SelectVersionListItem(
+fun SelectVersionListItem(
     modifier: Modifier = Modifier,
     version: Version,
     checked: Boolean,
+    enabled: Boolean = true,
     onChose: () -> Unit,
     onCancel: () -> Unit,
     shape: Shape = MaterialTheme.shapes.large,
     color: Color = itemColor(false),
     contentColor: Color = onItemColor(),
+    supportingText: String? = null,
+    supportingTextColor: Color = contentColor,
 ) {
     Surface(
-        modifier = modifier,
+        modifier = modifier.alpha(if (enabled) 1f else 0.5f),
         shape = shape,
         color = color,
         contentColor = contentColor,
+        enabled = enabled,
         onClick = {
             if (checked) {
                 onCancel()
@@ -479,11 +483,12 @@ private fun SelectVersionListItem(
         }
     ) {
         Row(
-            modifier = modifier.padding(vertical = 8.dp),
+            modifier = modifier.padding(horizontal = 4.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
                 checked = checked,
+                enabled = enabled,
                 onCheckedChange = {
                     if (it) {
                         onChose()
@@ -492,10 +497,23 @@ private fun SelectVersionListItem(
                     }
                 }
             )
-            CommonVersionInfoLayout(
-                modifier = Modifier.weight(1f),
-                version = version
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                CommonVersionInfoLayout(
+                    modifier = Modifier.fillMaxWidth(),
+                    version = version,
+                    iconSize = 38.dp,
+                    horizontalSpacer = 12.dp,
+                    appendContent = supportingText?.let { text ->
+                        @Composable {
+                            Text(
+                                text = text,
+                                color = supportingTextColor,
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    }
+                )
+            }
         }
     }
 }
@@ -709,6 +727,7 @@ private fun AddonVersionDependencyItem(
                         // 作者
                         authors?.let {
                             Row(
+                                modifier = Modifier.weight(1f, fill = false),
                                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {

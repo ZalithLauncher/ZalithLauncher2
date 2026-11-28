@@ -63,12 +63,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.movtery.zalithlauncher.R
 import com.movtery.zalithlauncher.terracotta.TerracottaState
 import com.movtery.zalithlauncher.terracotta.profile.TerracottaProfile
 import com.movtery.zalithlauncher.ui.AndroidStringText
+import com.movtery.zalithlauncher.ui.components.AppDialog
 import com.movtery.zalithlauncher.ui.components.BackgroundCard
 import com.movtery.zalithlauncher.ui.components.MarqueeText
 import com.movtery.zalithlauncher.ui.components.rememberDialogMaxHeight
@@ -121,7 +121,7 @@ fun MultiplayerDialog(
     onBack: () -> Unit,
     onShowToast: (AndroidStringText) -> Unit = {}
 ) {
-    Dialog(
+    AppDialog(
         onDismissRequest = {},
         properties = DialogProperties(
             usePlatformDefaultWidth = false,

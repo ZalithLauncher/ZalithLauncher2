@@ -305,14 +305,16 @@ private fun AccountAvatarRow(
     ) {
         if (account != null) {
             PlayerFace(
-                modifier = Modifier.padding(start = 4.dp),
+                modifier = Modifier.padding(horizontal = 4.dp),
                 account = account,
                 avatarSize = avatarSize,
                 refreshKey = refreshKey
             )
         } else {
             Icon(
-                modifier = Modifier.size(placeholderSize),
+                modifier = Modifier
+                    .padding(start = 8.dp, end = 4.dp, top = 2.dp, bottom = 2.dp)
+                    .size(placeholderSize),
                 painter = painterResource(R.drawable.ic_add),
                 contentDescription = null
             )
@@ -513,9 +515,12 @@ private fun PetModelContent(
 
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     // 偏航角符号与停泊侧相反，让模型面向屏幕内容一侧
-    val yaw = Math.toRadians(
-        ((if (dockedSide == ActionMenuSide.START) 35.0 else -(35.0)) * (if (isRtl) -1 else 1))
-    ).toFloat()
+    val (yaw, lightAzimuth) = remember(dockedSide, isRtl) {
+        fun sum(base: Float): Float {
+            return ((if (dockedSide == ActionMenuSide.START) base else -base) * (if (isRtl) -1 else 1))
+        }
+        Math.toRadians(sum(35f).toDouble()).toFloat() to sum(20f)
+    }
 
     val armModel = account?.skinModelType?.toArmModel()
     val skinStamp = account?.getSkinFile()?.lastModified()
@@ -539,6 +544,7 @@ private fun PetModelContent(
         cape = capeBytes,
         arm = armModel,
         yaw = yaw,
+        lightAzimuth = lightAzimuth,
         animation = PetAnimation.Idle,
         tapReaction = PetTapReaction.Interact,
         dragYaw = false
@@ -603,7 +609,7 @@ private fun ActionMenuContent(
                 AccountAvatarRow(
                     modifier = Modifier.fillMaxWidth(),
                     avatarSize = 38.dp,
-                    placeholderSize = 32.dp,
+                    placeholderSize = 34.dp,
                     textSpacer = 0.dp,
                 )
             }

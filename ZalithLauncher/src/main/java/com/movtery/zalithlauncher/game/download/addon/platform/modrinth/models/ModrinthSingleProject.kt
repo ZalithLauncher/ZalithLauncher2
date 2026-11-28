@@ -31,7 +31,7 @@ import kotlinx.serialization.Serializable
 class ModrinthSingleProject(
     /** 项目简洁字符串标识符 */
     @SerialName("slug")
-    val slug: String,
+    val slug: String? = null,
 
     /** 项目的标题或名称 */
     @SerialName("title")
@@ -52,6 +52,10 @@ class ModrinthSingleProject(
     /** 项目的服务器端支持 */
     @SerialName("server_side")
     val serverSide: ModrinthSide,
+
+    /** 项目所有版本支持的环境，替代按客户端、服务端分别判断的旧字段 */
+    @SerialName("environment")
+    val environment: Array<String> = emptyArray(),
 
     /** 项目的长篇描述 */
     @SerialName("body")
@@ -87,7 +91,7 @@ class ModrinthSingleProject(
 
     /** 该项目的捐赠链接列表 */
     @SerialName("donation_urls")
-    val donationUrls: Array<DonationUrl>,
+    val donationUrls: Array<DonationUrl>? = null,
 
     /** 项目的项目类型 */
     @SerialName("project_type")
@@ -100,6 +104,10 @@ class ModrinthSingleProject(
     /** 项目图标的 URL */
     @SerialName("icon_url")
     val iconUrl: String? = null,
+
+    /** 未经 CDN 转换的项目图标 URL */
+    @SerialName("raw_icon_url")
+    val rawIconUrl: String? = null,
 
     /** 项目的 RGB 颜色，从项目图标提取 */
     @SerialName("color")
@@ -176,15 +184,15 @@ class ModrinthSingleProject(
     class DonationUrl(
         /** 捐赠平台的 ID */
         @SerialName("id")
-        val id: String,
+        val id: String? = null,
 
         /** 此链接指向的捐赠平台 */
         @SerialName("platform")
-        val platform: String,
+        val platform: String? = null,
 
         /** 捐赠平台和用户的 URL */
         @SerialName("url")
-        val url: String,
+        val url: String? = null,
     )
 
     @Serializable
@@ -202,11 +210,11 @@ class ModrinthSingleProject(
     class License(
         /** 项目的 SPDX 许可证 ID */
         @SerialName("id")
-        val id: String,
+        val id: String? = null,
 
         /** 许可证的长名称 */
         @SerialName("name")
-        val name: String,
+        val name: String? = null,
 
         /** 此许可证的 URL */
         @SerialName("url")
@@ -237,7 +245,7 @@ class ModrinthSingleProject(
 
         /** 图库图像的顺序 */
         @SerialName("ordering")
-        val ordering: Int
+        val ordering: Int? = null
     )
 
     override fun platform(): Platform = Platform.MODRINTH
@@ -248,7 +256,7 @@ class ModrinthSingleProject(
         return projectType.mapModrinthType()?.platform ?: defaultClasses
     }
 
-    override fun platformSlug(): String = slug
+    override fun platformSlug(): String = slug ?: id
 
     override fun platformIconUrl(): String? = iconUrl
 
@@ -288,7 +296,7 @@ class ModrinthSingleProject(
     override fun platformUrls(defaultClasses: PlatformClasses): PlatformProject.Urls {
         val classes = projectType.mapModrinthType()?.platform ?: defaultClasses
         return PlatformProject.Urls(
-            projectUrl = "https://modrinth.com/${classes.modrinth!!.facetValue()}/${slug}",
+            projectUrl = "https://modrinth.com/${classes.modrinth!!.facetValue()}/${slug ?: id}",
             sourceUrl = sourceUrl,
             issuesUrl = issuesUrl,
             wikiUrl = wikiUrl

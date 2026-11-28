@@ -49,7 +49,7 @@ object DriverPluginManager: ApkPluginManager() {
                 id = RendererSettings.vulkanDriver.defaultValue,
                 appName = "",
                 appVersion = "",
-                name = "Turnip",
+                name = "Turnip 24.3.4",
                 path = applicationInfo.nativeLibraryDir,
                 isLauncher = true
             )

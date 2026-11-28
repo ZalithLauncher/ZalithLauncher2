@@ -17,6 +17,7 @@ LOCAL_LDLIBS := -ldl -llog -landroid
 LOCAL_MODULE := pojavexec
 LOCAL_SHARED_LIBRARIES := driver_helper
 LOCAL_CFLAGS += -rdynamic
+LOCAL_C_INCLUDES := $(LOCAL_PATH)
 LOCAL_SRC_FILES := \
     bigcoreaffinity.c \
     egl_bridge.c \
@@ -28,6 +29,8 @@ LOCAL_SRC_FILES := \
     ctxbridges/swap_interval_no_egl.c \
     ctxbridges/virgl_bridge.c \
     environ/environ.c \
+    glfw/event_wait.c \
+    glfw/glfw_event_wait.c \
     logger/logger.c \
     input_bridge_v3.c \
     jre_launcher.c \
